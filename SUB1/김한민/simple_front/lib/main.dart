@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'src/features/auth/presentation/pages/login_page.dart';
+import 'src/core/router/router.dart';
+import 'src/core/constants/app_strings.dart';
+import 'src/core/theme/app_colors.dart';
 
 void main() {
   runApp(
@@ -10,19 +12,23 @@ void main() {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(routerProvider);
+
+    return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      title: 'SIMPLE',
+      title: AppStrings.appName,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFA3D80D)),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.mainColor,
+        ),
         useMaterial3: true,
       ),
-      home: const LoginPage(),
+      routerConfig: router,
     );
   }
 }

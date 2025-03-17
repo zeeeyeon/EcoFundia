@@ -1,30 +1,38 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/social_login_button.dart';
-import '../../../main/presentation/pages/main_page.dart';
-import '../../domain/models/google_sign_in_result.dart';
 import '../providers/auth_provider.dart';
-import 'sign_up_page.dart';
 
 class LoginPage extends ConsumerWidget {
   const LoginPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.listen<AsyncValue<GoogleSignInResult?>>(authStateProvider,
-        (previous, next) {
-      next.whenOrNull(
-        error: (error, stackTrace) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(error.toString())),
-          );
-        },
-      );
-    });
+    final authState = ref.watch(authProvider);
+
+    // 에러 발생 시 스낵바 표시
+    if (authState.error != null) {
+      Future.microtask(() {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(authState.error!)),
+        );
+        ref.read(authProvider.notifier).clearError();
+      });
+    }
+
+    // 이미 로그인되어 있으면 홈으로 이동
+    if (authState.isLoggedIn) {
+      Future.microtask(() => context.go('/'));
+    }
+
+    // 신규 사용자면 회원가입 페이지로 이동
+    if (authState.isNewUser) {
+      Future.microtask(() => context.go('/signup'));
+    }
 
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -45,40 +53,17 @@ class LoginPage extends ConsumerWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    SocialLoginButton(
-                      text: AppStrings.signUpWithGoogle,
-                      iconPath: 'assets/images/google.png',
-                      backgroundColor: AppColors.white,
-                      onPressed: () async {
-                        try {
-                          final result = await ref
-                              .read(authStateProvider.notifier)
-                              .signInWithGoogle();
-
-                          if (context.mounted) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => SignUpPage(
-                                  accessToken: result.accessToken,
-                                  serverAuthCode: result.serverAuthCode,
-                                  email: result.email ?? '',
-                                  name: result.name,
-                                ),
-                              ),
-                            );
-                          }
-                        } catch (e) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(e.toString()),
-                              ),
-                            );
-                          }
-                        }
-                      },
-                    ),
+                    if (authState.isLoading)
+                      const CircularProgressIndicator()
+                    else
+                      SocialLoginButton(
+                        text: AppStrings.signUpWithGoogle,
+                        iconPath: 'assets/images/google.png',
+                        backgroundColor: AppColors.white,
+                        onPressed: () {
+                          ref.read(authProvider.notifier).signInWithGoogle();
+                        },
+                      ),
                     const SizedBox(height: 16),
                     SocialLoginButton(
                       text: AppStrings.signUpWithApple,
@@ -93,6 +78,18 @@ class LoginPage extends ConsumerWidget {
                 ),
               ),
               const Spacer(flex: 1),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                child: Text(
+                  '로그인 시 이용약관 및 개인정보 처리방침에 동의하게 됩니다.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
             ],
           ),
         ),

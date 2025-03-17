@@ -24,20 +24,36 @@ class SignUpPage extends StatefulWidget {
 class _SignUpPageState extends State<SignUpPage> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nicknameController;
-  late final TextEditingController _emailController;
+  late final TextEditingController _birthdateController;
+  String? _selectedGender; // ✅ 성별 선택 상태 추가
 
   @override
   void initState() {
     super.initState();
     _nicknameController = TextEditingController(text: widget.name);
-    _emailController = TextEditingController(text: widget.email);
+    _birthdateController = TextEditingController();
   }
 
   @override
   void dispose() {
     _nicknameController.dispose();
-    _emailController.dispose();
+    _birthdateController.dispose();
     super.dispose();
+  }
+
+  void _selectDate() async {
+    DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime(2000, 1, 1),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (pickedDate != null) {
+      setState(() {
+        _birthdateController.text =
+            "${pickedDate.year}-${pickedDate.month}-${pickedDate.day}";
+      });
+    }
   }
 
   @override
@@ -45,65 +61,86 @@ class _SignUpPageState extends State<SignUpPage> {
     return Scaffold(
       backgroundColor: AppColors.white,
       appBar: AppBar(
-        title: const Text(AppStrings.signUpTitle),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.darkGrey),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Form(
             key: _formKey,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                /// 🔹 로고
                 Text(
-                  AppStrings.welcome,
-                  style: AppTextStyles.logo.copyWith(
-                    fontSize: 32,
-                  ),
+                  'SIMPLE',
+                  style: AppTextStyles.logo.copyWith(fontSize: 32),
+                  textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  AppStrings.signUpDescription,
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
+
+                /// 🔹 닉네임 입력
                 TextFormField(
                   controller: _nicknameController,
                   decoration: const InputDecoration(
-                    labelText: AppStrings.nickname,
-                    hintText: AppStrings.nicknameHint,
-                    border: OutlineInputBorder(),
+                    labelText: '닉네임',
+                    filled: true,
+                    fillColor: AppColors.lightGrey,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                    ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return '닉네임을 입력해주세요';
-                    }
-                    return null;
-                  },
+                  validator: (value) =>
+                      (value == null || value.isEmpty) ? '닉네임을 입력해주세요' : null,
                 ),
                 const SizedBox(height: 16),
+
+                /// 🔹 성별 선택 (남성 / 여성)
+                Row(
+                  children: [
+                    Expanded(
+                      child: _genderButton('남성'),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _genderButton('여성'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                /// 🔹 생년월일 입력 (DatePicker)
                 TextFormField(
-                  controller: _emailController,
+                  controller: _birthdateController,
                   decoration: const InputDecoration(
-                    labelText: AppStrings.email,
-                    border: OutlineInputBorder(),
+                    labelText: '생년월일',
+                    filled: true,
+                    fillColor: AppColors.lightGrey,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                    ),
                   ),
-                  enabled: false, // 이메일은 수정 불가
+                  readOnly: true,
+                  onTap: _selectDate,
                 ),
                 const Spacer(),
+
+                /// 🔹 가입하기 버튼
                 SizedBox(
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
-                        // TODO: 회원가입 API 호출
+                        print('닉네임: ${_nicknameController.text}');
+                        print('성별: $_selectedGender');
+                        print('생년월일: ${_birthdateController.text}');
                         print('AccessToken: ${widget.accessToken}');
-                        print('ServerAuthCode: ${widget.serverAuthCode}');
-                        print('Email: ${widget.email}');
-                        print('Nickname: ${_nicknameController.text}');
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -113,14 +150,46 @@ class _SignUpPageState extends State<SignUpPage> {
                       ),
                     ),
                     child: Text(
-                      AppStrings.next,
+                      '가입하기',
                       style: AppTextStyles.buttonText.copyWith(
                         color: AppColors.white,
                       ),
                     ),
                   ),
                 ),
+                const SizedBox(height: 24),
               ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 🔹 성별 선택 버튼 위젯
+  Widget _genderButton(String gender) {
+    final isSelected = _selectedGender == gender;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedGender = gender;
+        });
+      },
+      child: Container(
+        height: 50,
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.white : AppColors.lightGrey,
+          border: Border.all(
+            color: isSelected ? AppColors.primary : AppColors.lightGrey,
+            width: 2,
+          ),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Center(
+          child: Text(
+            gender,
+            style: AppTextStyles.buttonText.copyWith(
+              color: isSelected ? AppColors.primary : AppColors.darkGrey,
             ),
           ),
         ),
