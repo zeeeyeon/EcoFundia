@@ -36,14 +36,14 @@ out/
 ### VS Code ###
 .vscode/
 
-back/eureka
-back/gateway
+### application.yml ###
+back/eureka/src/main/resources/application.yml
+back/gateway/src/main/resources/application.yml
+back/config/src/main/resources/application.yml
 back/auth/src/main/resources/application.yml
 back/chat/src/main/resources/application.yml
 back/coupon/src/main/resources/application.yml
-back/eureka/src/main/resources/application.yml
 back/funding/src/main/resources/application.yml
-back/gateway/src/main/resources/application.yml
 back/order/src/main/resources/application.yml
 back/seller/src/main/resources/application.yml
 back/user/src/main/resources/application.yml
