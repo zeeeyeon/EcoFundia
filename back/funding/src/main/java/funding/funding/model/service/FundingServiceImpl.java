@@ -1,6 +1,6 @@
-package funding.funding.service;
+package funding.funding.model.service;
 
-import funding.funding.model.Funding;
+import funding.funding.model.entity.Funding;
 
 import java.util.List;
 

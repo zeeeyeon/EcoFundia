@@ -1,7 +1,7 @@
-package funding.funding.service;
+package funding.funding.model.service;
 
 import funding.funding.mapper.FundingMapper;
-import funding.funding.model.Funding;
+import funding.funding.model.entity.Funding;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

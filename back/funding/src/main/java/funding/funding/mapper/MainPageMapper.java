@@ -6,11 +6,11 @@ import org.apache.ibatis.annotations.Mapper;
 import java.util.List;
 
 @Mapper
-public interface FundingMapper {
+public interface MainPageMapper {
 
-    // 전체 펀딩 조회
-    List<Funding> getAllFunding();
+    List<Funding> getTopFundingList();
 
-    Funding getFundingById(int fundingId);
+    Long getTotalFund();
+
 
 }

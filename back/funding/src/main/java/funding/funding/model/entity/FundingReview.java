@@ -1,4 +1,4 @@
-package funding.funding.model;
+package funding.funding.model.entity;
 
 import lombok.Getter;
 
