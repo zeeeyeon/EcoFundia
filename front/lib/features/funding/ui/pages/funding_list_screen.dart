@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../ui/view_model/funding_list_view_model.dart';
 import '../../data/models/funding_model.dart';
 import '../../ui/widgets/funding_card.dart';
@@ -45,7 +46,12 @@ class FundingListScreen extends ConsumerWidget {
                       itemCount: fundingList.length,
                       itemBuilder: (context, index) {
                         FundingModel funding = fundingList[index];
-                        return FundingCard(funding: funding);
+                        return GestureDetector(
+                          onTap: () {
+                            context.push('/funding/detail', extra: funding);
+                          },
+                          child: FundingCard(funding: funding),
+                        );
                       },
                     ),
             ),
