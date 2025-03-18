@@ -1,6 +1,6 @@
 package com.ssafy.business.entity;
 
-import com.ssafy.business.dto.GetFundingResponseDTO;
+import com.ssafy.business.dto.responseDTO.GetFundingResponseDTO;
 import lombok.Getter;
 
 import java.time.LocalDateTime;

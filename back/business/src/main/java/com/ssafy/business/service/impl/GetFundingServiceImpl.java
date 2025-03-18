@@ -1,7 +1,8 @@
 package com.ssafy.business.service.impl;
 
+import com.ssafy.business.mapper.FundingSearchMapper;
 import com.ssafy.business.mapper.GetFundingMapper;
-import com.ssafy.business.dto.GetFundingResponseDTO;
+import com.ssafy.business.dto.responseDTO.GetFundingResponseDTO;
 import com.ssafy.business.entity.Funding;
 import com.ssafy.business.service.GetFundingService;
 import lombok.RequiredArgsConstructor;
@@ -29,8 +30,14 @@ public class GetFundingServiceImpl implements GetFundingService {
     }
 
     // 최신 펀딩 리스트 조회
-    public List<GetFundingResponseDTO> getLatestFundingList(){
-        List<Funding> fundingList = getFundingMapper.getLatestFundingList();
+    public List<GetFundingResponseDTO> getLatestFundingList(int page){
+        List<Funding> fundingList = getFundingMapper.getLatestFundingList(page);
+        return fundingList.stream().map(Funding::toDto).collect(Collectors.toList());
+    }
+
+    // 카테고리별 펀딩 리스트 조회
+    public List<GetFundingResponseDTO> getCategoryFundingList(String category, int page){
+        List<Funding> fundingList = getFundingMapper.getCategoryFundingList(category, page);
         return fundingList.stream().map(Funding::toDto).collect(Collectors.toList());
     }
 }
