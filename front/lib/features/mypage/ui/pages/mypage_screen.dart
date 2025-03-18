@@ -1,57 +1,50 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../view_model/profile_view_model.dart';
 
 class MypageScreen extends ConsumerWidget {
-  const MypageScreen({Key? key}) : super(key: key);
+  const MypageScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final profileState = ref.watch(profileProvider);
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('마이페이지'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 20),
-            const Center(
-              child: CircleAvatar(
-                radius: 50,
-                backgroundColor: Colors.grey,
-                child: Icon(
-                  Icons.person,
-                  size: 50,
-                  color: Colors.white,
-                ),
+      appBar: AppBar(title: const Text("마이페이지")),
+      body: profileState.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text("오류 발생: $err")),
+        data: (profile) => Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "이름: ${profile.username}",
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-            ),
-            const SizedBox(height: 20),
-            const Center(
-              child: Text(
-                '사용자 이름',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              const SizedBox(height: 8),
+              Text("이메일: ${profile.email}",
+                  style: const TextStyle(fontSize: 16)),
+              const SizedBox(height: 8),
+              Text("가입 날짜: ${profile.joinDate}",
+                  style: const TextStyle(fontSize: 16)),
+              const SizedBox(height: 16),
+              Text(
+                "총 후원 횟수: ${profile.totalDonations}회",
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
-            ),
-            const SizedBox(height: 40),
-            _buildMenuTile('내 정보 수정', Icons.settings, () {}),
-            _buildMenuTile('내 주문 내역', Icons.receipt_long, () {}),
-            _buildMenuTile('내 쿠폰', Icons.card_giftcard, () {}),
-            _buildMenuTile('내 리뷰', Icons.rate_review, () {}),
-            _buildMenuTile('로그아웃', Icons.exit_to_app, () {}),
-          ],
+              Text(
+                "총 후원 금액: ${profile.totalAmount}원",
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
         ),
       ),
-    );
-  }
-
-  Widget _buildMenuTile(String title, IconData icon, VoidCallback onTap) {
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(title),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: onTap,
     );
   }
 }
