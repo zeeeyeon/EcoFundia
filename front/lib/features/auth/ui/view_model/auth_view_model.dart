@@ -10,27 +10,24 @@ import 'package:front/features/auth/domain/models/auth_response.dart';
 /// 인증 상태를 관리하고 UseCase들을 실행합니다.
 class AuthViewModel extends StateNotifier<AuthState> {
   final GoogleSignInUseCase _googleSignInUseCase;
-  final CompleteSignUpUseCase _completeSignUpUseCase;
   final SignOutUseCase _signOutUseCase;
   final CheckLoginStatusUseCase _checkLoginStatusUseCase;
 
   AuthViewModel({
     required GoogleSignInUseCase googleSignInUseCase,
-    required CompleteSignUpUseCase completeSignUpUseCase,
     required SignOutUseCase signOutUseCase,
     required CheckLoginStatusUseCase checkLoginStatusUseCase,
   })  : _googleSignInUseCase = googleSignInUseCase,
-        _completeSignUpUseCase = completeSignUpUseCase,
         _signOutUseCase = signOutUseCase,
         _checkLoginStatusUseCase = checkLoginStatusUseCase,
         super(AuthState.initial()) {
     // 앱 시작 시 로그인 상태 확인
     LoggerUtil.i('🏗️ AuthViewModel 초기화');
-    checkLoginStatus();
+    _checkLoginStatus();
   }
 
   /// 로그인 상태 확인
-  Future<void> checkLoginStatus() async {
+  Future<void> _checkLoginStatus() async {
     LoggerUtil.i('🔍 ViewModel - 로그인 상태 확인 시작');
     state = state.copyWithLoading();
 
@@ -53,7 +50,7 @@ class AuthViewModel extends StateNotifier<AuthState> {
   }
 
   /// Google 로그인 진행
-  Future<void> signInWithGoogle() async {
+  Future<AuthResult> signInWithGoogle() async {
     LoggerUtil.i('🔑 ViewModel - Google 로그인 시작');
     state = state.copyWithLoading();
 
@@ -64,32 +61,22 @@ class AuthViewModel extends StateNotifier<AuthState> {
       switch (result) {
         case AuthSuccess(:final response):
           LoggerUtil.i('✅ ViewModel - 로그인 성공, isNewUser=${response.isNewUser}');
-
-          if (response.isNewUser) {
-            // 신규 사용자인 경우
-            state = state.copyWith(
-              isNewUser: true,
-              isLoading: false,
-              error: null,
-            );
-          } else {
-            // 기존 사용자인 경우
-            await _handleSuccessfulLogin(response);
-          }
-
+          await handleSuccessfulLogin(response);
+          return result;
         case AuthError(:final message):
           LoggerUtil.e('❌ ViewModel - 로그인 오류: $message');
           state = state.copyWith(
             isLoading: false,
             error: message,
           );
-
+          return result;
         case AuthCancelled():
           LoggerUtil.w('⚠️ ViewModel - 로그인 취소됨');
           state = state.copyWith(
             isLoading: false,
             error: null,
           );
+          return result;
       }
     } catch (e) {
       LoggerUtil.e('❌ ViewModel - 예기치 않은 오류', e);
@@ -97,11 +84,12 @@ class AuthViewModel extends StateNotifier<AuthState> {
         isLoading: false,
         error: '로그인 중 오류가 발생했습니다.',
       );
+      return const AuthResult.error('로그인 중 오류가 발생했습니다.');
     }
   }
 
   /// 로그인 성공 시 처리
-  Future<void> _handleSuccessfulLogin(AuthResponse response) async {
+  Future<void> handleSuccessfulLogin(AuthResponse response) async {
     try {
       // 토큰 저장
       if (response.token != null) {
@@ -126,7 +114,7 @@ class AuthViewModel extends StateNotifier<AuthState> {
 
       state = state.copyWith(
         isLoggedIn: true,
-        isNewUser: false,
+        isNewUser: response.isNewUser,
         isLoading: false,
         error: null,
       );
@@ -141,49 +129,13 @@ class AuthViewModel extends StateNotifier<AuthState> {
     }
   }
 
-  /// 회원가입 완료
-  Future<void> completeSignUp(Map<String, dynamic> userData) async {
-    LoggerUtil.i('📝 ViewModel - 회원가입 완료 처리 시작');
-    state = state.copyWithLoading();
-
-    try {
-      final result = await _completeSignUpUseCase.execute(userData);
-
-      switch (result) {
-        case AuthSuccess(:final response):
-          LoggerUtil.i('✅ ViewModel - 회원가입 성공');
-          await _handleSuccessfulLogin(response); // 로그인 처리 재사용
-
-        case AuthError(:final message):
-          LoggerUtil.e('❌ ViewModel - 회원가입 오류: $message');
-          state = state.copyWith(
-            isLoading: false,
-            error: message,
-          );
-
-        case AuthCancelled():
-          LoggerUtil.w('⚠️ ViewModel - 회원가입 취소됨');
-          state = state.copyWith(
-            isLoading: false,
-            error: null,
-          );
-      }
-    } catch (e) {
-      LoggerUtil.e('❌ ViewModel - 회원가입 중 예기치 않은 오류', e);
-      state = state.copyWith(
-        isLoading: false,
-        error: '회원가입 중 오류가 발생했습니다.',
-      );
-    }
-  }
-
   /// 로그아웃
-  Future<void> signOut({bool keepUserPreferences = false}) async {
+  Future<bool> signOut({bool keepUserPreferences = false}) async {
     LoggerUtil.i('🚪 ViewModel - 로그아웃 시작');
     state = state.copyWithLoading();
 
     try {
-      await _signOutUseCase.execute(); // SignOutUseCase 실행
+      await _signOutUseCase.execute();
 
       // 자동 로그인 비활성화
       await StorageService.setAutoLogin(false);
@@ -200,12 +152,14 @@ class AuthViewModel extends StateNotifier<AuthState> {
       );
 
       LoggerUtil.i('✅ ViewModel - 로그아웃 성공');
+      return true;
     } catch (e) {
       LoggerUtil.e('❌ ViewModel - 로그아웃 실패', e);
       state = state.copyWith(
         isLoading: false,
         error: '로그아웃 중 오류가 발생했습니다.',
       );
+      return false;
     }
   }
 

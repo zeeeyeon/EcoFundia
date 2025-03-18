@@ -19,4 +19,8 @@ class AppColors {
   static const Color lightGrey = Color(0xFFCCCCCC);
   static const Color darkGrey = Color(0xFF171816);
   static const Color mainColor = Color(0x009db2ce);
+
+  //텍스트 필드 색상
+  static const Color textFieldColor = Color(0xFFF5F5F5);
+  static const Color textFieldTextColor = Color(0xFF171816);
 }

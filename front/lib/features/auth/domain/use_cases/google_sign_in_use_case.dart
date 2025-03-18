@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:front/features/auth/domain/models/auth_response.dart';
 import 'package:front/features/auth/domain/repositories/auth_repository.dart';
 import 'package:front/utils/logger_util.dart';

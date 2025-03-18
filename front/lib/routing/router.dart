@@ -48,7 +48,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/signup-success',
-        builder: (context, state) => const SignupCompleteScreen(),
+        builder: (context, state) {
+          final extras = state.extra as Map<String, dynamic>?;
+          final nickname = extras?['nickname'] as String?;
+          return SignupCompleteScreen(nickname: nickname ?? '');
+        },
       ),
       // SignUpPage는 필수 파라미터가 있어서 로그인 후 인증정보와 함께 이동해야 합니다.
       // 따라서 라우트에서 직접 등록하지 않고, 인증 후 context.go로 이동합니다.

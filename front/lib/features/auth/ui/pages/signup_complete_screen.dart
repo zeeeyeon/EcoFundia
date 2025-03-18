@@ -5,7 +5,12 @@ import 'package:go_router/go_router.dart';
 import 'package:front/core/themes/app_colors.dart';
 
 class SignupCompleteScreen extends StatefulWidget {
-  const SignupCompleteScreen({Key? key}) : super(key: key);
+  final String nickname;
+
+  const SignupCompleteScreen({
+    Key? key,
+    required this.nickname,
+  }) : super(key: key);
 
   @override
   State<SignupCompleteScreen> createState() => _SignupCompleteScreenState();
@@ -34,7 +39,7 @@ class _SignupCompleteScreenState extends State<SignupCompleteScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.white,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -49,20 +54,20 @@ class _SignupCompleteScreenState extends State<SignupCompleteScreen>
                 repeat: false,
               ),
               const SizedBox(height: 40),
-              const Text(
-                'SIMPLE 환영합니다!',
-                style: TextStyle(
-                  fontSize: 28,
+              Text(
+                '${widget.nickname}님 환영합니다!',
+                style: const TextStyle(
+                  fontSize: 32,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF1E232C),
+                  color: AppColors.primary,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
               const Text(
                 '누구나 만들 수 있어요.\n지금 시작해보세요.',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 18,
                   fontWeight: FontWeight.w500,
                   color: Color(0xFF8391A1),
                   height: 1.5,
