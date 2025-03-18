@@ -1,4 +1,4 @@
-package com.user;
+package com.ssafy.user;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
