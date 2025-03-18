@@ -1,5 +1,6 @@
 package com.ssafy.funding.controller;
 
+import com.ssafy.funding.service.impl.FundingServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -8,7 +9,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/funding")
 @RequiredArgsConstructor
 public class FundingController {
-
-    private final FundingService fundingService;
+    private final FundingServiceImpl fundingServiceImpl;
 
 }
