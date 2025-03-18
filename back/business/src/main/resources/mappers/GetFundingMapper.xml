@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ssafy.business.mapper.FundingMapper">
+
+    <!-- 전체 Funding 금액 조회 -->
+    <select id="getTotalFund" resultType="java.lang.Long">
+        SELECT COALESCE(SUM(total_price), 0) AS totalFund
+        FROM `order`
+        WHERE funding_id = #{fundingId};
+    </select>
+
+    <!-- Top Funding 리스트 조회 -->
+    <select id="getTopFundingList" resultType="com.ssafy.funding.entity.Funding">
+        SELECT *
+        FROM funding
+        WHERE NOW() BETWEEN start_date AND end_date
+        ORDER BY (current_amount / target_amount) * 100 DESC
+    </select>
+
+    <!-- 최신 Funding 리스트 조회 -->
+    <select id="getLatestFundingList" resultType="com.ssafy.funding.entity.Funding">
+        SELECT *
+        FROM funding
+        WHERE NOW() BETWEEN start_date AND end_date  -- 최신순은 뭘까? 시작시간이 현재와 가장 가까운 시간?
+        ORDER BY start_date DESC
+    </select>
+
+</mapper>

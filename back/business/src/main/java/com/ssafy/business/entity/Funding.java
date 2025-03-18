@@ -1,6 +1,6 @@
-package com.ssafy.business.model.entity;
+package com.ssafy.business.entity;
 
-import com.ssafy.business.model.dto.mainPage.getTopFundingResponseDTO;
+import com.ssafy.business.dto.GetFundingResponseDTO;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -24,8 +24,8 @@ public class Funding {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public getTopFundingResponseDTO toDto() {
-        return getTopFundingResponseDTO
+    public GetFundingResponseDTO toDto() {
+        return GetFundingResponseDTO
                 .builder()
                 .funding_id(fundingId)
                 .title(title)
