@@ -1,6 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-</beans>
+<mapper namespace="com.ssafy.funding.mapper.FundingMapper">
+
+    <resultMap id="FundingResultMap" type="com.ssafy.funding.entity.Funding">
+        <id column="funding_id" property="fundingId"/>
+        <result column="seller_id" property="sellerId"/>
+        <result column="title" property="title"/>
+        <result column="description" property="description"/>
+        <result column="story_file_url" property="storyFileUrl"/>
+        <result column="price" property="price"/>
+        <result column="quantity" property="quantity"/>
+        <result column="target_amount" property="targetAmount"/>
+        <result column="current_amount" property="currentAmount"/>
+        <result column="start_date" property="startDate"/>
+        <result column="end_date" property="endDate"/>
+        <result column="status" property="status" typeHandler="com.ssafy.funding.entity.typeHandlers.StatusTypeHandler"/>
+        <result column="category" property="category" typeHandler="com.ssafy.funding.entity.typeHandlers.CategoryTypeHandler"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <insert id="createFunding" useGeneratedKeys="true" keyProperty="fundingId">
+        INSERT INTO funding (seller_id, title, description, story_file_url, price, quantity, target_amount,
+        current_amount, start_date, end_date, status, category, created_at, updated_at)
+        VALUES (#{sellerId}, #{title}, #{description}, #{storyFileUrl}, #{price}, #{quantity}, #{targetAmount},
+        #{currentAmount}, #{startDate}, #{endDate},
+        #{status, typeHandler=com.ssafy.funding.entity.typeHandlers.StatusTypeHandler},
+        #{category, typeHandler=com.ssafy.funding.entity.typeHandlers.CategoryTypeHandler}, NOW(), NOW())
+    </insert>
+</mapper>
