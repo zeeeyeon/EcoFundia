@@ -10,5 +10,4 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class FundingController {
     private final FundingServiceImpl fundingServiceImpl;
-
 }
