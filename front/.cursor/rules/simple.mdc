@@ -1,7 +1,7 @@
 ---
 description: 
 globs: 
-alwaysApply: true
+alwaysApply: false
 ---
 ---
 description: 
@@ -10,6 +10,13 @@ alwaysApply: true
 ---
 
 ---
+
+---
+
+# 디버그 관리
+
+- logger 라이브러리 이용해서 디버그
+
 # 상태 관리
 - Riverpod 사용: 전역 상태 관리는 Riverpod을 사용하여 일관성을 유지합니다.
 

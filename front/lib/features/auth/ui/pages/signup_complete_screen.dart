@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import 'package:front/core/widgets/custom_button.dart';
+import 'package:front/core/ui/widgets/custom_button.dart';
 import 'package:go_router/go_router.dart';
+import 'package:front/core/themes/app_colors.dart';
 
 class SignupCompleteScreen extends StatefulWidget {
   const SignupCompleteScreen({Key? key}) : super(key: key);
@@ -71,7 +72,7 @@ class _SignupCompleteScreenState extends State<SignupCompleteScreen>
               const Spacer(),
               CustomButton(
                 text: '시작하기',
-                backgroundColor: const Color(0xFFA3D80D),
+                backgroundColor: AppColors.primary,
                 onPressed: () => context.go('/'),
               ),
               const SizedBox(height: 32),

@@ -51,6 +51,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final topProjects = ref.watch(topProjectsProvider);
     final totalFund = ref.watch(totalFundProvider);
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 360; // 작은 화면 기준
+
+    // 화면 크기에 따른 동적 패딩 및 간격 계산
+    final mainPadding = isSmallScreen ? 12.0 : 16.0;
+    final titleSpacing = isSmallScreen ? 12.0 : 16.0;
+    final sectionSpacing = isSmallScreen ? 16.0 : 24.0;
 
     return Scaffold(
       body: SafeArea(
@@ -58,28 +65,36 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: EdgeInsets.all(mainPadding),
                 child: Column(
                   children: [
                     Text(
                       AppStrings.appName,
                       style: AppTextStyles.mainTitle.copyWith(
                         color: AppColors.primary,
+                        fontSize:
+                            isSmallScreen ? 24.0 : null, // 작은 화면에서는 폰트 크기 줄임
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: titleSpacing),
                     Text(
                       _currentTime,
-                      style: AppTextStyles.timeStyle,
+                      style: AppTextStyles.timeStyle.copyWith(
+                        fontSize:
+                            isSmallScreen ? 14.0 : null, // 작은 화면에서는 폰트 크기 줄임
+                      ),
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: sectionSpacing),
                     Text(
                       AppStrings.totalFund,
-                      style: AppTextStyles.totalFundLabel,
+                      style: AppTextStyles.totalFundLabel.copyWith(
+                        fontSize:
+                            isSmallScreen ? 16.0 : null, // 작은 화면에서는 폰트 크기 줄임
+                      ),
                     ),
                     const SizedBox(height: 8),
                     TotalFundCard(amount: totalFund),
-                    const SizedBox(height: 24),
+                    SizedBox(height: sectionSpacing),
                     topProjects.when(
                       data: (projects) => ProjectCarousel(projects: projects),
                       loading: () =>

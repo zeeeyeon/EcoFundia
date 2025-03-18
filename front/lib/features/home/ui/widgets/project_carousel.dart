@@ -82,24 +82,38 @@ class _ProjectCarouselState extends ConsumerState<ProjectCarousel>
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
-    final carouselHeight = screenSize.height * 0.6; // 전체 화면의 60%
+    final isSmallScreen = screenSize.width < 360; // 작은 화면 기준
+    // 화면 크기에 따라 캐러셀 높이 동적 조정
+    final carouselHeight = isSmallScreen
+        ? screenSize.height * 0.5 // 작은 화면에서는 높이를 줄임
+        : screenSize.height * 0.6; // 보통 크기 화면에서는 원래 높이 유지
 
     return LayoutBuilder(
       builder: (context, constraints) {
+        // 화면 너비를 기준으로 동적인 여백 및 크기 계산
+        final horizontalPadding = isSmallScreen
+            ? constraints.maxWidth * 0.02
+            : constraints.maxWidth * 0.05;
+        final titleFontSize = isSmallScreen ? 16.0 : screenSize.width * 0.06;
+        final dotSize =
+            isSmallScreen ? screenSize.width * 0.015 : screenSize.width * 0.02;
+        final dotSpacing =
+            isSmallScreen ? screenSize.width * 0.005 : screenSize.width * 0.01;
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
               padding: EdgeInsets.symmetric(
-                horizontal: constraints.maxWidth * 0.05,
+                horizontal: horizontalPadding,
               ),
               child: Row(
                 children: [
                   Text(
                     AppStrings.topProject,
                     style: AppTextStyles.topProjectTitle.copyWith(
-                      fontSize: screenSize.width * 0.06,
+                      fontSize: titleFontSize,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -126,7 +140,7 @@ class _ProjectCarouselState extends ConsumerState<ProjectCarousel>
                           child: Text(
                             ' 🔥',
                             style: TextStyle(
-                              fontSize: screenSize.width * 0.06,
+                              fontSize: titleFontSize,
                               height: 1,
                               color: Colors.white,
                             ),
@@ -138,7 +152,7 @@ class _ProjectCarouselState extends ConsumerState<ProjectCarousel>
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: isSmallScreen ? 8 : 16),
             SizedBox(
               height: carouselHeight,
               child: PageView.builder(
@@ -153,7 +167,9 @@ class _ProjectCarouselState extends ConsumerState<ProjectCarousel>
                   final project = widget.projects[index];
                   return Padding(
                     padding: EdgeInsets.symmetric(
-                      horizontal: constraints.maxWidth * 0.025,
+                      // 화면 크기에 따라 패딩 조정
+                      horizontal:
+                          constraints.maxWidth * (isSmallScreen ? 0.01 : 0.025),
                     ),
                     child: ProjectCard(
                       title: project['title'],
@@ -179,16 +195,19 @@ class _ProjectCarouselState extends ConsumerState<ProjectCarousel>
                 },
               ),
             ),
-            SizedBox(height: screenSize.height * 0.02),
+            SizedBox(
+                height: isSmallScreen
+                    ? screenSize.height * 0.01
+                    : screenSize.height * 0.02),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
                 widget.projects.length,
                 (index) => Container(
-                  width: screenSize.width * 0.02,
-                  height: screenSize.width * 0.02,
+                  width: dotSize,
+                  height: dotSize,
                   margin: EdgeInsets.symmetric(
-                    horizontal: screenSize.width * 0.01,
+                    horizontal: dotSpacing,
                   ),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
