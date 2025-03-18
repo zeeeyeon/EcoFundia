@@ -5,6 +5,7 @@ import 'package:front/core/constants/app_strings.dart';
 import 'package:front/core/themes/app_colors.dart';
 import 'package:front/core/themes/app_text_styles.dart';
 import 'package:front/core/ui/widgets/social_login_button.dart';
+import 'package:front/core/ui/widgets/loading_overlay.dart';
 import 'package:front/features/auth/ui/view_model/auth_provider.dart';
 import 'package:front/utils/logger_util.dart';
 
@@ -47,28 +48,28 @@ class LoginPage extends ConsumerWidget {
       Future.microtask(() => context.go('/signup'));
     }
 
-    return Scaffold(
-      backgroundColor: AppColors.white,
-      body: SafeArea(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const SizedBox(height: 324),
-              Text(
-                AppStrings.appName,
-                style: AppTextStyles.logo,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (authState.isLoading)
-                      const CircularProgressIndicator()
-                    else
+    return LoadingOverlay(
+      isLoading: authState.isLoading,
+      message: '로그인 중...',
+      child: Scaffold(
+        backgroundColor: AppColors.white,
+        body: SafeArea(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 324),
+                Text(
+                  AppStrings.appName,
+                  style: AppTextStyles.logo,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
                       SocialLoginButton(
                         text: AppStrings.signUpWithGoogle,
                         iconPath: 'assets/images/google.png',
@@ -78,34 +79,35 @@ class LoginPage extends ConsumerWidget {
                           ref.read(authProvider.notifier).signInWithGoogle();
                         },
                       ),
-                    const SizedBox(height: 16),
-                    SocialLoginButton(
-                      text: AppStrings.signUpWithApple,
-                      iconPath: 'assets/images/apple.png',
-                      backgroundColor: AppColors.primary,
-                      textStyle: AppTextStyles.appleButtonText,
-                      onPressed: () {
-                        LoggerUtil.i('🔘 Apple 로그인 버튼 클릭 (미구현)');
-                        // TODO: Implement Apple sign in
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const Spacer(flex: 1),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                child: Text(
-                  '로그인 시 이용약관 및 개인정보 처리방침에 동의하게 됩니다.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
+                      const SizedBox(height: 16),
+                      SocialLoginButton(
+                        text: AppStrings.signUpWithApple,
+                        iconPath: 'assets/images/apple.png',
+                        backgroundColor: AppColors.primary,
+                        textStyle: AppTextStyles.appleButtonText,
+                        onPressed: () {
+                          LoggerUtil.i('🔘 Apple 로그인 버튼 클릭 (미구현)');
+                          // TODO: Implement Apple sign in
+                        },
+                      ),
+                    ],
                   ),
-                  textAlign: TextAlign.center,
                 ),
-              ),
-            ],
+                const Spacer(flex: 1),
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  child: Text(
+                    '로그인 시 이용약관 및 개인정보 처리방침에 동의하게 됩니다.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

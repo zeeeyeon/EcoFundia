@@ -1,46 +1,54 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/core/ui/widgets/loading_overlay.dart';
 
 class MypageScreen extends ConsumerWidget {
   const MypageScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('마이페이지'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 20),
-            const Center(
-              child: CircleAvatar(
-                radius: 50,
-                backgroundColor: Colors.grey,
-                child: Icon(
-                  Icons.person,
-                  size: 50,
-                  color: Colors.white,
+    // 로딩 상태는 추후 상태 관리 구현 시 추가
+    const isLoading = false;
+
+    return LoadingOverlay(
+      isLoading: isLoading,
+      message: '정보를 불러오는 중...',
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('마이페이지'),
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 20),
+              const Center(
+                child: CircleAvatar(
+                  radius: 50,
+                  backgroundColor: Colors.grey,
+                  child: Icon(
+                    Icons.person,
+                    size: 50,
+                    color: Colors.white,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
-            const Center(
-              child: Text(
-                '사용자 이름',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              const SizedBox(height: 20),
+              const Center(
+                child: Text(
+                  '사용자 이름',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
               ),
-            ),
-            const SizedBox(height: 40),
-            _buildMenuTile('내 정보 수정', Icons.settings, () {}),
-            _buildMenuTile('내 주문 내역', Icons.receipt_long, () {}),
-            _buildMenuTile('내 쿠폰', Icons.card_giftcard, () {}),
-            _buildMenuTile('내 리뷰', Icons.rate_review, () {}),
-            _buildMenuTile('로그아웃', Icons.exit_to_app, () {}),
-          ],
+              const SizedBox(height: 40),
+              _buildMenuTile('내 정보 수정', Icons.settings, () {}),
+              _buildMenuTile('내 주문 내역', Icons.receipt_long, () {}),
+              _buildMenuTile('내 쿠폰', Icons.card_giftcard, () {}),
+              _buildMenuTile('내 리뷰', Icons.rate_review, () {}),
+              _buildMenuTile('로그아웃', Icons.exit_to_app, () {}),
+            ],
+          ),
         ),
       ),
     );

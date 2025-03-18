@@ -29,4 +29,15 @@ class InputValidators {
     }
     return null;
   }
+
+  /// 성별: null이 아닌 '남성' 또는 '여성'만 허용
+  static String? validateGender(String? value) {
+    if (value == null || value.isEmpty) {
+      return '성별을 선택해주세요.';
+    }
+    if (value != '남성' && value != '여성') {
+      return '올바른 성별을 선택해주세요.';
+    }
+    return null;
+  }
 }

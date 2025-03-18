@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/features/auth/domain/models/auth_response.dart';
 import 'package:front/features/auth/domain/models/auth_state.dart';
 import 'package:front/features/auth/domain/use_cases/google_sign_in_use_case.dart';
 import 'package:front/features/auth/ui/view_model/auth_provider.dart';
@@ -16,22 +17,23 @@ class SignUpViewModel extends StateNotifier<AuthState> {
         _authViewModel = authViewModel,
         super(AuthState.initial());
 
-  Future<AuthResult> completeSignUp({
+  Future<AuthResult> signUp({
     required String email,
     required String nickname,
     required String gender,
-    required int age,
+    required String age,
     String? serverAuthCode,
   }) async {
     LoggerUtil.i('📝 SignUpViewModel - 회원가입 시작');
     state = state.copyWithLoading();
 
     try {
+      // Form에서 이미 유효성 검사를 했으므로, 안전하게 int로 변환
       final userData = {
         'email': email,
         'nickname': nickname,
         'gender': gender,
-        'age': age,
+        'age': int.parse(age),
         'serverAuthCode': serverAuthCode,
       };
 
@@ -41,19 +43,11 @@ class SignUpViewModel extends StateNotifier<AuthState> {
       switch (result) {
         case AuthSuccess(:final response):
           LoggerUtil.i('✅ 회원가입 성공');
-          await _authViewModel.handleSuccessfulLogin(response);
-          state = state.copyWith(
-            isLoggedIn: true,
-            isNewUser: false,
-            isLoading: false,
-          );
+          await _handleSuccessfulSignUp(response);
           return result;
         case AuthError():
           LoggerUtil.e('❌ 회원가입 실패: ${result.message}');
-          state = state.copyWith(
-            isLoading: false,
-            error: result.message,
-          );
+          _handleSignUpError(result.message);
           return result;
         case AuthCancelled():
           LoggerUtil.w('⚠️ 회원가입 취소됨');
@@ -62,12 +56,31 @@ class SignUpViewModel extends StateNotifier<AuthState> {
       }
     } catch (e) {
       LoggerUtil.e('❌ 회원가입 중 오류 발생', e);
-      state = state.copyWith(
-        isLoading: false,
-        error: '회원가입 중 오류가 발생했습니다.',
-      );
+      _handleSignUpError('회원가입 중 오류가 발생했습니다.');
       return const AuthResult.error('회원가입 중 오류가 발생했습니다.');
     }
+  }
+
+  Future<void> _handleSuccessfulSignUp(AuthResponse response) async {
+    try {
+      await _authViewModel.handleSuccessfulLogin(response);
+      state = state.copyWith(
+        isLoggedIn: true,
+        isNewUser: false,
+        isLoading: false,
+        error: null,
+      );
+    } catch (e) {
+      LoggerUtil.e('❌ 회원가입 후처리 중 오류 발생', e);
+      _handleSignUpError('회원가입 처리 중 오류가 발생했습니다.');
+    }
+  }
+
+  void _handleSignUpError(String message) {
+    state = state.copyWith(
+      isLoading: false,
+      error: message,
+    );
   }
 
   void clearError() {

@@ -97,8 +97,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     SizedBox(height: sectionSpacing),
                     topProjects.when(
                       data: (projects) => ProjectCarousel(projects: projects),
-                      loading: () =>
-                          const Center(child: CircularProgressIndicator()),
+                      loading: () => const SizedBox(
+                        height: 200,
+                        child: Center(
+                          child: SizedBox(
+                            width: 40,
+                            height: 40,
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  AppColors.primary),
+                            ),
+                          ),
+                        ),
+                      ),
                       error: (error, stack) => Center(
                         child: Text('Error: $error'),
                       ),
