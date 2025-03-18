@@ -1,4 +1,4 @@
-package com.ssafy.funding.model.entity;
+package com.ssafy.funding.entity;
 
 import com.ssafy.funding.model.dto.mainPage.getTopFundingResponseDTO;
 import lombok.Getter;

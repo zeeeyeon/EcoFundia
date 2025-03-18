@@ -1,4 +1,4 @@
-package com.ssafy.funding.model.entity;
+package com.ssafy.funding.entity;
 
 import lombok.Getter;
 
