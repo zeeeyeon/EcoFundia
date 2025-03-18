@@ -1,13 +1,11 @@
-package funding.funding.controller;
+package com.business.controller;
 
-import funding.funding.model.service.MainPageServiceImpl;
+import com.business.service.MainPageServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/main")

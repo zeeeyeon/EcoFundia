@@ -1,7 +1,6 @@
-package funding.funding.model.service;
+package com.business.service;
 
-import funding.funding.model.dto.mainPage.getTopFundingResponseDTO;
-import funding.funding.model.entity.Funding;
+import com.business.model.dto.mainPage.getTopFundingResponseDTO;
 
 import java.util.List;
 

@@ -1,8 +1,8 @@
-package funding.funding.model.service;
+package com.business.service;
 
-import funding.funding.mapper.MainPageMapper;
-import funding.funding.model.dto.mainPage.getTopFundingResponseDTO;
-import funding.funding.model.entity.Funding;
+import com.business.mapper.MainPageMapper;
+import com.business.model.dto.mainPage.getTopFundingResponseDTO;
+import com.business.model.entity.Funding;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,3 +25,5 @@ public class MainPageServiceImpl implements MainPageService {
         return mainPageMapper.getTotalFund();
     }
 }
+
+

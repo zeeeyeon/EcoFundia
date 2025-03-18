@@ -48,3 +48,4 @@ back/order/src/main/resources/application.yml
 back/seller/src/main/resources/application.yml
 back/user/src/main/resources/application.yml
 back/notification/src/main/resources/application.yml
+back/business/src/main/resources/application.yml

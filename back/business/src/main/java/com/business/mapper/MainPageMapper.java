@@ -1,6 +1,6 @@
-package funding.funding.mapper;
+package com.business.mapper;
 
-import funding.funding.model.entity.Funding;
+import com.business.model.entity.Funding;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
