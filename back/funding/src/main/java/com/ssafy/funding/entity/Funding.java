@@ -1,6 +1,5 @@
 package com.ssafy.funding.entity;
 
-import com.ssafy.funding.model.dto.mainPage.getTopFundingResponseDTO;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -23,17 +22,5 @@ public class Funding {
     private String category; // ENUM('FOOD', 'FASHION', 'ELECTRONICS', 'HOUSEHOLD', 'INTERIOR')
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
-    public getTopFundingResponseDTO toDto() {
-        return getTopFundingResponseDTO
-                .builder()
-                .funding_id(fundingId)
-                .title(title)
-                .description(description)
-                .endDate(endDate)
-                .rate(currentAmount/targetAmount*100)
-                .currentAmount(currentAmount)
-                .build();
-    }
 
 }
