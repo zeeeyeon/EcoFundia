@@ -1,4 +1,4 @@
-package com.ssafy.business.model.entity;
+package com.ssafy.business.entity;
 
 import lombok.Getter;
 

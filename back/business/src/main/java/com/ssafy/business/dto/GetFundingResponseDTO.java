@@ -1,4 +1,4 @@
-package com.ssafy.business.model.dto.mainPage;
+package com.ssafy.business.dto;
 
 import lombok.Builder;
 import lombok.Data;
@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 @Data
 @Builder
-public class getTopFundingResponseDTO {
+public class GetFundingResponseDTO {
 
     private int funding_id;
     private String title;
