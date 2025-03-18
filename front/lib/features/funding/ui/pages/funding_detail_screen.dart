@@ -4,7 +4,6 @@ import '../../data/models/funding_model.dart';
 
 class FundingDetailScreen extends StatelessWidget {
   final FundingModel funding;
-
   const FundingDetailScreen({super.key, required this.funding});
 
   @override

@@ -12,7 +12,6 @@ final fundingListProvider =
   ),
 );
 
-// 🔥 검색어 상태를 관리하는 Provider
 final searchQueryProvider = StateProvider<String>((ref) => "");
 
 class FundingListViewModel

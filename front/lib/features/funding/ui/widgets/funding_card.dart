@@ -3,7 +3,6 @@ import '../../data/models/funding_model.dart';
 
 class FundingCard extends StatelessWidget {
   final FundingModel funding;
-
   const FundingCard({super.key, required this.funding});
 
   @override
