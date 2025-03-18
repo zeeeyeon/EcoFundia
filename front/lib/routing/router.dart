@@ -16,14 +16,15 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: '/splash', // ✅ 앱 실행 시 먼저 스플래시 화면 표시
     redirect: (context, state) {
       final isAuthenticated = ref.read(isLoggedInProvider);
+      return null;
 
       // 로그인 필수 페이지 처리 (마이페이지 & 찜 목록)
-      if (!isAuthenticated &&
-          (state.matchedLocation == '/mypage' ||
-              state.matchedLocation == '/wishlist')) {
-        return '/login';
-      }
-      return null;
+      // if (!isAuthenticated &&
+      //     (state.matchedLocation == '/mypage' ||
+      //         state.matchedLocation == '/wishlist')) {
+      //   return '/login';
+      // }
+      // return null;
     },
     routes: [
       GoRoute(
@@ -61,7 +62,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/funding',
-                builder: (context, state) => const FundingScreen(),
+                builder: (context, state) => const FundingListScreen(),
               ),
             ],
           ),
