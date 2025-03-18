@@ -5,7 +5,9 @@ import 'package:front/features/auth/ui/pages/login_screen.dart';
 import 'package:front/features/auth/ui/pages/sign_up_screen.dart';
 import 'package:front/features/auth/ui/view_model/auth_provider.dart';
 import 'package:front/features/splash/ui/pages/splash_screen.dart';
-import 'package:front/features/funding/ui/pages/funding_screen.dart';
+import 'package:front/features/funding/data/models/funding_model.dart';
+import 'package:front/features/funding/ui/pages/funding_list_screen.dart';
+import 'package:front/features/funding/ui/pages/funding_detail_screen.dart';
 import 'package:front/features/home/ui/pages/home_screen.dart';
 import 'package:front/features/mypage/ui/pages/mypage_screen.dart';
 import 'package:front/features/wishlist/ui/pages/wishlist_screen.dart';
@@ -63,6 +65,13 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/funding',
                 builder: (context, state) => const FundingListScreen(),
+              ),
+              GoRoute(
+                path: '/funding/detail',
+                builder: (context, state) {
+                  final funding = state.extra as FundingModel;
+                  return FundingDetailScreen(funding: funding);
+                },
               ),
             ],
           ),
