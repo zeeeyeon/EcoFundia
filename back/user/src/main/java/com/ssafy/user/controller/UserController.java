@@ -1,8 +1,10 @@
 package com.ssafy.user.controller;
 
 import com.ssafy.user.dto.request.LoginRequestDto;
+import com.ssafy.user.dto.request.ReissueRequestDto;
 import com.ssafy.user.dto.request.SignupRequestDto;
 import com.ssafy.user.dto.response.LoginResponseDto;
+import com.ssafy.user.dto.response.ReissueResponseDto;
 import com.ssafy.user.dto.response.SignupResponseDto;
 import com.ssafy.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,11 @@ public class UserController {
     @PostMapping("/signup")
     public ResponseEntity<SignupResponseDto> signup(@RequestBody SignupRequestDto requestDto) {
         return ResponseEntity.ok(userService.registerUser(requestDto));
+    }
+
+    @PostMapping("/reissue")
+    public ResponseEntity<ReissueResponseDto> reissue(@RequestBody ReissueRequestDto requestDto) {
+        return ResponseEntity.ok(userService.reissueAccessToken(requestDto));
     }
 
 }

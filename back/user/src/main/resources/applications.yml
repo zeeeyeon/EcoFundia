@@ -13,7 +13,7 @@ spring:
         url: jdbc:mysql://localhost:3306/funding?useSSL=false&serverTimezone=Asia/Seoul&useLegacyDatetimeCode=false&allowPublicKeyRetrieval=true
 #        url: jdbc:mysql://mysql-container:3306/funding?useSSL=false&serverTimezone=Asia/Seoul&useLegacyDatetimeCode=false&allowPublicKeyRetrieval=true
         username: root
-        password: ssafy
+        password: 1111
 #  cloud:
 #    openfeign:
 #      httpclient:
@@ -21,6 +21,10 @@ spring:
 #        connection-timeout: 5000
 #        ok-http:
 #          read-timeout: 5000
+  jwt:
+    secret: "Vv9@D1K*d3&g!b6Pz7^fQp8^j2mA0x4Y"
+    access-token-expiration: 3600000 # 1시간
+    refresh-token-expiration: 604800000  # 7일
 
 #eureka:
 #  instance:
