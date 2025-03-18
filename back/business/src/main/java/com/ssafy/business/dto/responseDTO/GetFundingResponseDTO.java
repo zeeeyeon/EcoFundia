@@ -1,4 +1,4 @@
-package com.ssafy.business.dto;
+package com.ssafy.business.dto.responseDTO;
 
 import lombok.Builder;
 import lombok.Data;

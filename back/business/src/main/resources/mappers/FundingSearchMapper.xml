@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ssafy.business.mapper.FundingSearchMapper">
+
+    <resultMap id="fundingResultMap" type="com.ssafy.business.Funding">
+        <id property="fundingId" column="funding_id" />
+        <result property="sellerId" column="seller_id" />
+        <result property="title" column="title" />
+        <result property="thumbnail" column="thumbnail" />
+        <result property="description" column="description" />
+        <result property="price" column="price" />
+        <result property="quantity" column="quantity" />
+        <result property="targetAmount" column="target_amount" />
+        <result property="currentAmount" column="current_amount" />
+        <result property="startDate" column="start_date" />
+        <result property="endDate" column="end_date" />
+        <result property="status" column="status" />
+        <result property="category" column="category" />
+        <result property="createdAt" column="created_at" />
+        <result property="updatedAt" column="updated_at" />
+    </resultMap>
+
+
+    <!-- 펀딩 키워드 검색 조회 -->
+    <select id="getSearchFunding" resultType="com.ssafy.funding.entity.Funding">
+        SELECT *
+        FROM funding
+        WHERE title LIKE CONCAT('%', #{keyword}, '%')
+        AND NOW() BETWEEN start_date AND end_date
+        ORDER BY start_date DESC
+        LIMIT 5 OFFSET (#{page} * 5)
+    </select>
+
+</mapper>
