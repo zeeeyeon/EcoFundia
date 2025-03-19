@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @FeignClient(name = "business")
-public interface GetFundingClient {
+public interface FundingClient {
 
     @GetMapping("/api/get/top-funding")
     ResponseEntity<?> getTopFundingList();

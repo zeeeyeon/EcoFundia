@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 @Data
 @Builder
-public class GetFundingResponseDTO {
+public class FundingResponseDTO {
 
     private int funding_id;
     private String title;
