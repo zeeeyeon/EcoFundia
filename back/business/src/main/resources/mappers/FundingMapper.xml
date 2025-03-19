@@ -7,7 +7,7 @@
         <id property="fundingId" column="funding_id" />
         <result property="sellerId" column="seller_id" />
         <result property="title" column="title" />
-        <result property="thumbnail" column="thumbnail" />
+        <result property="imageUrl" column="image_urls" />
         <result property="description" column="description" />
         <result property="price" column="price" />
         <result property="quantity" column="quantity" />
@@ -26,7 +26,6 @@
     <select id="getTotalFund" resultType="java.lang.Long">
         SELECT COALESCE(SUM(total_price), 0) AS totalFund
         FROM `order`
-        WHERE funding_id = #{fundingId};
     </select>
 
     <!-- Top Funding 리스트 조회 -->
@@ -44,7 +43,7 @@
         FROM funding
         WHERE NOW() BETWEEN start_date AND end_date  -- 최신순은 뭘까? 시작시간이 현재와 가장 가까운 시간?
         ORDER BY start_date DESC
-        LIMIT 5 OFFSET (#{page} * 5)
+        LIMIT 5 OFFSET #{page}
     </select>
 
     <!-- 특정 카테고리의 Funding 리스트 조회-->
@@ -54,7 +53,7 @@
         WHERE category = #{category}
         AND NOW() BETWEEN start_date AND end_date  -- 최신순은 뭘까? 시작시간이 현재와 가장 가까운 시간?
         ORDER BY start_date DESC
-        LIMIT 5 OFFSET (#{page} * 5)
+        LIMIT 5 OFFSET #{page}
     </select>
 
 </mapper>

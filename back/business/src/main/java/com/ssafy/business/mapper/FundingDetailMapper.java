@@ -1,7 +1,7 @@
 package com.ssafy.business.mapper;
 
-import com.ssafy.business.dto.responseDTO.FundingDetailResponseDTO;
-import com.ssafy.business.entity.Review;
+import com.ssafy.business.dto.FundingDetailDTO;
+import com.ssafy.business.dto.ReviewDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -10,8 +10,8 @@ import java.util.List;
 @Mapper
 public interface FundingDetailMapper {
 
-    public FundingDetailResponseDTO getFundingDetail(int fundingId);
+    public FundingDetailDTO getFundingDetail(int fundingId);
 
-    public List<Review> getReviewList(@Param("fundingId") int fundingId, @Param("page") int page);
+    public List<ReviewDTO> getReviewList(@Param("fundingId") int fundingId, @Param("page") int page);
 
 }

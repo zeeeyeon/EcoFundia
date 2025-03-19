@@ -29,7 +29,7 @@
         WHERE title LIKE CONCAT('%', #{keyword}, '%')
         AND NOW() BETWEEN start_date AND end_date
         ORDER BY start_date DESC
-        LIMIT 5 OFFSET (#{page} * 5)
+        LIMIT 5 OFFSET #{page}
     </select>
 
 </mapper>

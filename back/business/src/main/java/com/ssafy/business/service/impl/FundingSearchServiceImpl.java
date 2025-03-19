@@ -18,7 +18,7 @@ public class FundingSearchServiceImpl implements FundingSearchService {
 
     // 펀딩 키워드 검색 조회
     public List<FundingResponseDTO> getSearchFundingList(String keyword, int page){
-        List<Funding> fundingList = fundingSearchMapper.getSearchFunding(keyword, page);
+        List<Funding> fundingList = fundingSearchMapper.getSearchFunding(keyword, (page - 1) * 5);
         return fundingList.stream().map(Funding::toDto).collect(Collectors.toList());
     }
 }

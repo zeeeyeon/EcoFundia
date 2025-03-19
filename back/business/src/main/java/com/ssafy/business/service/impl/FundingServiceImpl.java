@@ -30,13 +30,13 @@ public class FundingServiceImpl implements FundingService {
 
     // 최신 펀딩 리스트 조회
     public List<FundingResponseDTO> getLatestFundingList(int page){
-        List<Funding> fundingList = fundingMapper.getLatestFundingList(page);
+        List<Funding> fundingList = fundingMapper.getLatestFundingList((page - 1)  * 5);
         return fundingList.stream().map(Funding::toDto).collect(Collectors.toList());
     }
 
     // 카테고리별 펀딩 리스트 조회
     public List<FundingResponseDTO> getCategoryFundingList(String category, int page){
-        List<Funding> fundingList = fundingMapper.getCategoryFundingList(category, page);
+        List<Funding> fundingList = fundingMapper.getCategoryFundingList(category, (page - 1)  * 5);
         return fundingList.stream().map(Funding::toDto).collect(Collectors.toList());
     }
 }
