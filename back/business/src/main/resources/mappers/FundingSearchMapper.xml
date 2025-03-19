@@ -3,7 +3,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ssafy.business.mapper.FundingSearchMapper">
 
-    <resultMap id="fundingResultMap" type="com.ssafy.business.Funding">
+    <resultMap id="fundingResultMap" type="com.ssafy.business.entity.Funding">
         <id property="fundingId" column="funding_id" />
         <result property="sellerId" column="seller_id" />
         <result property="title" column="title" />
@@ -23,7 +23,7 @@
 
 
     <!-- 펀딩 키워드 검색 조회 -->
-    <select id="getSearchFunding" resultType="com.ssafy.funding.entity.Funding">
+    <select id="getSearchFunding" resultType="com.ssafy.business.entity.Funding">
         SELECT *
         FROM funding
         WHERE title LIKE CONCAT('%', #{keyword}, '%')
