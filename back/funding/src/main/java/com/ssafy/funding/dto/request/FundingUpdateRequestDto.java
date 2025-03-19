@@ -22,20 +22,4 @@ public record FundingUpdateRequestDto(
         Status status,
 
         LocalDateTime updateAt
-) {
-//    public Funding toEntity(int sellerId) {
-//        return Funding.builder()
-//                .sellerId(sellerId)
-//                .title(title)
-//                .description(description)
-//                .storyFileUrl(storyFileUrl)
-//                .price(price)
-//                .quantity(quantity)
-//                .targetAmount(targetAmount)
-//                .startDate(startDate)
-//                .endDate(endDate)
-//                .category(category)
-//                .status(status)
-//                .build();
-//    }
-}
+) {}

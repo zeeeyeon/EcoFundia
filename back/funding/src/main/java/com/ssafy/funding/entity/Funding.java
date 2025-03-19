@@ -1,5 +1,6 @@
 package com.ssafy.funding.entity;
 
+import com.ssafy.funding.dto.request.FundingUpdateRequestDto;
 import com.ssafy.funding.entity.enums.Category;
 import com.ssafy.funding.entity.enums.Status;
 import lombok.AllArgsConstructor;
@@ -47,5 +48,23 @@ public class Funding {
         this.category = category;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+    }
+
+    private void update(FundingUpdateRequestDto dto) {
+        if (dto.title() != null) this.title = dto.title();
+        if (dto.description() != null) this.description = dto.description();
+        if (dto.storyFileUrl() != null) this.storyFileUrl = dto.storyFileUrl();
+        if (dto.price() != 0) this.price = dto.price();
+        if (dto.quantity() != 0) this.quantity = dto.quantity();
+        if (dto.targetAmount() != 0) this.targetAmount = dto.targetAmount();
+        if (dto.startDate() != null) this.startDate = dto.startDate();
+        if (dto.endDate() != null) this.endDate = dto.endDate();
+        if (dto.category() != null) this.category = dto.category();
+        if (dto.status() != null) this.status = dto.status();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void applyUpdate(FundingUpdateRequestDto dto) {
+        this.update(dto);
     }
 }

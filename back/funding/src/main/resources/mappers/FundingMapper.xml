@@ -31,5 +31,23 @@
         VALUES (#{sellerId}, #{title}, #{description}, #{storyFileUrl}, #{price}, #{quantity}, #{targetAmount}, #{startDate}, #{endDate}, #{status}, #{category})
     </insert>
 
+    <update id="updateFunding">
+        UPDATE funding
+        <set>
+            <if test="title != null"> title = #{title}, </if>
+            <if test="description != null"> description = #{description}, </if>
+            <if test="storyFileUrl != null"> story_file_url = #{storyFileUrl}, </if>
+            <if test="price != null"> price = #{price}, </if>
+            <if test="quantity != null"> quantity = #{quantity}, </if>
+            <if test="targetAmount != null"> target_amount = #{targetAmount}, </if>
+            <if test="startDate != null"> start_date = #{startDate}, </if>
+            <if test="endDate != null"> end_date = #{endDate}, </if>
+            <if test="status != null"> status = #{status}, </if>
+            <if test="category != null"> category = #{category}, </if>
+            updated_at = NOW()
+        </set>
+        WHERE funding_id = #{fundingId}
+    </update>
+
 
 </mapper>
