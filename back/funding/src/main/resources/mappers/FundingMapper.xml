@@ -22,12 +22,14 @@
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
-    <insert id="createFunding" useGeneratedKeys="true" keyProperty="fundingId">
-        INSERT INTO funding (seller_id, title, description, story_file_url, price, quantity, target_amount,
-        current_amount, start_date, end_date, status, category, created_at, updated_at)
-        VALUES (#{sellerId}, #{title}, #{description}, #{storyFileUrl}, #{price}, #{quantity}, #{targetAmount},
-        #{currentAmount}, #{startDate}, #{endDate},
-        #{status, typeHandler=com.ssafy.funding.entity.typeHandlers.StatusTypeHandler},
-        #{category, typeHandler=com.ssafy.funding.entity.typeHandlers.CategoryTypeHandler}, NOW(), NOW())
+    <select id="findById" parameterType="int" resultMap="FundingResultMap">
+        SELECT * FROM funding WHERE funding_id = #{fundingId}
+    </select>
+
+    <insert id="createFunding">
+        INSERT INTO funding (seller_id, title, description, story_file_url, price, quantity, target_amount, start_date, end_date, status, category)
+        VALUES (#{sellerId}, #{title}, #{description}, #{storyFileUrl}, #{price}, #{quantity}, #{targetAmount}, #{startDate}, #{endDate}, #{status}, #{category})
     </insert>
+
+
 </mapper>

@@ -1,6 +1,9 @@
 package com.ssafy.funding.service.impl;
 
+import com.ssafy.funding.common.exception.CustomException;
+import com.ssafy.funding.common.response.ResponseCode;
 import com.ssafy.funding.dto.request.FundingCreateRequestDto;
+import com.ssafy.funding.dto.response.FundingResponseDto;
 import com.ssafy.funding.entity.Funding;
 import com.ssafy.funding.mapper.FundingMapper;
 import com.ssafy.funding.service.ProductService;
@@ -20,5 +23,13 @@ public class FundingService implements ProductService {
         Funding funding = dto.toEntity(sellerId);
         fundingMapper.createFunding(funding);
         return funding;
+    }
+
+    @Override
+    public FundingResponseDto getFunding(int fundingId) {
+        Funding funding = fundingMapper.findById(fundingId);
+        if (funding == null) throw new CustomException(ResponseCode.FUNDING_NOT_FOUND);
+
+        return FundingResponseDto.fromEntity(funding);
     }
 }
