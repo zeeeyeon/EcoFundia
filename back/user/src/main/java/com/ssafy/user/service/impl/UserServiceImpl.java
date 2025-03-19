@@ -14,7 +14,7 @@ import com.ssafy.user.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -26,9 +26,6 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private JwtUtil jwtUtil;
-
-    @Autowired
-    private RestTemplate restTemplate;
 
     private static final String GOOGLE_USER_INFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo";
 
@@ -97,13 +94,18 @@ public class UserServiceImpl implements UserService {
         String role = userMapper.isSeller(user.getUserId()) > 0 ? "SELLER" : "USER";
         String newAccessToken = jwtUtil.generateAccessToken(user, role);
 
-        return new ReissueResponseDto(newAccessToken, refreshToken);
+        return new ReissueResponseDto(newAccessToken);
     }
 
 
 
     private Map<String, Object> getGoogleUserInfo(String accessToken) {
         String url = GOOGLE_USER_INFO_URL + "?access_token=" + accessToken;
-        return restTemplate.getForObject(url, Map.class);
+        return WebClient.create()
+                .get()
+                .uri(url)
+                .retrieve()
+                .bodyToMono(Map.class)
+                .block();
     }
 }

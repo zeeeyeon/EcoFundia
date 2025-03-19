@@ -1,3 +1,27 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ssafy.user.mapper.UserMapper">
+
+    <!-- 이메일을 통한 사용자 조회 -->
+    <select id="findByEmail" parameterType="String" resultType="com.ssafy.user.entity.User">
+        SELECT
+        *
+        FROM user
+        WHERE email = #{email}
+    </select>
+
+    <!-- 해당 사용자가 판매자인지 여부 확인 (테이블 및 조건은 실제 DB 스키마에 맞게 수정) -->
+    <select id="isSeller" parameterType="int" resultType="int">
+        SELECT COUNT(*)
+        FROM seller
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 사용자 정보 등록 -->
+    <insert id="insertUser" parameterType="com.ssafy.user.entity.User">
+        INSERT INTO user (user_id, email, name, nickname, gender, age, created_at)
+        VALUES (#{userId}, #{email}, #{name}, #{nickname}, #{gender}, #{age}, #{createdAt})
+    </insert>
+
+</mapper>
