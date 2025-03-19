@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import 'package:front/core/widgets/custom_button.dart';
+import 'package:front/core/ui/widgets/custom_button.dart';
 import 'package:go_router/go_router.dart';
 
 class SignupCompleteScreen extends StatefulWidget {

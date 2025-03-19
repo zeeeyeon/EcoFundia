@@ -1,62 +1,66 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/ui/widgets/custom_app_bar.dart';
 import '../../ui/view_model/funding_list_view_model.dart';
 import '../../data/models/funding_model.dart';
 import '../../ui/widgets/funding_card.dart';
 
-class FundingListScreen extends ConsumerWidget {
+class FundingListScreen extends ConsumerStatefulWidget {
   const FundingListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  _FundingListScreenState createState() => _FundingListScreenState();
+}
+
+class _FundingListScreenState extends ConsumerState<FundingListScreen> {
+  final TextEditingController searchController = TextEditingController();
+  bool showFilteredResults = false;
+
+  @override
+  Widget build(BuildContext context) {
     final fundingState = ref.watch(fundingListProvider);
-    final searchQuery = ref.watch(searchQueryProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text("펀딩 리스트")),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: "펀딩 검색...",
-                prefixIcon: const Icon(Icons.search),
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-              onChanged: (query) {
-                ref.read(searchQueryProvider.notifier).state =
-                    query; // 검색어 상태 업데이트
-                ref
-                    .read(fundingListProvider.notifier)
-                    .searchFunding(query); // 검색 실행
-              },
-            ),
-          ),
-          Expanded(
-            child: fundingState.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Center(child: Text("오류 발생: $err")),
-              data: (fundingList) => fundingList.isEmpty
-                  ? const Center(child: Text("검색 결과가 없습니다."))
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: fundingList.length,
-                      itemBuilder: (context, index) {
-                        FundingModel funding = fundingList[index];
-                        return GestureDetector(
-                          onTap: () {
-                            context.push('/funding/detail', extra: funding);
-                          },
-                          child: FundingCard(funding: funding),
-                        );
+      appBar: CustomAppBar(
+        showBackButton: false,
+        showHomeButton: true, // ✅ 홈 버튼 추가
+        showSearchField: true, // ✅ 검색 필드 추가
+        searchController: searchController,
+        onSearchChanged: (query) {
+          ref.read(searchQueryProvider.notifier).state = query; // ✅ 검색어 상태 업데이트
+          ref
+              .read(fundingListProvider.notifier)
+              .searchFunding(query); // ✅ 검색 실행
+        },
+        onSearchSubmit: () {
+          setState(() {
+            showFilteredResults = true; // ✅ 검색 버튼 클릭 시 필터링된 리스트만 보이게 설정
+          });
+          ref.read(searchQueryProvider.notifier).state =
+              ''; // ✅ 검색 필드를 비우되 기존 필터링 유지
+        },
+      ),
+      body: Expanded(
+        child: fundingState.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (err, stack) => Center(child: Text("오류 발생: $err")),
+          data: (fundingList) => fundingList.isEmpty
+              ? const Center(child: Text("검색 결과가 없습니다."))
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: fundingList.length,
+                  itemBuilder: (context, index) {
+                    FundingModel funding = fundingList[index];
+                    return GestureDetector(
+                      onTap: () {
+                        context.push('/funding/detail', extra: funding);
                       },
-                    ),
-            ),
-          ),
-        ],
+                      child: FundingCard(funding: funding),
+                    );
+                  },
+                ),
+        ),
       ),
     );
   }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/ui/widgets/custom_app_bar.dart';
 import '../../data/models/funding_model.dart';
+import '../view_model/funding_list_view_model.dart';
 
 class FundingDetailScreen extends StatelessWidget {
   final FundingModel funding;
@@ -9,14 +11,19 @@ class FundingDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(funding.title),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back), // 🔙 뒤로 가기 아이콘
-          onPressed: () {
-            context.pop(); // 🔥 현재 화면을 닫고 이전 화면으로 돌아감
-          },
-        ),
+      appBar: CustomAppBar(
+        title: funding.title,
+        showBackButton: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: const Icon(Icons.home),
+            onPressed: () {},
+          )
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

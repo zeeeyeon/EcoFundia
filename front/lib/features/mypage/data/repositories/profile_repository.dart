@@ -6,7 +6,7 @@ class ProfileRepository {
 
   ProfileRepository(this.service);
 
-  // ✅ 프로필 데이터 가져오기
+  // 프로필 데이터 가져오기
   Future<ProfileModel> getProfile() async {
     return await service.fetchUserProfile();
   }
