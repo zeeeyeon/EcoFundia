@@ -2,14 +2,14 @@ package com.ssafy.funding.controller;
 
 import com.ssafy.funding.common.response.Response;
 import com.ssafy.funding.dto.request.FundingCreateRequestDto;
+import com.ssafy.funding.dto.request.FundingUpdateRequestDto;
 import com.ssafy.funding.dto.response.FundingResponseDto;
 import com.ssafy.funding.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import static com.ssafy.funding.common.response.ResponseCode.CREATE_FUNDING;
-import static com.ssafy.funding.common.response.ResponseCode.GET_FUNDING;
+import static com.ssafy.funding.common.response.ResponseCode.*;
 
 @RestController
 @RequestMapping("/api/funding")
@@ -31,8 +31,9 @@ public class FundingController {
     }
 
     @PutMapping("/{sellerId}")
-    public ResponseEntity<?> updateFunding(@PathVariable Integer sellerId, @RequestBody FundingCreateRequestDto dto) {
-        return null;
+    public ResponseEntity<?> updateFunding(@PathVariable Integer sellerId, @RequestBody FundingUpdateRequestDto dto) {
+        productService.updateFunding(sellerId, dto);
+        return new ResponseEntity<>(Response.create(UPDATE_FUNDING, null), UPDATE_FUNDING.getHttpStatus());
     }
 
 }
