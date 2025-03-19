@@ -1,10 +1,9 @@
 package com.ssafy.funding.config;
 
-import feign.Client;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@Configuration
+//@Configuration
 public class FeignConfig {
 
     // Ribbon 로드 밸런서를 사용하는 것이 기본값이라 이 부분을 null로 처리
