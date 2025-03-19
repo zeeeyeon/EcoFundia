@@ -31,9 +31,14 @@ public class FundingController {
     }
 
     @PutMapping("/{sellerId}")
-    public ResponseEntity<?> updateFunding(@PathVariable Integer sellerId, @RequestBody FundingUpdateRequestDto dto) {
+    public ResponseEntity<?> updateFunding(@PathVariable int sellerId, @RequestBody FundingUpdateRequestDto dto) {
         productService.updateFunding(sellerId, dto);
         return new ResponseEntity<>(Response.create(UPDATE_FUNDING, null), UPDATE_FUNDING.getHttpStatus());
     }
 
+    @DeleteMapping("/{sellerId}")
+    public ResponseEntity<?> deleteFunding(@PathVariable int sellerId) {
+        productService.deleteFunding(sellerId);
+        return new ResponseEntity<>(Response.create(DELETE_FUNDING, null), DELETE_FUNDING.getHttpStatus());
+    }
 }

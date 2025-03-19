@@ -44,6 +44,12 @@ public class FundingService implements ProductService {
         return funding;
     }
 
+    @Override
+    public void deleteFunding(int fundingId) {
+        findByFundingId(fundingId);
+        fundingMapper.deleteFunding(fundingId);
+    }
+
     private Funding findByFundingId(int fundingId) {
         Funding funding = fundingMapper.findById(fundingId);
         if (funding == null) throw new CustomException(ResponseCode.FUNDING_NOT_FOUND);

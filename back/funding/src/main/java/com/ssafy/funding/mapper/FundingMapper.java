@@ -9,4 +9,5 @@ public interface FundingMapper {
     void createFunding(Funding funding);
     Funding findById(int fundingId);
     void updateFunding(Funding funding);
+    void deleteFunding(int fundingId);
 }
