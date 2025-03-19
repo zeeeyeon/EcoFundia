@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class FundingService implements ProductService {
 
     private final FundingMapper fundingMapper;
-    private final ProductService productService;
 
     @Override
     @Transactional

@@ -31,6 +31,7 @@ public record FundingCreateRequestDto(
                 .quantity(quantity)
                 .targetAmount(targetAmount)
                 .startDate(startDate)
+                .endDate(endDate)
                 .category(category)
                 .build();
     }
