@@ -1,23 +1,53 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:front/utils/logger_util.dart';
 
 /// JWT 토큰 및 사용자 정보를 안전하게 저장하는 서비스
 class StorageService {
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
 
   // 키 상수
-  static const String _tokenKey = 'jwt_token';
+  static const String _tokenKey = 'auth_token';
   static const String _userIdKey = 'user_id';
   static const String _refreshTokenKey = 'refresh_token';
-  static const String _lastLoginDateKey = 'last_login_date';
+  static const String _userEmailKey = 'user_email';
+  static const String _userNicknameKey = 'user_nickname';
   static const String _autoLoginKey = 'auto_login';
+  static const String _lastLoginKey = 'last_login';
 
-  /// JWT 토큰 저장
-  static Future<void> saveToken(String token, {Duration? expiresIn}) async {
-    await _storage.write(key: _tokenKey, value: token);
-    if (expiresIn != null) {
-      final expiryDate = DateTime.now().add(expiresIn).toIso8601String();
-      await _storage.write(key: '${_tokenKey}_expiry', value: expiryDate);
+  /// 스토리지 서비스 초기화
+  static Future<void> init() async {
+    LoggerUtil.d('📦 스토리지 서비스 초기화');
+    // 필요한 경우 여기에 스토리지 초기화 코드를 추가
+
+    // 저장된 토큰 확인 (디버깅용)
+    if (await hasValidToken()) {
+      LoggerUtil.d('🔑 유효한 인증 토큰이 존재합니다');
     }
+  }
+
+  /// JWT 토큰이 유효한지 확인
+  static Future<bool> hasValidToken() async {
+    try {
+      final token = await _storage.read(key: _tokenKey);
+      if (token == null) return false;
+
+      // JWT 토큰 만료 시간 확인
+      final decodedToken = JwtDecoder.decode(token);
+      final expirationTime = DateTime.fromMillisecondsSinceEpoch(
+        decodedToken['exp'] * 1000,
+      );
+
+      return DateTime.now().isBefore(expirationTime);
+    } catch (e) {
+      LoggerUtil.e('❌ 토큰 검증 중 오류 발생', e);
+      return false;
+    }
+  }
+
+  /// 액세스 토큰 저장
+  static Future<void> saveToken(String token) async {
+    await _storage.write(key: _tokenKey, value: token);
   }
 
   /// JWT 토큰 조회
@@ -50,14 +80,19 @@ class StorageService {
     return await _storage.read(key: _userIdKey);
   }
 
-  /// 모든 사용자 데이터 삭제 (로그아웃)
-  static Future<void> clearUserData() async {
-    await _storage.deleteAll();
+  /// 사용자 이메일 저장
+  static Future<void> saveUserEmail(String email) async {
+    await _storage.write(key: _userEmailKey, value: email);
   }
 
-  /// 자동 로그인 설정 저장
-  static Future<void> setAutoLogin(bool enabled) async {
-    await _storage.write(key: _autoLoginKey, value: enabled.toString());
+  /// 사용자 닉네임 저장
+  static Future<void> saveUserNickname(String nickname) async {
+    await _storage.write(key: _userNicknameKey, value: nickname);
+  }
+
+  /// 자동 로그인 설정
+  static Future<void> setAutoLogin(bool value) async {
+    await _storage.write(key: _autoLoginKey, value: value.toString());
   }
 
   /// 자동 로그인 상태 확인
@@ -66,53 +101,41 @@ class StorageService {
     return value == 'true';
   }
 
-  /// 마지막 로그인 시간 저장
+  /// 마지막 로그인 시간 업데이트
   static Future<void> updateLastLoginDate() async {
     final now = DateTime.now().toIso8601String();
-    await _storage.write(key: _lastLoginDateKey, value: now);
+    await _storage.write(key: _lastLoginKey, value: now);
   }
 
-  /// 토큰 유효성 검사
-  static Future<bool> isTokenValid() async {
-    try {
-      final token = await getToken();
-      if (token == null) return false;
-
-      final expiryDateStr = await _storage.read(key: '${_tokenKey}_expiry');
-      if (expiryDateStr == null) return false;
-
-      final expiryDate = DateTime.parse(expiryDateStr);
-      return DateTime.now().isBefore(expiryDate);
-    } catch (e) {
-      return false;
-    }
+  /// 저장된 데이터 모두 삭제
+  static Future<void> clearAll() async {
+    await _storage.deleteAll();
   }
 
-  /// 로그인 상태 확인 개선
-  static Future<bool> isLoggedIn() async {
-    try {
-      final autoLoginEnabled = await isAutoLoginEnabled();
-      if (!autoLoginEnabled) return false;
-
-      final token = await getToken();
-      if (token == null) return false;
-
-      return await isTokenValid();
-    } catch (e) {
-      return false;
-    }
-  }
-
-  /// 보안 로그아웃 (선택적 데이터 유지)
+  /// 선택적 데이터 유지 로그아웃
   static Future<void> secureLogout({bool keepUserPreferences = false}) async {
     if (keepUserPreferences) {
-      // 인증 관련 데이터만 삭제
+      // 자동 로그인 설정과 마지막 로그인 시간은 유지
       await _storage.delete(key: _tokenKey);
       await _storage.delete(key: _refreshTokenKey);
-      await _storage.delete(key: '${_tokenKey}_expiry');
+      await _storage.delete(key: _userIdKey);
+      await _storage.delete(key: _userEmailKey);
+      await _storage.delete(key: _userNicknameKey);
     } else {
-      // 모든 데이터 삭제
-      await clearUserData();
+      await clearAll();
     }
+  }
+
+  /// 저장된 데이터 조회
+  static Future<Map<String, String?>> getAllData() async {
+    return {
+      _tokenKey: await _storage.read(key: _tokenKey),
+      _refreshTokenKey: await _storage.read(key: _refreshTokenKey),
+      _userIdKey: await _storage.read(key: _userIdKey),
+      _userEmailKey: await _storage.read(key: _userEmailKey),
+      _userNicknameKey: await _storage.read(key: _userNicknameKey),
+      _autoLoginKey: await _storage.read(key: _autoLoginKey),
+      _lastLoginKey: await _storage.read(key: _lastLoginKey),
+    };
   }
 }

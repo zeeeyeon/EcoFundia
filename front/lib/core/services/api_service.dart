@@ -1,14 +1,27 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'storage_service.dart';
+import 'package:front/utils/logger_util.dart';
+
+/// API 서비스 Provider
+final apiServiceProvider = Provider<ApiService>((ref) {
+  return ApiService();
+});
 
 /// API 요청을 처리하는 서비스
 class ApiService {
   static ApiService? _instance;
   final Dio _dio = Dio();
 
-  // 기본 URL (개발/운영 환경에 따라 변경 가능)
-  static const String _baseUrl = 'https://api.simple.com/api';
+  // 기본 URL
+  static const String _baseUrl = 'http://172.20.10.14:8081';
+
+  // API 엔드포인트
+  static const String loginEndpoint = '/user/login';
+  static const String signupEndpoint = '/user/signup';
+  static const String refreshEndpoint = '/auth/refresh';
+  static const String logoutEndpoint = '/auth/logout';
 
   // 싱글톤 패턴
   factory ApiService() {
@@ -48,6 +61,10 @@ class ApiService {
   /// 요청 전처리
   void _onRequest(
       RequestOptions options, RequestInterceptorHandler handler) async {
+    if (kDebugMode) {
+      LoggerUtil.d('🔄 API 요청: ${options.method} ${options.path}');
+    }
+
     // JWT 토큰 추가
     final token = await StorageService.getToken();
     if (token != null && token.isNotEmpty) {
@@ -59,28 +76,40 @@ class ApiService {
 
   /// 응답 처리
   void _onResponse(Response response, ResponseInterceptorHandler handler) {
+    if (kDebugMode) {
+      LoggerUtil.d(
+          '✅ API 응답: ${response.statusCode} ${response.requestOptions.path}');
+    }
     return handler.next(response);
   }
 
   /// 에러 처리
   void _onError(DioException e, ErrorInterceptorHandler handler) async {
+    LoggerUtil.e(
+        '❌ API 오류: ${e.response?.statusCode} ${e.requestOptions.path}', e);
+
     // 401 에러 시 토큰 갱신 시도
     if (e.response?.statusCode == 401) {
       try {
+        LoggerUtil.i('🔄 토큰 갱신 시도');
         final refreshed = await _refreshToken();
         if (refreshed) {
           // 토큰 갱신 성공 시 원래 요청 재시도
+          LoggerUtil.i('✅ 토큰 갱신 성공, 요청 재시도');
           final token = await StorageService.getToken();
           final options = e.requestOptions;
           options.headers['Authorization'] = 'Bearer $token';
 
           final response = await _dio.fetch(options);
           return handler.resolve(response);
+        } else {
+          LoggerUtil.w('⚠️ 토큰 갱신 실패');
         }
       } catch (error) {
+        LoggerUtil.e('❌ 토큰 갱신 중 오류', error);
         // 토큰 갱신 실패 시 로그아웃 처리
-        await StorageService.clearUserData();
-        // TODO: 로그인 화면으로 이동 로직
+        await StorageService.clearAll();
+        LoggerUtil.i('🚪 자동 로그아웃 처리됨');
       }
     }
 
@@ -93,11 +122,12 @@ class ApiService {
       final refreshToken = await StorageService.getRefreshToken();
 
       if (refreshToken == null) {
+        LoggerUtil.w('⚠️ 리프레시 토큰이 없음');
         return false;
       }
 
       final response = await _dio.post(
-        '/auth/refresh',
+        refreshEndpoint,
         data: {'refreshToken': refreshToken},
         options: Options(headers: {'Authorization': null}),
       );
@@ -105,11 +135,13 @@ class ApiService {
       if (response.statusCode == 200) {
         final newToken = response.data['token'];
         await StorageService.saveToken(newToken);
+        LoggerUtil.i('✅ 새 토큰 저장됨');
         return true;
       }
 
       return false;
     } catch (e) {
+      LoggerUtil.e('❌ 토큰 갱신 요청 실패', e);
       return false;
     }
   }
@@ -120,6 +152,7 @@ class ApiService {
     try {
       return await _dio.get(path, queryParameters: queryParameters);
     } catch (e) {
+      LoggerUtil.e('❌ GET 요청 실패: $path', e);
       rethrow;
     }
   }
@@ -129,6 +162,7 @@ class ApiService {
     try {
       return await _dio.post(path, data: data);
     } catch (e) {
+      LoggerUtil.e('❌ POST 요청 실패: $path', e);
       rethrow;
     }
   }
@@ -138,6 +172,7 @@ class ApiService {
     try {
       return await _dio.put(path, data: data);
     } catch (e) {
+      LoggerUtil.e('❌ PUT 요청 실패: $path', e);
       rethrow;
     }
   }
@@ -147,7 +182,14 @@ class ApiService {
     try {
       return await _dio.delete(path, data: data);
     } catch (e) {
+      LoggerUtil.e('❌ DELETE 요청 실패: $path', e);
       rethrow;
     }
   }
+
+  /// 현재 Dio 인스턴스 반환 (특수 케이스 처리용)
+  Dio get dio => _dio;
 }
+
+// 문자열 길이의 최소값 계산 헬퍼 함수
+int min(int a, int b) => a < b ? a : b;

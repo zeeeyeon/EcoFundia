@@ -1,15 +1,41 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:front/core/services/api_service.dart';
+import 'package:front/core/constants/auth_constants.dart';
 import 'package:front/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:front/features/auth/data/services/auth_service.dart';
 import 'package:front/features/auth/domain/models/auth_state.dart';
 import 'package:front/features/auth/domain/repositories/auth_repository.dart';
 import 'package:front/features/auth/domain/use_cases/google_sign_in_use_case.dart';
 import 'package:front/features/auth/ui/view_model/auth_view_model.dart';
 
+/// Auth Service Provider
+final authServiceProvider = Provider<AuthService>((ref) {
+  const baseUrl = 'http://172.20.10.14:8081';
+
+  // 웹과 모바일 환경에 맞게 GoogleSignIn 설정
+  final googleSignIn = kIsWeb
+      ? GoogleSignIn(
+          scopes: ['email', 'profile'],
+          clientId: AuthConstants.webClientId,
+        )
+      : GoogleSignIn(
+          scopes: ['email', 'profile'],
+          serverClientId: AuthConstants.serverClientId,
+        );
+
+  return AuthService(
+    baseUrl: baseUrl,
+    googleSignIn: googleSignIn,
+  );
+});
+
 /// Auth Repository Provider
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  final apiService = ApiService();
-  return AuthRepositoryImpl(apiService);
+  final apiService = ref.watch(apiServiceProvider);
+  final authService = ref.watch(authServiceProvider);
+  return AuthRepositoryImpl(apiService, authService);
 });
 
 /// UseCase Provider들

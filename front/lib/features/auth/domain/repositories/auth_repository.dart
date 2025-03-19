@@ -1,4 +1,5 @@
 import '../models/auth_response.dart';
+import 'package:front/features/auth/domain/models/auth_result.dart';
 
 /// 인증 관련 작업을 처리하는 저장소 인터페이스
 abstract class AuthRepository {
@@ -16,4 +17,13 @@ abstract class AuthRepository {
 
   /// 로그인 상태 확인
   Future<bool> isLoggedIn();
+
+  /// Google 로그인 처리
+  Future<AuthResult> signInWithGoogle();
+
+  /// 로그인 상태 확인
+  Future<bool> checkLoginStatus();
+
+  /// Google 사용자 정보 획득
+  Future<Map<String, dynamic>?> getGoogleUserInfo();
 }

@@ -2,40 +2,86 @@ import 'package:equatable/equatable.dart';
 
 /// 서버로부터 받는 인증 응답 모델
 class AuthResponse extends Equatable {
-  final String? token;
+  final String? accessToken;
   final String? refreshToken;
-  final bool isNewUser;
+  final UserInfo? user;
+  final String? role;
   final String? message;
-  final String? userId;
 
   const AuthResponse({
-    this.token,
+    this.accessToken,
     this.refreshToken,
-    required this.isNewUser,
+    this.user,
+    this.role,
     this.message,
-    this.userId,
   });
 
   /// JSON으로부터 객체 생성
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
     return AuthResponse(
-      token: json['token'] as String?,
+      accessToken: json['accessToken'] as String?,
       refreshToken: json['refreshToken'] as String?,
-      isNewUser: json['isNewUser'] as bool? ?? false,
+      user: json['user'] != null ? UserInfo.fromJson(json['user']) : null,
+      role: json['role'] as String?,
       message: json['message'] as String?,
-      userId: json['userId'] as String?,
     );
   }
 
   /// 객체를 JSON으로 변환
   Map<String, dynamic> toJson() => {
-        'token': token,
+        'accessToken': accessToken,
         'refreshToken': refreshToken,
-        'isNewUser': isNewUser,
+        'user': user?.toJson(),
+        'role': role,
         'message': message,
-        'userId': userId,
       };
 
   @override
-  List<Object?> get props => [token, refreshToken, isNewUser, message, userId];
+  List<Object?> get props => [accessToken, refreshToken, user, role, message];
+}
+
+class UserInfo extends Equatable {
+  final int userId;
+  final String email;
+  final String name;
+  final String nickname;
+  final String gender;
+  final int age;
+  final DateTime createdAt;
+
+  const UserInfo({
+    required this.userId,
+    required this.email,
+    required this.name,
+    required this.nickname,
+    required this.gender,
+    required this.age,
+    required this.createdAt,
+  });
+
+  factory UserInfo.fromJson(Map<String, dynamic> json) {
+    return UserInfo(
+      userId: json['userId'] as int,
+      email: json['email'] as String,
+      name: json['name'] as String,
+      nickname: json['nickname'] as String,
+      gender: json['gender'] as String,
+      age: json['age'] as int,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'userId': userId,
+        'email': email,
+        'name': name,
+        'nickname': nickname,
+        'gender': gender,
+        'age': age,
+        'createdAt': createdAt.toIso8601String(),
+      };
+
+  @override
+  List<Object?> get props =>
+      [userId, email, name, nickname, gender, age, createdAt];
 }

@@ -7,18 +7,18 @@ import 'package:front/core/ui/widgets/loading_overlay.dart';
 import 'package:front/features/auth/ui/widgets/custom_text_field.dart';
 import 'package:front/features/auth/ui/widgets/gender_selection.dart';
 import 'package:front/features/auth/domain/use_cases/validators_use_case.dart';
+import 'package:front/features/auth/domain/models/auth_result.dart';
 import 'package:front/features/auth/ui/view_model/sign_up_view_model.dart';
-import 'package:front/features/auth/domain/use_cases/google_sign_in_use_case.dart';
 import 'package:go_router/go_router.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
-  final String? serverAuthCode;
+  final String? token;
   final String email;
   final String? name;
 
   const SignUpScreen({
     super.key,
-    this.serverAuthCode,
+    this.token,
     required this.email,
     this.name,
   });
@@ -58,12 +58,14 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
             nickname: _nicknameController.text,
             gender: _selectedGender!,
             age: _ageController.text,
-            serverAuthCode: widget.serverAuthCode,
+            token: widget.token,
           );
 
       if (mounted) {
         if (result is AuthSuccess) {
-          context.go('/signup-success', extra: _nicknameController.text);
+          // 회원가입 성공 시 닉네임과 함께 완료 화면으로 이동
+          context.go('/signup-success',
+              extra: {'nickname': _nicknameController.text});
         }
       }
     } catch (e) {
@@ -167,6 +169,41 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class GenderSelection extends StatelessWidget {
+  final String? initialValue;
+  final ValueChanged<String> onChanged;
+
+  const GenderSelection({
+    super.key,
+    required this.initialValue,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: RadioListTile<String>(
+            title: const Text('남성'),
+            value: '남성',
+            groupValue: initialValue,
+            onChanged: (value) => onChanged(value!),
+          ),
+        ),
+        Expanded(
+          child: RadioListTile<String>(
+            title: const Text('여성'),
+            value: '여성',
+            groupValue: initialValue,
+            onChanged: (value) => onChanged(value!),
+          ),
+        ),
+      ],
     );
   }
 }

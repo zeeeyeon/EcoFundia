@@ -32,9 +32,12 @@ final routerProvider = Provider<GoRouter>((ref) {
           final extras = state.extra as Map<String, dynamic>?;
           final name = extras?['name'] as String?;
           final email = extras?['email'] as String? ?? '';
+          final token = extras?['token'] as String?;
+
           return SignUpScreen(
             name: name,
             email: email,
+            token: token,
           );
         },
       ),
@@ -44,7 +47,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/login',
-        builder: (context, state) => const LoginPage(),
+        builder: (context, state) => const LoginScreen(),
       ),
       GoRoute(
         path: '/signup-success',
