@@ -50,4 +50,8 @@
     </update>
 
 
+    <select id="deleteFunding" parameterType="int" resultMap="FundingResultMap">
+        DELETE FROM funding WHERE funding_id = #{fundingId}
+    </select>
+
 </mapper>

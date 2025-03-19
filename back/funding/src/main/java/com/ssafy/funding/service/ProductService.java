@@ -9,4 +9,5 @@ public interface ProductService {
     Funding createFunding(int sellerId, FundingCreateRequestDto dto);
     FundingResponseDto getFunding(int fundingId);
     Funding updateFunding(int fundingId, FundingUpdateRequestDto dto);
+    void deleteFunding(int fundingId);
 }
