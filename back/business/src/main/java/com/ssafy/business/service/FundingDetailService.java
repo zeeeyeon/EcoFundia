@@ -1,7 +1,8 @@
 package com.ssafy.business.service;
 
 import com.ssafy.business.dto.responseDTO.FundingDetailResponseDTO;
-import com.ssafy.business.dto.responseDTO.FundingReviewResponseDTO;
+import com.ssafy.business.dto.responseDTO.ReviewResponseDTO;
+
 
 import java.util.List;
 
@@ -11,7 +12,6 @@ public interface FundingDetailService {
     public FundingDetailResponseDTO getFundingDetail(int fundingId);
 
     // 펀딩 리뷰 조회
-    public List<FundingReviewResponseDTO> getFundingReview(int fundingId, int page);
-
+    public ReviewResponseDTO getFundingReview(int sellerId, int page);
 
 }

@@ -4,9 +4,9 @@ import com.ssafy.business.entity.Category;
 import com.ssafy.business.entity.Status;
 import lombok.Builder;
 import lombok.Data;
-import org.apache.commons.lang.enums.Enum;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -15,7 +15,7 @@ public class FundingDetailResponseDTO {
     private int fundingId;
     private String title;
     private String description;
-    private String imageUrl; // 이미지 url도 없음
+    private List<String> imageUrls;
     private String story;
     private int price;
     private int quantity;
@@ -29,4 +29,5 @@ public class FundingDetailResponseDTO {
     private int sellerId;
     private String sellerName; //현재 이거 없음
     private String sellerProfileImageUrl;
+
 }

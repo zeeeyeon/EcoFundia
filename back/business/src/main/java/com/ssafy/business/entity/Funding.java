@@ -11,7 +11,7 @@ public class Funding {
     private int fundingId;
     private int sellerId;
     private String title;
-    private String thumbnail;
+    private String imageUrls;
     private String description;
     private int price;
     private int quantity;           //수량??
@@ -30,9 +30,11 @@ public class Funding {
                 .funding_id(fundingId)
                 .title(title)
                 .description(description)
+                .imageUrl(imageUrls)
                 .endDate(endDate)
-                .rate(currentAmount/targetAmount*100)
+                .rate( (int) ((double) currentAmount / targetAmount * 100) )
                 .currentAmount(currentAmount)
+                .category(category)
                 .build();
     }
 
