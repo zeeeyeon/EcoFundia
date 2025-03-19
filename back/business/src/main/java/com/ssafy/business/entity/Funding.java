@@ -1,6 +1,6 @@
 package com.ssafy.business.entity;
 
-import com.ssafy.business.dto.responseDTO.GetFundingResponseDTO;
+import com.ssafy.business.dto.responseDTO.FundingResponseDTO;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -19,13 +19,13 @@ public class Funding {
     private int currentAmount;      //현재 금액
     private LocalDateTime startDate;
     private LocalDateTime endDate;
-    private String status; // ENUM('ONGOING', 'SUCCESS', 'FAIL')
-    private String category; // ENUM('FOOD', 'FASHION', 'ELECTRONICS', 'HOUSEHOLD', 'INTERIOR')
+    private Status status; // ENUM('ONGOING', 'SUCCESS', 'FAIL')
+    private Category category; // ENUM('FOOD', 'FASHION', 'ELECTRONICS', 'HOUSEHOLD', 'INTERIOR')
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public GetFundingResponseDTO toDto() {
-        return GetFundingResponseDTO
+    public FundingResponseDTO toDto() {
+        return FundingResponseDTO
                 .builder()
                 .funding_id(fundingId)
                 .title(title)

@@ -1,7 +1,7 @@
 package com.ssafy.business.controller;
 
 import com.ssafy.business.service.impl.FundingSearchServiceImpl;
-import com.ssafy.business.service.impl.GetFundingServiceImpl;
+import com.ssafy.business.service.impl.FundingServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/get")
 @RequiredArgsConstructor
-public class GetFundingController {
+public class FundingController {
 
-    private final GetFundingServiceImpl GetFundingService;
+    private final FundingServiceImpl GetFundingService;
     private final FundingSearchServiceImpl FundingSearchService;
 
     // Top 펀딩 리스트 조회
