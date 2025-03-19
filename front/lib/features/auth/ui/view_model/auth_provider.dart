@@ -8,12 +8,13 @@ import 'package:front/features/auth/data/services/auth_service.dart';
 import 'package:front/features/auth/domain/models/auth_state.dart';
 import 'package:front/features/auth/domain/repositories/auth_repository.dart';
 import 'package:front/features/auth/domain/use_cases/google_sign_in_use_case.dart';
+import 'package:front/features/auth/domain/use_cases/complete_sign_up_use_case.dart';
+import 'package:front/features/auth/domain/use_cases/sign_out_use_case.dart';
+import 'package:front/features/auth/domain/use_cases/check_login_status_use_case.dart';
 import 'package:front/features/auth/ui/view_model/auth_view_model.dart';
 
 /// Auth Service Provider
 final authServiceProvider = Provider<AuthService>((ref) {
-  const baseUrl = 'http://172.20.10.14:8081';
-
   // 웹과 모바일 환경에 맞게 GoogleSignIn 설정
   final googleSignIn = kIsWeb
       ? GoogleSignIn(
@@ -25,8 +26,11 @@ final authServiceProvider = Provider<AuthService>((ref) {
           serverClientId: AuthConstants.serverClientId,
         );
 
+  // ApiService 주입 (중앙화된 Dio 인스턴스 사용)
+  final apiService = ref.watch(apiServiceProvider);
+
   return AuthService(
-    baseUrl: baseUrl,
+    apiService: apiService,
     googleSignIn: googleSignIn,
   );
 });

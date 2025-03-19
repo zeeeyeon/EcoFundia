@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/features/auth/domain/models/auth_state.dart';
 import 'package:front/features/auth/domain/models/auth_result.dart';
+import 'package:front/features/auth/domain/use_cases/check_login_status_use_case.dart';
 import 'package:front/features/auth/domain/use_cases/google_sign_in_use_case.dart';
+import 'package:front/features/auth/domain/use_cases/sign_out_use_case.dart';
 import 'package:front/utils/logger_util.dart';
 import 'package:front/core/services/storage_service.dart';
 import 'package:front/features/auth/domain/models/auth_response.dart';
@@ -39,7 +41,7 @@ class AuthViewModel extends StateNotifier<AuthState> {
     state = state.copyWithLoading();
 
     try {
-      final isLoggedIn = await StorageService.hasValidToken();
+      final isLoggedIn = await _checkLoginStatusUseCase.execute();
       LoggerUtil.i('✅ ViewModel - 로그인 상태 확인 완료: $isLoggedIn');
       state = state.copyWith(
         isLoggedIn: isLoggedIn,

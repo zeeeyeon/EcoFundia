@@ -1,11 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/core/exceptions/auth_exception.dart';
+import 'package:front/features/auth/domain/entities/sign_up_entity.dart';
 import 'package:front/features/auth/domain/models/auth_response.dart';
 import 'package:front/features/auth/domain/models/auth_state.dart';
 import 'package:front/features/auth/domain/models/auth_result.dart';
-import 'package:front/features/auth/domain/use_cases/google_sign_in_use_case.dart';
+import 'package:front/features/auth/domain/use_cases/complete_sign_up_use_case.dart';
 import 'package:front/features/auth/ui/view_model/auth_provider.dart';
 import 'package:front/features/auth/ui/view_model/auth_view_model.dart';
 import 'package:front/utils/logger_util.dart';
+import 'package:front/utils/sign_up_validator.dart';
 
 class SignUpViewModel extends StateNotifier<AuthState> {
   final CompleteSignUpUseCase _completeSignUpUseCase;
@@ -29,24 +32,31 @@ class SignUpViewModel extends StateNotifier<AuthState> {
     state = state.copyWithLoading();
 
     try {
-      // Form에서 이미 유효성 검사를 했으므로, 안전하게 int로 변환
-      final userData = {
-        'token': token, // 구글에서 받아온 토큰
-        'nickname': nickname,
-        'gender': gender == '남성'
-            ? 'MALE'
-            : 'FEMALE', // UI의 '남성'/'여성'을 'MALE'/'FEMALE'로 변환
-        'age': int.parse(age),
-      };
+      // 중앙화된 Validator를 사용하여 입력값 검증
+      SignUpValidator.validateSignUpInput(
+          email: email,
+          nickname: nickname,
+          gender: gender,
+          age: age,
+          token: token);
 
-      // 토큰 정보 검증
-      if (token == null || token.isEmpty) {
-        LoggerUtil.w('⚠️ 회원가입 데이터에 토큰이 없습니다. 회원가입이 실패할 수 있습니다.');
-        throw Exception('인증 토큰이 없습니다.');
-      }
+      // 나이 변환
+      final parsedAge = int.parse(age);
 
-      LoggerUtil.i('📤 회원가입 데이터: $userData');
-      final result = await _completeSignUpUseCase.execute(userData);
+      // 성별 변환 - UI의 '남성'/'여성'을 'MALE'/'FEMALE'로 변환
+      final mappedGender = SignUpValidator.mapGenderToServer(gender);
+
+      // SignUpEntity 생성
+      final signUpEntity = SignUpEntity(
+        email: email,
+        nickname: nickname,
+        gender: mappedGender,
+        age: parsedAge,
+        token: token,
+      );
+
+      LoggerUtil.i('📤 회원가입 데이터: $signUpEntity');
+      final result = await _completeSignUpUseCase.execute(signUpEntity);
 
       if (result is AuthSuccess) {
         LoggerUtil.i('✅ 회원가입 성공');
@@ -67,8 +77,10 @@ class SignUpViewModel extends StateNotifier<AuthState> {
       }
     } catch (e) {
       LoggerUtil.e('❌ 회원가입 중 오류 발생', e);
-      _handleSignUpError('회원가입 중 오류가 발생했습니다.');
-      return const AuthResult.error('회원가입 중 오류가 발생했습니다.');
+      final errorMessage =
+          e is ValidationException ? e.message : '회원가입 중 오류가 발생했습니다.';
+      _handleSignUpError(errorMessage);
+      return AuthResult.error(errorMessage);
     }
   }
 

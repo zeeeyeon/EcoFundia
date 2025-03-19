@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'storage_service.dart';
 import 'package:front/utils/logger_util.dart';
+import 'package:front/core/config/app_config.dart';
 
 /// API 서비스 Provider
 final apiServiceProvider = Provider<ApiService>((ref) {
@@ -14,14 +15,11 @@ class ApiService {
   static ApiService? _instance;
   final Dio _dio = Dio();
 
-  // 기본 URL
-  static const String _baseUrl = 'http://172.20.10.14:8081';
+  // 앱 설정에서 기본 URL 가져오기
+  static const String _baseUrl = AppConfig.baseUrl;
 
-  // API 엔드포인트
-  static const String loginEndpoint = '/user/login';
-  static const String signupEndpoint = '/user/signup';
-  static const String refreshEndpoint = '/auth/refresh';
-  static const String logoutEndpoint = '/auth/logout';
+  // 앱 설정에서 API 엔드포인트 가져오기
+  static const apiEndpoints = AppConfig.apiEndpoints;
 
   // 싱글톤 패턴
   factory ApiService() {
@@ -127,7 +125,7 @@ class ApiService {
       }
 
       final response = await _dio.post(
-        refreshEndpoint,
+        apiEndpoints.refresh,
         data: {'refreshToken': refreshToken},
         options: Options(headers: {'Authorization': null}),
       );

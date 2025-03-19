@@ -8,6 +8,8 @@ import '../../../../core/services/storage_service.dart';
 import '../../../../utils/logger_util.dart';
 import 'package:front/features/auth/domain/models/auth_result.dart';
 import 'package:front/features/auth/data/services/auth_service.dart';
+import 'package:front/features/auth/data/models/sign_up_model.dart';
+import 'package:front/core/exceptions/auth_exception.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final ApiService _apiService;
@@ -35,13 +37,13 @@ class AuthRepositoryImpl implements AuthRepository {
 
       // 응답이 null인지 검증
       final response = await _apiService
-          .post(ApiService.loginEndpoint, data: {'token': accessToken});
+          .post(ApiService.apiEndpoints.login, data: {'token': accessToken});
 
       LoggerUtil.i('✅ 서버 응답 수신 완료');
 
       if (response.data == null) {
         LoggerUtil.e('❌ 서버 응답이 null입니다.');
-        throw Exception('서버 응답이 올바르지 않습니다.');
+        throw AuthException('서버 응답이 올바르지 않습니다.');
       }
 
       // 응답 데이터 파싱
@@ -70,9 +72,9 @@ class AuthRepositoryImpl implements AuthRepository {
 
       switch (statusCode) {
         case 400:
-          throw Exception('잘못된 액세스 토큰입니다.');
+          throw AuthException('잘못된 액세스 토큰입니다.', statusCode: 400);
         case 401:
-          throw Exception('인증에 실패했습니다.');
+          throw AuthException('인증에 실패했습니다.', statusCode: 401);
         case 404:
           // 404는 회원가입이 필요한 상태
           LoggerUtil.i('ℹ️ Repository - 신규 사용자 감지 (404)');
@@ -83,41 +85,40 @@ class AuthRepositoryImpl implements AuthRepository {
               message = e.response!.data['message'];
             }
           } catch (_) {}
-          throw AuthException(message, 404);
+          throw AuthException(message, statusCode: 404);
         case 500:
-          throw Exception('서버 오류가 발생했습니다.');
+          throw AuthException('서버 오류가 발생했습니다.', statusCode: 500);
         default:
-          throw Exception('인증 중 오류가 발생했습니다: ${e.message}');
+          throw AuthException('인증 중 오류가 발생했습니다: ${e.message}');
       }
     } catch (e) {
       LoggerUtil.e('❌ 기타 오류 발생', e);
-      throw Exception('인증 중 오류가 발생했습니다: $e');
+      throw AuthException('인증 중 오류가 발생했습니다: $e');
     }
   }
 
   @override
-  Future<AuthResponse> completeSignUp(Map<String, dynamic> userData) async {
+  Future<AuthResponse> completeSignUp(SignUpModel signUpData) async {
     try {
       LoggerUtil.i('📝 회원가입 요청 중...');
 
       // 토큰 정보 로깅
-      if (userData.containsKey('token')) {
-        final token = userData['token'];
-        if (token != null) {
-          LoggerUtil.i('🔑 회원가입 데이터에 토큰이 포함됨');
-        } else {
-          LoggerUtil.w('⚠️ 회원가입 데이터에 토큰이 null로 설정되어 있습니다.');
-        }
+      if (signUpData.token != null) {
+        LoggerUtil.i('🔑 회원가입 데이터에 token이 포함됨');
       } else {
-        LoggerUtil.w('⚠️ 회원가입 데이터에 token 키가 없습니다.');
+        LoggerUtil.w('⚠️ 회원가입 데이터에 token이 없습니다.');
       }
 
-      final response =
-          await _apiService.post(ApiService.signupEndpoint, data: userData);
+      // 모델을 JSON 데이터로 변환
+      final userData = signUpData.toJson();
+
+      // 백엔드에 전송할 데이터 준비 완료
+      final response = await _apiService.post(ApiService.apiEndpoints.signup,
+          data: userData);
 
       if (response.data == null) {
         LoggerUtil.e('❌ 서버 응답이 null입니다.');
-        throw Exception('서버 응답이 올바르지 않습니다.');
+        throw AuthException('서버 응답이 올바르지 않습니다.');
       }
 
       // 회원가입 응답 데이터 파싱
@@ -147,17 +148,59 @@ class AuthRepositoryImpl implements AuthRepository {
 
       switch (e.response?.statusCode) {
         case 400:
-          throw Exception('회원가입 정보가 올바르지 않습니다.');
+          throw AuthException('회원가입 정보가 올바르지 않습니다.', statusCode: 400);
         case 409:
-          throw Exception('이미 존재하는 회원입니다.');
+          throw AuthException('이미 존재하는 회원입니다.', statusCode: 409);
         case 500:
-          throw Exception('서버 오류가 발생했습니다.');
+          throw AuthException('서버 오류가 발생했습니다.', statusCode: 500);
         default:
-          throw Exception('회원가입 중 오류가 발생했습니다: ${e.message}');
+          throw AuthException('회원가입 중 오류가 발생했습니다: ${e.message}');
       }
     } catch (e) {
       LoggerUtil.e('❌ 회원가입 완료 중 오류 발생', e);
-      throw Exception('회원가입 완료 중 오류가 발생했습니다: $e');
+      if (e is AuthException) {
+        rethrow;
+      }
+      throw AuthException('회원가입 완료 중 오류가 발생했습니다: $e');
+    }
+  }
+
+  @override
+  Future<AuthResponse> completeSignUpWithMap(
+      Map<String, dynamic> userData) async {
+    try {
+      LoggerUtil.i('📝 회원가입 요청 중... (Map 데이터 사용)');
+
+      // 필수 필드 검증
+      if (!userData.containsKey('email') ||
+          !userData.containsKey('nickname') ||
+          !userData.containsKey('gender') ||
+          !userData.containsKey('age')) {
+        throw AuthException('필수 회원정보가 누락되었습니다.');
+      }
+
+      // 토큰 검증
+      if (!userData.containsKey('token') || userData['token'] == null) {
+        LoggerUtil.w('⚠️ 회원가입 데이터에 token이 없습니다.');
+      }
+
+      // SignUpModel로 변환
+      final signUpModel = SignUpModel(
+        email: userData['email'] as String,
+        nickname: userData['nickname'] as String,
+        gender: userData['gender'] as String,
+        age: userData['age'] as int,
+        token: userData['token'] as String?,
+      );
+
+      // 기존 메서드 호출
+      return await completeSignUp(signUpModel);
+    } catch (e) {
+      LoggerUtil.e('❌ 회원가입 완료 중 오류 발생 (Map 데이터)', e);
+      if (e is AuthException) {
+        rethrow;
+      }
+      throw AuthException('회원가입 완료 중 오류가 발생했습니다: $e');
     }
   }
 
@@ -177,7 +220,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
       // 서버에 로그아웃 알림 (선택적)
       try {
-        await _apiService.post(ApiService.logoutEndpoint);
+        await _apiService.post(ApiService.apiEndpoints.logout);
         LoggerUtil.i('✅ 서버 로그아웃 요청 완료');
       } catch (e) {
         LoggerUtil.w('⚠️ 서버 로그아웃 요청 실패 (무시됨)');

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:front/core/themes/app_colors.dart';
-import 'package:front/features/auth/domain/use_cases/validators_use_case.dart';
+import 'package:front/utils/sign_up_validator.dart';
 
 class GenderSelection extends FormField<String> {
   GenderSelection({
@@ -9,7 +9,7 @@ class GenderSelection extends FormField<String> {
     required ValueChanged<String?> onChanged,
   }) : super(
           initialValue: initialValue,
-          validator: InputValidators.validateGender,
+          validator: SignUpValidator.validateGender,
           builder: (FormFieldState<String> field) {
             return Column(
               children: [

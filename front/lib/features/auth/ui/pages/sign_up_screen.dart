@@ -6,7 +6,7 @@ import 'package:front/core/themes/app_text_styles.dart';
 import 'package:front/core/ui/widgets/loading_overlay.dart';
 import 'package:front/features/auth/ui/widgets/custom_text_field.dart';
 import 'package:front/features/auth/ui/widgets/gender_selection.dart';
-import 'package:front/features/auth/domain/use_cases/validators_use_case.dart';
+import 'package:front/utils/sign_up_validator.dart';
 import 'package:front/features/auth/domain/models/auth_result.dart';
 import 'package:front/features/auth/ui/view_model/sign_up_view_model.dart';
 import 'package:go_router/go_router.dart';
@@ -120,7 +120,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                   CustomTextField(
                     controller: _nicknameController,
                     hintText: '닉네임',
-                    validator: InputValidators.validateNickname,
+                    validator: SignUpValidator.validateNickname,
                   ),
                   const SizedBox(height: 16),
 
@@ -137,7 +137,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     controller: _ageController,
                     hintText: '나이 (ex: 만 25)',
                     keyboardType: TextInputType.number,
-                    validator: InputValidators.validateAge,
+                    validator: SignUpValidator.validateAge,
                   ),
                   const Spacer(),
 
@@ -169,41 +169,6 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class GenderSelection extends StatelessWidget {
-  final String? initialValue;
-  final ValueChanged<String> onChanged;
-
-  const GenderSelection({
-    super.key,
-    required this.initialValue,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: RadioListTile<String>(
-            title: const Text('남성'),
-            value: '남성',
-            groupValue: initialValue,
-            onChanged: (value) => onChanged(value!),
-          ),
-        ),
-        Expanded(
-          child: RadioListTile<String>(
-            title: const Text('여성'),
-            value: '여성',
-            groupValue: initialValue,
-            onChanged: (value) => onChanged(value!),
-          ),
-        ),
-      ],
     );
   }
 }
