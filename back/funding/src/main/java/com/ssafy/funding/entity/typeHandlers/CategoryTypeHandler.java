@@ -21,16 +21,19 @@ public class CategoryTypeHandler extends BaseTypeHandler<Category> {
 
     @Override
     public Category getNullableResult(ResultSet rs, String columnName) throws SQLException {
-        return null;
+        String value = rs.getString(columnName);
+        return value == null ? null : Category.valueOf(value);
     }
 
     @Override
     public Category getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
-        return null;
+        String value = rs.getString(columnIndex);
+        return value == null ? null : Category.valueOf(value);
     }
 
     @Override
     public Category getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
-        return null;
+        String value = cs.getString(columnIndex);
+        return value == null ? null : Category.valueOf(value);
     }
 }
