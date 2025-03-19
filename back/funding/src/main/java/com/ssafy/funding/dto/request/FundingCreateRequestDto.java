@@ -6,8 +6,8 @@ import lombok.Builder;
 
 import java.time.LocalDateTime;
 
+@Builder
 public record FundingCreateRequestDto(
-        int sellerId,
         String title,
         String description,
         String storyFileUrl,
@@ -18,8 +18,6 @@ public record FundingCreateRequestDto(
         LocalDateTime endDate,
         Category category
 ) {
-    @Builder
-    public FundingCreateRequestDto {}
 
     public Funding toEntity(int sellerId) {
         return Funding.builder()
@@ -35,6 +33,4 @@ public record FundingCreateRequestDto(
                 .category(category)
                 .build();
     }
-
-
 }

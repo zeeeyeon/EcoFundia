@@ -2,12 +2,16 @@ package com.ssafy.funding.entity;
 
 import com.ssafy.funding.entity.enums.Category;
 import com.ssafy.funding.entity.enums.Status;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Funding {
     private int fundingId;
     private int sellerId;
