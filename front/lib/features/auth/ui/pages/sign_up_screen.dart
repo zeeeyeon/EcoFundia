@@ -4,6 +4,7 @@ import 'package:front/core/constants/app_strings.dart';
 import 'package:front/core/themes/app_colors.dart';
 import 'package:front/core/themes/app_text_styles.dart';
 import 'package:front/core/ui/widgets/loading_overlay.dart';
+import 'package:front/core/providers/app_state_provider.dart';
 import 'package:front/features/auth/ui/widgets/custom_text_field.dart';
 import 'package:front/features/auth/ui/widgets/gender_selection.dart';
 import 'package:front/utils/sign_up_validator.dart';
@@ -75,20 +76,21 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final signUpState = ref.watch(signUpProvider);
+    final isSignedUp = ref.watch(signUpProvider);
+    final appState = ref.watch(appStateProvider);
 
     // 에러 발생 시 스낵바 표시
-    if (signUpState.error != null) {
+    if (appState.error != null) {
       Future.microtask(() {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(signUpState.error!)),
+          SnackBar(content: Text(appState.error!)),
         );
-        ref.read(signUpProvider.notifier).clearError();
+        ref.read(appStateProvider.notifier).clearError();
       });
     }
 
     return LoadingOverlay(
-      isLoading: signUpState.isLoading,
+      isLoading: appState.isLoading,
       message: '회원가입 처리 중...',
       child: Scaffold(
         backgroundColor: AppColors.white,
@@ -135,34 +137,32 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                   /// 나이 입력
                   CustomTextField(
                     controller: _ageController,
-                    hintText: '나이 (ex: 만 25)',
+                    hintText: '나이',
                     keyboardType: TextInputType.number,
                     validator: SignUpValidator.validateAge,
                   ),
-                  const Spacer(),
+                  const SizedBox(height: 24),
 
-                  /// 가입하기 버튼
+                  /// 회원가입 버튼
                   SizedBox(
                     width: double.infinity,
-                    height: 56,
                     child: ElevatedButton(
-                      onPressed: signUpState.isLoading ? null : _handleSignUp,
+                      onPressed: _handleSignUp,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: Text(
+                      child: const Text(
                         '가입하기',
-                        style: AppTextStyles.buttonText.copyWith(
-                          color: AppColors.white,
-                          fontSize: 18,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
                 ],
               ),
             ),

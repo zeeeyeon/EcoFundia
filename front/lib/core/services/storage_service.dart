@@ -12,7 +12,6 @@ class StorageService {
   static const String _refreshTokenKey = 'refresh_token';
   static const String _userEmailKey = 'user_email';
   static const String _userNicknameKey = 'user_nickname';
-  static const String _autoLoginKey = 'auto_login';
   static const String _lastLoginKey = 'last_login';
 
   /// 스토리지 서비스 초기화
@@ -21,26 +20,34 @@ class StorageService {
     // 필요한 경우 여기에 스토리지 초기화 코드를 추가
 
     // 저장된 토큰 확인 (디버깅용)
-    if (await hasValidToken()) {
+    if (await isAuthenticated()) {
       LoggerUtil.d('🔑 유효한 인증 토큰이 존재합니다');
     }
   }
 
-  /// JWT 토큰이 유효한지 확인
-  static Future<bool> hasValidToken() async {
+  /// 사용자가 인증되어 있는지 확인
+  /// 액세스 토큰이 유효하거나 리프레시 토큰이 있으면 인증된 것으로 간주
+  static Future<bool> isAuthenticated() async {
     try {
+      // 1. 액세스 토큰 확인
       final token = await _storage.read(key: _tokenKey);
-      if (token == null) return false;
+      if (token != null) {
+        // JWT 토큰 만료 시간 확인
+        final decodedToken = JwtDecoder.decode(token);
+        final expirationTime = DateTime.fromMillisecondsSinceEpoch(
+          decodedToken['exp'] * 1000,
+        );
 
-      // JWT 토큰 만료 시간 확인
-      final decodedToken = JwtDecoder.decode(token);
-      final expirationTime = DateTime.fromMillisecondsSinceEpoch(
-        decodedToken['exp'] * 1000,
-      );
+        if (DateTime.now().isBefore(expirationTime)) {
+          return true;
+        }
+      }
 
-      return DateTime.now().isBefore(expirationTime);
+      // 2. 리프레시 토큰 존재 여부 확인
+      final refreshToken = await _storage.read(key: _refreshTokenKey);
+      return refreshToken != null;
     } catch (e) {
-      LoggerUtil.e('❌ 토큰 검증 중 오류 발생', e);
+      LoggerUtil.e('❌ 인증 상태 확인 중 오류 발생', e);
       return false;
     }
   }
@@ -48,6 +55,7 @@ class StorageService {
   /// 액세스 토큰 저장
   static Future<void> saveToken(String token) async {
     await _storage.write(key: _tokenKey, value: token);
+    await updateLastLoginDate(); // 마지막 로그인 시간 업데이트
   }
 
   /// JWT 토큰 조회
@@ -90,17 +98,6 @@ class StorageService {
     await _storage.write(key: _userNicknameKey, value: nickname);
   }
 
-  /// 자동 로그인 설정
-  static Future<void> setAutoLogin(bool value) async {
-    await _storage.write(key: _autoLoginKey, value: value.toString());
-  }
-
-  /// 자동 로그인 상태 확인
-  static Future<bool> isAutoLoginEnabled() async {
-    final value = await _storage.read(key: _autoLoginKey);
-    return value == 'true';
-  }
-
   /// 마지막 로그인 시간 업데이트
   static Future<void> updateLastLoginDate() async {
     final now = DateTime.now().toIso8601String();
@@ -115,7 +112,7 @@ class StorageService {
   /// 선택적 데이터 유지 로그아웃
   static Future<void> secureLogout({bool keepUserPreferences = false}) async {
     if (keepUserPreferences) {
-      // 자동 로그인 설정과 마지막 로그인 시간은 유지
+      // 마지막 로그인 시간만 유지
       await _storage.delete(key: _tokenKey);
       await _storage.delete(key: _refreshTokenKey);
       await _storage.delete(key: _userIdKey);
@@ -134,8 +131,18 @@ class StorageService {
       _userIdKey: await _storage.read(key: _userIdKey),
       _userEmailKey: await _storage.read(key: _userEmailKey),
       _userNicknameKey: await _storage.read(key: _userNicknameKey),
-      _autoLoginKey: await _storage.read(key: _autoLoginKey),
       _lastLoginKey: await _storage.read(key: _lastLoginKey),
     };
+  }
+
+  /// 사용자 역할 저장
+  static Future<void> saveUserRole(String role) async {
+    await _storage.write(key: 'user_role', value: role);
+    LoggerUtil.i('✅ 사용자 역할 저장됨: $role');
+  }
+
+  /// 사용자 역할 조회
+  static Future<String?> getUserRole() async {
+    return await _storage.read(key: 'user_role');
   }
 }

@@ -1,43 +1,76 @@
 import 'package:equatable/equatable.dart';
 
+/// 백엔드 응답의 status 부분 모델 (선택적으로 사용)
+class Status extends Equatable {
+  final String code;
+  final String message;
+
+  const Status({
+    required this.code,
+    required this.message,
+  });
+
+  factory Status.fromJson(Map<String, dynamic> json) {
+    return Status(
+      code: json['code'] as String,
+      message: json['message'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'code': code,
+        'message': message,
+      };
+
+  @override
+  List<Object?> get props => [code, message];
+}
+
 /// 서버로부터 받는 인증 응답 모델
 class AuthResponse extends Equatable {
+  final Status status;
   final String? accessToken;
   final String? refreshToken;
   final UserInfo? user;
   final String? role;
-  final String? message;
 
   const AuthResponse({
+    required this.status,
     this.accessToken,
     this.refreshToken,
     this.user,
     this.role,
-    this.message,
   });
 
-  /// JSON으로부터 객체 생성
+  /// JSON으로부터 객체 생성 (새로운 응답 구조에 맞게 수정)
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
+    final statusJson = json['status'] as Map<String, dynamic>;
+    final content = json['content'] as Map<String, dynamic>?;
+
     return AuthResponse(
-      accessToken: json['accessToken'] as String?,
-      refreshToken: json['refreshToken'] as String?,
-      user: json['user'] != null ? UserInfo.fromJson(json['user']) : null,
-      role: json['role'] as String?,
-      message: json['message'] as String?,
+      status: Status.fromJson(statusJson),
+      accessToken: content != null ? content['accessToken'] as String? : null,
+      refreshToken: content != null ? content['refreshToken'] as String? : null,
+      user: content != null && content['user'] != null
+          ? UserInfo.fromJson(content['user'] as Map<String, dynamic>)
+          : null,
+      role: content != null ? content['role'] as String? : null,
     );
   }
 
   /// 객체를 JSON으로 변환
   Map<String, dynamic> toJson() => {
-        'accessToken': accessToken,
-        'refreshToken': refreshToken,
-        'user': user?.toJson(),
-        'role': role,
-        'message': message,
+        'status': status.toJson(),
+        'content': {
+          'accessToken': accessToken,
+          'refreshToken': refreshToken,
+          'user': user?.toJson(),
+          'role': role,
+        },
       };
 
   @override
-  List<Object?> get props => [accessToken, refreshToken, user, role, message];
+  List<Object?> get props => [status, accessToken, refreshToken, user, role];
 }
 
 class UserInfo extends Equatable {

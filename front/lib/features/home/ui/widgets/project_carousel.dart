@@ -4,6 +4,7 @@ import 'package:front/core/constants/app_strings.dart';
 import 'package:front/core/themes/app_text_styles.dart';
 import 'package:front/utils/auth_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/features/auth/ui/view_model/auth_state_provider.dart';
 import 'project_card.dart';
 
 class ProjectCarousel extends ConsumerStatefulWidget {
@@ -178,15 +179,15 @@ class _ProjectCarouselState extends ConsumerState<ProjectCarousel>
                       percentage: project['percentage'],
                       price: project['price'],
                       remainingTime: project['remainingTime'],
-                      onPurchaseTap: () {
-                        if (AuthUtils.checkAuthAndShowModal(
-                            context, ref, 'purchase')) {
+                      onPurchaseTap: () async {
+                        if (await AuthUtils.checkAuthAndShowModal(
+                            context, ref, AuthRequiredFeature.purchase)) {
                           // TODO: 구매 로직 구현
                         }
                       },
-                      onLikeTap: () {
-                        if (AuthUtils.checkAuthAndShowModal(
-                            context, ref, 'like')) {
+                      onLikeTap: () async {
+                        if (await AuthUtils.checkAuthAndShowModal(
+                            context, ref, AuthRequiredFeature.purchase)) {
                           // TODO: 좋아요 로직 구현
                         }
                       },

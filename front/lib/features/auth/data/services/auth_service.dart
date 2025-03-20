@@ -3,6 +3,7 @@ import 'package:front/utils/logger_util.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:front/core/exceptions/auth_exception.dart';
 import 'package:front/core/services/api_service.dart';
+import 'package:dio/dio.dart';
 
 class AuthService {
   final ApiService _apiService;
@@ -57,29 +58,44 @@ class AuthService {
         data: {'token': accessToken},
       );
 
-      final statusCode = response.statusCode;
-      LoggerUtil.i('🔄 서버 응답: 상태코드=$statusCode');
+      final data = response.data;
+      LoggerUtil.i('🔄 서버 응답: 상태코드=${response.statusCode}');
 
-      if (statusCode == 200) {
-        final data = response.data;
-        return AuthResponse.fromJson(data);
-      } else if (statusCode == 404) {
-        // 회원가입이 필요한 경우
-        final data = response.data;
-        final message =
-            data['message'] as String? ?? '해당 이메일로 가입된 사용자가 없습니다. 회원가입이 필요합니다.';
-        throw AuthException(message, statusCode: 404);
-      } else {
-        // 기타 오류
-        String message;
-        try {
-          final data = response.data;
-          message = data['message'] as String? ?? '서버 인증 중 오류가 발생했습니다.';
-        } catch (_) {
-          message = '서버 인증 중 오류가 발생했습니다.';
+      // 응답 데이터 검증
+      if (response.statusCode == 200) {
+        if (data == null) {
+          throw AuthException('서버 응답이 비어있습니다.');
         }
-        throw AuthException(message, statusCode: statusCode);
+
+        // status 코드 검증
+        final status = data['status'];
+        if (status == null || status['code'] != 'SU') {
+          throw AuthException(status?['message'] ?? '서버 응답이 올바르지 않습니다.');
+        }
+
+        return AuthResponse.fromJson(data);
       }
+
+      throw AuthException('예상치 못한 응답 코드: ${response.statusCode}');
+    } on DioException catch (e) {
+      LoggerUtil.e('❌ Google 인증 처리 실패', e);
+
+      if (e.response?.statusCode == 404) {
+        // 회원가입이 필요한 경우
+        final data = e.response?.data;
+        final message = data?['status']?['message'] as String? ??
+            '해당 이메일로 가입된 사용자가 없습니다. 회원가입이 필요합니다.';
+        throw AuthException(message, statusCode: 404);
+      }
+
+      // 기타 오류
+      String message = '서버 인증 중 오류가 발생했습니다.';
+      try {
+        if (e.response?.data != null) {
+          message = e.response?.data['status']?['message'] ?? message;
+        }
+      } catch (_) {}
+      throw AuthException(message, statusCode: e.response?.statusCode);
     } catch (e) {
       LoggerUtil.e('❌ Google 인증 처리 실패', e);
       if (e is AuthException) rethrow;

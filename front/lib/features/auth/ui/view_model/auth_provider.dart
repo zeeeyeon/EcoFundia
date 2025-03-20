@@ -3,9 +3,9 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:front/core/services/api_service.dart';
 import 'package:front/core/constants/auth_constants.dart';
+import 'package:front/core/providers/app_state_provider.dart';
 import 'package:front/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:front/features/auth/data/services/auth_service.dart';
-import 'package:front/features/auth/domain/models/auth_state.dart';
 import 'package:front/features/auth/domain/repositories/auth_repository.dart';
 import 'package:front/features/auth/domain/use_cases/google_sign_in_use_case.dart';
 import 'package:front/features/auth/domain/use_cases/complete_sign_up_use_case.dart';
@@ -65,22 +65,12 @@ final checkLoginStatusUseCaseProvider =
 });
 
 /// 인증 ViewModel Provider
-final authProvider = StateNotifierProvider<AuthViewModel, AuthState>((ref) {
+final authProvider = StateNotifierProvider<AuthViewModel, bool>((ref) {
   return AuthViewModel(
     googleSignInUseCase: ref.watch(googleSignInUseCaseProvider),
-    signOutUseCase: ref.watch(signOutUseCaseProvider),
     checkLoginStatusUseCase: ref.watch(checkLoginStatusUseCaseProvider),
+    appStateViewModel: ref.watch(appStateProvider.notifier),
   );
-});
-
-/// 로그인 상태 Provider
-final isLoggedInProvider = Provider<bool>((ref) {
-  return ref.watch(authProvider).isLoggedIn;
-});
-
-/// 신규 회원 여부 Provider
-final isNewUserProvider = Provider<bool>((ref) {
-  return ref.watch(authProvider).isNewUser;
 });
 
 /// 상태 초기화 Provider

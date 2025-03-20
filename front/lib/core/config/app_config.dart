@@ -1,7 +1,7 @@
 /// 앱 전체에서 사용되는 환경 설정을 관리하는 클래스
 class AppConfig {
   /// API 서버 기본 URL
-  static const String baseUrl = 'http://172.20.10.14:8081';
+  static const String baseUrl = 'http://192.168.30.193:8081';
 
   /// API 엔드포인트 모음
   static const apiEndpoints = ApiEndpoints();

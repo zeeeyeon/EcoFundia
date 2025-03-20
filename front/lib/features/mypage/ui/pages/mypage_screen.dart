@@ -1,17 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/core/ui/widgets/loading_overlay.dart';
+import 'package:front/core/ui/widgets/app_dialog.dart';
+import 'package:front/core/providers/app_state_provider.dart';
+import 'package:front/features/auth/ui/view_model/auth_provider.dart';
+import 'package:front/utils/logger_util.dart';
+import 'package:go_router/go_router.dart';
 
 class MypageScreen extends ConsumerWidget {
   const MypageScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 로딩 상태는 추후 상태 관리 구현 시 추가
-    const isLoading = false;
+    final appState = ref.watch(appStateProvider);
+
+    // 에러 발생 시 스낵바 표시
+    if (appState.error != null) {
+      Future.microtask(() {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(appState.error!)),
+        );
+        ref.read(appStateProvider.notifier).clearError();
+      });
+    }
 
     return LoadingOverlay(
-      isLoading: isLoading,
+      isLoading: appState.isLoading,
       message: '정보를 불러오는 중...',
       child: Scaffold(
         appBar: AppBar(
@@ -46,7 +60,27 @@ class MypageScreen extends ConsumerWidget {
               _buildMenuTile('내 주문 내역', Icons.receipt_long, () {}),
               _buildMenuTile('내 쿠폰', Icons.card_giftcard, () {}),
               _buildMenuTile('내 리뷰', Icons.rate_review, () {}),
-              _buildMenuTile('로그아웃', Icons.exit_to_app, () {}),
+              _buildMenuTile('로그아웃', Icons.exit_to_app, () async {
+                final shouldLogout = await AppDialog.show(
+                  context: context,
+                  title: '로그아웃',
+                  content: '정말 로그아웃 하시겠습니까?',
+                  confirmText: '로그아웃',
+                  cancelText: '취소',
+                  type: AppDialogType.alert,
+                );
+
+                if (shouldLogout == true) {
+                  final result =
+                      await ref.read(authProvider.notifier).signOut();
+                  if (result) {
+                    LoggerUtil.i('✅ 로그아웃 완료');
+                    if (context.mounted) {
+                      context.go('/login');
+                    }
+                  }
+                }
+              }),
             ],
           ),
         ),

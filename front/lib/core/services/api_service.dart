@@ -130,11 +130,22 @@ class ApiService {
         options: Options(headers: {'Authorization': null}),
       );
 
-      if (response.statusCode == 200) {
-        final newToken = response.data['token'];
-        await StorageService.saveToken(newToken);
-        LoggerUtil.i('✅ 새 토큰 저장됨');
-        return true;
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data;
+        final newAccessToken = data['accessToken'];
+        final newRefreshToken = data['refreshToken'];
+
+        if (newAccessToken != null) {
+          await StorageService.saveToken(newAccessToken);
+          LoggerUtil.i('✅ 새 액세스 토큰 저장됨');
+        }
+
+        if (newRefreshToken != null) {
+          await StorageService.saveRefreshToken(newRefreshToken);
+          LoggerUtil.i('✅ 새 리프레시 토큰 저장됨');
+        }
+
+        return newAccessToken != null;
       }
 
       return false;

@@ -3,62 +3,54 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:front/features/auth/ui/pages/login_screen.dart';
 import 'package:front/features/auth/ui/pages/sign_up_screen.dart';
-import 'package:front/features/auth/ui/view_model/auth_provider.dart';
 import 'package:front/features/splash/ui/pages/splash_screen.dart';
 import 'package:front/features/funding/ui/pages/funding_screen.dart';
 import 'package:front/features/home/ui/pages/home_screen.dart';
 import 'package:front/features/mypage/ui/pages/mypage_screen.dart';
 import 'package:front/features/wishlist/ui/pages/wishlist_screen.dart';
 import 'package:front/features/auth/ui/pages/signup_complete_screen.dart';
+import 'package:front/utils/auth_utils.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: '/splash', // ✅ 앱 실행 시 먼저 스플래시 화면 표시
-    redirect: (context, state) {
-      final isAuthenticated = ref.read(isLoggedInProvider);
-
-      // 로그인 필수 페이지 처리 (마이페이지 & 찜 목록)
-      if (!isAuthenticated &&
-          (state.matchedLocation == '/mypage' ||
-              state.matchedLocation == '/wishlist')) {
-        return '/login';
-      }
-      return null;
+    initialLocation: '/splash',
+    redirect: (context, state) async {
+      // AuthUtils를 통해 권한 체크
+      return await AuthUtils.checkAuthForRoute(
+        context,
+        ref,
+        state,
+      );
     },
     routes: [
+      // 인증 관련 라우트
+      GoRoute(
+        path: '/login',
+        builder: (context, state) => const LoginScreen(),
+      ),
       GoRoute(
         path: '/signup',
         builder: (context, state) {
           final extras = state.extra as Map<String, dynamic>?;
-          final name = extras?['name'] as String?;
-          final email = extras?['email'] as String? ?? '';
-          final token = extras?['token'] as String?;
-
           return SignUpScreen(
-            name: name,
-            email: email,
-            token: token,
+            name: extras?['name'],
+            email: extras?['email'] ?? '',
+            token: extras?['token'],
           );
+        },
+      ),
+      GoRoute(
+        path: '/signup-success',
+        builder: (context, state) {
+          final extras = state.extra as Map<String, dynamic>?;
+          return SignupCompleteScreen(nickname: extras?['nickname'] ?? '');
         },
       ),
       GoRoute(
         path: '/splash',
         builder: (context, state) => const SplashPage(),
       ),
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
-      ),
-      GoRoute(
-        path: '/signup-success',
-        builder: (context, state) {
-          final extras = state.extra as Map<String, dynamic>?;
-          final nickname = extras?['nickname'] as String?;
-          return SignupCompleteScreen(nickname: nickname ?? '');
-        },
-      ),
-      // SignUpPage는 필수 파라미터가 있어서 로그인 후 인증정보와 함께 이동해야 합니다.
-      // 따라서 라우트에서 직접 등록하지 않고, 인증 후 context.go로 이동합니다.
+      // 메인 네비게이션
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return ScaffoldWithNavBar(navigationShell: navigationShell);
@@ -115,9 +107,9 @@ class ScaffoldWithNavBar extends StatelessWidget {
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: NavigationBar(
-        selectedIndex: navigationShell.currentIndex, // ✅ 선택된 탭 유지
+        selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: (index) {
-          navigationShell.goBranch(index); // ✅ 올바른 페이지 이동
+          navigationShell.goBranch(index);
         },
         destinations: const [
           NavigationDestination(
