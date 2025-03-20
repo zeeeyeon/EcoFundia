@@ -14,7 +14,7 @@ class ApiEndpoints {
   // Auth 관련 엔드포인트
   final String login = '/user/login';
   final String signup = '/user/signup';
-  final String refresh = '/auth/refresh';
+  final String refresh = '/user/reissue';
   final String logout = '/auth/logout';
 
   // 다른 기능별 엔드포인트는 여기에 추가

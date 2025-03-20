@@ -4,8 +4,8 @@ import 'package:front/core/constants/app_strings.dart';
 import 'package:front/core/themes/app_text_styles.dart';
 import 'package:front/utils/auth_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:front/features/auth/ui/view_model/auth_state_provider.dart';
 import 'project_card.dart';
+import 'package:front/core/providers/app_state_provider.dart';
 
 class ProjectCarousel extends ConsumerStatefulWidget {
   final List<Map<String, dynamic>> projects;
@@ -187,7 +187,7 @@ class _ProjectCarouselState extends ConsumerState<ProjectCarousel>
                       },
                       onLikeTap: () async {
                         if (await AuthUtils.checkAuthAndShowModal(
-                            context, ref, AuthRequiredFeature.purchase)) {
+                            context, ref, AuthRequiredFeature.like)) {
                           // TODO: 좋아요 로직 구현
                         }
                       },

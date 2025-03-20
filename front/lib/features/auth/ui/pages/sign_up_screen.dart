@@ -76,7 +76,6 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isSignedUp = ref.watch(signUpProvider);
     final appState = ref.watch(appStateProvider);
 
     // 에러 발생 시 스낵바 표시

@@ -126,26 +126,29 @@ class ApiService {
 
       final response = await _dio.post(
         apiEndpoints.refresh,
-        data: {'refreshToken': refreshToken},
-        options: Options(headers: {'Authorization': null}),
+        options: Options(headers: {
+          'Authorization': 'Bearer $refreshToken',
+        }),
       );
 
       if (response.statusCode == 200 && response.data != null) {
         final data = response.data;
-        final newAccessToken = data['accessToken'];
-        final newRefreshToken = data['refreshToken'];
+        final content = data['content'];
 
-        if (newAccessToken != null) {
+        if (content != null && content['accessToken'] != null) {
+          final newAccessToken = content['accessToken'];
           await StorageService.saveToken(newAccessToken);
           LoggerUtil.i('✅ 새 액세스 토큰 저장됨');
-        }
 
-        if (newRefreshToken != null) {
-          await StorageService.saveRefreshToken(newRefreshToken);
-          LoggerUtil.i('✅ 새 리프레시 토큰 저장됨');
-        }
+          // 리프레시 토큰도 함께 응답으로 오는 경우 저장
+          if (content['refreshToken'] != null) {
+            final newRefreshToken = content['refreshToken'];
+            await StorageService.saveRefreshToken(newRefreshToken);
+            LoggerUtil.i('✅ 새 리프레시 토큰 저장됨');
+          }
 
-        return newAccessToken != null;
+          return true;
+        }
       }
 
       return false;
