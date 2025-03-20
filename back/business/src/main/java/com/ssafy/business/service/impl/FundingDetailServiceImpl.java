@@ -17,6 +17,7 @@ public class FundingDetailServiceImpl implements FundingDetailService {
 
     private final FundingDetailMapper fundingDetailMapper;
 
+
     // 펀딩 상세 페이지
     public FundingDetailResponseDTO getFundingDetail(int fundingId){
         FundingDetailDTO fundingDetail = fundingDetailMapper.getFundingDetail(fundingId);

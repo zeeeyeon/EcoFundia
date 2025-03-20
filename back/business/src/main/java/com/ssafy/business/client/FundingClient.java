@@ -1,39 +1,42 @@
 package com.ssafy.business.client;
 
-
+import com.ssafy.business.dto.responseDTO.FundingDetailResponseDTO;
+import com.ssafy.business.dto.responseDTO.FundingResponseDTO;
+import com.ssafy.business.dto.responseDTO.ReviewResponseDTO;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(name = "business")
+import java.util.List;
+
+@Component
+@FeignClient(name = "funding")
 public interface FundingClient {
 
-    // Top 펀딩 리스트 조회
-    @GetMapping("/api/business/top-funding")
-    ResponseEntity<?> getTopFundingList();
+    // funding 서비스에게 top-funding 데이터 요청
+    @GetMapping("/api/funding/top-funding")
+    List<FundingResponseDTO> getTopFundingList();
 
-    // 현재까지 펀딩 금액 조회
-    @GetMapping("/api/business/total-fund")
-    ResponseEntity<Long> getTotalFund();
+    // funding 서비스에게 최신 펀딩 리스트 데이터 요청
+    @GetMapping("api/funding/latest-funding/{page}")
+    List<FundingResponseDTO> getLatestFundingList(@PathVariable int page);
 
-    // 최신 펀딩 리스트 조회
-    @GetMapping("api/business/latest-funding/{page}")
-    ResponseEntity<?> getLatestFundingList(@PathVariable int page);
+    // funding 서비스에게 카테고리별 펀딩 리스트 데이터 요청
+    @GetMapping("api/funding/category")
+    List<FundingResponseDTO> getCategoryFundingList(@RequestParam(name = "category") String category , @RequestParam(name = "page") int page);
 
-    // 카테고리별 펀딩 리스트 조회
-    @GetMapping("api/business/funding/category")
-    ResponseEntity<?> getCategoryFundingList(@RequestParam(name="category") String category , @RequestParam(name="page") int page);
+    // funding 서비스에게 키워드 검색으로 펀딩 리스트 데이터 요청
+    @GetMapping("api/funding/search")
+    List<FundingResponseDTO> getSearchFundingList(@RequestParam(name = "keyword") String keyword, @RequestParam(name= "page") int page);
 
-    // 펀딩 키워드 검색 조회
-    @GetMapping("/funding/search")
-    public ResponseEntity<?> getSearchFundingList(@RequestParam(name="keyword") String keyword, @RequestParam(name="page") int page);
+    // funding 서비스에게 펀딩 상세 정보 요청
+    @GetMapping("api/funding/detail/{fundingId}")
+    FundingDetailResponseDTO getFundingDetail(@PathVariable int fundingId);
 
-    // 펀딩 상세 페이지
-    @GetMapping("/funding/detail/{fundingId}")
-    public ResponseEntity<?> getFundingDetail(@PathVariable int fundingId);
+    // funding 서비스에 펀딩 리뷰 조회
+    @GetMapping("api/funding/review")
+    ReviewResponseDTO getFundingReview(@RequestParam(name="sellerId") int sellerId, @RequestParam(name="page") int page);
 
-    @GetMapping("/review")
-    public ResponseEntity<?> getFundingDetail(@RequestParam(name="sellerId") int sellerId, @RequestParam(name="page") int page);
 }

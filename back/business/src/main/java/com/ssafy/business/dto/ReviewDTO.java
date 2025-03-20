@@ -13,5 +13,6 @@ public class ReviewDTO {
     private String nickname;
 
     private int fundingId;
-    private int title;
+    private String title;
+
 }

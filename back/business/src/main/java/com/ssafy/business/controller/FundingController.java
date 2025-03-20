@@ -48,30 +48,32 @@ public class FundingController {
     }
 
     // 카테고리별 펀딩 리스트 조회
-    @GetMapping("/funding/category")
+    @GetMapping("/category")
     public ResponseEntity<?> getCategoryFundingList(@RequestParam(name="category") String category , @RequestParam(name="page") int page) {
         List<FundingResponseDTO> fundingList = GetFundingService.getCategoryFundingList(category, page);
         return new ResponseEntity<>(Response.create(ResponseCode.GET_FUNDING, fundingList), ResponseCode.GET_FUNDING.getHttpStatus());
     }
 
     // 펀딩 키워드 검색 조회
-    @GetMapping("/funding/search")
+    @GetMapping("/search")
     public ResponseEntity<?> getSearchFundingList(@RequestParam(name="keyword") String keyword, @RequestParam(name="page") int page){
         List<FundingResponseDTO> fundingList = FundingSearchService.getSearchFundingList(keyword, page);
         return new ResponseEntity<>(Response.create(ResponseCode.GET_FUNDING, fundingList), ResponseCode.GET_FUNDING.getHttpStatus());
     }
 
     // 펀딩 상세 페이지
-    @GetMapping("/funding/detail/{fundingId}")
+    @GetMapping("/detail/{fundingId}")
     public ResponseEntity<?> getFundingDetail(@PathVariable int fundingId) {
         FundingDetailResponseDTO fundingDetail = FundingDetailService.getFundingDetail(fundingId);
         return new ResponseEntity<>(Response.create(ResponseCode.GET_FUNDING_DETAIL, fundingDetail), ResponseCode.GET_FUNDING.getHttpStatus());
     }
-
+    // 펀딩 리뷰 조회
     @GetMapping("/review")
-    public ResponseEntity<?> getFundingDetail(@RequestParam(name="sellerId") int sellerId, @RequestParam(name="page") int page) {
+    public ResponseEntity<?> getFundingReview(@RequestParam(name="sellerId") int sellerId, @RequestParam(name="page") int page) {
         ReviewResponseDTO fundingDetail = FundingDetailService.getFundingReview(sellerId, page);
-        return new ResponseEntity<>(Response.create(ResponseCode.GET_FUNDING_DETAIL, fundingDetail), ResponseCode.GET_FUNDING.getHttpStatus());
+        return new ResponseEntity<>(Response.create(ResponseCode.GET_FUNDING_REVIEW, fundingDetail), ResponseCode.GET_FUNDING.getHttpStatus());
     }
 
+
 }
+
