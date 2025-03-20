@@ -10,6 +10,7 @@
         <result column="title" property="title"/>
         <result column="description" property="description"/>
         <result column="story_file_url" property="storyFileUrl"/>
+        <result column="image_urls" property="imageUrls"/>
         <result column="price" property="price"/>
         <result column="quantity" property="quantity"/>
         <result column="target_amount" property="targetAmount"/>
@@ -27,9 +28,10 @@
     </select>
 
     <insert id="createFunding">
-        INSERT INTO funding (seller_id, title, description, story_file_url, price, quantity, target_amount, start_date, end_date, status, category)
-        VALUES (#{sellerId}, #{title}, #{description}, #{storyFileUrl}, #{price}, #{quantity}, #{targetAmount}, #{startDate}, #{endDate}, #{status}, #{category})
+        INSERT INTO funding (seller_id, title, description, story_file_url, image_urls, price, quantity, target_amount, current_amount, start_date, end_date, status, category, created_at, updated_at)
+        VALUES (#{sellerId}, #{title}, #{description}, #{storyFileUrl}, #{imageUrls}, #{price}, #{quantity}, #{targetAmount}, #{currentAmount}, #{startDate}, #{endDate}, #{status}, #{category}, #{createdAt}, #{updatedAt})
     </insert>
+
 
     <update id="updateFunding">
         UPDATE funding
@@ -37,9 +39,10 @@
             <if test="title != null"> title = #{title}, </if>
             <if test="description != null"> description = #{description}, </if>
             <if test="storyFileUrl != null"> story_file_url = #{storyFileUrl}, </if>
-            <if test="price != null"> price = #{price}, </if>
-            <if test="quantity != null"> quantity = #{quantity}, </if>
-            <if test="targetAmount != null"> target_amount = #{targetAmount}, </if>
+            <if test="imageUrls != null"> image_urls = #{imageUrls}, </if>
+            <if test="price != 0"> price = #{price}, </if>
+            <if test="quantity != 0"> quantity = #{quantity}, </if>
+            <if test="targetAmount != 0"> target_amount = #{targetAmount}, </if>
             <if test="startDate != null"> start_date = #{startDate}, </if>
             <if test="endDate != null"> end_date = #{endDate}, </if>
             <if test="status != null"> status = #{status}, </if>
@@ -49,9 +52,8 @@
         WHERE funding_id = #{fundingId}
     </update>
 
-
-    <select id="deleteFunding" parameterType="int" resultMap="FundingResultMap">
+    <delete id="deleteFunding">
         DELETE FROM funding WHERE funding_id = #{fundingId}
-    </select>
+    </delete>
 
 </mapper>
