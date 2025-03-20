@@ -1,5 +1,6 @@
 package com.ssafy.funding.entity;
 
+import com.ssafy.funding.common.util.JsonConverter;
 import com.ssafy.funding.dto.request.FundingUpdateRequestDto;
 import com.ssafy.funding.entity.enums.Category;
 import com.ssafy.funding.entity.enums.Status;
@@ -9,6 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor
@@ -19,6 +21,7 @@ public class Funding {
     private String title;
     private String description;
     private String storyFileUrl;
+    private String imageUrls;
     private int price;
     private int quantity;
     private int targetAmount;
@@ -33,11 +36,12 @@ public class Funding {
     private LocalDateTime updatedAt;
 
     @Builder
-    public Funding(int sellerId, String title, String description, String storyFileUrl, int price, int quantity, int targetAmount, LocalDateTime startDate, LocalDateTime endDate, Category category) {
+    public Funding(int sellerId, String title, String description, String storyFileUrl, String imageUrls, int price, int quantity, int targetAmount, LocalDateTime startDate, LocalDateTime endDate, Category category) {
         this.sellerId = sellerId;
         this.title = title;
         this.description = description;
         this.storyFileUrl = storyFileUrl;
+        this.imageUrls = imageUrls;
         this.price = price;
         this.quantity = quantity;
         this.targetAmount = targetAmount;
@@ -62,6 +66,10 @@ public class Funding {
         if (dto.category() != null) this.category = dto.category();
         if (dto.status() != null) this.status = dto.status();
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public List<String> getImageUrlList() {
+        return JsonConverter.convertJsonToImageUrls(this.imageUrls);
     }
 
     public void applyUpdate(FundingUpdateRequestDto dto) {

@@ -6,8 +6,12 @@ import com.ssafy.funding.dto.request.FundingUpdateRequestDto;
 import com.ssafy.funding.dto.response.FundingResponseDto;
 import com.ssafy.funding.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 import static com.ssafy.funding.common.response.ResponseCode.*;
 
@@ -24,21 +28,24 @@ public class FundingController {
         return new ResponseEntity<>(Response.create(GET_FUNDING, funding), GET_FUNDING.getHttpStatus());
     }
 
-    @PostMapping("/{sellerId}")
-    public ResponseEntity<?> createFunding(@PathVariable int sellerId, @RequestBody FundingCreateRequestDto dto) {
-        productService.createFunding(sellerId, dto);
+    @PostMapping(value = "/{sellerId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> createFunding(@PathVariable int sellerId,
+                                           @RequestPart("dto") FundingCreateRequestDto dto,
+                                           @RequestPart("storyFile") MultipartFile storyFile,
+                                           @RequestPart("imageFiles") List<MultipartFile> imageFiles) {
+        productService.createFunding(sellerId, dto, storyFile, imageFiles);
         return new ResponseEntity<>(Response.create(CREATE_FUNDING, null), CREATE_FUNDING.getHttpStatus());
     }
 
-    @PutMapping("/{sellerId}")
-    public ResponseEntity<?> updateFunding(@PathVariable int sellerId, @RequestBody FundingUpdateRequestDto dto) {
-        productService.updateFunding(sellerId, dto);
+    @PutMapping("/{fundingId}")
+    public ResponseEntity<?> updateFunding(@PathVariable int fundingId, @RequestBody FundingUpdateRequestDto dto) {
+        productService.updateFunding(fundingId , dto);
         return new ResponseEntity<>(Response.create(UPDATE_FUNDING, null), UPDATE_FUNDING.getHttpStatus());
     }
 
-    @DeleteMapping("/{sellerId}")
-    public ResponseEntity<?> deleteFunding(@PathVariable int sellerId) {
-        productService.deleteFunding(sellerId);
+    @DeleteMapping("/{fundingId}")
+    public ResponseEntity<?> deleteFunding(@PathVariable int fundingId) {
+        productService.deleteFunding(fundingId);
         return new ResponseEntity<>(Response.create(DELETE_FUNDING, null), DELETE_FUNDING.getHttpStatus());
     }
 }
