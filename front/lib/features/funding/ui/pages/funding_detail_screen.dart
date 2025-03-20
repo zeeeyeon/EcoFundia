@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/ui/widgets/custom_app_bar.dart';
 import '../../data/models/funding_model.dart';
-import '../widgets/funding_detail_card.dart'; // ✅ 새로 만든 위젯 임포트
+import '../widgets/funding_detail_card.dart';
 
 class FundingDetailScreen extends StatelessWidget {
   final FundingModel funding;
@@ -17,7 +17,7 @@ class FundingDetailScreen extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: FundingDetailCard(funding: funding), // ✅ 새로운 위젯 적용
+        child: FundingDetailCard(funding: funding),
       ),
     );
   }
