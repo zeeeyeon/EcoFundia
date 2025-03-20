@@ -1,6 +1,7 @@
 package com.ssafy.funding.common.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.Collections;
@@ -18,10 +19,14 @@ public class JsonConverter {
     }
 
     public static List<String> convertJsonToImageUrls(String json) {
+        if (json == null || json.isBlank()) {
+            return Collections.emptyList();
+        }
         try {
-            return objectMapper.readValue(json, List.class);
-        } catch (JsonProcessingException e) {
-            return Collections.emptyList(); // 변환 실패 시 빈 리스트 반환
+            return objectMapper.readValue(json, new TypeReference<List<String>>() {});
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Collections.emptyList();
         }
     }
 }

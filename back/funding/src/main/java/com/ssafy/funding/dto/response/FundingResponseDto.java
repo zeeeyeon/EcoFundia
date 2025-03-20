@@ -1,15 +1,18 @@
 package com.ssafy.funding.dto.response;
 
+import com.ssafy.funding.common.util.JsonConverter;
 import com.ssafy.funding.entity.Funding;
 import com.ssafy.funding.entity.enums.Category;
 import com.ssafy.funding.entity.enums.Status;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record FundingResponseDto(
         String title,
         String description,
         String storyFileUrl,
+        List<String> imageUrls,
         int price,
         int quantity,
         int targetAmount,
@@ -24,6 +27,7 @@ public record FundingResponseDto(
                 funding.getTitle(),
                 funding.getDescription(),
                 funding.getStoryFileUrl(),
+                JsonConverter.convertJsonToImageUrls(funding.getImageUrls()),
                 funding.getPrice(),
                 funding.getQuantity(),
                 funding.getTargetAmount(),
