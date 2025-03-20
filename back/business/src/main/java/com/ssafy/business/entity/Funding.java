@@ -12,6 +12,7 @@ public class Funding {
     private int sellerId;
     private String title;
     private String imageUrls;
+    private String storyFileUrl;
     private String description;
     private int price;
     private int quantity;           //수량??
@@ -23,19 +24,5 @@ public class Funding {
     private Category category; // ENUM('FOOD', 'FASHION', 'ELECTRONICS', 'HOUSEHOLD', 'INTERIOR')
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
-    public FundingResponseDTO toDto() {
-        return FundingResponseDTO
-                .builder()
-                .funding_id(fundingId)
-                .title(title)
-                .description(description)
-                .imageUrl(imageUrls)
-                .endDate(endDate)
-                .rate( (int) ((double) currentAmount / targetAmount * 100) )
-                .currentAmount(currentAmount)
-                .category(category)
-                .build();
-    }
 
 }

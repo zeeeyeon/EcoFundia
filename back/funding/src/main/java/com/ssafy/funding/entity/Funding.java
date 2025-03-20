@@ -2,6 +2,7 @@ package com.ssafy.funding.entity;
 
 import com.ssafy.funding.common.util.JsonConverter;
 import com.ssafy.funding.dto.request.FundingUpdateRequestDto;
+import com.ssafy.funding.dto.response.GetFundingResponseDto;
 import com.ssafy.funding.entity.enums.Category;
 import com.ssafy.funding.entity.enums.Status;
 import lombok.AllArgsConstructor;
@@ -76,5 +77,27 @@ public class Funding {
 
     public List<String> getImageUrlList() {
         return JsonConverter.convertJsonToImageUrls(this.imageUrls);
+    }
+
+
+    public GetFundingResponseDto toDto() {
+        return GetFundingResponseDto
+                .builder()
+                .fundingId(fundingId)
+                .sellerId(sellerId)
+                .title(title)
+                .storyFileUrl(storyFileUrl)
+                .imageUrls(imageUrls)
+                .description(description)
+                .price(price)
+                .quantity(quantity)
+                .targetAmount(targetAmount)
+                .currentAmount(currentAmount)
+                .startDate(startDate)
+                .endDate(endDate)
+                .status(status)
+                .category(category)
+                .rate( (int) ((double) currentAmount / targetAmount * 100) )
+                .build();
     }
 }

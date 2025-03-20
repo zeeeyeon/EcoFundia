@@ -12,6 +12,6 @@ public interface FundingDetailService {
     public FundingDetailResponseDTO getFundingDetail(int fundingId);
 
     // 펀딩 리뷰 조회
-    public ReviewResponseDTO getFundingReview(int sellerId, int page);
+//    public ReviewResponseDTO getFundingReview(int sellerId, int page);
 
 }

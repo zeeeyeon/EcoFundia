@@ -1,19 +1,24 @@
 package com.ssafy.business.client;
 
+import com.ssafy.business.common.response.Response;
+import com.ssafy.business.common.response.ResponseCode;
 import com.ssafy.business.dto.responseDTO.FundingDetailResponseDTO;
 import com.ssafy.business.dto.responseDTO.FundingResponseDTO;
 import com.ssafy.business.dto.responseDTO.ReviewResponseDTO;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.stereotype.Component;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-@Component
 @FeignClient(name = "funding")
 public interface FundingClient {
+
+    // 현재까지 펀딩 금액 조회
+    @GetMapping("/api/funding/total-fund")
+    Long getTotalFund();
 
     // funding 서비스에게 top-funding 데이터 요청
     @GetMapping("/api/funding/top-funding")
@@ -33,7 +38,7 @@ public interface FundingClient {
 
     // funding 서비스에게 펀딩 상세 정보 요청
     @GetMapping("api/funding/detail/{fundingId}")
-    FundingDetailResponseDTO getFundingDetail(@PathVariable int fundingId);
+    FundingResponseDTO getFundingDetail(@PathVariable int fundingId);
 
     // funding 서비스에 펀딩 리뷰 조회
     @GetMapping("api/funding/review")

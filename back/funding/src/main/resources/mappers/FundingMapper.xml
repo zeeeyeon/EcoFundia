@@ -58,4 +58,48 @@
         DELETE FROM funding WHERE funding_id = #{fundingId}
     </delete>
 
+    <!-- 전체 Funding 금액 조회 -->
+    <select id="getTotalFund" resultType="java.lang.Long">
+        SELECT COALESCE(SUM(total_price), 0) AS totalFund
+        FROM `order`
+    </select>
+
+    <!-- Top Funding 리스트 조회 -->
+    <select id="getTopFundingList" resultMap="FundingResultMap">
+        SELECT *
+        FROM funding
+        WHERE NOW() BETWEEN start_date AND end_date
+        ORDER BY (current_amount / target_amount) * 100 DESC
+            LIMIT 5
+    </select>
+
+    <!-- 최신 Funding 리스트 조회 -->
+    <select id="getLatestFundingList" resultMap="FundingResultMap">
+        SELECT *
+        FROM funding
+        WHERE NOW() BETWEEN start_date AND end_date  -- 최신순은 뭘까? 시작시간이 현재와 가장 가까운 시간?
+        ORDER BY start_date DESC
+            LIMIT 5 OFFSET #{page}
+    </select>
+
+    <!-- 특정 카테고리의 Funding 리스트 조회-->
+    <select id="getCategoryFundingList" resultMap="FundingResultMap">
+        SELECT *
+        FROM funding
+        WHERE category = #{category}
+          AND NOW() BETWEEN start_date AND end_date  -- 최신순은 뭘까? 시작시간이 현재와 가장 가까운 시간?
+        ORDER BY start_date DESC
+            LIMIT 5 OFFSET #{page}
+    </select>
+
+    <!-- 펀딩 키워드 검색 조회 -->
+    <select id="getSearchFunding" resultMap="FundingResultMap">
+        SELECT *
+        FROM funding
+        WHERE title LIKE CONCAT('%', #{keyword}, '%')
+          AND NOW() BETWEEN start_date AND end_date
+        ORDER BY start_date DESC
+            LIMIT 5 OFFSET #{page}
+    </select>
+
 </mapper>

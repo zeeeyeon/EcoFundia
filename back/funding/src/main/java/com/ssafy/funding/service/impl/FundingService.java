@@ -6,6 +6,7 @@ import com.ssafy.funding.common.util.JsonConverter;
 import com.ssafy.funding.dto.request.FundingCreateRequestDto;
 import com.ssafy.funding.dto.request.FundingUpdateRequestDto;
 import com.ssafy.funding.dto.response.FundingResponseDto;
+import com.ssafy.funding.dto.response.GetFundingResponseDto;
 import com.ssafy.funding.entity.Funding;
 import com.ssafy.funding.mapper.FundingMapper;
 import com.ssafy.funding.service.ProductService;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -74,5 +76,40 @@ public class FundingService implements ProductService {
         Funding funding = fundingMapper.findById(fundingId);
         if (funding == null) throw new CustomException(ResponseCode.FUNDING_NOT_FOUND);
         return funding;
+    }
+
+    // 현재까지 펀딩 금액 조회
+    public Long getTotalFund(){
+        return fundingMapper.getTotalFund();
+    }
+
+    // Top 펀딩 리스트 조회
+    public List<GetFundingResponseDto> getTopFundingList(){
+        List<Funding> fundingList = fundingMapper.getTopFundingList();
+        return fundingList.stream().map(Funding::toDto).collect(Collectors.toList());
+    }
+
+    // 최신 펀딩 리스트 조회
+    public List<GetFundingResponseDto> getLatestFundingList(int page){
+        List<Funding> fundingList = fundingMapper.getLatestFundingList((page - 1)  * 5);
+        return fundingList.stream().map(Funding::toDto).collect(Collectors.toList());
+    }
+
+    // 카테고리별 펀딩 리스트 조회
+    public List<GetFundingResponseDto> getCategoryFundingList(String category, int page){
+        List<Funding> fundingList = fundingMapper.getCategoryFundingList(category, (page - 1)  * 5);
+        return fundingList.stream().map(Funding::toDto).collect(Collectors.toList());
+    }
+
+    // 펀딩 키워드 검색 조회
+    public List<GetFundingResponseDto> getSearchFundingList(String keyword, int page) {
+        List<Funding> fundingList = fundingMapper.getSearchFunding(keyword, (page - 1)  * 5);
+        return fundingList.stream().map(Funding::toDto).collect(Collectors.toList());
+    }
+
+    // 펀딩 상세 페이지
+    public GetFundingResponseDto getFundingDetail(int fundingId) {
+        Funding funding = fundingMapper.findById(fundingId);
+        return funding.toDto();
     }
 }

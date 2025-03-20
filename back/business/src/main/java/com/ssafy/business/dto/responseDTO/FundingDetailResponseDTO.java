@@ -1,9 +1,10 @@
 package com.ssafy.business.dto.responseDTO;
 
-import com.ssafy.business.entity.Category;
-import com.ssafy.business.entity.Status;
+
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,22 +13,14 @@ import java.util.List;
 @Builder
 public class FundingDetailResponseDTO {
 
-    private int fundingId;
-    private String title;
-    private String description;
-    private List<String> imageUrls;
-    private String story;
-    private int price;
-    private int quantity;
-    private int targetAmount;
-    private int currentAmount;
-    private LocalDateTime startDate;
-    private LocalDateTime endDate;
-    private Status status;
-    private Category category;
+    private FundingResponseDTO fundingInfo;
+    private FundingDetailSellerResponseDTO sellerInfo;
 
-    private int sellerId;
-    private String sellerName; //현재 이거 없음
-    private String sellerProfileImageUrl;
-
+    // 정적 팩토리 메서드 추가 (DTO 생성 메서드)
+    public static FundingDetailResponseDTO from(FundingResponseDTO funding, FundingDetailSellerResponseDTO seller) {
+        return FundingDetailResponseDTO.builder()
+                .fundingInfo(funding)
+                .sellerInfo(seller)
+                .build();
+    }
 }
