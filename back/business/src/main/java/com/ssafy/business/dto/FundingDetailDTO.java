@@ -49,25 +49,25 @@ public class FundingDetailDTO {
         }
     }
 
-    public FundingDetailResponseDTO toDto() {
-        return FundingDetailResponseDTO
-                .builder()
-                .fundingId(fundingId)
-                .title(title)
-                .description(description)
-                .story(story)
-                .price(price)
-                .quantity(quantity)
-                .targetAmount(targetAmount)
-                .currentAmount(currentAmount)
-                .startDate(startDate)
-                .endDate(endDate)
-                .status(status)
-                .category(category)
-                .sellerId(sellerId)
-                .sellerName(sellerName)
-                .sellerProfileImageUrl(sellerProfileImageUrl)
-                .imageUrls(getImageUrlsAsList()) // 변환된 List<String> 반영
-                .build();
-    }
+//    public FundingDetailResponseDTO toDto() {
+//        return FundingDetailResponseDTO
+//                .builder()
+//                .fundingd(fundingId)
+//                .title(title)
+//                .description(description)
+//                .story(story)
+//                .price(price)
+//                .quantity(quantity)
+//                .targetAmount(targetAmount)
+//                .currentAmount(currentAmount)
+//                .startDate(startDate)
+//                .endDate(endDate)
+//                .status(status)
+//                .category(category)
+//                .sellerId(sellerId)
+//                .sellerName(sellerName)
+//                .sellerProfileImageUrl(sellerProfileImageUrl)
+//                .imageUrls(getImageUrlsAsList()) // 변환된 List<String> 반영
+//                .build();
+//    }
 }

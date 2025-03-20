@@ -3,6 +3,7 @@ package com.ssafy.funding.service;
 import com.ssafy.funding.dto.request.FundingCreateRequestDto;
 import com.ssafy.funding.dto.request.FundingUpdateRequestDto;
 import com.ssafy.funding.dto.response.FundingResponseDto;
+import com.ssafy.funding.dto.response.GetFundingResponseDto;
 import com.ssafy.funding.entity.Funding;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,4 +14,22 @@ public interface ProductService {
     FundingResponseDto getFunding(int fundingId);
     Funding updateFunding(int fundingId, FundingUpdateRequestDto dto, MultipartFile storyFile, List<MultipartFile> imageFiles);
     void deleteFunding(int fundingId);
+
+    // 전체 펀딩 금액 조회
+    Long getTotalFund();
+
+    // Top 펀딩 리스트 조회
+    List<GetFundingResponseDto> getTopFundingList();
+
+    // 최신 펀딩 리스트 조회
+    List<GetFundingResponseDto> getLatestFundingList(int page);
+
+    // 카테고리별 펀딩 리스트 조회
+    List<GetFundingResponseDto> getCategoryFundingList(String category, int page);
+
+    // 펀딩 키워드 검색 조회
+    List<GetFundingResponseDto> getSearchFundingList(String keyword, int page);
+
+    // 펀딩 상세 페이지
+    GetFundingResponseDto getFundingDetail(int fundingId);
 }

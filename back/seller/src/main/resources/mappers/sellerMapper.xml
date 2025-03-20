@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seller.mapper.SellerMapper">
+
+    <resultMap id="sellerResultMap" type="com.seller.dto.FundingDetailSellerResponseDto">
+        <id property="sellerId" column="seller_id" />
+        <result property="profileImg" column="profile_img" />
+        <result property="name" column="name" />
+    </resultMap>
+
+
+    <!-- 펀딩 키워드 검색 조회 -->
+    <select id="sellerInfo" resultMap="sellerResultMap">
+        SELECT seller_id, profile_img, name
+        FROM seller WHERE seller_id = #{sellerId}
+    </select>
+
+</mapper>

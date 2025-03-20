@@ -1,14 +1,16 @@
-package com.ssafy.business.dto.responseDTO;
+package com.ssafy.funding.dto.response;
 
-import com.ssafy.business.entity.Category;
-import com.ssafy.business.entity.Status;
+
+import com.ssafy.funding.entity.enums.Category;
+import com.ssafy.funding.entity.enums.Status;
 import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 
 @Data
-public class FundingResponseDTO {
+@Builder
+public class GetFundingResponseDto {
 
     private int fundingId;
     private int sellerId;
@@ -28,4 +30,6 @@ public class FundingResponseDTO {
 
     // 달성률
     private int rate;
+
+
 }

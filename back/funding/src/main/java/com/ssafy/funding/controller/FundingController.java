@@ -4,6 +4,7 @@ import com.ssafy.funding.common.response.Response;
 import com.ssafy.funding.dto.request.FundingCreateRequestDto;
 import com.ssafy.funding.dto.request.FundingUpdateRequestDto;
 import com.ssafy.funding.dto.response.FundingResponseDto;
+import com.ssafy.funding.dto.response.GetFundingResponseDto;
 import com.ssafy.funding.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -53,4 +54,45 @@ public class FundingController {
         productService.deleteFunding(fundingId);
         return new ResponseEntity<>(Response.create(DELETE_FUNDING, null), DELETE_FUNDING.getHttpStatus());
     }
+
+    // 현재까지 펀딩 금액 조회
+    @GetMapping("/total-fund")
+    public Long getTotalFund() {
+        Long totalFund = productService.getTotalFund();
+        return totalFund;
+    }
+
+    // funding 서비스에게 top-funding 데이터 요청
+    @GetMapping("/top-funding")
+    List<GetFundingResponseDto> getTopFundingList() {
+        List<GetFundingResponseDto> fundingList = productService.getTopFundingList();
+        return fundingList;
+    }
+
+    // funding 서비스에게 최신 펀딩 리스트 데이터 요청
+    @GetMapping("/latest-funding/{page}")
+    List<GetFundingResponseDto> getLatestFundingList(@PathVariable int page) {
+        List<GetFundingResponseDto> fundingList = productService.getLatestFundingList(page);
+        return fundingList;
+    }
+
+    // funding 서비스에게 카테고리별 펀딩 리스트 데이터 요청
+    @GetMapping("/category")
+    List<GetFundingResponseDto> getCategoryFundingList(@RequestParam(name = "category") String category , @RequestParam(name = "page") int page) {
+        List<GetFundingResponseDto> fundingList = productService.getCategoryFundingList(category, page);
+        return fundingList;
+    }
+
+    //funding 서비스에게 키워드 검색으로 펀딩 리스트 데이터 요청
+    @GetMapping("/search")
+    List<GetFundingResponseDto> getSearchFundingList(@RequestParam(name = "keyword") String keyword, @RequestParam(name= "page") int page) {
+        List<GetFundingResponseDto> fundingList = productService.getSearchFundingList(keyword, page);
+        return fundingList;
+    }
+
+    @GetMapping("/detail/{fundingId}")
+    GetFundingResponseDto getFundingDetail(@PathVariable int fundingId) {
+        GetFundingResponseDto fundingResponseDto = productService.getFundingDetail(fundingId);
+    }
+
 }
