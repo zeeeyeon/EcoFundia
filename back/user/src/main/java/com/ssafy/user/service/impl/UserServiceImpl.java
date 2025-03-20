@@ -3,6 +3,7 @@ package com.ssafy.user.service.impl;
 import com.ssafy.user.dto.request.LoginRequestDto;
 import com.ssafy.user.dto.request.ReissueRequestDto;
 import com.ssafy.user.dto.request.SignupRequestDto;
+import com.ssafy.user.dto.response.GetMyInfoResponseDto;
 import com.ssafy.user.dto.response.LoginResponseDto;
 import com.ssafy.user.dto.response.ReissueResponseDto;
 import com.ssafy.user.dto.response.SignupResponseDto;
@@ -13,6 +14,8 @@ import com.ssafy.user.service.UserService;
 import com.ssafy.user.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -92,6 +95,20 @@ public class UserServiceImpl implements UserService {
         String newAccessToken = jwtUtil.generateAccessToken(user, role);
 
         return new ReissueResponseDto(newAccessToken);
+    }
+
+    @Override
+    public GetMyInfoResponseDto getMyInfo() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new CustomException(INVALID_ACCESS_TOKEN);
+        }
+        String email = (String) authentication.getPrincipal();
+        User user = userMapper.findByEmail(email);
+        if (user == null) {
+            throw new CustomException(USER_NOT_FOUND);
+        }
+        return new GetMyInfoResponseDto(user);
     }
 
     private Map<String, Object> getGoogleUserInfo(String accessToken) {

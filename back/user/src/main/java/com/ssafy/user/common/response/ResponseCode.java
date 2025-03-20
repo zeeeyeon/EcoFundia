@@ -21,6 +21,7 @@ public enum ResponseCode {
     INVALID_AUTH_HEADER("BR", HttpStatus.BAD_REQUEST, "잘못된 Authorization 헤더 형식입니다."),
 
     // 인증 오류 (401)
+    INVALID_ACCESS_TOKEN("IAT", HttpStatus.UNAUTHORIZED, "유효하지 않은 액세스 토큰입니다. 갱신 해주세요."),
     INVALID_REFRESH_TOKEN("IRT", HttpStatus.UNAUTHORIZED, "Refresh Token이 만료되었거나 유효하지 않습니다."),
 
     // 리소스 없음 (404)

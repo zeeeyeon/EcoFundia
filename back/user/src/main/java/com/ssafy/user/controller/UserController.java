@@ -5,6 +5,7 @@ import com.ssafy.user.common.response.ResponseCode;
 import com.ssafy.user.dto.request.LoginRequestDto;
 import com.ssafy.user.dto.request.ReissueRequestDto;
 import com.ssafy.user.dto.request.SignupRequestDto;
+import com.ssafy.user.dto.response.GetMyInfoResponseDto;
 import com.ssafy.user.dto.response.LoginResponseDto;
 import com.ssafy.user.dto.response.ReissueResponseDto;
 import com.ssafy.user.dto.response.SignupResponseDto;
@@ -23,24 +24,25 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequestDto requestDto) {
-        LoginResponseDto loginResponse = userService.verifyUser(requestDto);
-        return new ResponseEntity<>(Response.create(SUCCESS, loginResponse), SUCCESS.getHttpStatus());
+        LoginResponseDto dto = userService.verifyUser(requestDto);
+        return new ResponseEntity<>(Response.create(SUCCESS, dto), SUCCESS.getHttpStatus());
     }
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody SignupRequestDto requestDto) {
-        SignupResponseDto signupResponse = userService.registerUser(requestDto);
-        return new ResponseEntity<>(Response.create(CREATED, signupResponse), CREATED.getHttpStatus());
+        SignupResponseDto dto = userService.registerUser(requestDto);
+        return new ResponseEntity<>(Response.create(CREATED, dto), CREATED.getHttpStatus());
     }
 
     @PostMapping("/reissue")
     public ResponseEntity<?> reissue(@RequestBody ReissueRequestDto requestDto) {
-        ReissueResponseDto reissueResponse = userService.reissueAccessToken(requestDto);
-        return new ResponseEntity<>(Response.create(SUCCESS, reissueResponse), SUCCESS.getHttpStatus());
+        ReissueResponseDto dto = userService.reissueAccessToken(requestDto);
+        return new ResponseEntity<>(Response.create(SUCCESS, dto), SUCCESS.getHttpStatus());
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<?> logout(){
-        return new ResponseEntity<>(Response.create(LOGOUT_SUCCESS, null), LOGOUT_SUCCESS.getHttpStatus());
+    @GetMapping("/me")
+    public ResponseEntity<?> getMyInfo(){
+        GetMyInfoResponseDto dto = userService.getMyInfo();
+        return new ResponseEntity<>(Response.create(SUCCESS, dto), SUCCESS.getHttpStatus());
     }
 }

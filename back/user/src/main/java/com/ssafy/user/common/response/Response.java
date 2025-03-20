@@ -14,7 +14,7 @@ public class Response<T> {
     @Getter
     @AllArgsConstructor
     private static class Status {
-        private int code;
+        private String code;
         private String message;
     }
 
