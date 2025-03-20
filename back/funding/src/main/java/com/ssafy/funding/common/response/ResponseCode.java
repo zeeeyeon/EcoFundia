@@ -14,7 +14,8 @@ public enum ResponseCode {
     DELETE_FUNDING(successCode(), HttpStatus.OK, "펀딩이 성공적으로 삭제되었습니다."),
 
     FUNDING_NOT_FOUND(404, HttpStatus.NOT_FOUND, "해당 ID의 펀딩이 존재하지 않습니다"),
-    FAIL_FILE_UPLOAD(404, HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류로 인해 파일 업로드가 실패하였습니다."),
+    FAIL_FILE_UPLOAD(500, HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류로 인해 파일 업로드가 실패하였습니다."),
+    FAIL_FILE_DELETE(500, HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류로 인해 파일 삭제가 실패하였습니다."),
 
     BINDING_ERROR(400, HttpStatus.BAD_REQUEST, "입력값 중 검증에 실패한 값이 있습니다."),
     BAD_REQUEST(400, HttpStatus.BAD_REQUEST, "올바르지 않은 요청입니다."),

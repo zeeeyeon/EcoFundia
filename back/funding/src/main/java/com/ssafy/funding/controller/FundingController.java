@@ -37,9 +37,14 @@ public class FundingController {
         return new ResponseEntity<>(Response.create(CREATE_FUNDING, null), CREATE_FUNDING.getHttpStatus());
     }
 
-    @PutMapping("/{fundingId}")
-    public ResponseEntity<?> updateFunding(@PathVariable int fundingId, @RequestBody FundingUpdateRequestDto dto) {
-        productService.updateFunding(fundingId , dto);
+    @PatchMapping(value = "/{fundingId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateFunding(
+            @PathVariable int fundingId,
+            @RequestPart("dto") FundingUpdateRequestDto dto,
+            @RequestPart(value = "storyFile", required = false) MultipartFile storyFile,
+            @RequestPart(value = "imageFiles", required = false) List<MultipartFile> imageFiles
+    ) {
+        productService.updateFunding(fundingId, dto, storyFile, imageFiles);
         return new ResponseEntity<>(Response.create(UPDATE_FUNDING, null), UPDATE_FUNDING.getHttpStatus());
     }
 
