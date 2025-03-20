@@ -33,7 +33,8 @@ public interface BusinessClient {
     // 펀딩 상세 페이지
     @GetMapping("api/business/detail/{fundingId}")
     ResponseEntity<?> getFundingDetail(@PathVariable int fundingId);
-
+    
+    // 펀딩 리뷰 조회
     @GetMapping("api/business/review")
     ResponseEntity<?> getFundingDetail(@RequestParam(name="sellerId") int sellerId, @RequestParam(name="page") int page);
 }
