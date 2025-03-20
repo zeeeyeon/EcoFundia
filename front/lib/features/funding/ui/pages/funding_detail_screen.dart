@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../../core/ui/widgets/custom_app_bar.dart';
 import '../../data/models/funding_model.dart';
+import '../widgets/funding_detail_card.dart'; // ✅ 새로 만든 위젯 임포트
 
 class FundingDetailScreen extends StatelessWidget {
   final FundingModel funding;
+
   const FundingDetailScreen({super.key, required this.funding});
 
   @override
@@ -15,56 +17,7 @@ class FundingDetailScreen extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Image.network(
-                funding.imageUrl,
-                height: 200,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    height: 200,
-                    color: const Color.fromRGBO(158, 158, 158, 0.3),
-                    child: const Center(
-                      child: Icon(Icons.image_not_supported,
-                          size: 50, color: Colors.grey),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              funding.title,
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              funding.description,
-              style: const TextStyle(fontSize: 16, color: Colors.black87),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              "목표 금액: \${funding.targetAmount}원",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const Text(
-              "현재 금액: \${funding.currentAmount}원",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            LinearProgressIndicator(
-              value: (funding.currentAmount / funding.targetAmount)
-                  .clamp(0.0, 1.0),
-              backgroundColor: Colors.grey[300],
-              color: Colors.green,
-            ),
-          ],
-        ),
+        child: FundingDetailCard(funding: funding), // ✅ 새로운 위젯 적용
       ),
     );
   }

@@ -33,7 +33,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 controller: searchController,
                 onChanged: onSearchChanged,
                 decoration: InputDecoration(
-                  hintText: "펀딩 검색...",
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.search),
                     onPressed: () {
