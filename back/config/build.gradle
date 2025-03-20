@@ -43,10 +43,6 @@ dependencyManagement {
 	}
 }
 
-tasks.named('bootJar') {
-	mainClass = 'com.ssafy.config.ConfigApplication'
-}
-
 tasks.named('test') {
 	useJUnitPlatform()
 }
