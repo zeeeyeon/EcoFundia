@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/ui/widgets/custom_app_bar.dart';
 import '../../data/models/funding_model.dart';
-import '../view_model/funding_list_view_model.dart';
 
 class FundingDetailScreen extends StatelessWidget {
   final FundingModel funding;
@@ -11,19 +9,9 @@ class FundingDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
-        title: funding.title,
+      appBar: const CustomAppBar(
         showBackButton: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.home),
-            onPressed: () {},
-          )
-        ],
+        showHomeButton: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -40,7 +28,7 @@ class FundingDetailScreen extends StatelessWidget {
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
                     height: 200,
-                    color: Colors.grey.withOpacity(0.3),
+                    color: const Color.fromRGBO(158, 158, 158, 0.3),
                     child: const Center(
                       child: Icon(Icons.image_not_supported,
                           size: 50, color: Colors.grey),
@@ -60,13 +48,13 @@ class FundingDetailScreen extends StatelessWidget {
               style: const TextStyle(fontSize: 16, color: Colors.black87),
             ),
             const SizedBox(height: 16),
-            Text(
-              "목표 금액: ${funding.targetAmount}원",
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            const Text(
+              "목표 금액: \${funding.targetAmount}원",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            Text(
-              "현재 금액: ${funding.currentAmount}원",
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            const Text(
+              "현재 금액: \${funding.currentAmount}원",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
             LinearProgressIndicator(

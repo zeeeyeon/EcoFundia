@@ -13,10 +13,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   const CustomAppBar({
     super.key,
-    this.title, // ✅ 타이틀이 없어도 가능
+    this.title, // 제목 필수는 아님
     this.showBackButton = false,
     this.showHomeButton = false,
-    this.showSearchField = false, // 기본값: 검색 필드 비활성화
+    this.showSearchField = false,
     this.searchController,
     this.onSearchChanged,
     this.onSearchSubmit,

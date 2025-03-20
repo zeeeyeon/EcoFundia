@@ -23,22 +23,18 @@ class _FundingListScreenState extends ConsumerState<FundingListScreen> {
 
     return Scaffold(
       appBar: CustomAppBar(
-        showBackButton: false,
-        showHomeButton: true, // ✅ 홈 버튼 추가
-        showSearchField: true, // ✅ 검색 필드 추가
+        showBackButton: false, // 뒤로가기 버튼
+        showHomeButton: true, // 홈 버튼
+        showSearchField: true, // 검색 필드
         searchController: searchController,
         onSearchChanged: (query) {
-          ref.read(searchQueryProvider.notifier).state = query; // ✅ 검색어 상태 업데이트
-          ref
-              .read(fundingListProvider.notifier)
-              .searchFunding(query); // ✅ 검색 실행
+          ref.read(searchQueryProvider.notifier).state = query; // 색어 상태 업데이트
+          ref.read(fundingListProvider.notifier).searchFunding(query); // 검색 실행
         },
         onSearchSubmit: () {
           setState(() {
-            showFilteredResults = true; // ✅ 검색 버튼 클릭 시 필터링된 리스트만 보이게 설정
+            showFilteredResults = true; // 검색 버튼 클릭 시 필터링된 리스트만 보이게 설정
           });
-          ref.read(searchQueryProvider.notifier).state =
-              ''; // ✅ 검색 필드를 비우되 기존 필터링 유지
         },
       ),
       body: Expanded(
