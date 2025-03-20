@@ -1,6 +1,7 @@
 FROM openjdk:17-jdk-slim AS build
 WORKDIR /app
 COPY build.gradle settings.gradle ./
+RUN chmod +x gradlew
 RUN ./gradlew build --no-daemon
 FROM openjdk:17-jdk-slim
 ARG JAR_FILE=build/libs/*.jar
