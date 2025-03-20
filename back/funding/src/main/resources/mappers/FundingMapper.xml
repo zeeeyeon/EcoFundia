@@ -36,18 +36,20 @@
     <update id="updateFunding">
         UPDATE funding
         <set>
-            <if test="title != null"> title = #{title}, </if>
-            <if test="description != null"> description = #{description}, </if>
-            <if test="storyFileUrl != null"> story_file_url = #{storyFileUrl}, </if>
-            <if test="imageUrls != null"> image_urls = #{imageUrls}, </if>
-            <if test="price != 0"> price = #{price}, </if>
-            <if test="quantity != 0"> quantity = #{quantity}, </if>
-            <if test="targetAmount != 0"> target_amount = #{targetAmount}, </if>
-            <if test="startDate != null"> start_date = #{startDate}, </if>
-            <if test="endDate != null"> end_date = #{endDate}, </if>
-            <if test="status != null"> status = #{status}, </if>
-            <if test="category != null"> category = #{category}, </if>
-            updated_at = NOW()
+            <trim prefixOverrides=",">
+                <if test="title != null"> title = #{title}, </if>
+                <if test="description != null"> description = #{description}, </if>
+                <if test="storyFileUrl != null"> story_file_url = #{storyFileUrl}, </if>
+                <if test="imageUrls != null"> image_urls = #{imageUrls}, </if>
+                <if test="price != null"> price = #{price}, </if>
+                <if test="quantity != null"> quantity = #{quantity}, </if>
+                <if test="targetAmount != null"> target_amount = #{targetAmount}, </if>
+                <if test="startDate != null"> start_date = #{startDate}, </if>
+                <if test="endDate != null"> end_date = #{endDate}, </if>
+                <if test="status != null"> status = #{status}, </if>
+                <if test="category != null"> category = #{category}, </if>
+                updated_at = NOW()
+            </trim>
         </set>
         WHERE funding_id = #{fundingId}
     </update>

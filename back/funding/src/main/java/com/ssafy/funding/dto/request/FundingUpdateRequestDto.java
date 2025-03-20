@@ -11,15 +11,13 @@ public record FundingUpdateRequestDto(
         String title,
         String description,
         String storyFileUrl,
+        String imageUrls,
         int price,
         int quantity,
         int targetAmount,
-
         LocalDateTime startDate,
         LocalDateTime endDate,
-
         Category category,
         Status status,
-
         LocalDateTime updateAt
 ) {}

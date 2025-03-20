@@ -21,13 +21,20 @@ import java.util.List;
 public class FundingService implements ProductService {
 
     private final FundingMapper fundingMapper;
-    private final S3FileUploader s3FileUploader;
+    private final S3FileService s3FileService;
+
+    @Override
+    public FundingResponseDto getFunding(int fundingId) {
+        Funding funding = findByFundingId(fundingId);
+        return FundingResponseDto.fromEntity(funding);
+    }
+
 
     @Override
     @Transactional
     public Funding createFunding(int sellerId, FundingCreateRequestDto dto, MultipartFile storyFile, List<MultipartFile> imageFiles) {
-        String storyFileUrl = s3FileUploader.uploadFile(storyFile, "funding/story");
-        List<String> imageUrls = s3FileUploader.uploadFiles(imageFiles, "funding/images");
+        String storyFileUrl = s3FileService.uploadFile(storyFile, "funding/story");
+        List<String> imageUrls = s3FileService.uploadFiles(imageFiles, "funding/images");
 
         String imageUrlsJson = JsonConverter.convertImageUrlsToJson(imageUrls);
 
@@ -38,19 +45,22 @@ public class FundingService implements ProductService {
     }
 
     @Override
-    public FundingResponseDto getFunding(int fundingId) {
-        Funding funding = findByFundingId(fundingId);
-
-        return FundingResponseDto.fromEntity(funding);
-    }
-
-    @Override
     @Transactional
-    public Funding updateFunding(int fundingId, FundingUpdateRequestDto dto) {
+    public Funding updateFunding(int fundingId, FundingUpdateRequestDto dto, MultipartFile storyFile, List<MultipartFile> imageFiles) {
         Funding funding = findByFundingId(fundingId);
 
-        funding.applyUpdate(dto);
+        String oldStoryFileUrl = funding.getStoryFileUrl();
+        List<String> oldImageUrls = funding.getImageUrlList();
+
+        String newStoryFileUrl = s3FileService.uploadFile(storyFile, "funding/story");
+        List<String> newImageUrls = s3FileService.uploadFiles(imageFiles, "funding/images");
+
+        funding.update(dto, newStoryFileUrl, newImageUrls);
         fundingMapper.updateFunding(funding);
+
+        if (newStoryFileUrl != null && !newStoryFileUrl.equals(oldStoryFileUrl)) s3FileService.deleteFile(oldStoryFileUrl);
+        if (!newImageUrls.isEmpty() && !newImageUrls.equals(oldImageUrls)) s3FileService.deleteFiles(oldImageUrls);
+
         return funding;
     }
 

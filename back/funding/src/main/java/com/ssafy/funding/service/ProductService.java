@@ -11,6 +11,6 @@ import java.util.List;
 public interface ProductService {
     Funding createFunding(int sellerId, FundingCreateRequestDto dto, MultipartFile storyFile, List<MultipartFile> imageFiles);
     FundingResponseDto getFunding(int fundingId);
-    Funding updateFunding(int fundingId, FundingUpdateRequestDto dto);
+    Funding updateFunding(int fundingId, FundingUpdateRequestDto dto, MultipartFile storyFile, List<MultipartFile> imageFiles);
     void deleteFunding(int fundingId);
 }
