@@ -6,6 +6,7 @@ import 'package:front/features/auth/domain/use_cases/google_sign_in_use_case.dar
 import 'package:front/utils/logger_util.dart';
 import 'package:front/core/services/storage_service.dart';
 import 'package:front/features/auth/domain/models/auth_response.dart';
+import 'package:flutter/scheduler.dart';
 
 /// 인증 ViewModel
 ///
@@ -21,6 +22,9 @@ class AuthViewModel extends StateNotifier<bool> {
   // 마지막으로 획득한 Google 액세스 토큰 (회원가입 시 사용)
   String? _lastAccessToken;
 
+  // 초기화 상태 플래그
+  bool _isInitialized = false;
+
   AuthViewModel({
     required GoogleSignInUseCase googleSignInUseCase,
     required CheckLoginStatusUseCase checkLoginStatusUseCase,
@@ -29,8 +33,13 @@ class AuthViewModel extends StateNotifier<bool> {
         _checkLoginStatusUseCase = checkLoginStatusUseCase,
         _appStateViewModel = appStateViewModel,
         super(false) {
-    // 앱 시작 시 로그인 상태 확인
-    _checkLoginStatus();
+    // 프레임 렌더링 후에 로그인 상태 확인을 수행하여 Provider 초기화 충돌 방지
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (!_isInitialized) {
+        _isInitialized = true;
+        _checkLoginStatus();
+      }
+    });
   }
 
   /// 로그인 상태 확인

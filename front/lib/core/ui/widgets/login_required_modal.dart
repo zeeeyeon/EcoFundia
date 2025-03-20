@@ -40,20 +40,6 @@ class LoginRequiredModal extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      side: const BorderSide(color: AppColors.lightGrey),
-                    ),
-                    child: const Text('취소'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.of(context).pop();
@@ -70,6 +56,20 @@ class LoginRequiredModal extends StatelessWidget {
                       '로그인',
                       style: TextStyle(color: Colors.white),
                     ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      side: const BorderSide(color: AppColors.lightGrey),
+                    ),
+                    child: const Text('취소'),
                   ),
                 ),
               ],
