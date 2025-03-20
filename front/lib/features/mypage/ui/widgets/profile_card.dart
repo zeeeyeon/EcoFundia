@@ -28,14 +28,14 @@ class ProfileCard extends StatelessWidget {
             _buildFeatureButton(
               context,
               icon: Icons.rate_review,
-              label: "후기",
+              label: "내 후기",
               route: '/review', // 후기 작성 페이지 이동
             ),
             _buildFeatureButton(
               context,
               icon: Icons.notifications_active,
               label: "알림신청",
-              route: '/notifications', // ✅ 알림 신청 페이지 이동
+              route: '/notifications', // 알림 신청 페이지 이동
             ),
           ],
         ),

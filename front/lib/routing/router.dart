@@ -10,6 +10,8 @@ import 'package:front/features/funding/ui/pages/funding_list_screen.dart';
 import 'package:front/features/funding/ui/pages/funding_detail_screen.dart';
 import 'package:front/features/home/ui/pages/home_screen.dart';
 import 'package:front/features/mypage/ui/pages/mypage_screen.dart';
+import 'package:front/features/mypage/ui/pages/my_funding_screen.dart';
+import 'package:front/features/mypage/ui/pages/my_review_screen.dart';
 import 'package:front/features/wishlist/ui/pages/wishlist_screen.dart';
 import 'package:front/features/auth/ui/pages/signup_complete_screen.dart';
 
@@ -96,6 +98,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/mypage',
                 builder: (context, state) => const MypageScreen(),
+              ),
+              GoRoute(
+                path: '/my-funding',
+                builder: (context, state) => const MyFundingScreen(),
+              ),
+              GoRoute(
+                path: '/review',
+                builder: (context, state) => const MyReviewScreen(),
               ),
             ],
           ),
