@@ -9,7 +9,8 @@ class SearchFundingUseCase {
     if (query.isEmpty) return allFundingList;
     return allFundingList
         .where((funding) =>
-            funding.title.toLowerCase().contains(query.toLowerCase()))
+            funding.title.toLowerCase().contains(query.toLowerCase()) ||
+            funding.description.toLowerCase().contains(query.toLowerCase()))
         .toList();
   }
 }
