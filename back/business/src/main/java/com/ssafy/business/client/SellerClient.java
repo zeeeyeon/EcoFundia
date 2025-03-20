@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 @Component
 @FeignClient(name = "seller")
-public interface sellerClient {
+public interface SellerClient {
 
     // 펀딩 상세페이지에 필요한 판매자 데이터 요청
     @GetMapping("api/seller/info/funding-page/{sellerId}")
