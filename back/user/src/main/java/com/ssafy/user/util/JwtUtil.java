@@ -1,6 +1,6 @@
 package com.ssafy.user.util;
 
-import com.ssafy.user.exception.CustomException;
+import com.ssafy.user.common.exception.CustomException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import com.ssafy.user.entity.User;
@@ -61,6 +61,14 @@ public class JwtUtil {
         } catch (JwtException e) {
             throw new CustomException("유효하지 않은 토큰입니다.", HttpStatus.FORBIDDEN);
         }
+    }
+
+    public Claims getClaims(String token) {
+        return Jwts.parser()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 
 
