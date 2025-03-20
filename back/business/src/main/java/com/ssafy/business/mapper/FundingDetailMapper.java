@@ -12,6 +12,6 @@ public interface FundingDetailMapper {
 
     public FundingDetailDTO getFundingDetail(int fundingId);
 
-    public List<ReviewDTO> getReviewList(@Param("fundingId") int fundingId, @Param("page") int page);
+    public List<ReviewDTO> getReviewList(@Param("sellerId") int sellerId, @Param("page") int page);
 
 }

@@ -28,7 +28,7 @@
         <result property="content" column="content" />
         <result property="userId" column="user_id" />
         <result property="nickname" column="nickname" />
-        <result property="fundingId" column="fundingId" />
+        <result property="fundingId" column="funding_id" />
         <result property="title" column="title" />
     </resultMap>
 
@@ -66,10 +66,11 @@
                r.content,
                u.nickname,
                f.title
-        FROM review r
-                 LEFT JOIN user u ON r.user_id = u.user_id
-                 LEFT JOIN funding f ON f.funding_id = r.funding_id
-        WHERE r.funding_id = #{fundingId}
+        FROM seller s
+                 LEFT JOIN funding f ON f.seller_id = s.seller_id
+                 LEFT JOIN review r ON r.funding_id = f.funding_id
+                 LEFT JOIN user u ON u.user_id = r.user_id
+        WHERE s.seller_id = #{sellerId}
     </select>
 
 </mapper>
