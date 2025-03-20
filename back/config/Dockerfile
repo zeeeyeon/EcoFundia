@@ -1,6 +1,7 @@
 FROM openjdk:17-jdk-slim AS build
 WORKDIR /app
 COPY gradlew gradlew.bat settings.gradle build.gradle ./
+COPY gradle/wrapper/gradle-wrapper.jar gradle/wrapper/gradle-wrapper.properties ./gradle/wrapper/
 RUN chmod +x gradlew
 RUN ./gradlew build --no-daemon
 FROM openjdk:17-jdk-slim
