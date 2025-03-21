@@ -19,7 +19,7 @@ class GreetingMessage extends StatelessWidget {
             style: const TextStyle(fontSize: 16, color: Colors.black),
             children: [
               TextSpan(
-                text: profile.name,
+                text: profile.nickname,
                 style: const TextStyle(
                     fontWeight: FontWeight.bold, color: Colors.black),
               ),

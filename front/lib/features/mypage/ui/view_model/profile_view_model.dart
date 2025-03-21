@@ -10,7 +10,36 @@ final profileRepositoryProvider = Provider(
 );
 
 // 사용자 프로필 상태 관리
-final profileProvider = FutureProvider<ProfileModel>((ref) async {
+final profileProvider =
+    StateNotifierProvider<ProfileNotifier, AsyncValue<ProfileModel>>((ref) {
   final repository = ref.read(profileRepositoryProvider);
-  return await repository.getProfile();
+  return ProfileNotifier(repository)..fetchProfile();
 });
+
+class ProfileNotifier extends StateNotifier<AsyncValue<ProfileModel>> {
+  final ProfileRepository _repository;
+
+  ProfileNotifier(this._repository) : super(const AsyncLoading());
+
+  Future<void> fetchProfile() async {
+    try {
+      final profile = await _repository.getProfile();
+      state = AsyncValue.data(profile);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  // 닉네임 수정
+  void updateNickname(String newNickname) {
+    state = state.whenData((profile) => ProfileModel(
+          userId: profile.userId,
+          email: profile.email,
+          name: profile.name,
+          nickname: newNickname,
+          gender: profile.gender,
+          age: profile.age,
+          createdAt: profile.createdAt,
+        ));
+  }
+}

@@ -32,9 +32,9 @@ class ProfileCard extends StatelessWidget {
             ),
             _buildFeatureButton(
               context,
-              icon: Icons.notifications_active,
-              label: "알림신청",
-              route: '/notifications', // 알림 신청 페이지 이동
+              icon: Icons.edit,
+              label: "프로필 수정",
+              route: '/profile-edit', // 프로필 수정 페이지로 이동 (추후 구현 예정)
             ),
           ],
         ),
