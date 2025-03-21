@@ -2,9 +2,16 @@ import 'package:front/features/wishlist/data/models/wishlist_item_model.dart';
 import 'package:front/features/wishlist/domain/entities/wishlist_item_entity.dart';
 import 'package:front/features/wishlist/domain/repositories/wishlist_repository.dart';
 import 'package:front/utils/logger_util.dart';
+import 'package:front/core/services/api_service.dart';
 
 /// 위시리스트 리포지토리 구현
 class WishlistRepositoryImpl implements WishlistRepository {
+  final ApiService _apiService;
+
+  WishlistRepositoryImpl({
+    required ApiService apiService,
+  }) : _apiService = apiService;
+
   // 임시 더미 데이터 (API 연동 전까지 사용)
   final List<WishlistItemModel> _dummyActiveWishlist = [
     const WishlistItemModel(
@@ -12,7 +19,7 @@ class WishlistRepositoryImpl implements WishlistRepository {
       title: "[노트북 보조 모니터] 모니터+ USB 허브 게이밍",
       description: "게임, 영상, 주식을 한번에!",
       companyName: "김한민 컴퍼니",
-      imageUrl: "assets/images/wishlist/product_image.png",
+      imageUrl: "https://picsum.photos/200/300",
       fundingPercentage: 5023.0,
       fundingAmount: "2,600만원",
       remainingDays: "10일 남음",
@@ -24,7 +31,7 @@ class WishlistRepositoryImpl implements WishlistRepository {
       title: "[인체공학 키보드] 손목 피로 제로! 타이핑의 혁명",
       description: "하루 종일 타이핑해도 손목 통증 없는 인체공학 키보드",
       companyName: "에르고텍",
-      imageUrl: "assets/images/wishlist/product_image.png",
+      imageUrl: "https://picsum.photos/200/300",
       fundingPercentage: 378.5,
       fundingAmount: "1,892만원",
       remainingDays: "7일 남음",
@@ -36,7 +43,7 @@ class WishlistRepositoryImpl implements WishlistRepository {
       title: "[스마트 백팩] 도난방지 + USB 충전 + 방수기능",
       description: "출퇴근, 여행에 완벽한 3박자 백팩",
       companyName: "트래블프로",
-      imageUrl: "assets/images/wishlist/product_image.png",
+      imageUrl: "https://picsum.photos/200/300",
       fundingPercentage: 426.0,
       fundingAmount: "2,130만원",
       remainingDays: "15일 남음",
@@ -51,7 +58,7 @@ class WishlistRepositoryImpl implements WishlistRepository {
       title: "[무선 이어폰] 초경량 고음질 블루투스 이어폰",
       description: "24시간 재생, 노이즈 캔슬링 탑재",
       companyName: "사운드플렉스",
-      imageUrl: "assets/images/wishlist/product_image.png",
+      imageUrl: "https://picsum.photos/200/300",
       fundingPercentage: 1250.0,
       fundingAmount: "6,250만원",
       remainingDays: "종료됨",
@@ -63,7 +70,7 @@ class WishlistRepositoryImpl implements WishlistRepository {
       title: "[스마트 플랜터] 식물 자동 관리 시스템",
       description: "바쁜 당신 대신 식물을 관리해드립니다",
       companyName: "그린라이프",
-      imageUrl: "assets/images/wishlist/product_image.png",
+      imageUrl: "https://picsum.photos/200/300",
       fundingPercentage: 682.0,
       fundingAmount: "3,410만원",
       remainingDays: "종료됨",

@@ -13,7 +13,7 @@ class AppTextStyles {
         fontSize: 22,
         fontWeight: FontWeight.w500,
         height: 1.17,
-        color: AppColors.textGrey,
+        color: AppColors.grey,
       );
 
   static TextStyle get appleButtonText => const TextStyle(
@@ -129,6 +129,6 @@ class AppTextStyles {
   static TextStyle get smallText => GoogleFonts.roboto(
         fontSize: 12,
         fontWeight: FontWeight.w400,
-        color: AppColors.textGrey,
+        color: AppColors.grey,
       );
 }

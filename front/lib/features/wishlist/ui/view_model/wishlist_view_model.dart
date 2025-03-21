@@ -9,12 +9,14 @@ import 'package:front/utils/logger_util.dart';
 /// 위시리스트 상태
 class WishlistState {
   final bool isLoading;
+  final bool isRefreshing;
   final List<WishlistItemEntity> activeItems;
   final List<WishlistItemEntity> endedItems;
   final String? error;
 
   const WishlistState({
     this.isLoading = false,
+    this.isRefreshing = false,
     this.activeItems = const [],
     this.endedItems = const [],
     this.error,
@@ -22,12 +24,14 @@ class WishlistState {
 
   WishlistState copyWith({
     bool? isLoading,
+    bool? isRefreshing,
     List<WishlistItemEntity>? activeItems,
     List<WishlistItemEntity>? endedItems,
     String? error,
   }) {
     return WishlistState(
       isLoading: isLoading ?? this.isLoading,
+      isRefreshing: isRefreshing ?? this.isRefreshing,
       activeItems: activeItems ?? this.activeItems,
       endedItems: endedItems ?? this.endedItems,
       error: error,
@@ -82,24 +86,83 @@ class WishlistViewModel extends StateNotifier<WishlistState> {
     }
   }
 
+  /// pull-to-refresh 용 새로고침 메서드
+  Future<void> refreshWishlistItems() async {
+    if (state.isLoading || state.isRefreshing) return;
+
+    state = state.copyWith(isRefreshing: true, error: null);
+
+    try {
+      // 병렬로 두 요청 실행
+      final activeItemsFuture = _getActiveWishlistItemsUseCase.execute();
+      final endedItemsFuture = _getEndedWishlistItemsUseCase.execute();
+
+      // 두 결과 모두 기다림
+      final results = await Future.wait([activeItemsFuture, endedItemsFuture]);
+
+      final activeItems = results[0];
+      final endedItems = results[1];
+
+      state = state.copyWith(
+        isRefreshing: false,
+        activeItems: activeItems,
+        endedItems: endedItems,
+      );
+
+      LoggerUtil.i(
+          '✅ 위시리스트 새로고침 완료: 진행 중 ${activeItems.length}개, 종료됨 ${endedItems.length}개');
+    } catch (e) {
+      LoggerUtil.e('❌ 위시리스트 새로고침 실패', e);
+      state = state.copyWith(
+        isRefreshing: false,
+        error: '위시리스트 새로고침에 실패했습니다.',
+      );
+    }
+  }
+
   /// 좋아요 상태 토글
   Future<void> toggleWishlistItem(int itemId) async {
     try {
+      _updateItemLikeStatus(itemId);
+
       final result = await _toggleWishlistItemUseCase.execute(itemId);
 
-      if (result) {
-        // 토글 성공 시 목록 다시 로드
-        await loadWishlistItems();
-      } else {
+      if (!result) {
+        _updateItemLikeStatus(itemId);
         state = state.copyWith(
           error: '위시리스트 항목을 업데이트하는데 실패했습니다.',
         );
       }
     } catch (e) {
+      _updateItemLikeStatus(itemId);
       LoggerUtil.e('❌ 위시리스트 토글 실패', e);
       state = state.copyWith(
         error: '위시리스트 처리 중 오류가 발생했습니다.',
       );
+    }
+  }
+
+  /// 아이템 좋아요 상태 업데이트 (낙관적 UI 업데이트용)
+  void _updateItemLikeStatus(int itemId) {
+    final activeItemIndex =
+        state.activeItems.indexWhere((item) => item.id == itemId);
+    if (activeItemIndex != -1) {
+      final updatedActiveItems =
+          List<WishlistItemEntity>.from(state.activeItems);
+      final oldItem = updatedActiveItems[activeItemIndex];
+      updatedActiveItems.removeAt(activeItemIndex);
+      state = state.copyWith(activeItems: updatedActiveItems);
+      return;
+    }
+
+    final endedItemIndex =
+        state.endedItems.indexWhere((item) => item.id == itemId);
+    if (endedItemIndex != -1) {
+      final updatedEndedItems = List<WishlistItemEntity>.from(state.endedItems);
+      final oldItem = updatedEndedItems[endedItemIndex];
+      updatedEndedItems.removeAt(endedItemIndex);
+      state = state.copyWith(endedItems: updatedEndedItems);
+      return;
     }
   }
 
@@ -108,6 +171,11 @@ class WishlistViewModel extends StateNotifier<WishlistState> {
     if (state.error != null) {
       state = state.copyWith(error: null);
     }
+  }
+
+  /// 상태 초기화
+  void resetState() {
+    state = const WishlistState();
   }
 }
 

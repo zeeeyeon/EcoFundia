@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:front/core/themes/app_colors.dart';
 import 'package:front/features/wishlist/domain/entities/wishlist_item_entity.dart';
+import 'package:front/utils/logger_util.dart';
+import 'package:intl/intl.dart';
 
 /// 위시리스트 아이템 카드 위젯
 /// 찜한 펀딩 프로젝트 정보를 카드 형태로 표시
@@ -20,8 +23,8 @@ class WishlistItemCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(5),
+        border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
         children: [
@@ -37,43 +40,78 @@ class WishlistItemCard extends StatelessWidget {
                     // 제품 이미지
                     ClipRRect(
                       borderRadius: BorderRadius.circular(10),
-                      child: Image.asset(
-                        item.imageUrl,
-                        width: 100,
-                        height: 85,
-                        fit: BoxFit.cover,
-                      ),
+                      child: item.imageUrl.startsWith('http')
+                          ? Image.network(
+                              item.imageUrl,
+                              width: 200,
+                              height: 150,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                LoggerUtil.e('❌ 이미지 로드 실패', error);
+                                return Container(
+                                  width: 200,
+                                  height: 150,
+                                  color: Colors.grey.shade200,
+                                  child: const Icon(Icons.image_not_supported,
+                                      color: AppColors.grey),
+                                );
+                              },
+                            )
+                          : Image.asset(
+                              item.imageUrl,
+                              width: 200,
+                              height: 150,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                LoggerUtil.e('❌ 이미지 로드 실패', error);
+                                return Container(
+                                  width: 200,
+                                  height: 150,
+                                  color: Colors.grey.shade200,
+                                  child: const Icon(Icons.image_not_supported,
+                                      color: AppColors.grey),
+                                );
+                              },
+                            ),
                     ),
                     // 좋아요 버튼
                     Positioned(
-                      right: 5,
-                      top: 5,
+                      right: 3,
+                      top: 3,
                       child: Container(
+                        width: 30,
+                        height: 30,
                         decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(15),
+                          color: AppColors.white,
+                          shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
+                              color: AppColors.shadowLight,
                               spreadRadius: 1,
-                              blurRadius: 3,
+                              blurRadius: 2,
+                              offset: const Offset(0, 1),
                             ),
                           ],
                         ),
-                        child: IconButton(
-                          icon: Icon(
-                            Icons.favorite,
-                            color: item.isLiked
-                                ? Colors.red
-                                : Colors.grey.shade300,
-                            size: 18,
-                          ),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(
-                            minWidth: 30,
-                            minHeight: 30,
-                          ),
-                          onPressed: () => onToggleLike(item.id),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            IconButton(
+                              icon: Icon(
+                                Icons.favorite,
+                                color: item.isLiked
+                                    ? AppColors.wishlistLiked
+                                    : AppColors.border,
+                                size: 18,
+                              ),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(
+                                minWidth: 30,
+                                minHeight: 30,
+                              ),
+                              onPressed: () => onToggleLike(item.id),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -90,7 +128,7 @@ class WishlistItemCard extends StatelessWidget {
                         item.companyName,
                         style: TextStyle(
                           fontSize: 13,
-                          color: Colors.grey.shade600,
+                          color: AppColors.textMuted,
                         ),
                       ),
                       const SizedBox(height: 5),
@@ -112,13 +150,15 @@ class WishlistItemCard extends StatelessWidget {
                           vertical: 3,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFA3D80D),
+                          color: item.isActive
+                              ? AppColors.primary
+                              : AppColors.grey,
                           borderRadius: BorderRadius.circular(5),
                         ),
                         child: Text(
-                          item.remainingDays,
+                          item.isActive ? item.remainingDays : '마감',
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.white,
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                           ),
@@ -132,47 +172,61 @@ class WishlistItemCard extends StatelessWidget {
           ),
           // 하단 펀딩 정보 영역
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            decoration: const BoxDecoration(
+              color: AppColors.white,
+              border: Border(
+                top: BorderSide(color: Color.fromARGB(255, 236, 234, 234)),
+              ),
+            ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // 펀딩 달성률 및 금액
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${item.fundingPercentage.toStringAsFixed(0)}% 달성',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${NumberFormat.decimalPattern().format(item.fundingPercentage.toInt())}% 달성',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: AppColors.wishlistLiked,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    Text(
-                      item.fundingAmount,
-                      style: const TextStyle(
-                        fontSize: 13,
+                      const SizedBox(height: 1),
+                      Text(
+                        '${item.fundingAmount}++',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppColors.textMuted,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 // 참여하기 버튼
                 Container(
+                  height: 36,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFA3D80D),
+                    color: item.isActive ? AppColors.primary : AppColors.grey,
                     borderRadius: BorderRadius.circular(5),
                   ),
                   child: InkWell(
-                    onTap: () => onParticipate(item.id),
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 15,
+                    onTap: item.isActive ? () => onParticipate(item.id) : null,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
                         vertical: 8,
                       ),
                       child: Text(
-                        '참여하기',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
+                        item.isActive ? '참여하기' : '마감',
+                        style: const TextStyle(
+                          color: AppColors.white,
+                          fontSize: 13,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

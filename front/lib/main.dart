@@ -6,6 +6,9 @@ import 'package:front/core/constants/app_strings.dart';
 import 'package:front/core/themes/app_colors.dart';
 import 'package:front/core/services/storage_service.dart';
 import 'package:front/utils/logger_util.dart';
+import 'package:front/core/services/api_service.dart';
+import 'package:front/features/wishlist/data/repositories/wishlist_repository_impl.dart';
+import 'package:front/features/wishlist/ui/view_model/wishlist_view_model.dart';
 
 void main() async {
   // Flutter 초기화 확인
@@ -20,9 +23,16 @@ void main() async {
   // 스토리지 서비스 초기화
   await StorageService.init();
 
+  final apiService = ApiService();
+
   runApp(
-    const ProviderScope(
-      child: MyApp(),
+    ProviderScope(
+      overrides: [
+        apiServiceProvider.overrideWithValue(apiService),
+        wishlistRepositoryProvider.overrideWith(
+            (ref) => WishlistRepositoryImpl(apiService: apiService)),
+      ],
+      child: const MyApp(),
     ),
   );
 }

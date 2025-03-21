@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:front/core/themes/app_colors.dart';
 
 /// 위시리스트 탭 바 위젯
 /// '진행 중'과 '종료된' 탭을 표시
@@ -13,22 +14,25 @@ class WishlistTabBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10),
+      margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // 진행 중 탭
-          _buildTabItem(
-            context: context,
-            index: 0,
-            title: '진행중',
+          Expanded(
+            child: _buildTabItem(
+              context: context,
+              index: 0,
+              title: '진행중',
+            ),
           ),
           const SizedBox(width: 5),
           // 종료된 탭
-          _buildTabItem(
-            context: context,
-            index: 1,
-            title: '종료된 펀딩',
+          Expanded(
+            child: _buildTabItem(
+              context: context,
+              index: 1,
+              title: '종료된 펀딩',
+            ),
           ),
         ],
       ),
@@ -48,20 +52,21 @@ class WishlistTabBar extends StatelessWidget {
       onTap: () => tabController.animateTo(index),
       child: Container(
         padding: const EdgeInsets.symmetric(
-          horizontal: 20,
+          horizontal: 50,
           vertical: 10,
         ),
+        alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFA3D80D) : Colors.transparent,
+          color: isSelected ? AppColors.primary : AppColors.transparent,
           border: Border.all(
-            color: Colors.grey.shade300,
+            color: AppColors.border,
           ),
           borderRadius: BorderRadius.circular(5),
         ),
         child: Text(
           title,
           style: TextStyle(
-            color: isSelected ? Colors.white : Colors.grey.shade600,
+            color: isSelected ? AppColors.white : AppColors.textMuted,
             fontSize: 15,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),

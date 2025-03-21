@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/core/themes/app_colors.dart';
 import 'package:front/features/wishlist/ui/view_model/wishlist_provider.dart';
 import 'package:front/features/wishlist/ui/view_model/wishlist_view_model.dart';
 import 'package:front/features/wishlist/ui/widgets/empty_wishlist.dart';
@@ -70,32 +71,43 @@ class _WishlistScreenState extends ConsumerState<WishlistScreen>
     final wishlistState = ref.watch(wishlistViewModelProvider);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios,
+              color: AppColors.black, size: 20),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
         title: const Text(
           'My WishList',
           style: TextStyle(
-            color: Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.w500,
+            color: AppColors.black,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        centerTitle: true,
+        centerTitle: true, // iOS 스타일로 중앙 정렬
         actions: [
-          // 필터 아이콘
+          // 장바구니 아이콘
           IconButton(
-            icon: const Icon(Icons.filter_list, color: Colors.black),
+            icon: const Icon(Icons.shopping_cart_outlined,
+                color: AppColors.black),
             onPressed: () {
-              // 필터 기능 구현
+              // 장바구니 기능 구현
+              LoggerUtil.i('장바구니 버튼 클릭');
             },
           ),
-          // 편집 아이콘
+          // 알림 아이콘
           IconButton(
-            icon: const Icon(Icons.edit, color: Colors.black),
+            icon: const Icon(Icons.notifications_none_outlined,
+                color: AppColors.black),
             onPressed: () {
-              // 편집 기능 구현
+              // 알림 기능 구현
+              LoggerUtil.i('알림 버튼 클릭');
             },
           ),
         ],
@@ -138,25 +150,33 @@ class _WishlistScreenState extends ConsumerState<WishlistScreen>
     required String emptyMessage,
   }) {
     if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+          child: CircularProgressIndicator(color: AppColors.primary));
     }
 
     if (items.isEmpty) {
       return EmptyWishlist(message: emptyMessage);
     }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: ListView.builder(
-        itemCount: items.length,
-        itemBuilder: (context, index) {
-          final item = items[index];
-          return WishlistItemCard(
-            item: item,
-            onToggleLike: _toggleLike,
-            onParticipate: _navigateToProjectDetail,
-          );
-        },
+    // RefreshIndicator로 감싸서 당겨서 새로고침 기능 추가
+    return RefreshIndicator(
+      color: AppColors.primary,
+      onRefresh: () =>
+          ref.read(wishlistViewModelProvider.notifier).refreshWishlistItems(),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: ListView.builder(
+          itemCount: items.length,
+          physics: const AlwaysScrollableScrollPhysics(), // 항상 스크롤 가능하도록 설정
+          itemBuilder: (context, index) {
+            final item = items[index];
+            return WishlistItemCard(
+              item: item,
+              onToggleLike: _toggleLike,
+              onParticipate: _navigateToProjectDetail,
+            );
+          },
+        ),
       ),
     );
   }

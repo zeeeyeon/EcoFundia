@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:front/core/themes/app_colors.dart';
 
 /// 빈 위시리스트 위젯
 /// 해당 카테고리에 위시리스트 아이템이 없을 때 표시
@@ -19,14 +20,14 @@ class EmptyWishlist extends StatelessWidget {
           Icon(
             Icons.favorite_border,
             size: 70,
-            color: Colors.grey.shade300,
+            color: AppColors.border,
           ),
           const SizedBox(height: 20),
           Text(
             message,
             style: TextStyle(
               fontSize: 16,
-              color: Colors.grey.shade600,
+              color: AppColors.textMuted,
             ),
           ),
         ],
