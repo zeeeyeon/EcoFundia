@@ -93,8 +93,9 @@ public class UserServiceImpl implements UserService {
 
         String role = userMapper.isSeller(user.getUserId()) > 0 ? "SELLER" : "USER";
         String newAccessToken = jwtUtil.generateAccessToken(user, role);
+        String newRefreshToken = jwtUtil.generateRefreshToken(user);
 
-        return new ReissueResponseDto(newAccessToken);
+        return new ReissueResponseDto(newAccessToken,newRefreshToken);
     }
 
     @Override
