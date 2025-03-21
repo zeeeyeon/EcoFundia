@@ -50,11 +50,8 @@ public class S3FileService {
         if (fileUrl == null || fileUrl.isBlank()) return;
 
         String key = extractKeyFromUrl(fileUrl);
-        if (amazonS3.doesObjectExist(bucket, key)) {
-            amazonS3.deleteObject(bucket, key);
-        } else {
-            throw new CustomException(FAIL_FILE_DELETE);
-        }
+
+        if (amazonS3.doesObjectExist(bucket, key)) amazonS3.deleteObject(bucket, key);
     }
     public void deleteFiles(List<String> fileUrls) {
         if (fileUrls == null || fileUrls.isEmpty()) return;
