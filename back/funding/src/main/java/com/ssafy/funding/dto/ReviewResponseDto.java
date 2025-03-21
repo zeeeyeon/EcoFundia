@@ -1,6 +1,5 @@
-package com.ssafy.funding.dto.response;
+package com.ssafy.funding.dto;
 
-import com.ssafy.funding.dto.ReviewDto;
 import lombok.Builder;
 import lombok.Data;
 

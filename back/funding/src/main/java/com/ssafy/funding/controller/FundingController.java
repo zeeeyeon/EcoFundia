@@ -1,11 +1,11 @@
 package com.ssafy.funding.controller;
 
 import com.ssafy.funding.common.response.Response;
-import com.ssafy.funding.dto.request.FundingCreateRequestDto;
-import com.ssafy.funding.dto.request.FundingUpdateRequestDto;
-import com.ssafy.funding.dto.response.FundingResponseDto;
-import com.ssafy.funding.dto.response.GetFundingResponseDto;
-import com.ssafy.funding.dto.response.ReviewResponseDto;
+import com.ssafy.funding.dto.funding.request.FundingCreateRequestDto;
+import com.ssafy.funding.dto.funding.request.FundingUpdateRequestDto;
+import com.ssafy.funding.dto.funding.response.FundingResponseDto;
+import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
+import com.ssafy.funding.dto.ReviewResponseDto;
 import com.ssafy.funding.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;

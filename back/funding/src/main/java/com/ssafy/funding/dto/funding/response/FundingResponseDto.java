@@ -1,4 +1,4 @@
-package com.ssafy.funding.dto.response;
+package com.ssafy.funding.dto.funding.response;
 
 import com.ssafy.funding.common.util.JsonConverter;
 import com.ssafy.funding.entity.Funding;

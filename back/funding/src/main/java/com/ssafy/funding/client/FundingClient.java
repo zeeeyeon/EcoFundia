@@ -1,7 +1,7 @@
 package com.ssafy.funding.client;
 
-import com.ssafy.funding.dto.response.GetFundingResponseDto;
-import com.ssafy.funding.dto.response.ReviewResponseDto;
+import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
+import com.ssafy.funding.dto.ReviewResponseDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

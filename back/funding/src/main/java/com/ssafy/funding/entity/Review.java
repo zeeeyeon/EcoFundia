@@ -3,7 +3,7 @@ package com.ssafy.funding.entity;
 import lombok.Getter;
 
 @Getter
-public class FundingReview {
+public class Review {
 
     private int fundingReviewId;
     private int fundingId;
