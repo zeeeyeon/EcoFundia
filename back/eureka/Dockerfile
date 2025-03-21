@@ -1,9 +1,5 @@
-FROM openjdk:17-jdk-slim AS build
-WORKDIR /app
-COPY build.gradle settings.gradle ./
-RUN ./gradlew build --no-daemon
 FROM openjdk:17-jdk-slim
-ARG JAR_FILE=build/libs/*.jar
-COPY ${JAR_FILE} app.jar
+ARG JAR_FILE=build/libs/eureka-0.0.1-SNAPSHOT.jar
+COPY ${JAR_FILE} /app.jar
 EXPOSE 8761
-ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/app.jar"]
+ENTRYPOINT ["java", "-jar", "/app.jar"]
