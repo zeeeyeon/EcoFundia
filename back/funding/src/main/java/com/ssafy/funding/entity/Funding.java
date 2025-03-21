@@ -1,8 +1,8 @@
 package com.ssafy.funding.entity;
 
 import com.ssafy.funding.common.util.JsonConverter;
-import com.ssafy.funding.dto.request.FundingUpdateRequestDto;
-import com.ssafy.funding.dto.response.GetFundingResponseDto;
+import com.ssafy.funding.dto.funding.request.FundingUpdateRequestDto;
+import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
 import com.ssafy.funding.entity.enums.Category;
 import com.ssafy.funding.entity.enums.Status;
 import lombok.AllArgsConstructor;

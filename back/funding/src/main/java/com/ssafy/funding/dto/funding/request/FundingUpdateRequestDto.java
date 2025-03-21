@@ -1,4 +1,4 @@
-package com.ssafy.funding.dto.request;
+package com.ssafy.funding.dto.funding.request;
 
 import com.ssafy.funding.entity.enums.Category;
 import com.ssafy.funding.entity.enums.Status;

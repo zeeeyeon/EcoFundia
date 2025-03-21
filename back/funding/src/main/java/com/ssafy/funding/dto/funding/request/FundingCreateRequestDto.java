@@ -1,12 +1,10 @@
-package com.ssafy.funding.dto.request;
+package com.ssafy.funding.dto.funding.request;
 
 import com.ssafy.funding.entity.Funding;
 import com.ssafy.funding.entity.enums.Category;
 import lombok.Builder;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Builder
 public record FundingCreateRequestDto(
