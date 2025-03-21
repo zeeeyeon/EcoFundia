@@ -31,3 +31,13 @@ class AppStrings {
   static const String loginRequiredDescription = '해당 기능을 이용하시려면\n로그인이 필요합니다.';
   static const String login = '로그인';
 }
+
+// 마이페이지
+class MypageString {
+  static const String greetingmessage = '님, 반가워요! 친환경 프로젝트를 함께 만들어가요! ';
+}
+
+// 검색
+class SearchStrings {
+  static const String noResults = "검색 결과가 없습니다.";
+}

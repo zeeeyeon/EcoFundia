@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/models/profile_model.dart';
-import 'greeting_message.dart'; // ✅ 새로 만든 위젯 import
 
 class ProfileCard extends StatelessWidget {
   final ProfileModel profile;

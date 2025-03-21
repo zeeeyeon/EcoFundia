@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/core/constants/app_strings.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/ui/widgets/custom_app_bar.dart';
 import '../../ui/view_model/funding_list_view_model.dart';
@@ -42,7 +43,7 @@ class _FundingListScreenState extends ConsumerState<FundingListScreen> {
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (err, stack) => Center(child: Text("오류 발생: $err")),
           data: (fundingList) => fundingList.isEmpty
-              ? const Center(child: Text("검색 결과가 없습니다."))
+              ? const Center(child: Text(SearchStrings.noResults))
               : ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: fundingList.length,
