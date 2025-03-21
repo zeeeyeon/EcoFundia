@@ -3,10 +3,12 @@ package com.ssafy.funding.service.impl;
 import com.ssafy.funding.common.exception.CustomException;
 import com.ssafy.funding.common.response.ResponseCode;
 import com.ssafy.funding.common.util.JsonConverter;
+import com.ssafy.funding.dto.ReviewDto;
 import com.ssafy.funding.dto.request.FundingCreateRequestDto;
 import com.ssafy.funding.dto.request.FundingUpdateRequestDto;
 import com.ssafy.funding.dto.response.FundingResponseDto;
 import com.ssafy.funding.dto.response.GetFundingResponseDto;
+import com.ssafy.funding.dto.response.ReviewResponseDto;
 import com.ssafy.funding.entity.Funding;
 import com.ssafy.funding.mapper.FundingMapper;
 import com.ssafy.funding.service.ProductService;
@@ -111,5 +113,24 @@ public class FundingService implements ProductService {
     public GetFundingResponseDto getFundingDetail(int fundingId) {
         Funding funding = fundingMapper.findById(fundingId);
         return funding.toDto();
+    }
+
+
+    // 브랜드 만족도 조회
+    public ReviewResponseDto getFundingReview(int sellerId, int page) {
+        List<ReviewDto> reviewList = fundingMapper.getReviewList(sellerId, (page - 1) * 5); // 지금 페이지 네이션 x
+
+        float totalRating = (float) reviewList.stream()
+                .mapToDouble(review -> (double) review.getRating())
+                .average()
+                .orElse(0.0);
+
+        //Builder를 사용하여 겍체 생성
+                ReviewResponseDto response = ReviewResponseDto.builder()
+                .totalRating(totalRating)
+                .reviews(reviewList)
+                .build();
+
+        return response;
     }
 }

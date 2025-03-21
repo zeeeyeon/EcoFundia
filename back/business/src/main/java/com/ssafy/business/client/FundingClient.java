@@ -44,4 +44,7 @@ public interface FundingClient {
     @GetMapping("api/funding/review")
     ReviewResponseDTO getFundingReview(@RequestParam(name="sellerId") int sellerId, @RequestParam(name="page") int page);
 
+    // seller가 진행한 펀딩 리스트 조회
+//    @GetMapping("api/funding/seller")
+
 }

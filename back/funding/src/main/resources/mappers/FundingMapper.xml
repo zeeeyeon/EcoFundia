@@ -23,6 +23,16 @@
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
+    <resultMap id="ReviewResultMap" type="com.ssafy.funding.dto.ReviewDto">
+        <id column="review_id" property="reviewId"/>
+        <result column="rating" property="rating"/>
+        <result column="content" property="content"/>
+        <result column="user_id" property="userId"/>
+        <result column="nickname" property="nickname"/>
+        <result column="funding_id" property="fundingId"/>
+        <result column="title" property="title"/>
+    </resultMap>
+
     <select id="findById" parameterType="int" resultMap="FundingResultMap">
         SELECT * FROM funding WHERE funding_id = #{fundingId}
     </select>
@@ -101,5 +111,22 @@
         ORDER BY start_date DESC
             LIMIT 5 OFFSET #{page}
     </select>
+
+    <!-- 펀딩 review 검색 조회 -->
+    <select id="getReviewList" resultMap="ReviewResultMap">
+        SELECT
+            r.review_id,
+            r.rating,
+            r.content,
+            r.user_id,
+            r.nickname,
+            r.funding_id,
+            f.title
+        FROM review r
+                 LEFT JOIN funding f ON r.funding_id = f.funding_id
+        WHERE f.seller_id = #{sellerId}
+    </select>
+
+
 
 </mapper>

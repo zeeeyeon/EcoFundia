@@ -6,10 +6,12 @@ import com.ssafy.business.common.response.ResponseCode;
 import com.ssafy.business.dto.responseDTO.FundingDetailResponseDTO;
 import com.ssafy.business.dto.responseDTO.FundingResponseDTO;
 import com.ssafy.business.dto.responseDTO.ReviewResponseDTO;
+import com.ssafy.business.dto.responseDTO.SellerDetailResponseDTO;
 import com.ssafy.business.service.FundingDetailService;
 import com.ssafy.business.service.impl.FundingDetailServiceImpl;
 import com.ssafy.business.service.impl.FundingSearchServiceImpl;
 import com.ssafy.business.service.impl.FundingServiceImpl;
+import com.ssafy.business.service.impl.SellerServiceImpl;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +27,7 @@ public class FundingController {
     private final FundingServiceImpl GetFundingService;
     private final FundingSearchServiceImpl FundingSearchService;
     private final FundingDetailServiceImpl FundingDetailService;
+    private final SellerServiceImpl SellerService;
 
     // Top 펀딩 리스트 조회
     @GetMapping("/top-funding")
@@ -74,6 +77,12 @@ public class FundingController {
         return new ResponseEntity<>(Response.create(ResponseCode.GET_FUNDING_REVIEW, fundingDetail), ResponseCode.GET_FUNDING.getHttpStatus());
     }
 
+    // 판매자 상세 정보 조회 (판매자 상세페이지 데이터 조회)
+    @GetMapping("seller/detail/{sellerId}")
+    public ResponseEntity<?> getSellerDetail(@PathVariable int sellerId) {
+        SellerDetailResponseDTO sellerDetail = SellerService.getSellerDetail(sellerId);
+        return new ResponseEntity<>(Response.create(ResponseCode.GET_SELLER_DETAIL, sellerDetail), ResponseCode.GET_SELLER_DETAIL.getHttpStatus());
+    }
 
 }
 
