@@ -5,6 +5,7 @@ import com.ssafy.funding.dto.request.FundingCreateRequestDto;
 import com.ssafy.funding.dto.request.FundingUpdateRequestDto;
 import com.ssafy.funding.dto.response.FundingResponseDto;
 import com.ssafy.funding.dto.response.GetFundingResponseDto;
+import com.ssafy.funding.dto.response.ReviewResponseDto;
 import com.ssafy.funding.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -90,9 +91,18 @@ public class FundingController {
         return fundingList;
     }
 
+    // 펀딩 프로젝트 상세 정보 요청
     @GetMapping("/detail/{fundingId}")
     GetFundingResponseDto getFundingDetail(@PathVariable int fundingId) {
         GetFundingResponseDto fundingResponseDto = productService.getFundingDetail(fundingId);
+        return fundingResponseDto;
+    }
+
+    // funding 서비스에 펀딩 리뷰 조회
+    @GetMapping("/review")
+    ReviewResponseDto getFundingReview(@RequestParam(name="sellerId") int sellerId, @RequestParam(name="page") int page){
+        ReviewResponseDto reviewResponseDto = productService.getFundingReview(sellerId, page);
+        return reviewResponseDto;
     }
 
 }

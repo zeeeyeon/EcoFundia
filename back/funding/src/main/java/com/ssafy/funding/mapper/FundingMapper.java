@@ -1,5 +1,6 @@
 package com.ssafy.funding.mapper;
 
+import com.ssafy.funding.dto.ReviewDto;
 import com.ssafy.funding.entity.Funding;
 import org.apache.ibatis.annotations.*;
 
@@ -26,5 +27,10 @@ public interface FundingMapper {
     // 카테고리별 펀딩 리스트 조회
     List<Funding> getCategoryFundingList(@Param("category") String category, @Param("page") int page);
 
+    // 펀딩 키워드 검색 조회
     List<Funding> getSearchFunding(@Param("keyword") String keyword, @Param("page") int page);
+
+    // 브랜드 만족도 조회
+    List<ReviewDto> getReviewList(@Param("sellerId") int sellerId, @Param("page") int page);
+
 }

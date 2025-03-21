@@ -1,9 +1,9 @@
-package com.ssafy.business.dto;
+package com.ssafy.funding.dto;
 
 import lombok.Data;
 
 @Data
-public class ReviewDTO {
+public class ReviewDto {
 
     private int reviewId;
     private int rating;
@@ -14,5 +14,4 @@ public class ReviewDTO {
 
     private int fundingId;
     private String title;
-
 }
