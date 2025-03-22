@@ -63,9 +63,9 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional
-    public void updateReview(int reviewId, ReviewUpdateRequestDto dto) {
+    public void updateReview(int userId, int reviewId, ReviewUpdateRequestDto dto) {
         Review review = findByReviewId(reviewId);
-        if (review == null) throw new CustomException(REVIEW_NOT_FOUND);
+        validateReviewAccess(review, userId);
 
         review.update(dto.content(), dto.rating());
         reviewMapper.updateReview(review);
@@ -73,7 +73,10 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional
-    public void deleteReview(int reviewId) {
+    public void deleteReview(int userId, int reviewId) {
+        Review review = findByReviewId(reviewId);
+        validateReviewAccess(review, userId);
+
         reviewMapper.deleteReview(reviewId);
     }
 
@@ -96,5 +99,10 @@ public class ReviewServiceImpl implements ReviewService {
                 .toList();
 
         return new ReviewsResponseDto(average, responseList);
+    }
+
+    private void validateReviewAccess(Review review, int userId) {
+        if (review == null) throw new CustomException(REVIEW_NOT_FOUND);
+        if (review.getUserId() != userId) throw new CustomException(FORBIDDEN_REVIEW_ACCESS);
     }
 }
