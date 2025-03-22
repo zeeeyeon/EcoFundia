@@ -3,13 +3,12 @@ package com.ssafy.funding.service.impl;
 import com.ssafy.funding.common.exception.CustomException;
 import com.ssafy.funding.common.response.ResponseCode;
 import com.ssafy.funding.common.util.JsonConverter;
-import com.ssafy.funding.dto.ReviewDto;
 import com.ssafy.funding.dto.funding.request.FundingCreateRequestDto;
 import com.ssafy.funding.dto.funding.request.FundingUpdateRequestDto;
 import com.ssafy.funding.dto.funding.response.FundingResponseDto;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
-import com.ssafy.funding.dto.ReviewResponseDto;
 import com.ssafy.funding.entity.Funding;
+import com.ssafy.funding.entity.enums.Status;
 import com.ssafy.funding.mapper.FundingMapper;
 import com.ssafy.funding.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -78,6 +77,12 @@ public class FundingService implements ProductService {
         Funding funding = fundingMapper.findById(fundingId);
         if (funding == null) throw new CustomException(ResponseCode.FUNDING_NOT_FOUND);
         return funding;
+    }
+
+    @Override
+    public Status getFundingStatus(int fundingId) {
+        Funding funding = findByFundingId(fundingId);
+        return funding.getStatus();
     }
 
     // 현재까지 펀딩 금액 조회
