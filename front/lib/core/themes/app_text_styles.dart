@@ -2,13 +2,47 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
+/// 공통 텍스트 스타일
+/// 앱 전체에서 공통으로 사용되는 기본 텍스트 스타일
 class AppTextStyles {
-  static TextStyle get logo => GoogleFonts.righteous(
-        fontSize: 78,
-        color: AppColors.primary,
-        height: 1.24,
+  // 기본 타이포그래피 (크기 기반)
+  static TextStyle get heading1 => GoogleFonts.righteous(
+        fontSize: 40,
+        fontWeight: FontWeight.w400,
+        color: AppColors.darkGrey,
       );
 
+  static TextStyle get heading2 => GoogleFonts.righteous(
+        fontSize: 32,
+        fontWeight: FontWeight.w400,
+        color: AppColors.darkGrey,
+      );
+
+  static TextStyle get heading3 => GoogleFonts.righteous(
+        fontSize: 25,
+        fontWeight: FontWeight.w400,
+        color: AppColors.darkGrey,
+      );
+
+  static TextStyle get body1 => GoogleFonts.roboto(
+        fontSize: 16,
+        fontWeight: FontWeight.w400,
+        color: AppColors.darkGrey,
+      );
+
+  static TextStyle get body2 => GoogleFonts.roboto(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        color: AppColors.darkGrey,
+      );
+
+  static TextStyle get caption => GoogleFonts.roboto(
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        color: AppColors.grey,
+      );
+
+  // 버튼 텍스트 스타일
   static TextStyle get buttonText => GoogleFonts.roboto(
         fontSize: 22,
         fontWeight: FontWeight.w500,
@@ -16,15 +50,54 @@ class AppTextStyles {
         color: AppColors.grey,
       );
 
-  static TextStyle get appleButtonText => const TextStyle(
-        fontFamily: 'SF Pro Display',
-        fontSize: 22,
+  static TextStyle get smallButtonText => GoogleFonts.roboto(
+        fontSize: 14,
         fontWeight: FontWeight.w500,
-        height: 1.19,
         color: AppColors.white,
       );
 
-  // ✅ **메인 페이지 스타일**
+  // 폼 관련 스타일
+  static TextStyle get formLabel => GoogleFonts.roboto(
+        fontSize: 16,
+        fontWeight: FontWeight.w500,
+        color: AppColors.grey,
+      );
+
+  static TextStyle get formInput => GoogleFonts.roboto(
+        fontSize: 16,
+        fontWeight: FontWeight.w400,
+        color: AppColors.darkGrey,
+      );
+
+  static TextStyle get errorText => GoogleFonts.roboto(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        color: Colors.red,
+      );
+
+  // 앱바 텍스트 스타일
+  static TextStyle get appBarTitle => GoogleFonts.righteous(
+        fontSize: 25,
+        fontWeight: FontWeight.w300,
+        color: AppColors.black,
+      );
+
+  // 로고 스타일
+  static TextStyle get logo => GoogleFonts.righteous(
+        fontSize: 78,
+        color: AppColors.primary,
+        height: 1.24,
+      );
+
+  static TextStyle get logoSmall => GoogleFonts.righteous(
+        fontSize: 40,
+        fontWeight: FontWeight.w400,
+        color: AppColors.primary,
+      );
+}
+
+/// 홈/메인 화면 텍스트 스타일
+class HomeTextStyles {
   static TextStyle get mainTitle => GoogleFonts.righteous(
         fontSize: 40,
         fontWeight: FontWeight.w400,
@@ -84,51 +157,108 @@ class AppTextStyles {
         fontWeight: FontWeight.w400,
         color: AppColors.darkGrey,
       );
+}
 
-  // ✅ **🆕 스플래시 화면 스타일**
-  static TextStyle get splashText => GoogleFonts.righteous(
+/// 스플래시 화면 텍스트 스타일
+class SplashTextStyles {
+  static TextStyle get text => GoogleFonts.righteous(
         fontWeight: FontWeight.w600,
         color: AppColors.primary,
       );
 
-  // ✅ **🆕 스플래시 화면 스타일(로고)**
-  static TextStyle get splashLogo => GoogleFonts.righteous(
+  static TextStyle get logo => GoogleFonts.righteous(
         fontWeight: FontWeight.w500,
         color: AppColors.primary,
       );
+}
 
-  // ✅ **🆕 네비게이션 바 스타일**
-  static TextStyle get navBarText => GoogleFonts.roboto(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-        color: AppColors.darkGrey,
-      );
-
-  // ✅ **🆕 상세 페이지 제목 스타일**
-  static TextStyle get detailTitle => GoogleFonts.righteous(
+/// 인증 관련 텍스트 스타일
+class AuthTextStyles {
+  static TextStyle get title => GoogleFonts.righteous(
         fontSize: 30,
         fontWeight: FontWeight.bold,
         color: AppColors.primary,
       );
 
-  // ✅ **🆕 에러 메시지 스타일**
-  static TextStyle get errorText => GoogleFonts.roboto(
-        fontSize: 14,
-        fontWeight: FontWeight.w400,
-        color: Colors.red,
-      );
-
-  // ✅ **🆕 폼 필드 라벨 스타일**
-  static TextStyle get formLabel => GoogleFonts.roboto(
-        fontSize: 16,
+  static TextStyle get appleButtonText => const TextStyle(
+        fontFamily: 'SF Pro Display',
+        fontSize: 22,
         fontWeight: FontWeight.w500,
-        color: AppColors.grey,
+        height: 1.19,
+        color: AppColors.white,
+      );
+}
+
+/// 네비게이션 바 텍스트 스타일
+class NavTextStyles {
+  static TextStyle get navBarText => GoogleFonts.roboto(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        color: AppColors.darkGrey,
+      );
+}
+
+/// 상세 페이지 텍스트 스타일
+class DetailTextStyles {
+  static TextStyle get title => GoogleFonts.righteous(
+        fontSize: 30,
+        fontWeight: FontWeight.bold,
+        color: AppColors.primary,
+      );
+}
+
+/// 위시리스트 화면 텍스트 스타일
+class WishlistTextStyles {
+  // 위시리스트 탭 스타일
+  static TextStyle get tabSelected => const TextStyle(
+        color: AppColors.white,
+        fontSize: 15,
+        fontWeight: FontWeight.bold,
       );
 
-  // ✅ **🆕 작은 텍스트 스타일**
-  static TextStyle get smallText => GoogleFonts.roboto(
-        fontSize: 12,
-        fontWeight: FontWeight.w400,
-        color: AppColors.grey,
+  static TextStyle get tabUnselected => TextStyle(
+        color: AppColors.textMuted,
+        fontSize: 15,
+        fontWeight: FontWeight.normal,
+      );
+
+  // 위시리스트 카드 스타일
+  static TextStyle get companyName => TextStyle(
+        fontSize: 13,
+        color: AppColors.textMuted,
+      );
+
+  static TextStyle get itemTitle => const TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.bold,
+      );
+
+  static TextStyle get badge => const TextStyle(
+        color: AppColors.white,
+        fontSize: 10,
+        fontWeight: FontWeight.bold,
+      );
+
+  static TextStyle get fundingPercentage => const TextStyle(
+        fontSize: 16,
+        color: AppColors.wishlistLiked,
+        fontWeight: FontWeight.bold,
+      );
+
+  static TextStyle get fundingAmount => TextStyle(
+        fontSize: 13,
+        color: AppColors.textMuted,
+      );
+
+  static TextStyle get participateButton => const TextStyle(
+        color: AppColors.white,
+        fontSize: 13,
+        fontWeight: FontWeight.bold,
+      );
+
+  // 빈 위시리스트 메시지
+  static TextStyle get emptyMessage => TextStyle(
+        fontSize: 16,
+        color: AppColors.textMuted,
       );
 }

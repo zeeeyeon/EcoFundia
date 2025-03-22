@@ -101,7 +101,7 @@ class LoginScreen extends ConsumerWidget {
                         text: AppStrings.signUpWithApple,
                         iconPath: 'assets/images/apple.png',
                         backgroundColor: AppColors.primary,
-                        textStyle: AppTextStyles.appleButtonText,
+                        textColor: AppColors.white,
                         onPressed: () {
                           // TODO: Implement Apple sign in
                         },

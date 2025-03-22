@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:front/core/themes/app_colors.dart';
+import 'package:front/core/themes/app_text_styles.dart';
 
 /// 위시리스트 탭 바 위젯
 /// '진행 중'과 '종료된' 탭을 표시
@@ -22,7 +23,7 @@ class WishlistTabBar extends StatelessWidget {
             child: _buildTabItem(
               context: context,
               index: 0,
-              title: '진행중',
+              title: '진행중+',
             ),
           ),
           const SizedBox(width: 5),
@@ -65,11 +66,9 @@ class WishlistTabBar extends StatelessWidget {
         ),
         child: Text(
           title,
-          style: TextStyle(
-            color: isSelected ? AppColors.white : AppColors.textMuted,
-            fontSize: 15,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          ),
+          style: isSelected
+              ? WishlistTextStyles.tabSelected
+              : WishlistTextStyles.tabUnselected,
         ),
       ),
     );

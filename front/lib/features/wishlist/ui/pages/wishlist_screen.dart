@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/core/constants/app_strings.dart';
 import 'package:front/core/themes/app_colors.dart';
-import 'package:front/features/wishlist/ui/view_model/wishlist_provider.dart';
+import 'package:front/core/themes/app_text_styles.dart';
 import 'package:front/features/wishlist/ui/view_model/wishlist_view_model.dart';
 import 'package:front/features/wishlist/ui/widgets/empty_wishlist.dart';
 import 'package:front/features/wishlist/ui/widgets/wishlist_item_card.dart';
 import 'package:front/features/wishlist/ui/widgets/wishlist_tab_bar.dart';
 import 'package:front/utils/logger_util.dart';
+import 'package:go_router/go_router.dart';
 
 /// 위시리스트 화면
 /// 찜한 펀딩 프로젝트를 보여주는 화면
@@ -75,30 +77,18 @@ class _WishlistScreenState extends ConsumerState<WishlistScreen>
       appBar: AppBar(
         backgroundColor: AppColors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios,
-              color: AppColors.black, size: 20),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
+        automaticallyImplyLeading: false, // 뒤로가기 버튼 제거
+        title: Text(
+          AppBarStrings.myWishList,
+          style: AppTextStyles.appBarTitle,
         ),
-        title: const Text(
-          'My WishList',
-          style: TextStyle(
-            color: AppColors.black,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        centerTitle: true, // iOS 스타일로 중앙 정렬
         actions: [
           // 장바구니 아이콘
           IconButton(
             icon: const Icon(Icons.shopping_cart_outlined,
                 color: AppColors.black),
             onPressed: () {
-              // 장바구니 기능 구현
-              LoggerUtil.i('장바구니 버튼 클릭');
+              context.go('/cart');
             },
           ),
           // 알림 아이콘
@@ -106,8 +96,7 @@ class _WishlistScreenState extends ConsumerState<WishlistScreen>
             icon: const Icon(Icons.notifications_none_outlined,
                 color: AppColors.black),
             onPressed: () {
-              // 알림 기능 구현
-              LoggerUtil.i('알림 버튼 클릭');
+              context.go('/notification');
             },
           ),
         ],

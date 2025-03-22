@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:front/core/themes/app_colors.dart';
+import 'package:front/core/themes/app_text_styles.dart';
 import 'package:front/features/wishlist/domain/entities/wishlist_item_entity.dart';
 import 'package:front/utils/logger_util.dart';
 import 'package:intl/intl.dart';
@@ -126,19 +127,13 @@ class WishlistItemCard extends StatelessWidget {
                       // 회사명
                       Text(
                         item.companyName,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: AppColors.textMuted,
-                        ),
+                        style: WishlistTextStyles.companyName,
                       ),
                       const SizedBox(height: 5),
                       // 제품명
                       Text(
                         item.title,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: WishlistTextStyles.itemTitle,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -157,11 +152,7 @@ class WishlistItemCard extends StatelessWidget {
                         ),
                         child: Text(
                           item.isActive ? item.remainingDays : '마감',
-                          style: const TextStyle(
-                            color: AppColors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: WishlistTextStyles.badge,
                         ),
                       ),
                     ],
@@ -191,19 +182,12 @@ class WishlistItemCard extends StatelessWidget {
                     children: [
                       Text(
                         '${NumberFormat.decimalPattern().format(item.fundingPercentage.toInt())}% 달성',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: AppColors.wishlistLiked,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: WishlistTextStyles.fundingPercentage,
                       ),
                       const SizedBox(height: 1),
                       Text(
                         '${item.fundingAmount}++',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: AppColors.textMuted,
-                        ),
+                        style: WishlistTextStyles.fundingAmount,
                       ),
                     ],
                   ),
@@ -224,11 +208,7 @@ class WishlistItemCard extends StatelessWidget {
                       ),
                       child: Text(
                         item.isActive ? '참여하기' : '마감',
-                        style: const TextStyle(
-                          color: AppColors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: WishlistTextStyles.participateButton,
                       ),
                     ),
                   ),

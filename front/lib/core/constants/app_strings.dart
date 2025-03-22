@@ -31,3 +31,9 @@ class AppStrings {
   static const String loginRequiredDescription = '해당 기능을 이용하시려면\n로그인이 필요합니다.';
   static const String login = '로그인';
 }
+
+class AppBarStrings {
+  static const String myWishList = 'My WishList';
+  static const String cart = '장바구니';
+  static const String notification = '알림';
+}

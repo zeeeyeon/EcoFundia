@@ -25,7 +25,7 @@ class LoginRequiredModal extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               '로그인이 필요합니다',
-              style: AppTextStyles.projectTitle.copyWith(
+              style: HomeTextStyles.projectTitle.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -33,7 +33,7 @@ class LoginRequiredModal extends StatelessWidget {
             Text(
               '이 기능을 이용하려면 로그인이 필요합니다.\n로그인 페이지로 이동하시겠습니까?',
               textAlign: TextAlign.center,
-              style: AppTextStyles.projectLabel,
+              style: HomeTextStyles.projectLabel,
             ),
             const SizedBox(height: 24),
             Row(

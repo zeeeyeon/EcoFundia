@@ -70,7 +70,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   children: [
                     Text(
                       AppStrings.appName,
-                      style: AppTextStyles.mainTitle.copyWith(
+                      style: HomeTextStyles.projectTitle.copyWith(
                         color: AppColors.primary,
                         fontSize:
                             isSmallScreen ? 24.0 : null, // 작은 화면에서는 폰트 크기 줄임
@@ -79,7 +79,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     SizedBox(height: titleSpacing),
                     Text(
                       _currentTime,
-                      style: AppTextStyles.timeStyle.copyWith(
+                      style: HomeTextStyles.timeStyle.copyWith(
                         fontSize:
                             isSmallScreen ? 14.0 : null, // 작은 화면에서는 폰트 크기 줄임
                       ),
@@ -87,7 +87,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     SizedBox(height: sectionSpacing),
                     Text(
                       AppStrings.totalFund,
-                      style: AppTextStyles.totalFundLabel.copyWith(
+                      style: HomeTextStyles.totalFundLabel.copyWith(
                         fontSize:
                             isSmallScreen ? 16.0 : null, // 작은 화면에서는 폰트 크기 줄임
                       ),

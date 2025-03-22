@@ -110,7 +110,7 @@ class ProjectCard extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: AppTextStyles.projectTitle.copyWith(
+                        style: HomeTextStyles.projectTitle.copyWith(
                           fontSize: titleFontSize,
                         ),
                         maxLines: 1,
@@ -120,7 +120,7 @@ class ProjectCard extends StatelessWidget {
                           height: isSmallScreen ? 4 : screenSize.height * 0.01),
                       Text(
                         AppStrings.introduction,
-                        style: AppTextStyles.projectLabel.copyWith(
+                        style: HomeTextStyles.projectLabel.copyWith(
                           fontSize: descFontSize,
                         ),
                       ),
@@ -128,7 +128,7 @@ class ProjectCard extends StatelessWidget {
                       Flexible(
                         child: Text(
                           description,
-                          style: AppTextStyles.projectDescription.copyWith(
+                          style: HomeTextStyles.projectDescription.copyWith(
                             fontSize: descFontSize,
                           ),
                           maxLines: isSmallScreen ? 1 : 2,
@@ -151,7 +151,7 @@ class ProjectCard extends StatelessWidget {
                                   children: [
                                     Text(
                                       '$percentage %',
-                                      style: AppTextStyles.projectPercentage
+                                      style: HomeTextStyles.projectPercentage
                                           .copyWith(
                                         fontSize: isSmallScreen
                                             ? 12
@@ -165,8 +165,8 @@ class ProjectCard extends StatelessWidget {
                                     Flexible(
                                       child: Text(
                                         price,
-                                        style:
-                                            AppTextStyles.projectPrice.copyWith(
+                                        style: HomeTextStyles.projectPrice
+                                            .copyWith(
                                           fontSize: priceFontSize,
                                         ),
                                         overflow: TextOverflow.ellipsis,

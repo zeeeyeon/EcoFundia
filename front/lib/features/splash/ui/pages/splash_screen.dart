@@ -80,7 +80,7 @@ class _SplashPageState extends State<SplashPage> {
                 opacity: _firstTextOpacity,
                 child: Text(
                   '당신의 상상을 펀딩하다.',
-                  style: AppTextStyles.splashText.copyWith(
+                  style: SplashTextStyles.text.copyWith(
                     fontSize: screenSize.width * 0.08,
                     color: AppColors.primary,
                   ),
@@ -93,7 +93,7 @@ class _SplashPageState extends State<SplashPage> {
                 opacity: _secondTextOpacity,
                 child: Text(
                   'SIMPLE',
-                  style: AppTextStyles.splashLogo.copyWith(
+                  style: SplashTextStyles.text.copyWith(
                     fontSize: screenSize.width * 0.12,
                     color: AppColors.primary,
                   ),

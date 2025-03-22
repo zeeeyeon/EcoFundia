@@ -113,7 +113,7 @@ class _ProjectCarouselState extends ConsumerState<ProjectCarousel>
                 children: [
                   Text(
                     AppStrings.topProject,
-                    style: AppTextStyles.topProjectTitle.copyWith(
+                    style: HomeTextStyles.projectTitle.copyWith(
                       fontSize: titleFontSize,
                       fontWeight: FontWeight.bold,
                     ),
