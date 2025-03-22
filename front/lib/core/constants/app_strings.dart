@@ -32,7 +32,6 @@ class AppStrings {
   static const String login = '로그인';
 }
 
-<<<<<<< HEAD
 // 마이페이지
 class MypageString {
   static const String greetingmessage = '님, 반가워요! 친환경 프로젝트를 함께 만들어가요! ';
@@ -41,10 +40,10 @@ class MypageString {
 // 검색
 class SearchStrings {
   static const String noResults = "검색 결과가 없습니다.";
-=======
+}
+
 class AppBarStrings {
   static const String myWishList = 'My WishList';
   static const String cart = '장바구니';
   static const String notification = '알림';
->>>>>>> origin/feature/FE/wishlist
 }

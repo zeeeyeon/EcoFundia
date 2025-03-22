@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/features/mypage/ui/widgets/funding_status_card.dart';
+import 'package:front/features/mypage/ui/widgets/mypage_support_section.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/ui/widgets/custom_app_bar.dart';
 import '../view_model/profile_view_model.dart';
@@ -34,12 +36,21 @@ class MypageScreen extends ConsumerWidget {
       body: profileState.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text("오류 발생: $err")),
-        data: (profile) => Column(
-          children: [
-            GreetingMessage(profile: profile), // ✅ 별도 위젯으로 분리된 인사말 사용
-            const SizedBox(height: 8),
-            ProfileCard(profile: profile), // ✅ 프로필 카드 추가
-          ],
+        data: (profile) => SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              GreetingMessage(profile: profile),
+              const SizedBox(height: 8),
+              ProfileCard(profile: profile),
+              const FundingStatusCard(
+                totalFundingAmount: 53500,
+                couponCount: 5,
+              ),
+              const CustomerSupportSection(),
+              const SizedBox(height: 16),
+            ],
+          ),
         ),
       ),
     );

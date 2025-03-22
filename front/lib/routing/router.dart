@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/features/mypage/ui/pages/coupon_screen.dart';
 import 'package:front/features/mypage/ui/pages/profile_edit_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:front/features/auth/ui/pages/login_screen.dart';
@@ -105,6 +106,10 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/profile-edit',
                 builder: (context, state) => const ProfileEditScreen(),
+              ),
+              GoRoute(
+                path: '/coupons',
+                builder: (context, state) => const CouponScreen(),
               ),
             ],
           ),
