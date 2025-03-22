@@ -7,6 +7,7 @@ import com.ssafy.user.dto.response.GetMyInfoResponseDto;
 import com.ssafy.user.dto.response.LoginResponseDto;
 import com.ssafy.user.dto.response.ReissueResponseDto;
 import com.ssafy.user.dto.response.SignupResponseDto;
+import com.ssafy.user.entity.RefreshToken;
 import com.ssafy.user.entity.User;
 import com.ssafy.user.common.exception.CustomException;
 import com.ssafy.user.mapper.UserMapper;
@@ -16,10 +17,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 import static com.ssafy.user.common.response.ResponseCode.*;
@@ -29,6 +32,7 @@ import static com.ssafy.user.common.response.ResponseCode.*;
 public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final JwtUtil jwtUtil;
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private static final String GOOGLE_USER_INFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo";
 
     @Override
@@ -44,6 +48,12 @@ public class UserServiceImpl implements UserService {
         String role = userMapper.isSeller(user.getUserId()) > 0 ? "SELLER" : "USER";
         String accessToken = jwtUtil.generateAccessToken(user, role);
         String refreshToken = jwtUtil.generateRefreshToken(user);
+
+        String hashedRefreshToken = passwordEncoder.encode(refreshToken);
+        LocalDateTime issuedAt = LocalDateTime.now();
+        LocalDateTime expiresAt = issuedAt.plusDays(7);
+
+        userMapper.insertRefreshToken(user.getUserId(), hashedRefreshToken, issuedAt, expiresAt);
 
         return new LoginResponseDto(accessToken, refreshToken, user, role);
     }
@@ -69,6 +79,12 @@ public class UserServiceImpl implements UserService {
         String accessToken = jwtUtil.generateAccessToken(user, role);
         String refreshToken = jwtUtil.generateRefreshToken(user);
 
+        String hashedRefreshToken = passwordEncoder.encode(refreshToken);
+        LocalDateTime issuedAt = LocalDateTime.now();
+        LocalDateTime expiresAt = issuedAt.plusDays(7);
+
+        userMapper.insertRefreshToken(user.getUserId(), hashedRefreshToken, issuedAt, expiresAt);
+
         return new SignupResponseDto(accessToken, refreshToken, user, role);
     }
 
@@ -91,9 +107,30 @@ public class UserServiceImpl implements UserService {
             throw new CustomException(USER_NOT_FOUND);
         }
 
+        List<RefreshToken> storedTokens = userMapper.findRefreshTokensByUserId(user.getUserId());
+        RefreshToken validToken = null;
+        for (RefreshToken token : storedTokens) {
+            if (!token.isExpired() && passwordEncoder.matches(refreshToken, token.getRefreshToken())) {
+                validToken = token;
+                break;
+            }
+        }
+
+        if (validToken == null) {
+            throw new CustomException(INVALID_REFRESH_TOKEN);
+        }
+
+        userMapper.deleteRefreshTokenById(validToken.getId());
+
         String role = userMapper.isSeller(user.getUserId()) > 0 ? "SELLER" : "USER";
         String newAccessToken = jwtUtil.generateAccessToken(user, role);
         String newRefreshToken = jwtUtil.generateRefreshToken(user);
+        String newHashedRefreshToken = passwordEncoder.encode(newRefreshToken);
+        LocalDateTime newIssuedAt = LocalDateTime.now();
+        LocalDateTime newExpiresAt = newIssuedAt.plusDays(7);
+
+        // 기존 토큰 삭제 및 새 토큰 DB 업데이트 (토큰 회전)
+        userMapper.insertRefreshToken(user.getUserId(), newHashedRefreshToken, newIssuedAt, newExpiresAt);
 
         return new ReissueResponseDto(newAccessToken,newRefreshToken);
     }
