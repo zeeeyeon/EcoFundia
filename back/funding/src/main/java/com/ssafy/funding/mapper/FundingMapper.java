@@ -1,6 +1,5 @@
 package com.ssafy.funding.mapper;
 
-import com.ssafy.funding.dto.ReviewDto;
 import com.ssafy.funding.entity.Funding;
 import org.apache.ibatis.annotations.*;
 

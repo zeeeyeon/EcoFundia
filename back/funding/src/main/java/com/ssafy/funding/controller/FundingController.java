@@ -5,7 +5,6 @@ import com.ssafy.funding.dto.funding.request.FundingCreateRequestDto;
 import com.ssafy.funding.dto.funding.request.FundingUpdateRequestDto;
 import com.ssafy.funding.dto.funding.response.FundingResponseDto;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
-import com.ssafy.funding.dto.ReviewResponseDto;
 import com.ssafy.funding.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
