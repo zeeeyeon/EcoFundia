@@ -7,9 +7,6 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SignupRequestDto {
-    private String token;
+public class UpdateMyInfoRequestDto {
     private String nickname;
-    private String gender;
-    private int age;
 }

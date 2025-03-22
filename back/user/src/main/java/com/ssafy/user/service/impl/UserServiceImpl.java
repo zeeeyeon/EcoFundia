@@ -1,12 +1,11 @@
 package com.ssafy.user.service.impl;
 
+import com.ssafy.user.client.FundingClient;
 import com.ssafy.user.dto.request.LoginRequestDto;
 import com.ssafy.user.dto.request.ReissueRequestDto;
 import com.ssafy.user.dto.request.SignupRequestDto;
-import com.ssafy.user.dto.response.GetMyInfoResponseDto;
-import com.ssafy.user.dto.response.LoginResponseDto;
-import com.ssafy.user.dto.response.ReissueResponseDto;
-import com.ssafy.user.dto.response.SignupResponseDto;
+import com.ssafy.user.dto.request.UpdateMyInfoRequestDto;
+import com.ssafy.user.dto.response.*;
 import com.ssafy.user.entity.RefreshToken;
 import com.ssafy.user.entity.User;
 import com.ssafy.user.common.exception.CustomException;
@@ -34,6 +33,7 @@ public class UserServiceImpl implements UserService {
     private final JwtUtil jwtUtil;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private static final String GOOGLE_USER_INFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo";
+    private final FundingClient fundingClient;
 
     @Override
     public LoginResponseDto verifyUser(LoginRequestDto requestDto) {
@@ -147,6 +147,27 @@ public class UserServiceImpl implements UserService {
             throw new CustomException(USER_NOT_FOUND);
         }
         return new GetMyInfoResponseDto(user);
+    }
+
+    @Override
+    public void updateMyInfo(UpdateMyInfoRequestDto requestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new CustomException(INVALID_ACCESS_TOKEN);
+        }
+        String email = (String) authentication.getPrincipal();
+        int count = userMapper.updateMyInfo(email, requestDto.getNickname());
+
+    }
+
+    @Override
+    public List<FundingResponseDto> getMyFundingDetails(int userId) {
+        return fundingClient.getMyFundings(userId);
+    }
+
+    @Override
+    public GetMyTotalFundingResponseDto getMyFundingTotal(int userId) {
+        return fundingClient.getMyTotalFunding(userId);
     }
 
     private Map<String, Object> getGoogleUserInfo(String accessToken) {

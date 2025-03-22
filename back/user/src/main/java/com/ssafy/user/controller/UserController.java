@@ -5,14 +5,14 @@ import com.ssafy.user.common.response.ResponseCode;
 import com.ssafy.user.dto.request.LoginRequestDto;
 import com.ssafy.user.dto.request.ReissueRequestDto;
 import com.ssafy.user.dto.request.SignupRequestDto;
-import com.ssafy.user.dto.response.GetMyInfoResponseDto;
-import com.ssafy.user.dto.response.LoginResponseDto;
-import com.ssafy.user.dto.response.ReissueResponseDto;
-import com.ssafy.user.dto.response.SignupResponseDto;
+import com.ssafy.user.dto.request.UpdateMyInfoRequestDto;
+import com.ssafy.user.dto.response.*;
 import com.ssafy.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 import static com.ssafy.user.common.response.ResponseCode.*;
 
@@ -45,4 +45,25 @@ public class UserController {
         GetMyInfoResponseDto dto = userService.getMyInfo();
         return new ResponseEntity<>(Response.create(SUCCESS, dto), SUCCESS.getHttpStatus());
     }
+
+    @PutMapping("/me")
+    public ResponseEntity<?> updateMyInfo(@RequestBody UpdateMyInfoRequestDto requestDto){
+        userService.updateMyInfo(requestDto);
+        return new ResponseEntity<>(Response.create(SUCCESS, null), SUCCESS.getHttpStatus());
+    }
+
+    // 다른서비스 호출
+
+    @GetMapping("/funding")
+    public ResponseEntity<?> getMyFunding(@RequestHeader("X-User-Id") int userId){
+        List<FundingResponseDto> dto = userService.getMyFundingDetails(userId);
+        return new ResponseEntity<>(Response.create(SUCCESS, dto), SUCCESS.getHttpStatus());
+    }
+
+    @GetMapping("/funding/total")
+    public ResponseEntity<?> getMyTotalFunding(@RequestHeader("X-User-Id") int userId){
+        GetMyTotalFundingResponseDto dto = userService.getMyFundingTotal(userId);
+        return new ResponseEntity<>(Response.create(SUCCESS, dto), SUCCESS.getHttpStatus());
+    }
+
 }
