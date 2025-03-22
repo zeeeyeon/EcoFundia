@@ -23,7 +23,7 @@ public class FundingDetailServiceImpl implements FundingDetailService {
     // 펀딩 상세 페이지
     public FundingDetailResponseDTO getFundingDetail(int fundingId){
         FundingResponseDTO fundingInfo = fundingClient.getFundingDetail(fundingId);
-        FundingDetailSellerDTO sellerInfo = sellerClient.sellerInfo(fundingInfo.getSellerId());
+        FundingDetailSellerDTO sellerInfo = sellerClient.getSellerInfo(fundingInfo.getSellerId());
         return FundingDetailResponseDTO.from(fundingInfo, sellerInfo);
     }
 

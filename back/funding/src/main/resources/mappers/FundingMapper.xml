@@ -33,6 +33,20 @@
         <result column="title" property="title"/>
     </resultMap>
 
+    <resultMap id="SellerFundingResultMap" type="com.ssafy.funding.dto.seller.SellerDetailDto">
+        <id column="funding_id" property="fundingId"/>
+        <result column="title" property="title"/>
+        <result column="description" property="description"/>
+        <result column="price" property="price"/>
+        <result column="current_amount" property="currentAmount"/>
+        <result column="target_amount" property="targetAmount"/>
+        <result column="end_date" property="endDate"/>
+        <result column="status" property="status"/>
+        <result column="review_count" property="ratingCount"/>
+        <result column="total_rating" property="totalRating"/>
+        <result column="wishlist_count" property="wishlistCount"/>
+    </resultMap>
+
     <select id="findById" parameterType="int" resultMap="FundingResultMap">
         SELECT * FROM funding WHERE funding_id = #{fundingId}
     </select>
@@ -70,8 +84,9 @@
 
     <!-- 전체 Funding 금액 조회 -->
     <select id="getTotalFund" resultType="java.lang.Long">
-        SELECT COALESCE(SUM(total_price), 0) AS totalFund
-        FROM `order`
+        SELECT COALESCE(SUM(current_amount), 0) AS totalFund
+        FROM funding
+        WHERE funding.status = 'SUCCESS'
     </select>
 
     <!-- Top Funding 리스트 조회 -->
@@ -127,6 +142,25 @@
         WHERE f.seller_id = #{sellerId}
     </select>
 
+    <select id="getSellerDetail" resultMap="SellerFundingResultMap">
+        SELECT
+            f.title,
+            f.description,
+            f.image_urls,
+            f.price,
+            f.quantity,
+            f.target_amount,
+            f.end_date,
+            f.status,
+            -- review 개수
+            (SELECT COUNT(*) FROM review r WHERE r.funding_id = f.funding_id) AS review_count,
+            -- review 평균 평점
+            (SELECT SUM(r.rating) FROM review r WHERE r.funding_id = f.funding_id) AS total_rating,
+            -- wishlist 개수
+            (SELECT COUNT(*) FROM wishlist w WHERE w.funding_id = f.funding_id) AS wishlist_count
+        FROM funding f
+        WHERE f.seller_id = #{sellerId}
+    </select>
 
 
 </mapper>

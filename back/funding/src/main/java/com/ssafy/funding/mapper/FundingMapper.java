@@ -1,8 +1,11 @@
 package com.ssafy.funding.mapper;
 
 import com.ssafy.funding.dto.ReviewDto;
+import com.ssafy.funding.dto.seller.SellerDetailDto;
+import com.ssafy.funding.dto.seller.SellerDetailResponseDto;
 import com.ssafy.funding.entity.Funding;
 import org.apache.ibatis.annotations.*;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
@@ -33,4 +36,5 @@ public interface FundingMapper {
     // 브랜드 만족도 조회
     List<ReviewDto> getReviewList(@Param("sellerId") int sellerId, @Param("page") int page);
 
+    List<SellerDetailDto> getSellerDetail(@PathVariable int sellerId);
 }

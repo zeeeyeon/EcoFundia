@@ -9,14 +9,22 @@ import com.ssafy.funding.dto.funding.request.FundingUpdateRequestDto;
 import com.ssafy.funding.dto.funding.response.FundingResponseDto;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
 import com.ssafy.funding.dto.ReviewResponseDto;
+import com.ssafy.funding.dto.seller.SellerDetailDto;
+import com.ssafy.funding.dto.seller.SellerDetailResponseDto;
+import com.ssafy.funding.dto.seller.SellerFundingDto;
 import com.ssafy.funding.entity.Funding;
+import com.ssafy.funding.entity.enums.Status;
 import com.ssafy.funding.mapper.FundingMapper;
 import com.ssafy.funding.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -110,6 +118,7 @@ public class FundingService implements ProductService {
     }
 
     // 펀딩 상세 페이지
+    @Transactional
     public GetFundingResponseDto getFundingDetail(int fundingId) {
         Funding funding = fundingMapper.findById(fundingId);
         return funding.toDto();
@@ -126,11 +135,18 @@ public class FundingService implements ProductService {
                 .orElse(0.0);
 
         //Builder를 사용하여 겍체 생성
-                ReviewResponseDto response = ReviewResponseDto.builder()
+        ReviewResponseDto response = ReviewResponseDto.builder()
                 .totalRating(totalRating)
                 .reviews(reviewList)
                 .build();
 
         return response;
+    }
+
+    // 판매자 상세페이지 판매자 정보 요청 조회
+    @Transactional
+    public SellerDetailResponseDto getSellerDetail(int sellerId) {
+        List<SellerDetailDto> sellerDetailList = fundingMapper.getSellerDetail(sellerId);
+        return SellerDetailResponseDto.from(sellerDetailList);
     }
 }

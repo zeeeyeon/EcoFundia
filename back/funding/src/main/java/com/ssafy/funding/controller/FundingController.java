@@ -6,10 +6,12 @@ import com.ssafy.funding.dto.funding.request.FundingUpdateRequestDto;
 import com.ssafy.funding.dto.funding.response.FundingResponseDto;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
 import com.ssafy.funding.dto.ReviewResponseDto;
+import com.ssafy.funding.dto.seller.SellerDetailResponseDto;
 import com.ssafy.funding.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -57,6 +59,7 @@ public class FundingController {
     }
 
     // 현재까지 펀딩 금액 조회
+    @Transactional
     @GetMapping("/total-fund")
     public Long getTotalFund() {
         Long totalFund = productService.getTotalFund();
@@ -98,11 +101,19 @@ public class FundingController {
         return fundingResponseDto;
     }
 
-    // funding 서비스에 펀딩 리뷰 조회
+    // 펀딩 리뷰 조회
     @GetMapping("/review")
     ReviewResponseDto getFundingReview(@RequestParam(name="sellerId") int sellerId, @RequestParam(name="page") int page){
         ReviewResponseDto reviewResponseDto = productService.getFundingReview(sellerId, page);
         return reviewResponseDto;
     }
+
+    // 판매자 상세정보 조회
+    @GetMapping("/seller/detail/{sellerId}")
+    SellerDetailResponseDto getSellerDetail(@PathVariable int sellerId){
+        SellerDetailResponseDto sellerDetailResponseDto = productService.getSellerDetail(sellerId);
+        return sellerDetailResponseDto;
+    }
+
 
 }

@@ -5,7 +5,10 @@ import com.ssafy.funding.dto.funding.request.FundingUpdateRequestDto;
 import com.ssafy.funding.dto.funding.response.FundingResponseDto;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
 import com.ssafy.funding.dto.ReviewResponseDto;
+import com.ssafy.funding.dto.seller.SellerDetailResponseDto;
 import com.ssafy.funding.entity.Funding;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -36,4 +39,7 @@ public interface ProductService {
 
     // 브랜드 만족도 조회
     ReviewResponseDto getFundingReview(int sellerId, int page);
+
+    // 판매자 상세페이지 판매자 정보 요청 조회
+    SellerDetailResponseDto getSellerDetail(int sellerId);
 }
