@@ -25,4 +25,6 @@ public interface UserMapper {
     List<RefreshToken> findRefreshTokensByUserId(int userId);
 
     void deleteRefreshTokenById(@Param("id") int id);
+
+    int updateMyInfo(@Param("email") String email, @Param("nickname") String nickname);
 }
