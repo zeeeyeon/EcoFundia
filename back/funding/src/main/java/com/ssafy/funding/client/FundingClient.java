@@ -43,8 +43,8 @@ public interface FundingClient {
 
 
     // funding 서비스에 펀딩 리뷰 조회
-    @GetMapping("api/funding/review")
-    ReviewResponseDto getFundingReview(@RequestParam(name="sellerId") int sellerId, @RequestParam(name="page") int page);
+//    @GetMapping("api/funding/review")
+//    ReviewResponseDto getFundingReview(@RequestParam(name="sellerId") int sellerId, @RequestParam(name="page") int page);
 
 }
 

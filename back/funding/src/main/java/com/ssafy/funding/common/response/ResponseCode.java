@@ -31,6 +31,7 @@ public enum ResponseCode {
     REVIEW_NOT_FOUND(404, HttpStatus.NOT_FOUND, "해당 ID의 리뷰가 존재하지 않습니다."),
     REVIEW_NOT_ALLOWED(403, HttpStatus.FORBIDDEN, "해당 펀딩 상태에서는 리뷰를 작성할 수 없습니다."),
     REVIEW_ALREADY_EXISTS(400, HttpStatus.BAD_REQUEST, "해당 유저는 이미 이 펀딩에 리뷰를 작성했습니다."),
+    FORBIDDEN_REVIEW_ACCESS(403, HttpStatus.FORBIDDEN, "해당 리뷰에 대한 수정/삭제 권한이 없습니다."),
 
     // 일반 오류
     BINDING_ERROR(400, HttpStatus.BAD_REQUEST, "입력값 중 검증에 실패한 값이 있습니다."),
