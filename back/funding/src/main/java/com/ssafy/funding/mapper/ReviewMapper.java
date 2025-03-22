@@ -10,6 +10,7 @@ public interface ReviewMapper {
     void createReview(Review review);
     Review findById(int reviewId);
     List<Review> findByFundingId(int fundingId);
+    List<Review> findBySellerId(int sellerId);
     void updateReview(Review review);
     void deleteReview(int reviewId);
     boolean existsByUserIdAndFundingId(int userId, int fundingId);

@@ -10,6 +10,7 @@ import java.util.List;
 public interface ReviewService {
     ReviewResponseDto getReview(int reviewId);
     ReviewsResponseDto getReviewsByFundingId(int fundingId);
+    ReviewsResponseDto getReviewsBySellerId(int sellerId);
     void createReview(int userId, ReviewCreateRequestDto dto);
     void updateReview(int reviewId, ReviewUpdateRequestDto dto);
     void deleteReview(int reviewId);
