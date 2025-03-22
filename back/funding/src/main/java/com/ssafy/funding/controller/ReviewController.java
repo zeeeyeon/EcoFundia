@@ -33,6 +33,12 @@ public class ReviewController {
         return new ResponseEntity<>(Response.create(GET_REVIEW_LIST, reviews), GET_REVIEW_LIST.getHttpStatus());
     }
 
+    @GetMapping("/seller/{sellerId}")
+    public ResponseEntity<?> getReviewsBySeller(@PathVariable int sellerId) {
+        ReviewsResponseDto result = reviewService.getReviewsBySellerId(sellerId);
+        return new ResponseEntity<>(Response.create(GET_REVIEW_LIST, result), GET_REVIEW_LIST.getHttpStatus());
+    }
+
     @PostMapping
     public ResponseEntity<?> createReview(
             @RequestHeader("X-User-Id") int userId,

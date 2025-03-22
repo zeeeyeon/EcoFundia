@@ -28,6 +28,13 @@
         SELECT * FROM review WHERE funding_id = #{fundingId}
     </select>
 
+    <select id="findBySellerId" resultMap="ReviewResultMap" parameterType="int">
+        SELECT r.*
+        FROM review r
+                 JOIN funding f ON r.funding_id = f.funding_id
+        WHERE f.seller_id = #{sellerId}
+    </select>
+
     <update id="updateReview" parameterType="com.ssafy.funding.entity.Review">
         UPDATE review
         SET content = #{content},

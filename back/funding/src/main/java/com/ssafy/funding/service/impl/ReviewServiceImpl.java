@@ -37,9 +37,16 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public ReviewsResponseDto getReviewsByFundingId(int fundingId) {
-        reviewMapper.findByFundingId(fundingId);
-        return null;
+        List<Review> reviews = reviewMapper.findByFundingId(fundingId);
+        return aggregateRatingAndReviews(reviews);
     }
+
+    @Override
+    public ReviewsResponseDto getReviewsBySellerId(int sellerId) {
+        List<Review> reviews = reviewMapper.findBySellerId(sellerId);
+        return aggregateRatingAndReviews(reviews);
+    }
+
 
     @Override
     @Transactional
@@ -72,5 +79,22 @@ public class ReviewServiceImpl implements ReviewService {
 
     private Review findByReviewId(int reviewId) {
         return reviewMapper.findById(reviewId);
+    }
+
+    private ReviewsResponseDto aggregateRatingAndReviews(List<Review> reviews) {
+        if (reviews.isEmpty()) {
+            return new ReviewsResponseDto(0f, List.of());
+        }
+
+        float average = (float) reviews.stream()
+                .mapToInt(Review::getRating)
+                .average()
+                .orElse(0.0);
+
+        List<ReviewResponseDto> responseList = reviews.stream()
+                .map(ReviewResponseDto::fromEntity)
+                .toList();
+
+        return new ReviewsResponseDto(average, responseList);
     }
 }
