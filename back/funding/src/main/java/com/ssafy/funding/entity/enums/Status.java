@@ -1,5 +1,5 @@
 package com.ssafy.funding.entity.enums;
 
 public enum Status {
-    ONGOING, SUCCESS, FAIL
+    ONGOING, SUCCESS, FAIL, CANCEL
 }
