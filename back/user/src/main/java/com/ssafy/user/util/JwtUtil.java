@@ -63,15 +63,6 @@ public class JwtUtil {
         }
     }
 
-    public Claims getClaims(String token) {
-        return Jwts.parser()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-    }
-
-
     public String extractEmail(String token) {
         return Jwts.parser()
                 .setSigningKey(getSigningKey())
