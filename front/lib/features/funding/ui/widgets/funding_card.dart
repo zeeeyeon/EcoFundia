@@ -20,7 +20,7 @@ class FundingCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               child: Image.network(
                 funding.imageUrl,
-                height: 150,
+                height: 240,
                 width: double.infinity,
                 fit: BoxFit.cover,
               ),

@@ -16,7 +16,7 @@ class SocialLoginButton extends StatelessWidget {
     required this.iconPath,
     required this.backgroundColor,
     required this.onPressed,
-    this.textColor = AppColors.textGrey,
+    this.textColor = AppColors.grey,
     this.textStyle,
   });
 
