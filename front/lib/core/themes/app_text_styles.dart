@@ -94,6 +94,13 @@ class AppTextStyles {
         fontWeight: FontWeight.w400,
         color: AppColors.primary,
       );
+
+  // 에러 및 빈 상태 텍스트 스타일
+  static TextStyle get emptyMessage => GoogleFonts.roboto(
+        fontSize: 16,
+        fontWeight: FontWeight.w400,
+        color: AppColors.grey,
+      );
 }
 
 /// 홈/메인 화면 텍스트 스타일
@@ -260,5 +267,108 @@ class WishlistTextStyles {
   static TextStyle get emptyMessage => TextStyle(
         fontSize: 16,
         color: AppColors.textMuted,
+      );
+}
+
+/// 판매자(메이커) 화면 텍스트 스타일
+class SellerTextStyles {
+  // 판매자 프로필 스타일
+  static TextStyle get sellerName => GoogleFonts.roboto(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+        color: AppColors.darkGrey,
+      );
+
+  static TextStyle get makerType => GoogleFonts.roboto(
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        color: AppColors.grey,
+      );
+
+  static TextStyle get badge => const TextStyle(
+        fontSize: 10,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+      );
+
+  // 판매자 통계 스타일
+  static TextStyle get statTitle => GoogleFonts.roboto(
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        color: AppColors.grey,
+      );
+
+  static TextStyle get statValue => GoogleFonts.roboto(
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
+        color: AppColors.darkGrey,
+      );
+
+  static TextStyle get statDetail => GoogleFonts.roboto(
+        fontSize: 10,
+        color: AppColors.grey,
+      );
+
+  // 탭 스타일
+  static TextStyle get tabSelected => GoogleFonts.roboto(
+        fontSize: 14,
+        fontWeight: FontWeight.bold,
+        color: AppColors.primary,
+      );
+
+  static TextStyle get tabUnselected => GoogleFonts.roboto(
+        fontSize: 14,
+        fontWeight: FontWeight.normal,
+        color: AppColors.grey,
+      );
+
+  // 섹션 헤더 스타일
+  static TextStyle get sectionTitle => GoogleFonts.roboto(
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
+        color: AppColors.darkGrey,
+      );
+
+  // 프로젝트 컨텐츠 스타일
+  static TextStyle get projectTitle => GoogleFonts.roboto(
+        fontSize: 14,
+        fontWeight: FontWeight.bold,
+        color: AppColors.darkGrey,
+      );
+
+  static TextStyle get emptyMessage => GoogleFonts.roboto(
+        fontSize: 14,
+        color: AppColors.grey,
+      );
+
+  // 리뷰 스타일
+  static TextStyle get reviewUserName => GoogleFonts.roboto(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+        color: AppColors.darkGrey,
+      );
+
+  static TextStyle get reviewContent => GoogleFonts.roboto(
+        fontSize: 18,
+        fontWeight: FontWeight.w500,
+        color: AppColors.darkGrey,
+      );
+
+  static TextStyle get reviewProductName => GoogleFonts.roboto(
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
+        color: Colors.grey,
+      );
+
+  static TextStyle get reviewHeader => GoogleFonts.roboto(
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+        color: AppColors.darkGrey,
+      );
+
+  static TextStyle get reviewStats => GoogleFonts.roboto(
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+        color: AppColors.darkGrey,
       );
 }

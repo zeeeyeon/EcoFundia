@@ -9,6 +9,9 @@ import 'package:front/utils/logger_util.dart';
 import 'package:front/core/services/api_service.dart';
 import 'package:front/features/wishlist/data/repositories/wishlist_repository_impl.dart';
 import 'package:front/features/wishlist/ui/view_model/wishlist_view_model.dart';
+import 'package:front/shared/seller/data/repositories/seller_repository_impl.dart';
+import 'package:front/shared/seller/ui/view_model/seller_view_model.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() async {
   // Flutter 초기화 확인
@@ -19,6 +22,14 @@ void main() async {
 
   // 로그 수준 설정
   LoggerUtil.setLogLevel(LogLevel.info); // info 레벨 이상만 출력
+
+  // Google Fonts 미리 로드 - 텍스트가 'x'로 깨지는 문제 해결
+  await GoogleFonts.pendingFonts([
+    GoogleFonts.roboto(),
+    GoogleFonts.righteous(),
+    GoogleFonts.urbanist(),
+    GoogleFonts.spaceGrotesk(),
+  ]);
 
   // 스토리지 서비스 초기화
   await StorageService.init();
@@ -31,6 +42,9 @@ void main() async {
         apiServiceProvider.overrideWithValue(apiService),
         wishlistRepositoryProvider.overrideWith(
             (ref) => WishlistRepositoryImpl(apiService: apiService)),
+        // 판매자 Repository Provider 등록
+        sellerRepositoryProvider
+            .overrideWith((ref) => SellerRepositoryImpl(apiService)),
       ],
       child: const MyApp(),
     ),

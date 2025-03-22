@@ -9,6 +9,6 @@ class GetActiveWishlistItemsUseCase {
 
   /// 유스케이스 실행
   Future<List<WishlistItemEntity>> execute() async {
-    return _repository.getActiveWishlistItems();
+    return _repository.getActiveWishlist();
   }
 }

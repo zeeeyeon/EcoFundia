@@ -9,6 +9,7 @@ import 'package:front/features/home/ui/pages/home_screen.dart';
 import 'package:front/features/mypage/ui/pages/mypage_screen.dart';
 import 'package:front/features/wishlist/ui/pages/wishlist_screen.dart';
 import 'package:front/features/auth/ui/pages/signup_complete_screen.dart';
+import 'package:front/shared/seller/ui/pages/seller_detail_screen.dart';
 import 'package:front/utils/auth_utils.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -49,6 +50,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/splash',
         builder: (context, state) => const SplashPage(),
+      ),
+      // 판매자 상세 페이지
+      GoRoute(
+        path: '/seller/:id',
+        builder: (context, state) {
+          final sellerId = int.parse(state.pathParameters['id'] ?? '1');
+          return SellerDetailScreen(sellerId: sellerId);
+        },
       ),
       // 메인 네비게이션
       StatefulShellRoute.indexedStack(
