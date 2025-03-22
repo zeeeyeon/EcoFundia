@@ -28,6 +28,7 @@ public enum ResponseCode {
     USER_NOT_SIGNED_UP("NF", HttpStatus.NOT_FOUND, "해당 이메일로 가입된 사용자가 없습니다. 회원가입이 필요합니다."),
     USER_NOT_FOUND("NF", HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
 
+
     // 기타 예시 - 서버 내부 오류 (500)
     INTERNAL_SERVER_ERROR("ISE", HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생하였습니다.");
 

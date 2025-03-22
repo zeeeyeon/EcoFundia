@@ -33,6 +33,14 @@
         VALUES (#{userId}, #{email}, #{name}, #{nickname}, #{gender}, #{age}, #{createdAt})
     </insert>
 
+    <!-- 사용자 정보 수정 -->
+    <update id="updateMyInfo" parameterType="map">
+        update user
+        set
+        nickname = #{nickname}
+        where email = #{email}
+    </update>
+
     <!-- Refresh Token 등록 (리프레쉬 토큰 생성 시 사용) -->
     <insert id="insertRefreshToken" parameterType="map">
         INSERT INTO refresh_token (user_id, token_id, refresh_token, issued_at, expires_at)
@@ -52,7 +60,7 @@
         WHERE token_id = #{tokenId}
     </delete>
 
-    <!-- 사용자 ID를 통한 모든 Refresh Token 삭제 (예: 로그아웃 시 전부 삭제) -->
+    <!-- 사용자 ID를 통한 모든 Refresh Token 삭제  -->
     <delete id="deleteRefreshTokensByUserId" parameterType="int">
         DELETE FROM refresh_token
         WHERE user_id = #{userId}
