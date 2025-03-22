@@ -1,20 +1,16 @@
 package com.ssafy.user.service.impl;
 
-import com.ssafy.user.dto.request.LoginRequestDto;
-import com.ssafy.user.dto.request.ReissueRequestDto;
-import com.ssafy.user.dto.request.SignupRequestDto;
-import com.ssafy.user.dto.response.GetMyInfoResponseDto;
-import com.ssafy.user.dto.response.LoginResponseDto;
-import com.ssafy.user.dto.response.ReissueResponseDto;
-import com.ssafy.user.dto.response.SignupResponseDto;
+import com.ssafy.user.client.FundingClient;
+import com.ssafy.user.dto.request.*;
+import com.ssafy.user.dto.response.*;
 import com.ssafy.user.entity.RefreshToken;
 import com.ssafy.user.entity.User;
 import com.ssafy.user.common.exception.CustomException;
 import com.ssafy.user.mapper.UserMapper;
 import com.ssafy.user.service.UserService;
 import com.ssafy.user.util.JwtUtil;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -34,6 +30,7 @@ public class UserServiceImpl implements UserService {
     private final JwtUtil jwtUtil;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private static final String GOOGLE_USER_INFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo";
+    private final FundingClient fundingClient;
 
     @Override
     public LoginResponseDto verifyUser(LoginRequestDto requestDto) {
@@ -147,6 +144,71 @@ public class UserServiceImpl implements UserService {
             throw new CustomException(USER_NOT_FOUND);
         }
         return new GetMyInfoResponseDto(user);
+    }
+
+    @Override
+    public void updateMyInfo(UpdateMyInfoRequestDto requestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new CustomException(INVALID_ACCESS_TOKEN);
+        }
+        String email = (String) authentication.getPrincipal();
+        int count = userMapper.updateMyInfo(email, requestDto.getNickname());
+
+    }
+
+    @Override
+    public List<FundingResponseDto> getMyFundingDetails(String userId) {
+        try {
+            return fundingClient.getMyFundings(userId);
+        }catch (FeignException e){
+            throw new CustomException(INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public GetMyTotalFundingResponseDto getMyFundingTotal(String userId) {
+        try {
+            return fundingClient.getMyTotalFunding(userId);
+        }catch (FeignException e){
+            throw new CustomException(INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public List<ReviewResponseDto> getMyReviews(String userId) {
+        try {
+            return fundingClient.getMyReviews(userId);
+        }catch (FeignException e){
+            throw new CustomException(INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public void postMyReview(String userId, PostReviewRequestDto requestDto) {
+        try {
+            fundingClient.postMyReview(userId, requestDto);
+        }catch (FeignException e){
+            throw new CustomException(INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public void updateMyReview(String userId, int reviewId, UpdateMyReviewRequestDto requestDto) {
+        try {
+            fundingClient.updateMyReview(userId, reviewId, requestDto);
+        }catch (FeignException e){
+            throw new CustomException(INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public void deleteMyReview(String userId, int reviewId) {
+        try {
+            fundingClient.deleteMyReview(userId, reviewId);
+        }catch (FeignException e){
+            throw new CustomException(INTERNAL_SERVER_ERROR);
+        }
     }
 
     private Map<String, Object> getGoogleUserInfo(String accessToken) {

@@ -1,6 +1,5 @@
 package com.ssafy.user.dto.request;
 
-
 import lombok.*;
 
 @Getter
@@ -8,6 +7,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ReissueRequestDto {
-    private String refreshToken;
+public class UpdateMyReviewRequestDto {
+    private int rating;
+    private String content;
 }
