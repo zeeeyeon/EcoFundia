@@ -11,14 +11,21 @@ public enum ResponseCode {
     // 성공 응답 (200)
     SUCCESS("SU", HttpStatus.OK, "Success"),
     LOGOUT_SUCCESS("SU", HttpStatus.OK, "로그아웃 성공"),
+    GET_WISHLIST("SU", HttpStatus.OK, "위시리스트를 성공적으로 조회했습니다."),
+    DELETE_WISHLIST("SU", HttpStatus.OK, "위시리스트에서 삭제되었습니다."),
+
 
     // 생성 응답 (201)
     CREATED("CR", HttpStatus.CREATED, "Row Created successfully"),
+    CREATE_WISHLIST("CR", HttpStatus.OK, "위시리스트에 추가되었습니다."),
+
 
     // 클라이언트 오류 (400)
     BAD_REQUEST("BR", HttpStatus.BAD_REQUEST, "잘못된 요청입니다."),
     MISSING_REFRESH_TOKEN("BR", HttpStatus.BAD_REQUEST, "Refresh Token이 제공되지 않았습니다."),
     INVALID_AUTH_HEADER("BR", HttpStatus.BAD_REQUEST, "잘못된 Authorization 헤더 형식입니다."),
+    WISHLIST_ALREADY_EXISTS("BR", HttpStatus.BAD_REQUEST, "이미 위시리스트에 추가된 상품입니다."),
+
 
     // 인증 오류 (401)
     INVALID_ACCESS_TOKEN("IAT", HttpStatus.UNAUTHORIZED, "유효하지 않은 액세스 토큰입니다. 갱신 해주세요."),
@@ -31,6 +38,7 @@ public enum ResponseCode {
 
     // 기타 예시 - 서버 내부 오류 (500)
     INTERNAL_SERVER_ERROR("ISE", HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생하였습니다.");
+
 
     private final String code;
     private final HttpStatus httpStatus;
