@@ -2,8 +2,8 @@ package com.ssafy.funding.dto.review.response;
 
 import java.util.List;
 
-public record ReviewsResponseDto(
+public record ReviewListResponseDto(
         float totalRating,
-        List<ReviewResponseDto> reviews
+        List<SingleReviewResponseDto> reviews
 ) {
 }

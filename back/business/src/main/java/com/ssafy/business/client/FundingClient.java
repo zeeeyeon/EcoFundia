@@ -1,12 +1,7 @@
 package com.ssafy.business.client;
 
-import com.ssafy.business.common.response.Response;
-import com.ssafy.business.common.response.ResponseCode;
-import com.ssafy.business.dto.responseDTO.FundingDetailResponseDTO;
-import com.ssafy.business.dto.responseDTO.FundingResponseDTO;
-import com.ssafy.business.dto.responseDTO.ReviewResponseDTO;
+import com.ssafy.business.dto.responseDTO.*;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -44,7 +39,10 @@ public interface FundingClient {
     @GetMapping("api/funding/review")
     ReviewResponseDTO getFundingReview(@RequestParam(name="sellerId") int sellerId, @RequestParam(name="page") int page);
 
-    // seller가 진행한 펀딩 리스트 조회
-//    @GetMapping("api/funding/seller")
+    // 판매자 상세페이지 판매자 정보 요청 조회
+    @GetMapping("api/funding/seller/detail/{sellerId}")
+    SellerDetailDTO getSellerDetail(@PathVariable int sellerId);
 
+    @GetMapping("api/funding/seller/detail/{sellerId}/funding")
+    SellerDetailDTO getSellerFunding(@PathVariable int sellerId);
 }

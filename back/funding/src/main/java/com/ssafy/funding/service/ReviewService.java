@@ -2,15 +2,13 @@ package com.ssafy.funding.service;
 
 import com.ssafy.funding.dto.review.request.ReviewCreateRequestDto;
 import com.ssafy.funding.dto.review.request.ReviewUpdateRequestDto;
-import com.ssafy.funding.dto.review.response.ReviewResponseDto;
-import com.ssafy.funding.dto.review.response.ReviewsResponseDto;
-
-import java.util.List;
+import com.ssafy.funding.dto.review.response.SingleReviewResponseDto;
+import com.ssafy.funding.dto.review.response.ReviewListResponseDto;
 
 public interface ReviewService {
-    ReviewResponseDto getReview(int reviewId);
-    ReviewsResponseDto getReviewsByFundingId(int fundingId);
-    ReviewsResponseDto getReviewsBySellerId(int sellerId);
+    SingleReviewResponseDto getReview(int reviewId);
+    ReviewListResponseDto getReviewsByFundingId(int fundingId);
+    ReviewListResponseDto getReviewsBySellerId(int sellerId);
     void createReview(int userId, ReviewCreateRequestDto dto);
     void updateReview(int userId, int reviewId, ReviewUpdateRequestDto dto);
     void deleteReview(int userId, int reviewId);

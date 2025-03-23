@@ -37,4 +37,12 @@ public interface BusinessClient {
     // 펀딩 리뷰 조회
     @GetMapping("api/business/review")
     ResponseEntity<?> getFundingDetail(@RequestParam(name="sellerId") int sellerId, @RequestParam(name="page") int page);
+
+    // 판매자 정보 조회
+    @GetMapping("api/business/seller/detail/{sellerId}")
+    ResponseEntity<?> getSellerDetail(@PathVariable int sellerId);
+
+    // 판매자가 진행한 프로젝트 조회
+    @GetMapping("api/business/seller/detail/{sellerId}/funding")
+    ResponseEntity<?> getSellerFunding(@PathVariable int sellerId);
 }

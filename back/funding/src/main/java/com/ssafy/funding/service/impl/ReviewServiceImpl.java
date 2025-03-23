@@ -3,8 +3,8 @@ package com.ssafy.funding.service.impl;
 import com.ssafy.funding.common.exception.CustomException;
 import com.ssafy.funding.dto.review.request.ReviewCreateRequestDto;
 import com.ssafy.funding.dto.review.request.ReviewUpdateRequestDto;
-import com.ssafy.funding.dto.review.response.ReviewResponseDto;
-import com.ssafy.funding.dto.review.response.ReviewsResponseDto;
+import com.ssafy.funding.dto.review.response.SingleReviewResponseDto;
+import com.ssafy.funding.dto.review.response.ReviewListResponseDto;
 import com.ssafy.funding.entity.Review;
 import com.ssafy.funding.entity.enums.Status;
 import com.ssafy.funding.mapper.ReviewMapper;
@@ -28,21 +28,21 @@ public class ReviewServiceImpl implements ReviewService {
 
 
     @Override
-    public ReviewResponseDto getReview(int reviewId) {
+    public SingleReviewResponseDto getReview(int reviewId) {
         Review review = findByReviewId(reviewId);
         if (review == null) throw new CustomException(REVIEW_NOT_FOUND);
-        return ReviewResponseDto.fromEntity(review);
+        return SingleReviewResponseDto.fromEntity(review);
     }
 
 
     @Override
-    public ReviewsResponseDto getReviewsByFundingId(int fundingId) {
+    public ReviewListResponseDto getReviewsByFundingId(int fundingId) {
         List<Review> reviews = reviewMapper.findByFundingId(fundingId);
         return aggregateRatingAndReviews(reviews);
     }
 
     @Override
-    public ReviewsResponseDto getReviewsBySellerId(int sellerId) {
+    public ReviewListResponseDto getReviewsBySellerId(int sellerId) {
         List<Review> reviews = reviewMapper.findBySellerId(sellerId);
         return aggregateRatingAndReviews(reviews);
     }
@@ -84,9 +84,9 @@ public class ReviewServiceImpl implements ReviewService {
         return reviewMapper.findById(reviewId);
     }
 
-    private ReviewsResponseDto aggregateRatingAndReviews(List<Review> reviews) {
+    private ReviewListResponseDto aggregateRatingAndReviews(List<Review> reviews) {
         if (reviews.isEmpty()) {
-            return new ReviewsResponseDto(0f, List.of());
+            return new ReviewListResponseDto(0f, List.of());
         }
 
         float average = (float) reviews.stream()
@@ -94,11 +94,11 @@ public class ReviewServiceImpl implements ReviewService {
                 .average()
                 .orElse(0.0);
 
-        List<ReviewResponseDto> responseList = reviews.stream()
-                .map(ReviewResponseDto::fromEntity)
+        List<SingleReviewResponseDto> responseList = reviews.stream()
+                .map(SingleReviewResponseDto::fromEntity)
                 .toList();
 
-        return new ReviewsResponseDto(average, responseList);
+        return new ReviewListResponseDto(average, responseList);
     }
 
     private void validateReviewAccess(Review review, int userId) {
