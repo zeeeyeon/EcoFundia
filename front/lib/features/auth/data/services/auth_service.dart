@@ -1,4 +1,4 @@
-import 'package:front/features/auth/domain/models/auth_response.dart';
+import 'package:front/features/auth/data/models/auth_response_model.dart';
 import 'package:front/utils/logger_util.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:front/core/exceptions/auth_exception.dart';
@@ -50,7 +50,7 @@ class AuthService {
   }
 
   /// Google 인증 처리
-  Future<AuthResponse> authenticateWithGoogle(String accessToken) async {
+  Future<AuthResponseModel> authenticateWithGoogle(String accessToken) async {
     try {
       // Dio를 사용하여 API 요청
       final response = await _apiService.post(
@@ -73,7 +73,7 @@ class AuthService {
           throw AuthException(status?['message'] ?? '서버 응답이 올바르지 않습니다.');
         }
 
-        return AuthResponse.fromJson(data);
+        return AuthResponseModel.fromJson(data);
       }
 
       throw AuthException('예상치 못한 응답 코드: ${response.statusCode}');

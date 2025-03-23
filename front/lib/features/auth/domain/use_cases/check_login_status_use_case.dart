@@ -11,7 +11,7 @@ class CheckLoginStatusUseCase {
     LoggerUtil.i('🚀 CheckLoginStatusUseCase - 실행 시작');
 
     try {
-      final isLoggedIn = await _authRepository.checkLoginStatus();
+      final isLoggedIn = await _authRepository.isLoggedIn();
       LoggerUtil.i('ℹ️ 로그인 상태: $isLoggedIn');
       return isLoggedIn;
     } catch (e) {

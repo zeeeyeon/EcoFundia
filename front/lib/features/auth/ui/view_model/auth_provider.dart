@@ -70,6 +70,7 @@ final authProvider = StateNotifierProvider<AuthViewModel, bool>((ref) {
     googleSignInUseCase: ref.watch(googleSignInUseCaseProvider),
     checkLoginStatusUseCase: ref.watch(checkLoginStatusUseCaseProvider),
     appStateViewModel: ref.watch(appStateProvider.notifier),
+    authRepository: ref.watch(authRepositoryProvider),
   );
 });
 

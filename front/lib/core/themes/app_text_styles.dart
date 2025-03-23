@@ -129,9 +129,8 @@ class HomeTextStyles {
         color: AppColors.darkGrey,
       );
 
-  static TextStyle get projectTitle => const TextStyle(
-        fontFamily: 'Space Grotesk',
-        fontSize: 16,
+  static TextStyle get projectTitle => GoogleFonts.righteous(
+        fontSize: 40,
         fontWeight: FontWeight.w500,
         color: AppColors.darkGrey,
       );

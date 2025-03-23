@@ -1,6 +1,7 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:front/utils/logger_util.dart';
+import 'package:front/core/config/app_config.dart';
 
 /// JWT 토큰 및 사용자 정보를 안전하게 저장하는 서비스
 class StorageService {
@@ -22,6 +23,9 @@ class StorageService {
     // 저장된 토큰 확인 (디버깅용)
     if (await isAuthenticated()) {
       LoggerUtil.d('🔑 유효한 인증 토큰이 존재합니다');
+
+      // 토큰 만료 시간 확인 및 필요시 갱신
+      await checkAndRefreshTokenIfNeeded();
     }
   }
 
@@ -33,21 +37,48 @@ class StorageService {
       final token = await _storage.read(key: _tokenKey);
       if (token != null) {
         // JWT 토큰 만료 시간 확인
-        final decodedToken = JwtDecoder.decode(token);
-        final expirationTime = DateTime.fromMillisecondsSinceEpoch(
-          decodedToken['exp'] * 1000,
-        );
-
-        if (DateTime.now().isBefore(expirationTime)) {
+        if (!JwtDecoder.isExpired(token)) {
           return true;
         }
+
+        // 토큰이 만료되었지만 리프레시 토큰이 있는 경우
+        final refreshToken = await _storage.read(key: _refreshTokenKey);
+        return refreshToken != null && !JwtDecoder.isExpired(refreshToken);
       }
 
-      // 2. 리프레시 토큰 존재 여부 확인
-      final refreshToken = await _storage.read(key: _refreshTokenKey);
-      return refreshToken != null;
+      return false;
     } catch (e) {
       LoggerUtil.e('❌ 인증 상태 확인 중 오류 발생', e);
+      return false;
+    }
+  }
+
+  /// 액세스 토큰의 만료 시간을 확인하고 필요한 경우 갱신
+  static Future<bool> checkAndRefreshTokenIfNeeded() async {
+    try {
+      final token = await _storage.read(key: _tokenKey);
+      if (token == null) return false;
+
+      // 토큰 만료까지 남은 시간 계산 (분)
+      final decodedToken = JwtDecoder.decode(token);
+      final expirationTime = DateTime.fromMillisecondsSinceEpoch(
+        decodedToken['exp'] * 1000,
+      );
+      final now = DateTime.now();
+      final minutesToExpiration = expirationTime.difference(now).inMinutes;
+
+      // 설정된 시간 내에 만료되는 경우 갱신
+      if (minutesToExpiration <=
+          AppConfig.tokenConfig.refreshBeforeExpirationMinutes) {
+        LoggerUtil.i('🔄 토큰이 곧 만료됩니다. 자동 갱신 시작 (남은 시간: $minutesToExpiration분)');
+        // 실제 토큰 갱신은 ApiService에서 수행합니다.
+        // 여기서는 ApiService를 직접 호출하지 않고, 다음 API 요청 시 인터셉터에서 처리됩니다.
+        return true;
+      }
+
+      return false;
+    } catch (e) {
+      LoggerUtil.e('❌ 토큰 만료 확인 중 오류 발생', e);
       return false;
     }
   }

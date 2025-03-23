@@ -1,12 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/core/providers/app_state_provider.dart';
-import 'package:front/features/auth/domain/models/auth_result.dart';
+import 'package:front/features/auth/domain/entities/auth_result_entity.dart';
 import 'package:front/features/auth/domain/use_cases/check_login_status_use_case.dart';
 import 'package:front/features/auth/domain/use_cases/google_sign_in_use_case.dart';
 import 'package:front/utils/logger_util.dart';
 import 'package:front/core/services/storage_service.dart';
-import 'package:front/features/auth/domain/models/auth_response.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:front/features/auth/domain/repositories/auth_repository.dart';
 
 /// 인증 ViewModel
 ///
@@ -15,12 +15,10 @@ class AuthViewModel extends StateNotifier<bool> {
   final GoogleSignInUseCase _googleSignInUseCase;
   final CheckLoginStatusUseCase _checkLoginStatusUseCase;
   final AppStateViewModel _appStateViewModel;
+  final AuthRepository _authRepository;
 
   // 마지막으로 획득한 사용자 정보 (회원가입 시 사용)
   Map<String, dynamic>? _lastUserInfo;
-
-  // 마지막으로 획득한 Google 액세스 토큰 (회원가입 시 사용)
-  String? _lastAccessToken;
 
   // 초기화 상태 플래그
   bool _isInitialized = false;
@@ -29,9 +27,11 @@ class AuthViewModel extends StateNotifier<bool> {
     required GoogleSignInUseCase googleSignInUseCase,
     required CheckLoginStatusUseCase checkLoginStatusUseCase,
     required AppStateViewModel appStateViewModel,
+    required AuthRepository authRepository,
   })  : _googleSignInUseCase = googleSignInUseCase,
         _checkLoginStatusUseCase = checkLoginStatusUseCase,
         _appStateViewModel = appStateViewModel,
+        _authRepository = authRepository,
         super(false) {
     // 프레임 렌더링 후에 로그인 상태 확인을 수행하여 Provider 초기화 충돌 방지
     SchedulerBinding.instance.addPostFrameCallback((_) {
@@ -58,67 +58,55 @@ class AuthViewModel extends StateNotifier<bool> {
     }
   }
 
+  /// 사용자 세션 데이터 업데이트
+  Future<void> _updateUserSessionData(
+      String userId, String email, String nickname) async {
+    await StorageService.saveUserId(userId);
+    await StorageService.saveUserEmail(email);
+    await StorageService.saveUserNickname(nickname);
+  }
+
   /// Google 로그인 진행
-  Future<AuthResult> signInWithGoogle() async {
+  Future<AuthResultEntity> signInWithGoogle() async {
     try {
       _appStateViewModel.setLoading(true);
       _appStateViewModel.clearError();
 
       final result = await _googleSignInUseCase.execute();
 
-      if (result is AuthSuccess) {
-        await handleSuccessfulLogin(result.response);
-        return result;
-      } else if (result is AuthNewUser) {
-        final accessToken = await _googleSignInUseCase.getAccessToken();
-        if (accessToken != null) {
-          _lastAccessToken = accessToken;
-        }
-        return result;
-      } else if (result is AuthError) {
-        LoggerUtil.e('로그인 실패: ${result.message}');
-        _appStateViewModel.setError(result.message);
-        return result;
-      } else {
-        return result;
+      if (result is AuthSuccessEntity) {
+        // 로그인 성공 처리
+        final userData = result.user;
+        await _updateUserSessionData(
+            userData.userId.toString(), userData.email, userData.nickname);
+        state = true;
+      } else if (result is AuthNewUserEntity) {
+        // 회원가입 필요 처리 - 구글 사용자 정보 획득
+        _lastUserInfo = await _authRepository.getGoogleUserInfo();
+        LoggerUtil.i('📝 회원가입용 Google 정보 획득: $_lastUserInfo');
       }
+
+      return result;
     } catch (e) {
-      LoggerUtil.e('로그인 실패', e);
-      _appStateViewModel.setError('로그인 중 오류가 발생했습니다.');
-      return const AuthError('로그인 중 오류가 발생했습니다.');
+      LoggerUtil.e('Google 로그인 실패 (ViewModel)', e);
+      return AuthResultEntity.error(e.toString());
     } finally {
       _appStateViewModel.setLoading(false);
     }
   }
 
-  /// 로그인 성공 시 처리
-  Future<void> handleSuccessfulLogin(AuthResponse response) async {
-    try {
-      // 토큰 저장
-      if (response.accessToken != null) {
-        await StorageService.saveToken(response.accessToken!);
-      }
+  /// 로그인 성공 처리
+  Future<void> handleSuccessfulLogin(AuthSuccessEntity authResult) async {
+    final user = authResult.user;
+    await _updateUserSessionData(
+        user.userId.toString(), user.email, user.nickname);
 
-      // 리프레시 토큰 저장
-      if (response.refreshToken != null) {
-        await StorageService.saveRefreshToken(response.refreshToken!);
-      }
+    state = true;
 
-      // 사용자 정보 저장
-      if (response.user != null) {
-        await StorageService.saveUserId(response.user!.userId.toString());
-        await StorageService.saveUserEmail(response.user!.email);
-        await StorageService.saveUserNickname(response.user!.nickname);
-      }
+    await StorageService.saveToken(authResult.accessToken);
+    await StorageService.saveRefreshToken(authResult.refreshToken);
 
-      // 마지막 로그인 시간 업데이트
-      await StorageService.updateLastLoginDate();
-
-      state = true;
-    } catch (e) {
-      LoggerUtil.e('로그인 처리 실패', e);
-      _appStateViewModel.setError('로그인 처리 중 오류가 발생했습니다.');
-    }
+    LoggerUtil.i('✅ 로그인 성공: ${user.nickname}님 환영합니다.');
   }
 
   /// 로그아웃
@@ -127,7 +115,6 @@ class AuthViewModel extends StateNotifier<bool> {
       _appStateViewModel.setLoading(true);
       await StorageService.secureLogout(
           keepUserPreferences: keepUserPreferences);
-      _lastAccessToken = null;
 
       state = false;
       return true;
@@ -150,39 +137,59 @@ class AuthViewModel extends StateNotifier<bool> {
     _appStateViewModel.resetState();
   }
 
-  /// 마지막으로 획득한 사용자 정보 반환
-  /// 신규 사용자 회원가입 시 활용
-  Future<Map<String, dynamic>> getLastUserInfo() async {
-    Map<String, dynamic> userData =
-        Map<String, dynamic>.from(_lastUserInfo ?? {});
-
-    if (_lastAccessToken == null) {
-      final accessToken = await _googleSignInUseCase.getAccessToken();
-      if (accessToken != null) {
-        _lastAccessToken = accessToken;
-      }
-    }
-
-    if (_lastAccessToken != null) {
-      userData['token'] = _lastAccessToken;
-    }
-
-    if (userData.isEmpty || userData.length == 1) {
-      try {
-        final googleUserInfo = await _googleSignInUseCase.getUserInfo() ?? {};
-        userData.addAll(googleUserInfo);
-      } catch (e) {
-        LoggerUtil.e('사용자 정보 획득 실패', e);
-        _appStateViewModel.setError('사용자 정보를 가져오는데 실패했습니다.');
-      }
-    }
-
-    return userData;
-  }
-
   /// 로그인 상태 업데이트
   void updateLoginState(bool isLoggedIn) {
     state = isLoggedIn;
     LoggerUtil.d('로그인 상태 업데이트: $isLoggedIn');
+  }
+
+  /// 회원가입 진행을 위해 필요한 구글 로그인 정보를 획득합니다.
+  Future<Map<String, dynamic>?> getGoogleLoginInfoForSignUp() async {
+    try {
+      // 메서드 호출 당시 이미 로그인 정보가 있으면 반환
+      if (_lastUserInfo != null) {
+        return _lastUserInfo;
+      }
+
+      _appStateViewModel.setLoading(true);
+
+      // 직접 로그인 시도 (이전 정보 없는 경우)
+      LoggerUtil.i('🔍 회원가입을 위한 Google 로그인 정보 획득 시도');
+      final result = await signInWithGoogle();
+
+      if (result is AuthNewUserEntity) {
+        // 신규 사용자는 이미 _lastUserInfo에 저장되어 있음
+        return _lastUserInfo;
+      } else {
+        LoggerUtil.w('Google 로그인 결과가 신규 사용자가 아님: $result');
+        return null;
+      }
+    } catch (e) {
+      LoggerUtil.e('회원가입용 Google 정보 획득 실패', e);
+      return null;
+    } finally {
+      _appStateViewModel.setLoading(false);
+    }
+  }
+
+  /// 회원가입 데이터 준비
+  Future<Map<String, dynamic>> prepareSignUpData({
+    required String nickname,
+    required String gender,
+    required int age,
+  }) async {
+    final userData = <String, dynamic>{
+      'nickname': nickname,
+      'gender': gender,
+      'age': age,
+    };
+
+    // 회원가입용 로그인 정보 획득
+    final googleInfo = await getGoogleLoginInfoForSignUp();
+    if (googleInfo != null && googleInfo.containsKey('email')) {
+      userData['email'] = googleInfo['email'];
+    }
+
+    return userData;
   }
 }
