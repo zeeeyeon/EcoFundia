@@ -1,0 +1,31 @@
+package com.ssafy.business.dto.responseDTO;
+
+import com.ssafy.business.entity.Category;
+import com.ssafy.business.entity.Status;
+import lombok.Builder;
+import lombok.Data;
+
+import java.time.LocalDateTime;
+
+@Data
+public class FundingResponseDTO {
+
+    private int fundingId;
+    private int sellerId;
+    private String title;
+    private String description;
+    private String storyFileUrl;
+    private String imageUrls;
+    private int price;
+    private int quantity;
+    private int targetAmount;
+    private int currentAmount;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
+
+    private Status status;
+    private Category category;
+
+    // 달성률
+    private int rate;
+}
