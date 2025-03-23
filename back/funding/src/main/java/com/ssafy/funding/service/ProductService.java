@@ -4,6 +4,8 @@ import com.ssafy.funding.dto.funding.request.FundingCreateRequestDto;
 import com.ssafy.funding.dto.funding.request.FundingUpdateRequestDto;
 import com.ssafy.funding.dto.funding.response.FundingResponseDto;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
+import com.ssafy.funding.dto.review.response.ReviewResponseDto;
+import com.ssafy.funding.dto.seller.SellerDetailResponseDto;
 import com.ssafy.funding.entity.Funding;
 import com.ssafy.funding.entity.enums.Status;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,5 +38,8 @@ public interface ProductService {
     GetFundingResponseDto getFundingDetail(int fundingId);
 
     // 브랜드 만족도 조회
-//    ReviewResponseDto getFundingReview(int sellerId, int page);
+    ReviewResponseDto getFundingReview(int sellerId, int page);
+
+    // 판매자 상세페이지 판매자 정보 요청 조회
+    SellerDetailResponseDto getSellerDetail(int sellerId);
 }

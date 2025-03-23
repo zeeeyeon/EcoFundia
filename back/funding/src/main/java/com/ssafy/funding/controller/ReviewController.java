@@ -3,8 +3,8 @@ package com.ssafy.funding.controller;
 import com.ssafy.funding.common.response.Response;
 import com.ssafy.funding.dto.review.request.ReviewCreateRequestDto;
 import com.ssafy.funding.dto.review.request.ReviewUpdateRequestDto;
-import com.ssafy.funding.dto.review.response.ReviewResponseDto;
-import com.ssafy.funding.dto.review.response.ReviewsResponseDto;
+import com.ssafy.funding.dto.review.response.SingleReviewResponseDto;
+import com.ssafy.funding.dto.review.response.ReviewListResponseDto;
 import com.ssafy.funding.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,19 +21,19 @@ public class ReviewController {
 
     @GetMapping("/{reviewId}")
     public ResponseEntity<?> getReview(@PathVariable int reviewId) {
-        ReviewResponseDto review = reviewService.getReview(reviewId);
+        SingleReviewResponseDto review = reviewService.getReview(reviewId);
         return new ResponseEntity<>(Response.create(GET_REVIEW, review), GET_REVIEW.getHttpStatus());
     }
 
     @GetMapping("/funding/{fundingId}")
     public ResponseEntity<?> getReviewsByFundingId(@PathVariable int fundingId) {
-        ReviewsResponseDto reviews = reviewService.getReviewsByFundingId(fundingId);
+        ReviewListResponseDto reviews = reviewService.getReviewsByFundingId(fundingId);
         return new ResponseEntity<>(Response.create(GET_REVIEW_LIST, reviews), GET_REVIEW_LIST.getHttpStatus());
     }
 
     @GetMapping("/seller/{sellerId}")
     public ResponseEntity<?> getReviewsBySeller(@PathVariable int sellerId) {
-        ReviewsResponseDto result = reviewService.getReviewsBySellerId(sellerId);
+        ReviewListResponseDto result = reviewService.getReviewsBySellerId(sellerId);
         return new ResponseEntity<>(Response.create(GET_REVIEW_LIST, result), GET_REVIEW_LIST.getHttpStatus());
     }
 

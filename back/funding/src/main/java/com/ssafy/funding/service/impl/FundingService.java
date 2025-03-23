@@ -7,6 +7,10 @@ import com.ssafy.funding.dto.funding.request.FundingCreateRequestDto;
 import com.ssafy.funding.dto.funding.request.FundingUpdateRequestDto;
 import com.ssafy.funding.dto.funding.response.FundingResponseDto;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
+import com.ssafy.funding.dto.review.response.ReviewDto;
+import com.ssafy.funding.dto.review.response.ReviewResponseDto;
+import com.ssafy.funding.dto.seller.SellerDetailDto;
+import com.ssafy.funding.dto.seller.SellerDetailResponseDto;
 import com.ssafy.funding.entity.Funding;
 import com.ssafy.funding.entity.enums.Status;
 import com.ssafy.funding.mapper.FundingMapper;
@@ -115,6 +119,7 @@ public class FundingService implements ProductService {
     }
 
     // 펀딩 상세 페이지
+    @Transactional
     public GetFundingResponseDto getFundingDetail(int fundingId) {
         Funding funding = fundingMapper.findById(fundingId);
         return funding.toDto();
@@ -131,11 +136,18 @@ public class FundingService implements ProductService {
                 .orElse(0.0);
 
         //Builder를 사용하여 겍체 생성
-                ReviewResponseDto response = ReviewResponseDto.builder()
+        ReviewResponseDto response = ReviewResponseDto.builder()
                 .totalRating(totalRating)
                 .reviews(reviewList)
                 .build();
 
         return response;
+    }
+
+    // 판매자 상세페이지 판매자 정보 요청 조회
+    @Transactional
+    public SellerDetailResponseDto getSellerDetail(int sellerId) {
+        List<SellerDetailDto> sellerDetailList = fundingMapper.getSellerDetail(sellerId);
+        return SellerDetailResponseDto.from(sellerDetailList);
     }
 }
