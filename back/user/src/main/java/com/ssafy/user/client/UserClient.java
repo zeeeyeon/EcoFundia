@@ -39,4 +39,7 @@ public interface UserClient {
 
     @DeleteMapping("/review/{reviewId}")
     public ResponseEntity<?> deleteMyReview(@RequestHeader("X-User-Id") String userId, @PathVariable("reviewId") int reviewId);
+
+    @PostMapping("/order/funding")
+    public ResponseEntity<?> createPayment(@RequestHeader("X-User-Id") String userId, @RequestBody CreatePaymentRequestDto requestDto);
 }

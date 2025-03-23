@@ -27,4 +27,6 @@ public interface UserService {
 
     void deleteMyReview(String userId, int reviewId);
 
+    void createPayment(String userId, CreatePaymentRequestDto requestDto);
+
 }

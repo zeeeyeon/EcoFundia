@@ -88,4 +88,13 @@ public class UserController {
         return new ResponseEntity<>(Response.create(SUCCESS, null), SUCCESS.getHttpStatus());
     }
 
+    @PostMapping("/order/funding")
+    public ResponseEntity<?> createPayment(@RequestHeader("X-User-Id") String userId, @RequestBody CreatePaymentRequestDto requestDto){
+        userService.createPayment(userId,requestDto);
+        return new ResponseEntity<>(Response.create(SUCCESS, null), SUCCESS.getHttpStatus());
+    }
+
+
+
+
 }
