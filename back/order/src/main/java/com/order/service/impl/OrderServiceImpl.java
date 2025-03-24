@@ -5,13 +5,17 @@ import com.order.client.SellerClient;
 import com.order.dto.funding.response.IsOngoingResponseDto;
 import com.order.dto.responseDto.OrderResponseDto;
 import com.order.dto.seller.response.SellerAccountResponseDto;
+import com.order.dto.ssafyApi.request.HeaderDto;
+import com.order.dto.ssafyApi.request.TransferRequestDto;
 import com.order.entity.Order;
 import com.order.mapper.OrderMapper;
 import com.order.service.OrderService;
+import com.order.service.ssafyApi.ApiRequestHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -22,7 +26,7 @@ public class OrderServiceImpl implements OrderService {
     private final SellerClient sellerClient;
 
     // 결제 하기
-    public OrderResponseDto createOrder(int userId, int fundingId, int quantity, int totalPrice){
+    public OrderResponseDto createOrder(int userId, int fundingId, int quantity, int totalPrice, String userKey, String userAccount){
         int amount = totalPrice / quantity;
 
         // 1. funding 중인 상품이 현재 펀딩 진행 중인지 확인 (sellerId 받아와아함)
@@ -41,8 +45,17 @@ public class OrderServiceImpl implements OrderService {
 
         // 3. 계좌 이체 하기
 
+        // 3.1 header 만들기
+        HeaderDto headerDto = new HeaderDto();
 
+        headerDto.buildHeaderDto("updateDemandDepositAccountTransfer", userKey);
 
+        // 3.2 request 만들기
+        TransferRequestDto transferRequestDto = new TransferRequestDto();
+
+        transferRequestDto.buildTransferRequestDto(headerDto, sellerAccountResponseDto.getSellerAccount(), userAccount, Integer.toString(totalPrice) );
+
+        // 요청 보내기
 
         OrderResponseDto orderResponseDto = orderMapper.createOrder(userId, fundingId, quantity, amount);
         return orderResponseDto;
