@@ -8,6 +8,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 @FeignClient(name = "funding" )
 public interface FundingClient {
 
-    @GetMapping("/funding/is-ongoing/{fundingId}")
+    @GetMapping("api/funding/is-ongoing/{fundingId}")
     IsOngoingResponseDto isOngoing(@PathVariable int fundingId);
 }

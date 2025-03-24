@@ -1,6 +1,7 @@
 package com.ssafy.funding.client;
 
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
+import com.ssafy.funding.dto.order.response.IsOngoingResponseDto;
 import com.ssafy.funding.dto.review.response.ReviewResponseDto;
 import com.ssafy.funding.dto.seller.SellerDetailResponseDto;
 import org.springframework.http.ResponseEntity;
@@ -51,6 +52,8 @@ public interface FundingClient {
     @GetMapping("api/funding/seller/detail/{sellerId}")
     SellerDetailResponseDto getSellerDetail(@PathVariable int sellerId);
 
-
+    // 결제전 현재 펀딩이 진행중인지 확인
+    @GetMapping("api/funding/is-ongoing/{fundingId}")
+    IsOngoingResponseDto isOngoing(@PathVariable int fundingId);
 }
 

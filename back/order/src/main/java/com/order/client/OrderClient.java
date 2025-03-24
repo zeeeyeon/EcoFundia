@@ -4,7 +4,6 @@ import com.order.entity.Order;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient(name="order")
@@ -18,7 +17,7 @@ public interface OrderClient {
                       @RequestParam(name = "amount") int amount,
                       @RequestParam(name = "totalPrice") int totalPrice,
                       @RequestParam(name = "userKey") String userKey,
-                      @RequestParam(name = "userKey") String userAccount);
+                      @RequestParam(name = "userAccount") String userAccount);
 
 
     // 내 펀딩 내역 조회
