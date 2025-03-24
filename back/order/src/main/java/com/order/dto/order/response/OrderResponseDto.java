@@ -1,4 +1,4 @@
-package com.order.dto.responseDto;
+package com.order.dto.order.response;
 
 import lombok.Data;
 

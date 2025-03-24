@@ -1,6 +1,6 @@
 package com.order.controller;
 
-import com.order.dto.responseDto.OrderResponseDto;
+import com.order.dto.order.response.OrderResponseDto;
 import com.order.entity.Order;
 import com.order.service.OrderService;
 import lombok.RequiredArgsConstructor;

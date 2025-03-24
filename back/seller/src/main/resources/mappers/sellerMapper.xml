@@ -16,4 +16,9 @@
         FROM seller WHERE seller_id = #{sellerId}
     </select>
 
+    <select id="getSeller" resultMap="sellerResultMap">
+        SELECT *
+        FROM seller WHERE seller_id = #{sellerId}
+    </select>
+
 </mapper>

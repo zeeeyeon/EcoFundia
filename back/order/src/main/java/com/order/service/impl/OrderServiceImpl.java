@@ -3,7 +3,7 @@ package com.order.service.impl;
 import com.order.client.FundingClient;
 import com.order.client.SellerClient;
 import com.order.dto.funding.response.IsOngoingResponseDto;
-import com.order.dto.responseDto.OrderResponseDto;
+import com.order.dto.order.response.OrderResponseDto;
 import com.order.dto.seller.response.SellerAccountResponseDto;
 import com.order.dto.ssafyApi.request.HeaderDto;
 import com.order.dto.ssafyApi.request.TransferRequestDto;
@@ -11,12 +11,12 @@ import com.order.dto.ssafyApi.response.ApiResponseDto;
 import com.order.entity.Order;
 import com.order.mapper.OrderMapper;
 import com.order.service.OrderService;
-import com.order.service.ssafyApi.ApiRequestHelper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +26,9 @@ public class OrderServiceImpl implements OrderService {
     private final FundingClient fundingClient;
     private final SellerClient sellerClient;
     private final com.order.service.ssafyApi.ssafyApiController ssafyApiController;
+
+    @Value("${adm.account}")
+    private String adminAccount;
 
     // 결제 하기
     public OrderResponseDto createOrder(int userId, int fundingId, int quantity, int totalPrice, String userKey, String userAccount){
@@ -38,12 +41,6 @@ public class OrderServiceImpl implements OrderService {
             return null;
         }
 
-        // 2. seller아이디로 seller 서비스에 (계좌번호, ssafy_user_key) 조회
-        SellerAccountResponseDto sellerAccountResponseDto = sellerClient.getSellerAccount(isOngoingResponseDto.getSellerId());
-
-        if (sellerAccountResponseDto == null){ // seller 계좌가 없으면
-            return null;
-        }
 
         // 3. 계좌 이체 하기
 
@@ -55,7 +52,7 @@ public class OrderServiceImpl implements OrderService {
         // 3.2 request 만들기
         TransferRequestDto transferRequestDto = new TransferRequestDto();
 
-        transferRequestDto.buildTransferRequestDto(headerDto, sellerAccountResponseDto.getSellerAccount(), userAccount, Integer.toString(totalPrice) );
+        transferRequestDto.buildTransferRequestDto(headerDto, adminAccount, userAccount, Integer.toString(totalPrice) );
 
         // 요청 보내기
         ApiResponseDto response = ssafyApiController.accountTransfer(transferRequestDto);
@@ -66,7 +63,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // 성공하면 order 테이블에 삽입
-        OrderResponseDto orderResponseDto = orderMapper.createOrder(userId, fundingId, quantity, amount);
+        OrderResponseDto orderResponseDto = orderMapper.createOrder(userId, fundingId, quantity, amount, quantity);
         return orderResponseDto;
     }
 

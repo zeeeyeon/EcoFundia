@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(name = "seller")
 public interface SellerClient {
 
+    // 판매자 계좌 번호 조회
     @GetMapping("api/seller/find/account")
     SellerAccountResponseDto getSellerAccount(@RequestParam(name = "sellerId") int sellerId);
 
