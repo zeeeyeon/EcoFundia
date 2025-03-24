@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class FundingResponseDTO {
@@ -15,7 +16,7 @@ public class FundingResponseDTO {
     private String title;
     private String description;
     private String storyFileUrl;
-    private String imageUrls;
+    private List<String> imageUrls;
     private int price;
     private int quantity;
     private int targetAmount;
