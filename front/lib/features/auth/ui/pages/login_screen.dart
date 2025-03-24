@@ -114,7 +114,7 @@ class LoginScreen extends ConsumerWidget {
       } else if (result is AuthNewUserEntity) {
         // 회원가입 필요 - 회원가입 화면으로 이동
         if (context.mounted) {
-          context.pushNamed('signup');
+          context.pushNamed('/signup');
         }
       } else if (result is AuthErrorEntity) {
         // 에러 발생

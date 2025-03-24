@@ -41,7 +41,8 @@ class AuthService {
         throw AuthException('액세스 토큰을 획득하지 못했습니다.');
       }
 
-      LoggerUtil.i('✅ 액세스 토큰 획득 성공');
+      LoggerUtil.i(
+          '✅ 액세스 토큰 획득 성공: ${accessToken.substring(0, min(10, accessToken.length))}...');
       return accessToken;
     } catch (e) {
       LoggerUtil.e('❌ Google 액세스 토큰 획득 실패', e);

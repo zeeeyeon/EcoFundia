@@ -83,9 +83,6 @@ class ApiService {
 
   /// 에러 처리
   void _onError(DioException e, ErrorInterceptorHandler handler) async {
-    LoggerUtil.e(
-        '❌ API 오류: ${e.response?.statusCode} ${e.requestOptions.path}', e);
-
     // 401 에러 시 토큰 갱신 시도
     if (e.response?.statusCode == 401) {
       try {

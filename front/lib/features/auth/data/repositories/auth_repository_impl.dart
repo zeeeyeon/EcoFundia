@@ -33,36 +33,52 @@ class AuthRepositoryImpl implements AuthRepository {
   /// Google 토큰으로 서버에 인증 요청 (내부 구현용)
   Future<AuthResponseModel> _authenticateWithGoogle(String accessToken) async {
     try {
+      LoggerUtil.i('🔄 Google 토큰으로 로그인 시도');
+      LoggerUtil.d('요청 URL: ${ApiService.apiEndpoints.login}');
+      LoggerUtil.d(
+          '요청 데이터: {"token": "${accessToken.substring(0, min(10, accessToken.length))}..."}');
+
       final response = await _apiService
           .post(ApiService.apiEndpoints.login, data: {'token': accessToken});
+
+      LoggerUtil.i('✅ 서버 응답 코드: ${response.statusCode}');
+      LoggerUtil.d('응답 데이터: ${response.data}');
 
       if (response.data == null) {
         throw AuthException('서버 응답이 올바르지 않습니다.');
       }
 
       final authResponse = AuthResponseModel.fromJson(response.data);
+      LoggerUtil.d('파싱된 응답: $authResponse');
 
       // 인증 정보 저장
       if (authResponse.accessToken != null) {
         await StorageService.saveToken(authResponse.accessToken!);
+        LoggerUtil.d('액세스 토큰 저장됨');
       }
       if (authResponse.refreshToken != null) {
         await StorageService.saveRefreshToken(authResponse.refreshToken!);
+        LoggerUtil.d('리프레시 토큰 저장됨');
       }
       if (authResponse.user?.userId != null) {
         await StorageService.saveUserId(authResponse.user!.userId.toString());
         await StorageService.saveUserEmail(authResponse.user!.email);
         await StorageService.saveUserNickname(authResponse.user!.nickname);
+        LoggerUtil.d('사용자 정보 저장됨');
       }
 
       return authResponse;
     } on DioException catch (e) {
       final statusCode = e.response?.statusCode;
+      LoggerUtil.e('❌ API 오류 발생: $statusCode');
+      LoggerUtil.d('에러 응답: ${e.response?.data}');
+      LoggerUtil.d('에러 메시지: ${e.message}');
 
       switch (statusCode) {
         case 400:
           throw AuthException('잘못된 액세스 토큰입니다.', statusCode: 400);
         case 401:
+          LoggerUtil.e('인증 실패 - 토큰이 유효하지 않거나 만료되었습니다.');
           throw AuthException('인증에 실패했습니다.', statusCode: 401);
         case 404:
           String message = '해당 이메일로 가입된 사용자가 없습니다. 회원가입이 필요합니다.';
