@@ -1,6 +1,7 @@
 package com.ssafy.user.service.impl;
 
 import com.ssafy.user.client.FundingClient;
+import com.ssafy.user.client.OrderClient;
 import com.ssafy.user.dto.request.*;
 import com.ssafy.user.dto.response.*;
 import com.ssafy.user.entity.RefreshToken;
@@ -31,6 +32,7 @@ public class UserServiceImpl implements UserService {
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private static final String GOOGLE_USER_INFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo";
     private final FundingClient fundingClient;
+    private final OrderClient orderClient;
 
     @Override
     public LoginResponseDto verifyUser(LoginRequestDto requestDto) {
@@ -160,7 +162,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<FundingResponseDto> getMyFundingDetails(String userId) {
         try {
-            return fundingClient.getMyFundings(userId);
+            return orderClient.getMyFundings(userId);
         }catch (FeignException e){
             throw new CustomException(INTERNAL_SERVER_ERROR);
         }
@@ -169,7 +171,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public GetMyTotalFundingResponseDto getMyFundingTotal(String userId) {
         try {
-            return fundingClient.getMyTotalFunding(userId);
+            return orderClient.getMyTotalFunding(userId);
         }catch (FeignException e){
             throw new CustomException(INTERNAL_SERVER_ERROR);
         }
@@ -206,6 +208,22 @@ public class UserServiceImpl implements UserService {
     public void deleteMyReview(String userId, int reviewId) {
         try {
             fundingClient.deleteMyReview(userId, reviewId);
+        }catch (FeignException e){
+            throw new CustomException(INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public void createPayment(String userId, CreatePaymentRequestDto requestDto) {
+        // 테이블정해지고 구현 매퍼에 추가
+        String account = null;
+        CreateOrderRequestDto dto = CreateOrderRequestDto.builder()
+                .fundingId(requestDto.getFundingId())
+                .quantity(requestDto.getQuantity())
+                .account(account)
+                .build();
+        try {
+            fundingClient.createPayment(userId,dto);
         }catch (FeignException e){
             throw new CustomException(INTERNAL_SERVER_ERROR);
         }
