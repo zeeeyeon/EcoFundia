@@ -10,4 +10,12 @@ class ProfileRepository {
   Future<ProfileModel> getProfile() async {
     return await service.fetchUserProfile();
   }
+
+  // 프로필 업데이트 (닉네임 + 계좌)
+  Future<void> updateProfile({
+    required String nickname,
+    required String account,
+  }) async {
+    await service.updateProfile(nickname: nickname, account: account);
+  }
 }

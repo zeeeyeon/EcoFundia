@@ -13,6 +13,8 @@ class ProfileEditScreen extends ConsumerStatefulWidget {
 class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nicknameController = TextEditingController();
+  final TextEditingController _accountController =
+      TextEditingController(); // ✅ 추가
 
   @override
   void initState() {
@@ -23,6 +25,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
         );
     if (profile != null) {
       _nicknameController.text = profile.nickname;
+      _accountController.text = profile.account; // ✅ 계좌 초기화
     }
   }
 
@@ -61,22 +64,41 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                   },
                 ),
                 const SizedBox(height: 20),
+
+                // ✅ 계좌 입력란
+                const Text("계좌", style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _accountController,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    hintText: '계좌번호를 입력하세요',
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return '계좌번호를 입력해주세요';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+
                 _buildReadOnlyField(label: "이메일", value: profile.email),
                 _buildReadOnlyField(label: "이름", value: profile.name),
                 _buildReadOnlyField(label: "성별", value: profile.gender),
                 _buildReadOnlyField(label: "나이", value: profile.age.toString()),
-                // const SizedBox(height: 10),
+
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      final updatedNickname = _nicknameController.text.trim();
+                      final nickname = _nicknameController.text.trim();
+                      final account = _accountController.text.trim();
 
-                      // ✅ ViewModel 호출 (닉네임 변경)
-                      ref
+                      await ref
                           .read(profileProvider.notifier)
-                          .updateNickname(updatedNickname);
+                          .updateProfile(nickname: nickname, account: account);
 
-                      // ✅ 저장 완료 알림
+                      if (!mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('프로필이 저장되었습니다')),
                       );
@@ -106,7 +128,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
           TextFormField(
             initialValue: value,
             readOnly: true,
-            style: const TextStyle(color: Colors.grey), // 흐린 텍스트 색상
+            style: const TextStyle(color: Colors.grey),
             decoration: InputDecoration(
               filled: true,
               fillColor: Colors.grey[200],

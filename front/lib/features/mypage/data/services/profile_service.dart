@@ -16,11 +16,21 @@ class ProfileService {
           "nickname": "길동이",
           "gender": "MALE",
           "age": 30,
+          "account": "농협 302-1234-5678-91",
           "createdAt": "2025-03-19T12:34:56Z"
         }
       }
     };
 
-    return ProfileModel.fromJson(mockJson);
+    final userJson = mockJson['content']?['user'] as Map<String, dynamic>;
+    return ProfileModel.fromJson(userJson);
+  }
+
+  // 계좌 정보까지 포함한 업데이트 함수 (추후 API 연동 시 사용)
+  Future<void> updateProfile(
+      {required String nickname, required String account}) async {
+    // TODO: 실제 API 연동 예정
+    print('[MOK] 업데이트 요청 - 닉네임: $nickname, 계좌: $account');
+    await Future.delayed(const Duration(milliseconds: 500)); // Mok 응답 시간
   }
 }
