@@ -13,8 +13,6 @@ public interface UserMapper {
 
     User findByEmail(String email);
 
-    int isSeller(int userId);
-
     void insertUser(User user);
 
     void insertRefreshToken(@Param("userId") int userId,
@@ -26,5 +24,5 @@ public interface UserMapper {
 
     void deleteRefreshTokenById(@Param("id") int id);
 
-    int updateMyInfo(@Param("email") String email, @Param("nickname") String nickname);
+    int updateMyInfo(@Param("email") String email, @Param("nickname") String nickname, @Param("account") String account);
 }
