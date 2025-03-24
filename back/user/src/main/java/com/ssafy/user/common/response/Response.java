@@ -24,4 +24,11 @@ public class Response<T> {
                 .content(content)
                 .build();
     }
+
+    public static <T> Response<?> error(int statusCode, String message) {
+        return Response.builder()
+                .status(new Status(String.valueOf(statusCode), message))
+                .content(null)
+                .build();
+    }
 }

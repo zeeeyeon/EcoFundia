@@ -69,7 +69,8 @@ public class JwtAuthGatewayFilterFactory extends AbstractGatewayFilterFactory<Jw
             }
 
             // JWT에서 userId와 email(Subject) 추출
-            String userId = String.valueOf(claims.get("userId"));
+            String userId = claims.get("userId").toString();
+
 
             // 요청을 변경하여 downstream으로 전달할 때 인증 정보를 헤더에 추가
             ServerWebExchange modifiedExchange = exchange.mutate()
