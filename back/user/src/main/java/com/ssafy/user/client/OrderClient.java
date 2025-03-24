@@ -10,10 +10,10 @@ import java.util.List;
 
 @FeignClient(name = "order")
 public interface OrderClient {
-    @GetMapping("/api/funding/my")
+    @GetMapping("/api/order/my")
     List<FundingResponseDto> getMyFundings(@RequestHeader("X-User-Id") String userId);
 
-    @GetMapping("/api/funding/my/total")
+    @GetMapping("/api/order/my/total")
     GetMyTotalFundingResponseDto getMyTotalFunding(@RequestHeader("X-User-Id") String userId);
 
 }
