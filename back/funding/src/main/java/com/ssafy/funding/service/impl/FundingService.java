@@ -90,29 +90,34 @@ public class FundingService implements ProductService {
     }
 
     // 현재까지 펀딩 금액 조회
+    @Transactional
     public Long getTotalFund(){
         return fundingMapper.getTotalFund();
     }
 
     // Top 펀딩 리스트 조회
+    @Transactional
     public List<GetFundingResponseDto> getTopFundingList(){
         List<Funding> fundingList = fundingMapper.getTopFundingList();
         return fundingList.stream().map(Funding::toDto).collect(Collectors.toList());
     }
 
     // 최신 펀딩 리스트 조회
+    @Transactional
     public List<GetFundingResponseDto> getLatestFundingList(int page){
         List<Funding> fundingList = fundingMapper.getLatestFundingList((page - 1)  * 5);
         return fundingList.stream().map(Funding::toDto).collect(Collectors.toList());
     }
 
     // 카테고리별 펀딩 리스트 조회
+    @Transactional
     public List<GetFundingResponseDto> getCategoryFundingList(String category, int page){
         List<Funding> fundingList = fundingMapper.getCategoryFundingList(category, (page - 1)  * 5);
         return fundingList.stream().map(Funding::toDto).collect(Collectors.toList());
     }
 
     // 펀딩 키워드 검색 조회
+    @Transactional
     public List<GetFundingResponseDto> getSearchFundingList(String keyword, int page) {
         List<Funding> fundingList = fundingMapper.getSearchFunding(keyword, (page - 1)  * 5);
         return fundingList.stream().map(Funding::toDto).collect(Collectors.toList());
@@ -127,6 +132,7 @@ public class FundingService implements ProductService {
 
 
     // 브랜드 만족도 조회
+    @Transactional
     public ReviewResponseDto getFundingReview(int sellerId, int page) {
         List<ReviewDto> reviewList = fundingMapper.getReviewList(sellerId, (page - 1) * 5); // 지금 페이지 네이션 x
 
