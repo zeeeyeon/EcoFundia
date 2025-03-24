@@ -121,7 +121,7 @@ public class UserServiceImpl implements UserService {
             throw new CustomException(INVALID_REFRESH_TOKEN);
         }
 
-        userMapper.deleteRefreshTokenById(validToken.getId());
+        userMapper.deleteRefreshTokenById(validToken.getTokenId());
 
         //이거 role 수정해야함
         String role = "SELLER";
