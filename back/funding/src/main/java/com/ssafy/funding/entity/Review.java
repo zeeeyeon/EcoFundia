@@ -18,7 +18,6 @@ public class Review {
     private String nickname;
     private LocalDateTime createdAt;
     
-    // ALTER TABLE review ADD CONSTRAINT unique_user_funding_review UNIQUE (user_id, funding_id);
     @Builder
     public Review(int userId, int fundingId, int rating, String content, String nickname) {
         this.userId = userId;
