@@ -33,8 +33,4 @@ public class ApiResponseDto {
         private String transactionTypeName;
         private String transactionAccountNo;
     }
-
-
-
-
 }
