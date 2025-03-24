@@ -23,7 +23,7 @@ class FundingStatusCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // ✅ 펀딩현황 (클릭 없음)
+            // 펀딩현황 (클릭 없음)
             Expanded(
               child: _buildStatusItem(
                 "펀딩현황",
@@ -39,7 +39,7 @@ class FundingStatusCard extends StatelessWidget {
               color: Colors.grey.shade300,
             ),
 
-            // ✅ 쿠폰 (클릭 시 이동 + 밑줄 표시)
+            // 쿠폰 (클릭 시 이동 + 밑줄 표시)
             Expanded(
               child: GestureDetector(
                 onTap: () {

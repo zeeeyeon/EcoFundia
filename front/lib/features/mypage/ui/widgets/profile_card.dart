@@ -28,7 +28,7 @@ class ProfileCard extends StatelessWidget {
               context,
               icon: Icons.rate_review,
               label: "내 후기",
-              route: '/review', // 후기 작성 페이지 이동
+              route: '/my-reviews', // 후기 작성 페이지 이동
             ),
             _buildFeatureButton(
               context,

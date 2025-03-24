@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/features/mypage/ui/pages/coupon_screen.dart';
+import 'package:front/features/mypage/ui/pages/my_review_screen.dart';
 import 'package:front/features/mypage/ui/pages/profile_edit_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:front/features/auth/ui/pages/login_screen.dart';
@@ -102,10 +103,21 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/review/:id',
                 builder: (context, state) {
-                  final fundingId =
-                      int.parse(state.pathParameters['id']!); // 👈 추출
-                  return WriteReviewScreen(fundingId: fundingId);
+                  final id = int.parse(state.pathParameters['id']!);
+                  final extra = state.extra as Map<String, dynamic>?;
+
+                  return WriteReviewScreen(
+                    fundingId: id,
+                    title: extra?['title'] ?? '',
+                    description: extra?['description'] ?? '',
+                    totalPrice: extra?['totalPrice'] ?? 0,
+                  );
                 },
+              ),
+              GoRoute(
+                path: '/my-reviews',
+                name: 'myReviews',
+                builder: (context, state) => const MyReviewScreen(),
               ),
               GoRoute(
                 path: '/profile-edit',

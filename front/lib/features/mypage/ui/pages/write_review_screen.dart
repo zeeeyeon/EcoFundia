@@ -1,24 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/ui/widgets/custom_app_bar.dart';
+import '../../data/models/write_review_request.dart';
+import '../view_model/write_review_view_model.dart';
+import '../widgets/write_review_widgets.dart';
 
-class WriteReviewScreen extends StatefulWidget {
+class WriteReviewScreen extends ConsumerStatefulWidget {
   final int fundingId;
+  final String title;
+  final String description;
+  final int totalPrice;
 
-  const WriteReviewScreen({super.key, required this.fundingId});
+  const WriteReviewScreen({
+    super.key,
+    required this.fundingId,
+    required this.title,
+    required this.description,
+    required this.totalPrice,
+  });
 
   @override
-  State<WriteReviewScreen> createState() => _WriteReviewScreenState();
+  ConsumerState<WriteReviewScreen> createState() => _WriteReviewScreenState();
 }
 
-class _WriteReviewScreenState extends State<WriteReviewScreen> {
+class _WriteReviewScreenState extends ConsumerState<WriteReviewScreen> {
   final TextEditingController _controller = TextEditingController();
   int _selectedRating = 5;
 
   @override
   Widget build(BuildContext context) {
+    final reviewState = ref.watch(writeReviewViewModelProvider);
+
     return Scaffold(
       appBar: const CustomAppBar(
-        title: '내 리뷰',
+        title: '리뷰 작성',
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -26,126 +41,59 @@ class _WriteReviewScreenState extends State<WriteReviewScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text('이 상품 어떠셨나요 ?', style: TextStyle(fontSize: 16)),
-
             const SizedBox(height: 12),
-
-            // 상품 정보 카드
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade300),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    '김한민 컴퍼니',
-                    style: TextStyle(fontSize: 13, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    '[노트북 보조 모니터] 모니터+ USB 허브 게임 영상 주식을 한번에!',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    '25,0000원',
-                    style: TextStyle(
-                        color: Colors.green, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // 별점
-                  Row(
-                    children: List.generate(5, (index) {
-                      return IconButton(
-                        onPressed: () {
-                          setState(() {
-                            _selectedRating = index + 1;
-                          });
-                        },
-                        icon: Icon(
-                          Icons.star,
-                          color: _selectedRating > index
-                              ? Colors.green
-                              : Colors.grey.shade300,
-                        ),
-                        iconSize: 28,
-                        padding: EdgeInsets.zero,
-                      );
-                    }),
-                  ),
-                ],
-              ),
+            ReviewProductCard(
+              title: widget.title,
+              description: widget.description,
+              totalPrice: widget.totalPrice,
+              selectedRating: _selectedRating,
+              onRatingChanged: (rating) {
+                setState(() {
+                  _selectedRating = rating;
+                });
+              },
             ),
-
             const SizedBox(height: 24),
             const Text('어떤 점이 좋았나요 ?', style: TextStyle(fontSize: 16)),
             const SizedBox(height: 10),
-
-            // 리뷰 입력란
-            Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade300),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: TextField(
-                controller: _controller,
-                maxLines: 6,
-                decoration: const InputDecoration(
-                  hintText: '리뷰를 작성해주세요,',
-                  border: InputBorder.none,
-                ),
-              ),
-            ),
-
+            ReviewInputField(controller: _controller),
             const Spacer(),
+            ReviewActionButtons(
+              onSubmit: () async {
+                final content = _controller.text.trim();
+                final rating = _selectedRating;
 
-            // 하단 버튼들
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      final review = _controller.text.trim();
-                      if (review.isNotEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('리뷰가 저장되었습니다!')),
-                        );
-                        Navigator.pop(context);
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFB7E800), // 연두색
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    child: const Text('등록'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.grey,
-                      side: const BorderSide(color: Colors.grey),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    child: const Text('취소'),
-                  ),
-                ),
-              ],
+                if (content.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('리뷰 내용을 입력해주세요.')),
+                  );
+                  return;
+                }
+
+                final request = WriteReviewRequest(
+                  fundingId: widget.fundingId,
+                  rating: rating,
+                  content: content,
+                );
+
+                await ref
+                    .read(writeReviewViewModelProvider.notifier)
+                    .submitReview(request);
+
+                final result = ref.read(writeReviewViewModelProvider);
+                if (result is AsyncData && result.value == true) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('리뷰가 저장되었습니다!')),
+                  );
+                  Navigator.pop(context);
+                } else if (result is AsyncError) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('리뷰 등록에 실패했습니다.')),
+                  );
+                }
+              },
+              onCancel: () => Navigator.pop(context),
             ),
           ],
         ),

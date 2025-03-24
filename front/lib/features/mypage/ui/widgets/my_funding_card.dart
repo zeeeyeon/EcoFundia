@@ -148,7 +148,14 @@ class MyFundingCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                       onPressed: () {
-                        context.push('/review/${funding.fundingId}');
+                        context.push(
+                          '/review/${funding.fundingId}',
+                          extra: {
+                            'title': funding.title,
+                            'description': funding.description,
+                            'totalPrice': funding.totalPrice,
+                          },
+                        );
                       },
                       icon: const Icon(Icons.edit, size: 18),
                       label: const Text(
