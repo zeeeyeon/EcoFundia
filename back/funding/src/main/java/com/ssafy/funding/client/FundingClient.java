@@ -3,6 +3,7 @@ package com.ssafy.funding.client;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
 import com.ssafy.funding.dto.review.response.ReviewResponseDto;
 import com.ssafy.funding.dto.seller.SellerDetailResponseDto;
+import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,7 +14,7 @@ import java.util.List;
 // Client 선언부, name 또는 url 사용 가능
 // name or value 둘중 하나는 있어야 오류가 안남남
 //@FeignClient(name = "funding-client", url = "http://localhost:8080")
-//@FeignClient(name = "funding")
+@FeignClient(name = "funding")
 public interface FundingClient {
 
 
