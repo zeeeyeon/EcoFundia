@@ -44,7 +44,8 @@ public class UserServiceImpl implements UserService {
             throw new CustomException(USER_NOT_SIGNED_UP);
         }
 
-        String role = userMapper.isSeller(user.getUserId()) > 0 ? "SELLER" : "USER";
+        // role 수정
+        String role = "SELLER";
         String accessToken = jwtUtil.generateAccessToken(user, role);
         String refreshToken = jwtUtil.generateRefreshToken(user);
 
@@ -74,7 +75,8 @@ public class UserServiceImpl implements UserService {
 
         userMapper.insertUser(user);
 
-        String role = userMapper.isSeller(user.getUserId()) > 0 ? "SELLER" : "USER";
+        // role 수정
+        String role = "SELLER";
         String accessToken = jwtUtil.generateAccessToken(user, role);
         String refreshToken = jwtUtil.generateRefreshToken(user);
 
@@ -121,7 +123,8 @@ public class UserServiceImpl implements UserService {
 
         userMapper.deleteRefreshTokenById(validToken.getId());
 
-        String role = userMapper.isSeller(user.getUserId()) > 0 ? "SELLER" : "USER";
+        //이거 role 수정해야함
+        String role = "SELLER";
         String newAccessToken = jwtUtil.generateAccessToken(user, role);
         String newRefreshToken = jwtUtil.generateRefreshToken(user);
         String newHashedRefreshToken = passwordEncoder.encode(newRefreshToken);
@@ -155,7 +158,7 @@ public class UserServiceImpl implements UserService {
             throw new CustomException(INVALID_ACCESS_TOKEN);
         }
         String email = (String) authentication.getPrincipal();
-        int count = userMapper.updateMyInfo(email, requestDto.getNickname());
+        int count = userMapper.updateMyInfo(email, requestDto.getNickname(),requestDto.getAccount());
 
     }
 
