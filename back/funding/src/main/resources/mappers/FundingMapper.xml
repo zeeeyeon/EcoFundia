@@ -23,7 +23,7 @@
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
-    <resultMap id="ReviewResultMap" type="com.ssafy.funding.dto.review.response.ReviewDto">
+    <resultMap id="ReviewResultMap" type="com.ssafy.funding.dto.ReviewDto">
         <id column="review_id" property="reviewId"/>
         <result column="rating" property="rating"/>
         <result column="content" property="content"/>

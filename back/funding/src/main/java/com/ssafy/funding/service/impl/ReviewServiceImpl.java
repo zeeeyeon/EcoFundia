@@ -3,6 +3,7 @@ package com.ssafy.funding.service.impl;
 import com.ssafy.funding.common.exception.CustomException;
 import com.ssafy.funding.dto.review.request.ReviewCreateRequestDto;
 import com.ssafy.funding.dto.review.request.ReviewUpdateRequestDto;
+import com.ssafy.funding.dto.review.response.ReviewDto;
 import com.ssafy.funding.dto.review.response.SingleReviewResponseDto;
 import com.ssafy.funding.dto.review.response.ReviewListResponseDto;
 import com.ssafy.funding.entity.Review;
@@ -45,6 +46,11 @@ public class ReviewServiceImpl implements ReviewService {
     public ReviewListResponseDto getReviewsBySellerId(int sellerId) {
         List<Review> reviews = reviewMapper.findBySellerId(sellerId);
         return aggregateRatingAndReviews(reviews);
+    }
+
+    @Override
+    public List<ReviewDto> getReviewsByUserId(int userId) {
+        return reviewMapper.findByUserId(userId);
     }
 
 
