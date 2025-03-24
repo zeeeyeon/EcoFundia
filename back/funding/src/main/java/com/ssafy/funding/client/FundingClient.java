@@ -1,12 +1,13 @@
 package com.ssafy.funding.client;
 
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
+import com.ssafy.funding.dto.review.request.ReviewCreateRequestDto;
+import com.ssafy.funding.dto.review.request.ReviewUpdateRequestDto;
+import com.ssafy.funding.dto.review.response.ReviewDto;
 import com.ssafy.funding.dto.review.response.ReviewResponseDto;
 import com.ssafy.funding.dto.seller.SellerDetailResponseDto;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -15,7 +16,6 @@ import java.util.List;
 //@FeignClient(name = "funding-client", url = "http://localhost:8080")
 //@FeignClient(name = "funding")
 public interface FundingClient {
-
 
     @GetMapping("/api/funding")
     ResponseEntity<Object> getAllfunding();
@@ -51,6 +51,19 @@ public interface FundingClient {
     @GetMapping("api/funding/seller/detail/{sellerId}")
     SellerDetailResponseDto getSellerDetail(@PathVariable int sellerId);
 
+    @GetMapping("api/review/user")
+    List<ReviewDto> getReviewsByUserId(@RequestHeader("X-User-Id") String userId);
 
+    @PostMapping("api/review")
+    ResponseEntity<?> createReview(@RequestHeader("X-User-Id") int userId, @RequestBody ReviewCreateRequestDto dto);
+
+    @RequestMapping(method = RequestMethod.PATCH, value = "/api/review/{reviewId}")
+    ResponseEntity<?> updateReview(@RequestHeader("X-User-Id") int userId,
+                                   @PathVariable int reviewId,
+                                   @RequestBody ReviewUpdateRequestDto dto);
+
+    @RequestMapping(method = RequestMethod.DELETE, value = "/api/review/{reviewId}")
+    ResponseEntity<?> deleteReview(@RequestHeader("X-User-Id") int userId,
+                                   @PathVariable int reviewId);
 }
 

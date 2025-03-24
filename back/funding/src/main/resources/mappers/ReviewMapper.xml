@@ -35,6 +35,20 @@
         WHERE f.seller_id = #{sellerId}
     </select>
 
+    <select id="findByUserId" resultType="com.ssafy.funding.dto.review.response.ReviewDto">
+        SELECT
+            r.review_id,
+            r.rating,
+            r.content,
+            r.user_id,
+            r.nickname,
+            r.funding_id,
+            f.title
+        FROM review r
+                 JOIN funding f ON r.funding_id = f.funding_id
+        WHERE r.user_id = #{userId}
+    </select>
+
     <update id="updateReview" parameterType="com.ssafy.funding.entity.Review">
         UPDATE review
         SET content = #{content},
