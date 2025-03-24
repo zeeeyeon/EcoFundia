@@ -83,8 +83,15 @@ class ApiService {
 
   /// 에러 처리
   void _onError(DioException e, ErrorInterceptorHandler handler) async {
-    // 401 에러 시 토큰 갱신 시도
-    if (e.response?.statusCode == 401) {
+    final path = e.requestOptions.path;
+
+    // 인증 관련 경로인지 확인 (로그인, 회원가입 등)
+    final isAuthPath = path.contains('/login') ||
+        path.contains('/signup') ||
+        path.contains('/register');
+
+    // 401 에러 시 토큰 갱신 시도 (인증 경로가 아닌 경우에만)
+    if (e.response?.statusCode == 401 && !isAuthPath) {
       try {
         LoggerUtil.i('🔄 토큰 갱신 시도');
         final refreshed = await _refreshToken();
@@ -106,6 +113,9 @@ class ApiService {
         await StorageService.clearAll();
         LoggerUtil.i('🚪 자동 로그아웃 처리됨');
       }
+    } else if (e.response?.statusCode == 401 && isAuthPath) {
+      // 인증 경로에서 401 에러 (정상적인 경우)
+      LoggerUtil.d('🔒 인증 API에서 401 에러 발생 - 로그인/회원가입 과정 중 예상된 상태');
     }
 
     return handler.next(e);
@@ -167,9 +177,9 @@ class ApiService {
   }
 
   /// POST 요청
-  Future<Response> post(String path, {dynamic data}) async {
+  Future<Response> post(String path, {dynamic data, Options? options}) async {
     try {
-      return await _dio.post(path, data: data);
+      return await _dio.post(path, data: data, options: options);
     } catch (e) {
       LoggerUtil.e('❌ POST 요청 실패: $path', e);
       rethrow;

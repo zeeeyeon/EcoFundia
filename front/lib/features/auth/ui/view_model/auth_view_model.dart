@@ -66,29 +66,43 @@ class AuthViewModel extends StateNotifier<bool> {
     await StorageService.saveUserNickname(nickname);
   }
 
-  /// Google 로그인 진행
+  /// Google 로그인 수행
   Future<AuthResultEntity> signInWithGoogle() async {
     try {
       _appStateViewModel.setLoading(true);
       _appStateViewModel.clearError();
 
-      final result = await _googleSignInUseCase.execute();
+      final result = await _authRepository.signInWithGoogle();
 
+      // 결과에 따른 처리
       if (result is AuthSuccessEntity) {
-        // 로그인 성공 처리
-        final userData = result.user;
+        final successResult = result;
+        LoggerUtil.i('✅ 로그인 성공: ${successResult.user.email}');
+        // 사용자 데이터 저장
         await _updateUserSessionData(
-            userData.userId.toString(), userData.email, userData.nickname);
+          successResult.user.userId.toString(),
+          successResult.user.email,
+          successResult.user.nickname,
+        );
         state = true;
       } else if (result is AuthNewUserEntity) {
-        // 회원가입 필요 처리 - 구글 사용자 정보 획득
+        LoggerUtil.i('🔄 회원가입 필요: ${result.message}');
+        // 구글 사용자 정보 획득
         _lastUserInfo = await _authRepository.getGoogleUserInfo();
         LoggerUtil.i('📝 회원가입용 Google 정보 획득: $_lastUserInfo');
+      } else if (result is AuthErrorEntity) {
+        LoggerUtil.e('❌ 인증 오류: ${result.message} (코드: ${result.statusCode})');
+        _appStateViewModel.setError(result.message);
+        state = false;
+      } else if (result is AuthCancelledEntity) {
+        LoggerUtil.i('⚠️ 로그인 취소됨');
+        state = false;
       }
 
       return result;
     } catch (e) {
-      LoggerUtil.e('Google 로그인 실패 (ViewModel)', e);
+      LoggerUtil.e('❌ 로그인 중 오류 발생', e);
+      _appStateViewModel.setError('로그인 중 오류가 발생했습니다.');
       return AuthResultEntity.error(e.toString());
     } finally {
       _appStateViewModel.setLoading(false);

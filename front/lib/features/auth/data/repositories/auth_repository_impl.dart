@@ -10,6 +10,7 @@ import 'package:front/core/exceptions/auth_exception.dart';
 import 'package:front/features/auth/data/models/auth_response_model.dart';
 import 'package:front/features/auth/domain/entities/auth_result_entity.dart';
 import 'package:front/features/auth/domain/entities/sign_up_entity.dart';
+import 'package:flutter/foundation.dart';
 
 /// 인증 리포지토리 구현체
 class AuthRepositoryImpl implements AuthRepository {
@@ -38,8 +39,16 @@ class AuthRepositoryImpl implements AuthRepository {
       LoggerUtil.d(
           '요청 데이터: {"token": "${accessToken.substring(0, min(10, accessToken.length))}..."}');
 
-      final response = await _apiService
-          .post(ApiService.apiEndpoints.login, data: {'token': accessToken});
+      // 웹 환경에서는 CORS 문제로 인해 커스텀 헤더를 사용하지 않음
+      const isWeb = kIsWeb;
+      final options =
+          isWeb ? null : Options(headers: {'X-Skip-Token-Refresh': 'true'});
+
+      final response = await _apiService.post(
+        ApiService.apiEndpoints.login,
+        data: {'token': accessToken},
+        options: options,
+      );
 
       LoggerUtil.i('✅ 서버 응답 코드: ${response.statusCode}');
       LoggerUtil.d('응답 데이터: ${response.data}');
@@ -50,6 +59,12 @@ class AuthRepositoryImpl implements AuthRepository {
 
       final authResponse = AuthResponseModel.fromJson(response.data);
       LoggerUtil.d('파싱된 응답: $authResponse');
+
+      // 응답 코드 확인
+      if (authResponse.status.code != 'SU') {
+        throw AuthException(authResponse.status.message,
+            statusCode: authResponse.status.code == 'NF' ? 404 : 400);
+      }
 
       // 인증 정보 저장
       if (authResponse.accessToken != null) {
@@ -66,13 +81,31 @@ class AuthRepositoryImpl implements AuthRepository {
         await StorageService.saveUserNickname(authResponse.user!.nickname);
         LoggerUtil.d('사용자 정보 저장됨');
       }
+      if (authResponse.role != null) {
+        await StorageService.saveUserRole(authResponse.role!);
+        LoggerUtil.d('사용자 역할 저장됨: ${authResponse.role}');
+      }
 
       return authResponse;
     } on DioException catch (e) {
       final statusCode = e.response?.statusCode;
       LoggerUtil.e('❌ API 오류 발생: $statusCode');
-      LoggerUtil.d('에러 응답: ${e.response?.data}');
-      LoggerUtil.d('에러 메시지: ${e.message}');
+
+      // 404 응답 처리 (회원가입 필요)
+      if (statusCode == 404) {
+        String message = '해당 이메일로 가입된 사용자가 없습니다. 회원가입이 필요합니다.';
+
+        try {
+          if (e.response?.data != null) {
+            final data = e.response!.data;
+            if (data['status'] != null && data['status']['message'] != null) {
+              message = data['status']['message'];
+            }
+          }
+        } catch (_) {}
+
+        throw AuthException(message, statusCode: 404);
+      }
 
       switch (statusCode) {
         case 400:
@@ -80,15 +113,6 @@ class AuthRepositoryImpl implements AuthRepository {
         case 401:
           LoggerUtil.e('인증 실패 - 토큰이 유효하지 않거나 만료되었습니다.');
           throw AuthException('인증에 실패했습니다.', statusCode: 401);
-        case 404:
-          String message = '해당 이메일로 가입된 사용자가 없습니다. 회원가입이 필요합니다.';
-          try {
-            if (e.response?.data != null &&
-                e.response?.data['message'] != null) {
-              message = e.response!.data['message'];
-            }
-          } catch (_) {}
-          throw AuthException(message, statusCode: 404);
         case 500:
           throw AuthException('서버 오류가 발생했습니다.', statusCode: 500);
         default:
@@ -113,23 +137,27 @@ class AuthRepositoryImpl implements AuthRepository {
         final responseModel = await _authenticateWithGoogle(accessToken);
 
         // 로그인 성공 (사용자 정보가 있는 경우)
-        if (responseModel.user != null) {
+        if (responseModel.status.code == 'SU' && responseModel.user != null) {
+          LoggerUtil.i('✅ 로그인 성공: ${responseModel.user?.email}');
           return responseModel.toEntity();
         } else {
+          // 상태 코드가 SU이지만 사용자 정보가 없는 경우 (일어나지 않아야 함)
+          LoggerUtil.w('⚠️ 로그인 성공했지만 사용자 정보가 없습니다.');
           return const AuthResultEntity.newUser('회원가입이 필요합니다.');
         }
       } catch (e) {
         if (e is AuthException && e.statusCode == 404) {
+          LoggerUtil.i('🔄 회원가입이 필요한 사용자: ${e.message}');
           return AuthResultEntity.newUser(e.message);
         }
         rethrow;
       }
     } catch (e) {
-      LoggerUtil.e('Google 로그인 실패', e);
+      LoggerUtil.e('❌ Google 로그인 실패', e);
       if (e is AuthException) {
         return AuthResultEntity.error(e.message, statusCode: e.statusCode);
       }
-      return const AuthResultEntity.error('로그인 중 오류가 발생했습니다.');
+      return AuthResultEntity.error('로그인 중 오류가 발생했습니다: ${e.toString()}');
     }
   }
 
