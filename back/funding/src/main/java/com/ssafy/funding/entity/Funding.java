@@ -87,7 +87,7 @@ public class Funding {
                 .sellerId(sellerId)
                 .title(title)
                 .storyFileUrl(storyFileUrl)
-                .imageUrls(imageUrls)
+                .imageUrls(JsonConverter.convertJsonToImageUrls(imageUrls))
                 .description(description)
                 .price(price)
                 .quantity(quantity)
