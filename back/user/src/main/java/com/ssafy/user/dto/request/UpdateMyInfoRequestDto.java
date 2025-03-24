@@ -9,4 +9,5 @@ import lombok.*;
 @Builder
 public class UpdateMyInfoRequestDto {
     private String nickname;
+    private String account;
 }

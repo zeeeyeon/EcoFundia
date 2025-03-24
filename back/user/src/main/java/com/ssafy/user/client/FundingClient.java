@@ -27,6 +27,4 @@ public interface FundingClient {
 
     @PostMapping("/api/order/funding")
     void createPayment(@RequestHeader("X-User-Id") String userId, CreateOrderRequestDto requestDto);
-
-
 }
