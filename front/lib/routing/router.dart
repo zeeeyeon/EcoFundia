@@ -12,7 +12,7 @@ import 'package:front/features/funding/ui/pages/funding_detail_screen.dart';
 import 'package:front/features/home/ui/pages/home_screen.dart';
 import 'package:front/features/mypage/ui/pages/mypage_screen.dart';
 import 'package:front/features/mypage/ui/pages/my_funding_screen.dart';
-import 'package:front/features/mypage/ui/pages/my_review_screen.dart';
+import 'package:front/features/mypage/ui/pages/write_review_screen.dart';
 import 'package:front/features/wishlist/ui/pages/wishlist_screen.dart';
 import 'package:front/features/auth/ui/pages/signup_complete_screen.dart';
 import 'package:front/utils/auth_utils.dart';
@@ -100,8 +100,12 @@ final routerProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => const MyFundingScreen(),
               ),
               GoRoute(
-                path: '/review',
-                builder: (context, state) => const MyReviewScreen(),
+                path: '/review/:id',
+                builder: (context, state) {
+                  final fundingId =
+                      int.parse(state.pathParameters['id']!); // 👈 추출
+                  return WriteReviewScreen(fundingId: fundingId);
+                },
               ),
               GoRoute(
                 path: '/profile-edit',
