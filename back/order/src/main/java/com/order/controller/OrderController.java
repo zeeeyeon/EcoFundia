@@ -18,11 +18,14 @@ public class OrderController {
 
     // 결제 하기
     @PostMapping("/funding")
-    public OrderResponseDto createOrder(@RequestHeader("X-User-Id") int userId,
+    public OrderResponseDto createOrder(@RequestParam(name = "userId") int userId,
                                         @RequestParam(name = "fundingId") int fundingId,
                                         @RequestParam(name = "quantity") int quantity,
-                                        @RequestParam(name = "totalPrice") int totalPrice){
-        OrderResponseDto response = orderService.createOrder(userId, fundingId, quantity, totalPrice);
+                                        @RequestParam(name = "totalPrice") int totalPrice,
+                                        @RequestParam(name = "userKey") String userKey,
+                                        @RequestParam(name = "userAccount") String userAccount
+    ){
+        OrderResponseDto response = orderService.createOrder(userId, fundingId, quantity, totalPrice, userKey, userAccount);
         return response;
     }
 

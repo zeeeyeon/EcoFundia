@@ -16,8 +16,9 @@ public interface OrderClient {
     Order createOrder(@RequestParam(name = "userId") int userId,
                       @RequestParam(name = "fundingId") int fundingId,
                       @RequestParam(name = "amount") int amount,
-                      @RequestParam(name = "totalPrice") int totalPrice);
-
+                      @RequestParam(name = "totalPrice") int totalPrice,
+                      @RequestParam(name = "userKey") String userKey,
+                      @RequestParam(name = "userKey") String userAccount);
 
 
     // 내 펀딩 내역 조회

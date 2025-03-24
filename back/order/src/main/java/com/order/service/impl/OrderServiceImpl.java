@@ -7,6 +7,7 @@ import com.order.dto.responseDto.OrderResponseDto;
 import com.order.dto.seller.response.SellerAccountResponseDto;
 import com.order.dto.ssafyApi.request.HeaderDto;
 import com.order.dto.ssafyApi.request.TransferRequestDto;
+import com.order.dto.ssafyApi.response.ApiResponseDto;
 import com.order.entity.Order;
 import com.order.mapper.OrderMapper;
 import com.order.service.OrderService;
@@ -24,6 +25,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMapper orderMapper;
     private final FundingClient fundingClient;
     private final SellerClient sellerClient;
+    private final com.order.service.ssafyApi.ssafyApiController ssafyApiController;
 
     // 결제 하기
     public OrderResponseDto createOrder(int userId, int fundingId, int quantity, int totalPrice, String userKey, String userAccount){
@@ -56,7 +58,14 @@ public class OrderServiceImpl implements OrderService {
         transferRequestDto.buildTransferRequestDto(headerDto, sellerAccountResponseDto.getSellerAccount(), userAccount, Integer.toString(totalPrice) );
 
         // 요청 보내기
+        ApiResponseDto response = ssafyApiController.accountTransfer(transferRequestDto);
 
+        // 계좌이체 실패 하면 예외 처리
+        if (response == null || response.getHeader() == null || !"H000".equals(response.getHeader().getResponseCode())){
+            return null;
+        }
+
+        // 성공하면 order 테이블에 삽입
         OrderResponseDto orderResponseDto = orderMapper.createOrder(userId, fundingId, quantity, amount);
         return orderResponseDto;
     }
