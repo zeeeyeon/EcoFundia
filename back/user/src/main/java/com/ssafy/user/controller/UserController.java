@@ -76,7 +76,7 @@ public class UserController {
         return new ResponseEntity<>(Response.create(SUCCESS, null), SUCCESS.getHttpStatus());
     }
 
-    @PutMapping("/review/{reviewId}")
+    @PatchMapping("/review/{reviewId}")
     public ResponseEntity<?> updateMyReview(@RequestHeader("X-User-Id") String userId, @PathVariable("reviewId") int reviewId, @RequestBody UpdateMyReviewRequestDto requestDto){
         userService.updateMyReview(userId,reviewId,requestDto);
         return new ResponseEntity<>(Response.create(SUCCESS, null), SUCCESS.getHttpStatus());

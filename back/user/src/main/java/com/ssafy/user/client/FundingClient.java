@@ -13,13 +13,13 @@ import java.util.List;
 
 @FeignClient(name = "funding")
 public interface FundingClient {
-    @GetMapping("/api/review/my")
+    @GetMapping("/api/review/user")
     List<ReviewResponseDto> getMyReviews(@RequestHeader("X-User-Id") String userId);
 
-    @PostMapping("/api/review/my")
+    @PostMapping("/api/review")
     void postMyReview(@RequestHeader("X-User-Id") String userId, PostReviewRequestDto requestDto);
 
-    @PutMapping("/api/review/{reviewId}")
+    @PatchMapping("/api/review/{reviewId}")
     void updateMyReview(@RequestHeader("X-User-Id") String userId, @PathVariable("reviewId") int reviewId, UpdateMyReviewRequestDto requestDto);
 
     @DeleteMapping("/api/review/{reviewId}")
