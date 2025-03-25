@@ -2,6 +2,7 @@ package com.ssafy.user.client;
 
 import com.ssafy.user.dto.request.CreateOrderRequestDto;
 import com.ssafy.user.dto.request.PostReviewRequestDto;
+import com.ssafy.user.dto.request.PostReviewWithNicknameRequestDto;
 import com.ssafy.user.dto.request.UpdateMyReviewRequestDto;
 import com.ssafy.user.dto.response.FundingResponseDto;
 import com.ssafy.user.dto.response.GetMyTotalFundingResponseDto;
@@ -17,7 +18,7 @@ public interface FundingClient {
     List<ReviewResponseDto> getMyReviews(@RequestHeader("X-User-Id") String userId);
 
     @PostMapping("/api/review")
-    void postMyReview(@RequestHeader("X-User-Id") String userId, PostReviewRequestDto requestDto);
+    void postMyReview(@RequestHeader("X-User-Id") String userId, PostReviewWithNicknameRequestDto requestDto);
 
     @PatchMapping("/api/review/{reviewId}")
     void updateMyReview(@RequestHeader("X-User-Id") String userId, @PathVariable("reviewId") int reviewId, UpdateMyReviewRequestDto requestDto);

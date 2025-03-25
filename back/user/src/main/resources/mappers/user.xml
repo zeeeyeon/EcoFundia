@@ -59,4 +59,10 @@
         WHERE user_id = #{userId}
     </delete>
 
+    <select id="findNicknameById" parameterType="int" resultType="String">
+        select nickname
+        from user
+        where user_id = #{userId}
+    </select>
+
 </mapper>

@@ -25,4 +25,6 @@ public interface UserMapper {
     void deleteRefreshTokenById(@Param("id") int id);
 
     int updateMyInfo(@Param("email") String email, @Param("nickname") String nickname, @Param("account") String account);
+
+    String findNicknameById(@Param("userId") int userId);
 }
