@@ -1,7 +1,9 @@
 package com.ssafy.funding.service;
 
 import com.ssafy.funding.dto.funding.request.FundingCreateRequestDto;
+import com.ssafy.funding.dto.funding.request.FundingCreateSendDto;
 import com.ssafy.funding.dto.funding.request.FundingUpdateRequestDto;
+import com.ssafy.funding.dto.funding.request.FundingUpdateSendDto;
 import com.ssafy.funding.dto.funding.response.FundingResponseDto;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
 import com.ssafy.funding.dto.review.response.ReviewResponseDto;
@@ -13,9 +15,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 public interface ProductService {
-    Funding createFunding(int sellerId, FundingCreateRequestDto dto, MultipartFile storyFile, List<MultipartFile> imageFiles);
     FundingResponseDto getFunding(int fundingId);
-    Funding updateFunding(int fundingId, FundingUpdateRequestDto dto, MultipartFile storyFile, List<MultipartFile> imageFiles);
+    Funding createFunding(int sellerId, FundingCreateSendDto dto);
+    Funding updateFunding(int fundingId, FundingUpdateSendDto dto);
     void deleteFunding(int fundingId);
     Status getFundingStatus(int fundingId);
 

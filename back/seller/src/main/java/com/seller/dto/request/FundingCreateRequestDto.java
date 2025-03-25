@@ -3,8 +3,7 @@ package com.seller.dto.request;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-@Builder
-public record FundingCreateRequestDto (
+public record FundingCreateRequestDto(
         String title,
         String description,
         int price,
@@ -13,4 +12,21 @@ public record FundingCreateRequestDto (
         LocalDateTime startDate,
         LocalDateTime endDate,
         String category
-) implements Serializable {}
+
+) implements Serializable {
+
+    public FundingCreateSendDto toDto(String storyFileUrl, String imageUrlsJson) {
+        return new FundingCreateSendDto(
+                this.title,
+                this.description,
+                this.price,
+                this.quantity,
+                this.targetAmount,
+                this.startDate,
+                this.endDate,
+                this.category,
+                storyFileUrl,
+                imageUrlsJson
+        );
+    }
+}

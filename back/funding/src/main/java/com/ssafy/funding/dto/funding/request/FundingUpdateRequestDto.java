@@ -4,6 +4,7 @@ import com.ssafy.funding.entity.enums.Category;
 import com.ssafy.funding.entity.enums.Status;
 import lombok.Builder;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Builder
@@ -20,4 +21,4 @@ public record FundingUpdateRequestDto(
         Category category,
         Status status,
         LocalDateTime updateAt
-) {}
+) implements Serializable {}
