@@ -191,8 +191,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void postMyReview(String userId, PostReviewRequestDto requestDto) {
+        String nickname = userMapper.findNicknameById(Integer.parseInt(userId));
+        PostReviewWithNicknameRequestDto dto = PostReviewWithNicknameRequestDto.builder()
+                .content(requestDto.getContent())
+                .rating(requestDto.getRating())
+                .nickname(nickname)
+                .fundingId(requestDto.getFundingId())
+                .build();
         try {
-            fundingClient.postMyReview(userId, requestDto);
+            fundingClient.postMyReview(userId, dto);
         }catch (FeignException e){
             throw new CustomException(INTERNAL_SERVER_ERROR);
         }
