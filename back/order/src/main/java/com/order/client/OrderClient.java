@@ -11,12 +11,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface OrderClient {
 
     // 결제하기
+    // @RequestHeader("X-User-Id") int userId 아직 안넣었음
     @PostMapping("api/order/funding")
     Order createOrder(@RequestHeader("X-User-Id") int userId,
                       @RequestParam(name = "fundingId") int fundingId,
                       @RequestParam(name = "amount") int amount,
-                      @RequestParam(name = "totalPrice") int totalPrice);
-
+                      @RequestParam(name = "totalPrice") int totalPrice,
+                      @RequestParam(name = "userKey") String userKey,
+                      @RequestParam(name = "userAccount") String userAccount);
 
 
     // 내 펀딩 내역 조회

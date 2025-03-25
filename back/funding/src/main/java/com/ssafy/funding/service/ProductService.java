@@ -42,4 +42,5 @@ public interface ProductService {
 
     // 판매자 상세페이지 판매자 정보 요청 조회
     SellerDetailResponseDto getSellerDetail(int sellerId);
+
 }

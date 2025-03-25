@@ -1,6 +1,6 @@
 package com.order.controller;
 
-import com.order.dto.responseDto.OrderResponseDto;
+import com.order.dto.order.response.OrderResponseDto;
 import com.order.entity.Order;
 import com.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -21,9 +21,13 @@ public class OrderController {
     public OrderResponseDto createOrder(@RequestHeader("X-User-Id") int userId,
                                         @RequestParam(name = "fundingId") int fundingId,
                                         @RequestParam(name = "quantity") int quantity,
-                                        @RequestParam(name = "totalPrice") int totalPrice){
-        OrderResponseDto response = orderService.createOrder(userId, fundingId, quantity, totalPrice);
-        return response;
+                                        @RequestParam(name = "totalPrice") int totalPrice,
+                                        @RequestParam(name = "userKey") String userKey,
+                                        @RequestParam(name = "userAccount") String userAccount
+    ){
+        Order response = orderService.createOrder(userId, fundingId, quantity, totalPrice, userKey, userAccount);
+
+        return OrderResponseDto.toDto(response);
     }
 
     @GetMapping("/my")

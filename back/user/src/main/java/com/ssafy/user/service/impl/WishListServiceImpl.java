@@ -1,9 +1,7 @@
 package com.ssafy.user.service.impl;
 
-import com.ssafy.user.common.exception.CustomException;
-import com.ssafy.user.common.response.ResponseCode;
+import com.ssafy.user.client.FundingClient;
 import com.ssafy.user.entity.WishList;
-import com.ssafy.user.mapper.WishListMapper;
 import com.ssafy.user.service.WishListService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,21 +12,20 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WishListServiceImpl implements WishListService {
 
-    private final WishListMapper wishListMapper;
+    private final FundingClient fundingClient;
 
     @Override
-    public void createWish(int userId, int fundingId) {
-        if (wishListMapper.existsByUserIdAndFundingId(userId, fundingId)) throw new CustomException(ResponseCode.WISHLIST_ALREADY_EXISTS);
-        wishListMapper.createWish(WishList.createWish(userId, fundingId));
+    public void createWish(String userId, int fundingId) {
+        fundingClient.createWish(userId,fundingId);
     }
 
     @Override
-    public List<WishList> getWishList(int userId) {
-        return wishListMapper.findByUserId(userId);
+    public List<WishList> getWishList(String userId) {
+        return null;
     }
 
     @Override
-    public void deleteWish(int userId, int fundingId) {
-        wishListMapper.deleteWish(userId, fundingId);
+    public void deleteWish(String userId, int fundingId) {
+        fundingClient.deleteWish(userId,fundingId);
     }
 }

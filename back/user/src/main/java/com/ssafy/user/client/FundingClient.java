@@ -28,4 +28,10 @@ public interface FundingClient {
 
     @PostMapping("/api/order/funding")
     void createPayment(@RequestHeader("X-User-Id") String userId, CreateOrderRequestDto requestDto);
+
+    @PostMapping("/api/wishList/{fundingId}")
+    void createWish(@RequestHeader("X-User-Id") String userId, @PathVariable("fundingId") int fundingId);
+
+    @DeleteMapping("/api/wishList/{fundingId}")
+    void deleteWish(@RequestHeader("X-User-Id") String userId, @PathVariable("fundingId") int fundingId);
 }

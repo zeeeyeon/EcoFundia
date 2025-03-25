@@ -1,6 +1,7 @@
 package com.ssafy.funding.client;
 
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
+import com.ssafy.funding.dto.order.response.IsOngoingResponseDto;
 import com.ssafy.funding.dto.funding.response.UserWishlistFundingDto;
 import com.ssafy.funding.dto.review.request.ReviewCreateRequestDto;
 import com.ssafy.funding.dto.review.request.ReviewUpdateRequestDto;
@@ -18,6 +19,7 @@ import java.util.List;
 //@FeignClient(name = "funding-client", url = "http://localhost:8080")
 @FeignClient(name = "funding")
 public interface FundingClient {
+
 
     @GetMapping("/api/funding")
     ResponseEntity<Object> getAllfunding();
@@ -52,6 +54,10 @@ public interface FundingClient {
     // 판매자 상세페이지 판매자 정보 요청 조회
     @GetMapping("api/funding/seller/detail/{sellerId}")
     SellerDetailResponseDto getSellerDetail(@PathVariable int sellerId);
+
+    // 결제전 현재 펀딩이 진행중인지 확인
+    @GetMapping("api/funding/is-ongoing/{fundingId}")
+    IsOngoingResponseDto isOngoing(@PathVariable int fundingId);
 
     @GetMapping("api/review/user")
     List<ReviewDto> getReviewsByUserId(@RequestHeader("X-User-Id") String userId);

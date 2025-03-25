@@ -1,6 +1,8 @@
 package com.seller.service.impl;
 
 import com.seller.dto.response.FundingDetailSellerResponseDto;
+import com.seller.dto.response.SellerAccountResponseDto;
+import com.seller.entity.Seller;
 import com.seller.mapper.SellerMapper;
 import com.seller.service.SellerService;
 import lombok.RequiredArgsConstructor;
@@ -18,5 +20,16 @@ public class SellerServiceImpl implements SellerService {
     public FundingDetailSellerResponseDto sellerInfo(int sellerId) {
         FundingDetailSellerResponseDto sellerInfo = sellerMapper.sellerInfo(sellerId);
         return sellerInfo;
+    }
+
+    // 판매자 계좌 번호 조회
+    @Transactional
+    public SellerAccountResponseDto getSellerAccount(int sellerId){
+        Seller seller = sellerMapper.getSeller(sellerId);
+
+        if (seller == null){
+            return SellerAccountResponseDto.of("0","0");
+        }
+        return SellerAccountResponseDto.of(seller.getAccount(), seller.getSsafyUserKey());
     }
 }
