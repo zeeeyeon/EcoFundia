@@ -1,6 +1,7 @@
 package com.seller.service;
 
-import com.seller.dto.FundingDetailSellerResponseDto;
+
+import com.seller.dto.response.FundingDetailSellerResponseDto;
 import com.seller.dto.response.SellerAccountResponseDto;
 
 public interface SellerService {
