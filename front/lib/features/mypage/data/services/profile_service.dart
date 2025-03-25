@@ -16,7 +16,7 @@ class ProfileService {
           "nickname": "길동이",
           "gender": "MALE",
           "age": 30,
-          "account": "농협 302-1234-5678-91",
+          "account": "3021234567891",
           "createdAt": "2025-03-19T12:34:56Z"
         }
       }
