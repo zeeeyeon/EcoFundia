@@ -20,9 +20,18 @@ class FundingCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               child: Image.network(
                 funding.imageUrl,
-                height: 240,
-                width: double.infinity,
+                width: 120,
+                height: 90,
                 fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    width: 120,
+                    height: 90,
+                    color: Colors.grey.shade200,
+                    child: const Icon(Icons.image_not_supported,
+                        color: Colors.grey),
+                  );
+                },
               ),
             ),
             const SizedBox(height: 10),
