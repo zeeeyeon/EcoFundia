@@ -22,7 +22,7 @@
     <!-- 사용자 정보 등록 -->
     <insert id="insertUser" parameterType="com.ssafy.user.entity.User">
         INSERT INTO user (email, name, nickname, gender, account, ssafy_user_key, age, created_at)
-        VALUES (#{email}, #{name}, #{nickname}, #{gender}, #{account}, #{ssafyUserKey}, #{age}, #{createdAt})
+        VALUES (#{email}, #{name}, #{nickname}, #{gender}, #{account}, #{ssafyUserKey}, #{age}, now())
     </insert>
 
     <!-- 사용자 정보 수정 -->
@@ -37,7 +37,7 @@
     <!-- Refresh Token 등록 (리프레쉬 토큰 생성 시 사용) -->
     <insert id="insertRefreshToken" parameterType="map">
         INSERT INTO refresh_token (user_id, refresh_token, created_at, expires_at)
-        VALUES (#{userId}, #{refreshToken}, #{createdAt}, #{expiresAt})
+        VALUES (#{userId}, #{refreshToken}, now(), DATE_ADD(now(), INTERVAL 7 DAY))
     </insert>
 
     <!-- 사용자 ID를 통해 해당 사용자의 모든 Refresh Token 조회 (다중 토큰 관리 시 활용) -->

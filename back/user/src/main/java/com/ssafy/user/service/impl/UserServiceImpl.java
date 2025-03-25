@@ -59,10 +59,8 @@ public class UserServiceImpl implements UserService {
         String refreshToken = jwtUtil.generateRefreshToken(user);
 
         String hashedRefreshToken = passwordEncoder.encode(refreshToken);
-        LocalDateTime issuedAt = LocalDateTime.now();
-        LocalDateTime expiresAt = issuedAt.plusDays(7);
 
-        userMapper.insertRefreshToken(user.getUserId(), hashedRefreshToken, issuedAt, expiresAt);
+        userMapper.insertRefreshToken(user.getUserId(), hashedRefreshToken);
 
         return new LoginResponseDto(accessToken, refreshToken, user, role);
     }
@@ -79,7 +77,6 @@ public class UserServiceImpl implements UserService {
                 .nickname(requestDto.getNickname())
                 .gender(requestDto.getGender())
                 .age(requestDto.getAge())
-                .createdAt(LocalDateTime.now())
                 .build();
 
         userMapper.insertUser(user);
@@ -90,10 +87,8 @@ public class UserServiceImpl implements UserService {
         String refreshToken = jwtUtil.generateRefreshToken(user);
 
         String hashedRefreshToken = passwordEncoder.encode(refreshToken);
-        LocalDateTime issuedAt = LocalDateTime.now();
-        LocalDateTime expiresAt = issuedAt.plusDays(7);
 
-        userMapper.insertRefreshToken(user.getUserId(), hashedRefreshToken, issuedAt, expiresAt);
+        userMapper.insertRefreshToken(user.getUserId(), hashedRefreshToken);
 
         return new SignupResponseDto(accessToken, refreshToken, user, role);
     }
@@ -141,7 +136,7 @@ public class UserServiceImpl implements UserService {
         LocalDateTime newExpiresAt = newIssuedAt.plusDays(7);
 
         // 기존 토큰 삭제 및 새 토큰 DB 업데이트 (토큰 회전)
-        userMapper.insertRefreshToken(user.getUserId(), newHashedRefreshToken, newIssuedAt, newExpiresAt);
+        userMapper.insertRefreshToken(user.getUserId(), newHashedRefreshToken);
 
         return new ReissueResponseDto(newAccessToken,newRefreshToken);
     }
