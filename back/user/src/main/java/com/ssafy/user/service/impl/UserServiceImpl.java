@@ -81,6 +81,8 @@ public class UserServiceImpl implements UserService {
 
         userMapper.insertUser(user);
 
+        User nowUser = userMapper.findByEmail(email);
+
         // role 수정
         String role = "SELLER";
         String accessToken = jwtUtil.generateAccessToken(user, role);
@@ -88,9 +90,9 @@ public class UserServiceImpl implements UserService {
 
         String hashedRefreshToken = passwordEncoder.encode(refreshToken);
 
-        userMapper.insertRefreshToken(user.getUserId(), hashedRefreshToken);
+        userMapper.insertRefreshToken(nowUser.getUserId(), hashedRefreshToken);
 
-        return new SignupResponseDto(accessToken, refreshToken, user, role);
+        return new SignupResponseDto(accessToken, refreshToken, nowUser, role);
     }
 
     @Override
