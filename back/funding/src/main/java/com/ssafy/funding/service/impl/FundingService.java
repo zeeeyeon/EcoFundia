@@ -1,7 +1,6 @@
 package com.ssafy.funding.service.impl;
 
 import com.ssafy.funding.common.exception.CustomException;
-import com.ssafy.funding.common.response.ResponseCode;
 import com.ssafy.funding.common.util.JsonConverter;
 import com.ssafy.funding.dto.funding.request.FundingCreateRequestDto;
 import com.ssafy.funding.dto.funding.request.FundingUpdateRequestDto;
@@ -22,6 +21,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.ssafy.funding.common.response.ResponseCode.*;
 
 @Service
 @RequiredArgsConstructor
@@ -79,7 +80,7 @@ public class FundingService implements ProductService {
 
     private Funding findByFundingId(int fundingId) {
         Funding funding = fundingMapper.findById(fundingId);
-        if (funding == null) throw new CustomException(ResponseCode.FUNDING_NOT_FOUND);
+        if (funding == null) throw new CustomException(FUNDING_NOT_FOUND);
         return funding;
     }
 
@@ -92,13 +93,17 @@ public class FundingService implements ProductService {
     // 현재까지 펀딩 금액 조회
     @Transactional
     public Long getTotalFund(){
-        return fundingMapper.getTotalFund();
+        Long totalFund = fundingMapper.getTotalFund();
+        return totalFund;
     }
 
     // Top 펀딩 리스트 조회
     @Transactional
     public List<GetFundingResponseDto> getTopFundingList(){
         List<Funding> fundingList = fundingMapper.getTopFundingList();
+        if (fundingList.isEmpty()) {
+            throw new CustomException(FUNDING_NOT_ONGOING);
+        }
         return fundingList.stream().map(Funding::toDto).collect(Collectors.toList());
     }
 
@@ -106,6 +111,9 @@ public class FundingService implements ProductService {
     @Transactional
     public List<GetFundingResponseDto> getLatestFundingList(int page){
         List<Funding> fundingList = fundingMapper.getLatestFundingList((page - 1)  * 5);
+        if (fundingList.isEmpty()) {
+            throw new CustomException(FUNDING_NOT_ONGOING);
+        }
         return fundingList.stream().map(Funding::toDto).collect(Collectors.toList());
     }
 
@@ -113,6 +121,9 @@ public class FundingService implements ProductService {
     @Transactional
     public List<GetFundingResponseDto> getCategoryFundingList(String category, int page){
         List<Funding> fundingList = fundingMapper.getCategoryFundingList(category, (page - 1)  * 5);
+        if (fundingList.isEmpty()) {
+            throw new CustomException(FUNDING_NOT_ONGOING);
+        }
         return fundingList.stream().map(Funding::toDto).collect(Collectors.toList());
     }
 
@@ -120,6 +131,9 @@ public class FundingService implements ProductService {
     @Transactional
     public List<GetFundingResponseDto> getSearchFundingList(String keyword, int page) {
         List<Funding> fundingList = fundingMapper.getSearchFunding(keyword, (page - 1)  * 5);
+        if (fundingList.isEmpty()) {
+            throw new CustomException(FUNDING_NOT_SEARCH);
+        }
         return fundingList.stream().map(Funding::toDto).collect(Collectors.toList());
     }
 
@@ -127,6 +141,9 @@ public class FundingService implements ProductService {
     @Transactional
     public GetFundingResponseDto getFundingDetail(int fundingId) {
         Funding funding = fundingMapper.findById(fundingId);
+        if (funding == null) {
+            throw new CustomException(FUNDING_NOT_FOUND);
+        }
         return funding.toDto();
     }
 
