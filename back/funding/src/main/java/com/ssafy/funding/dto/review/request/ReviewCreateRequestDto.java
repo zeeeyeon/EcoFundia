@@ -7,9 +7,10 @@ import lombok.Builder;
 public record ReviewCreateRequestDto(
         int fundingId,
         int rating,
-        String content
+        String content,
+        String nickname
 ) {
-    public Review toEntity(int userId, String nickname) {
+    public Review toEntity(int userId) {
         return Review.builder()
                 .userId(userId)
                 .fundingId(fundingId)

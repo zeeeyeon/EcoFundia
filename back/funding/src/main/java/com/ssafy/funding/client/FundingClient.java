@@ -1,6 +1,7 @@
 package com.ssafy.funding.client;
 
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
+import com.ssafy.funding.dto.funding.response.UserWishlistFundingDto;
 import com.ssafy.funding.dto.review.request.ReviewCreateRequestDto;
 import com.ssafy.funding.dto.review.request.ReviewUpdateRequestDto;
 import com.ssafy.funding.dto.review.response.ReviewDto;
@@ -66,5 +67,17 @@ public interface FundingClient {
     @RequestMapping(method = RequestMethod.DELETE, value = "/api/review/{reviewId}")
     ResponseEntity<?> deleteReview(@RequestHeader("X-User-Id") int userId,
                                    @PathVariable int reviewId);
+
+    @PostMapping("/{fundingId}")
+    public ResponseEntity<?> createWish(@RequestHeader("X-User-Id") int userId, @PathVariable int fundingId);
+
+    @GetMapping("/ongoing")
+    public List<UserWishlistFundingDto> getOngoingWishlist(@RequestHeader("X-User-Id") int userId);
+
+    @GetMapping("/done")
+    public List<UserWishlistFundingDto> getDoneWishlist(@RequestHeader("X-User-Id") int userId);
+
+    @DeleteMapping("/{fundingId}")
+    public ResponseEntity<?> deleteWish(@RequestHeader("X-User-Id") int userId, @PathVariable int fundingId);
 }
 
