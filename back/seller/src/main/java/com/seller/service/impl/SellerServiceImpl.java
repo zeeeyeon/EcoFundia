@@ -1,6 +1,6 @@
 package com.seller.service.impl;
 
-import com.seller.dto.FundingDetailSellerResponseDto;
+import com.seller.dto.response.FundingDetailSellerResponseDto;
 import com.seller.dto.response.SellerAccountResponseDto;
 import com.seller.entity.Seller;
 import com.seller.mapper.SellerMapper;
