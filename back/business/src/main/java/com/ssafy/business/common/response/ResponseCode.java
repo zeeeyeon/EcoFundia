@@ -18,7 +18,13 @@ public enum ResponseCode {
     GET_FUNDING_DETAIL(successCode(), HttpStatus.OK, "해당 펀딩 상세 정보가 성공적으로 조회되었습니다."),
     GET_FUNDING_REVIEW(successCode(), HttpStatus.OK, "해당 펀딩 리뷰를 성공적으로 조회되었습니다."),
     GET_SELLER_DETAIL(successCode(), HttpStatus.OK, "판매자 상세 정보를 성공적으로 조회되었습니다."),
-    GET_SELLER_FUNDING(successCode(), HttpStatus.OK, "판매자의 펀딩 프로젝트 정보를 성공적으로 조회되었습니다.");
+    GET_SELLER_FUNDING(successCode(), HttpStatus.OK, "판매자의 펀딩 프로젝트 정보를 성공적으로 조회되었습니다."),
+
+    // 일반 오류
+    DATABASE_ERROR(500, HttpStatus.INTERNAL_SERVER_ERROR, "데이터베이스 오류가 발생했습니다."),
+    BAD_SQL_ERROR(400, HttpStatus.BAD_REQUEST, "SQL 문법 오류가 발생했습니다."),
+    DATA_NOT_FOUND(404, HttpStatus.NOT_FOUND, "조회된 데이터가 없습니다.");
+
 
     private int code;
     private HttpStatus httpStatus;
