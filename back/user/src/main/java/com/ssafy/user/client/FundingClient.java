@@ -1,6 +1,8 @@
 package com.ssafy.user.client;
 
+import com.ssafy.user.dto.request.CreateOrderRequestDto;
 import com.ssafy.user.dto.request.PostReviewRequestDto;
+import com.ssafy.user.dto.request.PostReviewWithNicknameRequestDto;
 import com.ssafy.user.dto.request.UpdateMyReviewRequestDto;
 import com.ssafy.user.dto.response.FundingResponseDto;
 import com.ssafy.user.dto.response.GetMyTotalFundingResponseDto;
@@ -12,22 +14,24 @@ import java.util.List;
 
 @FeignClient(name = "funding")
 public interface FundingClient {
-    @GetMapping("/api/funding/my")
-    List<FundingResponseDto> getMyFundings(@RequestHeader("X-User-Id") String userId);
-
-    @GetMapping("/api/funding/my/total")
-    GetMyTotalFundingResponseDto getMyTotalFunding(@RequestHeader("X-User-Id") String userId);
-
-    @GetMapping("/api/review/my")
+    @GetMapping("/api/review/user")
     List<ReviewResponseDto> getMyReviews(@RequestHeader("X-User-Id") String userId);
 
-    @PostMapping("/api/review/my")
-    void postMyReview(@RequestHeader("X-User-Id") String userId, PostReviewRequestDto requestDto);
+    @PostMapping("/api/review")
+    void postMyReview(@RequestHeader("X-User-Id") String userId, PostReviewWithNicknameRequestDto requestDto);
 
-    @PutMapping("/api/review/{reviewId}")
+    @PatchMapping("/api/review/{reviewId}")
     void updateMyReview(@RequestHeader("X-User-Id") String userId, @PathVariable("reviewId") int reviewId, UpdateMyReviewRequestDto requestDto);
 
     @DeleteMapping("/api/review/{reviewId}")
     void deleteMyReview(@RequestHeader("X-User-Id") String userId, @PathVariable("reviewId") int reviewId);
 
+    @PostMapping("/api/order/funding")
+    void createPayment(@RequestHeader("X-User-Id") String userId, CreateOrderRequestDto requestDto);
+
+    @PostMapping("/api/wishList/{fundingId}")
+    void createWish(@RequestHeader("X-User-Id") String userId, @PathVariable("fundingId") int fundingId);
+
+    @DeleteMapping("/api/wishList/{fundingId}")
+    void deleteWish(@RequestHeader("X-User-Id") String userId, @PathVariable("fundingId") int fundingId);
 }

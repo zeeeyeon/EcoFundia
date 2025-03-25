@@ -2,19 +2,22 @@ package com.ssafy.funding.client;
 
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
 import com.ssafy.funding.dto.order.response.IsOngoingResponseDto;
+import com.ssafy.funding.dto.funding.response.UserWishlistFundingDto;
+import com.ssafy.funding.dto.review.request.ReviewCreateRequestDto;
+import com.ssafy.funding.dto.review.request.ReviewUpdateRequestDto;
+import com.ssafy.funding.dto.review.response.ReviewDto;
 import com.ssafy.funding.dto.review.response.ReviewResponseDto;
 import com.ssafy.funding.dto.seller.SellerDetailResponseDto;
+import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 // Client 선언부, name 또는 url 사용 가능
 // name or value 둘중 하나는 있어야 오류가 안남남
 //@FeignClient(name = "funding-client", url = "http://localhost:8080")
-//@FeignClient(name = "funding")
+@FeignClient(name = "funding")
 public interface FundingClient {
 
 
@@ -55,5 +58,32 @@ public interface FundingClient {
     // 결제전 현재 펀딩이 진행중인지 확인
     @GetMapping("api/funding/is-ongoing/{fundingId}")
     IsOngoingResponseDto isOngoing(@PathVariable int fundingId);
+
+    @GetMapping("api/review/user")
+    List<ReviewDto> getReviewsByUserId(@RequestHeader("X-User-Id") String userId);
+
+    @PostMapping("api/review")
+    ResponseEntity<?> createReview(@RequestHeader("X-User-Id") int userId, @RequestBody ReviewCreateRequestDto dto);
+
+    @RequestMapping(method = RequestMethod.PATCH, value = "/api/review/{reviewId}")
+    ResponseEntity<?> updateReview(@RequestHeader("X-User-Id") int userId,
+                                   @PathVariable int reviewId,
+                                   @RequestBody ReviewUpdateRequestDto dto);
+
+    @RequestMapping(method = RequestMethod.DELETE, value = "/api/review/{reviewId}")
+    ResponseEntity<?> deleteReview(@RequestHeader("X-User-Id") int userId,
+                                   @PathVariable int reviewId);
+
+    @PostMapping("/{fundingId}")
+    ResponseEntity<?> createWish(@RequestHeader("X-User-Id") int userId, @PathVariable int fundingId);
+
+    @GetMapping("/ongoing")
+    List<UserWishlistFundingDto> getOngoingWishlist(@RequestHeader("X-User-Id") int userId);
+
+    @GetMapping("/done")
+    List<UserWishlistFundingDto> getDoneWishlist(@RequestHeader("X-User-Id") int userId);
+
+    @DeleteMapping("/{fundingId}")
+    ResponseEntity<?> deleteWish(@RequestHeader("X-User-Id") int userId, @PathVariable int fundingId);
 }
 

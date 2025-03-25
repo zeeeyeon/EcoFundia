@@ -7,7 +7,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UpdateMyInfoRequestDto {
-    private String nickname;
-    private String account;
+public class CreatePaymentRequestDto {
+    private int fundingId;
+    private int quantity;
 }

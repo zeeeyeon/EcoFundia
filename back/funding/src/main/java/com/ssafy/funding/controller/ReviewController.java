@@ -1,14 +1,18 @@
 package com.ssafy.funding.controller;
 
 import com.ssafy.funding.common.response.Response;
+import com.ssafy.funding.common.response.ResponseCode;
 import com.ssafy.funding.dto.review.request.ReviewCreateRequestDto;
 import com.ssafy.funding.dto.review.request.ReviewUpdateRequestDto;
+import com.ssafy.funding.dto.review.response.ReviewDto;
 import com.ssafy.funding.dto.review.response.SingleReviewResponseDto;
 import com.ssafy.funding.dto.review.response.ReviewListResponseDto;
 import com.ssafy.funding.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 import static com.ssafy.funding.common.response.ResponseCode.*;
 
@@ -25,6 +29,12 @@ public class ReviewController {
         return new ResponseEntity<>(Response.create(GET_REVIEW, review), GET_REVIEW.getHttpStatus());
     }
 
+    @GetMapping("/user")
+    public List<ReviewDto> getReviewsByUserId(@RequestHeader("X-User-Id") String userId) {
+        int user = Integer.parseInt(userId);
+        return reviewService.getReviewsByUserId(user);
+    }
+
     @GetMapping("/funding/{fundingId}")
     public ResponseEntity<?> getReviewsByFundingId(@PathVariable int fundingId) {
         ReviewListResponseDto reviews = reviewService.getReviewsByFundingId(fundingId);
@@ -37,6 +47,7 @@ public class ReviewController {
         return new ResponseEntity<>(Response.create(GET_REVIEW_LIST, result), GET_REVIEW_LIST.getHttpStatus());
     }
 
+    // user 에서 요청 받을 때 nickname 도 함께 받는 것 생각해보기
     @PostMapping
     public ResponseEntity<?> createReview(
             @RequestHeader("X-User-Id") int userId,

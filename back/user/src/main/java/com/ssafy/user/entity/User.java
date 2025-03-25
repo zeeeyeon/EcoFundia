@@ -11,11 +11,13 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class User {
-    private int userId;   // PK
+    private int userId;
     private String email;
     private String name;
     private String nickname;
     private String gender; // ENUM 대신 String으로 저장 (MyBatis에서 변환 처리 가능)
+    private String account;
+    private String ssafyUserKey;
     private int age;
     private LocalDateTime createdAt;
 }

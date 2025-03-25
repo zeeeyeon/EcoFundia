@@ -7,7 +7,9 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UpdateMyInfoRequestDto {
+public class PostReviewWithNicknameRequestDto {
+    private int fundingId;
+    private int rating;
+    private String content;
     private String nickname;
-    private String account;
 }
