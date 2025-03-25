@@ -3,6 +3,7 @@ package com.ssafy.funding.service.impl;
 import com.ssafy.funding.common.exception.CustomException;
 import com.ssafy.funding.dto.review.request.ReviewCreateRequestDto;
 import com.ssafy.funding.dto.review.request.ReviewUpdateRequestDto;
+import com.ssafy.funding.dto.review.response.ReviewDto;
 import com.ssafy.funding.dto.review.response.SingleReviewResponseDto;
 import com.ssafy.funding.dto.review.response.ReviewListResponseDto;
 import com.ssafy.funding.entity.Review;
@@ -24,7 +25,6 @@ public class ReviewServiceImpl implements ReviewService {
 
     private final ReviewMapper reviewMapper;
     private final ProductService productService;
-//    private final UserClient userClient;
 
 
     @Override
@@ -47,6 +47,11 @@ public class ReviewServiceImpl implements ReviewService {
         return aggregateRatingAndReviews(reviews);
     }
 
+    @Override
+    public List<ReviewDto> getReviewsByUserId(int userId) {
+        return reviewMapper.findByUserId(userId);
+    }
+
 
     @Override
     @Transactional
@@ -55,10 +60,8 @@ public class ReviewServiceImpl implements ReviewService {
         if (status != Status.SUCCESS) throw new CustomException(REVIEW_NOT_ALLOWED);
         if (reviewMapper.existsByUserIdAndFundingId(userId, dto.fundingId())) throw new CustomException(REVIEW_ALREADY_EXISTS);
 
-//        String nickname = userClient.getNickname(userId);
-
-//        Review review = dto.toEntity(userId, nickname);
-//        reviewMapper.createReview(review);
+        Review review = dto.toEntity(userId);
+        reviewMapper.createReview(review);
     }
 
     @Override

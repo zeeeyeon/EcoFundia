@@ -7,36 +7,44 @@ import org.springframework.web.bind.annotation.*;
 
 @FeignClient(name="user")
 public interface UserClient {
-    @PostMapping("/login")
+    @PostMapping("/api/user/login")
     public ResponseEntity<?> login(@RequestBody LoginRequestDto requestDto);
 
-    @PostMapping("/signup")
+    @PostMapping("/api/user/signup")
     public ResponseEntity<?> signup(@RequestBody SignupRequestDto requestDto);
 
-    @PostMapping("/reissue")
+    @PostMapping("/api/user/reissue")
     public ResponseEntity<?> reissue(@RequestBody ReissueRequestDto requestDto);
 
-    @GetMapping("/me")
+    @GetMapping("/api/user/me")
     public ResponseEntity<?> getMyInfo();
 
-    @PutMapping("/me")
+    @PutMapping("/api/user/me")
     public ResponseEntity<?> updateMyInfo(@RequestBody UpdateMyInfoRequestDto requestDto);
 
-    @GetMapping("/funding")
+    @GetMapping("/api/user/health")
+    public ResponseEntity<?> healthCheck();
+
+    @GetMapping("/api/user/funding")
     public ResponseEntity<?> getMyFunding(@RequestHeader("X-User-Id") String userId);
 
-    @GetMapping("/funding/total")
+    @GetMapping("/api/user/funding/total")
     public ResponseEntity<?> getMyTotalFunding(@RequestHeader("X-User-Id") String userId);
 
-    @GetMapping("/review")
+    @GetMapping("/api/user/review")
     public ResponseEntity<?> getMyReviews(@RequestHeader("X-User-Id") String userId);
 
-    @PostMapping("/review")
+    @PostMapping("/api/user/review")
     public ResponseEntity<?> postMyReview(@RequestHeader("X-User-Id") String userId, @RequestBody PostReviewRequestDto requestDto);
 
-    @PutMapping("/review/{reviewId}")
+    @PatchMapping("/api/user/review/{reviewId}")
     public ResponseEntity<?> updateMyReview(@RequestHeader("X-User-Id") String userId, @PathVariable("reviewId") int reviewId, @RequestBody UpdateMyReviewRequestDto requestDto);
 
-    @DeleteMapping("/review/{reviewId}")
+    @DeleteMapping("/api/user/review/{reviewId}")
     public ResponseEntity<?> deleteMyReview(@RequestHeader("X-User-Id") String userId, @PathVariable("reviewId") int reviewId);
+
+    @PostMapping("/api/user/order/funding")
+    public ResponseEntity<?> createPayment(@RequestHeader("X-User-Id") String userId, @RequestBody CreatePaymentRequestDto requestDto);
+
+
 }

@@ -76,7 +76,7 @@ public class UserController {
         return new ResponseEntity<>(Response.create(SUCCESS, null), SUCCESS.getHttpStatus());
     }
 
-    @PutMapping("/review/{reviewId}")
+    @PatchMapping("/review/{reviewId}")
     public ResponseEntity<?> updateMyReview(@RequestHeader("X-User-Id") String userId, @PathVariable("reviewId") int reviewId, @RequestBody UpdateMyReviewRequestDto requestDto){
         userService.updateMyReview(userId,reviewId,requestDto);
         return new ResponseEntity<>(Response.create(SUCCESS, null), SUCCESS.getHttpStatus());
@@ -87,5 +87,18 @@ public class UserController {
         userService.deleteMyReview(userId,reviewId);
         return new ResponseEntity<>(Response.create(SUCCESS, null), SUCCESS.getHttpStatus());
     }
+
+    @PostMapping("/order/funding")
+    public ResponseEntity<?> createPayment(@RequestHeader("X-User-Id") String userId, @RequestBody CreatePaymentRequestDto requestDto){
+        userService.createPayment(userId,requestDto);
+        return new ResponseEntity<>(Response.create(SUCCESS, null), SUCCESS.getHttpStatus());
+    }
+
+    @GetMapping("/health")
+    public ResponseEntity<?> healthCheck(){
+        System.out.println("연결됨!");
+        return new ResponseEntity<>(Response.create(SUCCESS, null), SUCCESS.getHttpStatus());
+    }
+
 
 }
