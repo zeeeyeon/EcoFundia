@@ -1,6 +1,6 @@
 package com.seller.controller;
 
-import com.seller.dto.FundingDetailSellerResponseDto;
+import com.seller.dto.response.FundingDetailSellerResponseDto;
 import com.seller.service.SellerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
