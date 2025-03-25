@@ -101,9 +101,6 @@ public class FundingService implements ProductService {
     @Transactional
     public List<GetFundingResponseDto> getTopFundingList(){
         List<Funding> fundingList = fundingMapper.getTopFundingList();
-        if (fundingList.isEmpty()) {
-            throw new CustomException(FUNDING_NOT_ONGOING);
-        }
         return fundingList.stream().map(Funding::toDto).collect(Collectors.toList());
     }
 
@@ -111,9 +108,6 @@ public class FundingService implements ProductService {
     @Transactional
     public List<GetFundingResponseDto> getLatestFundingList(int page){
         List<Funding> fundingList = fundingMapper.getLatestFundingList((page - 1)  * 5);
-        if (fundingList.isEmpty()) {
-            throw new CustomException(FUNDING_NOT_ONGOING);
-        }
         return fundingList.stream().map(Funding::toDto).collect(Collectors.toList());
     }
 
@@ -121,9 +115,6 @@ public class FundingService implements ProductService {
     @Transactional
     public List<GetFundingResponseDto> getCategoryFundingList(String category, int page){
         List<Funding> fundingList = fundingMapper.getCategoryFundingList(category, (page - 1)  * 5);
-        if (fundingList.isEmpty()) {
-            throw new CustomException(FUNDING_NOT_ONGOING);
-        }
         return fundingList.stream().map(Funding::toDto).collect(Collectors.toList());
     }
 
@@ -131,9 +122,6 @@ public class FundingService implements ProductService {
     @Transactional
     public List<GetFundingResponseDto> getSearchFundingList(String keyword, int page) {
         List<Funding> fundingList = fundingMapper.getSearchFunding(keyword, (page - 1)  * 5);
-        if (fundingList.isEmpty()) {
-            throw new CustomException(FUNDING_NOT_SEARCH);
-        }
         return fundingList.stream().map(Funding::toDto).collect(Collectors.toList());
     }
 
@@ -173,4 +161,6 @@ public class FundingService implements ProductService {
         List<SellerDetailDto> sellerDetailList = fundingMapper.getSellerDetail(sellerId);
         return SellerDetailResponseDto.from(sellerDetailList);
     }
+
+
 }
