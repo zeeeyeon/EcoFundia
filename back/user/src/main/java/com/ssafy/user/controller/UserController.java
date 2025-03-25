@@ -1,5 +1,6 @@
 package com.ssafy.user.controller;
 
+import com.ssafy.user.common.response.PageResponse;
 import com.ssafy.user.common.response.Response;
 import com.ssafy.user.dto.request.*;
 import com.ssafy.user.dto.response.*;
@@ -53,8 +54,12 @@ public class UserController {
     // 다른서비스 호출
 
     @GetMapping("/funding")
-    public ResponseEntity<?> getMyFunding(@RequestHeader("X-User-Id") String userId){
-        List<FundingResponseDto> dto = userService.getMyFundingDetails(userId);
+    public ResponseEntity<?> getMyFunding(
+            @RequestHeader("X-User-Id") String userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        PageResponse<FundingResponseDto> dto = userService.getMyFundingDetails(userId, page, size);
         return new ResponseEntity<>(Response.create(SUCCESS, dto), SUCCESS.getHttpStatus());
     }
 
@@ -65,8 +70,12 @@ public class UserController {
     }
 
     @GetMapping("/review")
-    public ResponseEntity<?> getMyReviews(@RequestHeader("X-User-Id") String userId){
-        List<ReviewResponseDto> dto = userService.getMyReviews(userId);
+    public ResponseEntity<?> getMyReviews(
+            @RequestHeader("X-User-Id") String userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        PageResponse<ReviewResponseDto> dto = userService.getMyReviews(userId, page, size);
         return new ResponseEntity<>(Response.create(SUCCESS, dto), SUCCESS.getHttpStatus());
     }
 

@@ -1,5 +1,6 @@
 package com.ssafy.user.service;
 
+import com.ssafy.user.common.response.PageResponse;
 import com.ssafy.user.dto.request.*;
 import com.ssafy.user.dto.response.*;
 
@@ -15,11 +16,11 @@ public interface UserService {
 
     // 외부서비스 호출
 
-    List<FundingResponseDto> getMyFundingDetails(String userId);
+    PageResponse<FundingResponseDto> getMyFundingDetails(String userId, int page, int size);
 
     GetMyTotalFundingResponseDto getMyFundingTotal(String userId);
 
-    List<ReviewResponseDto> getMyReviews(String userId);
+    PageResponse<ReviewResponseDto> getMyReviews(String userId, int page, int size);
 
     void postMyReview(String userId, PostReviewRequestDto requestDto);
 
