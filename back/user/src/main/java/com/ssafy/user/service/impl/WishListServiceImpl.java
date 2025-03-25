@@ -28,4 +28,9 @@ public class WishListServiceImpl implements WishListService {
     public void deleteWish(String userId, int fundingId) {
         fundingClient.deleteWish(userId,fundingId);
     }
+
+    @Override
+    public List<WishList> getDoneWishList(String userId) {
+        return List.of();
+    }
 }

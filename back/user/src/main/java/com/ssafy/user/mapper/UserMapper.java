@@ -11,7 +11,7 @@ import java.util.List;
 @Mapper
 public interface UserMapper {
 
-    User findByEmail(String email);
+    User findByEmail(@Param("email") String email);
 
     void insertUser(User user);
 
