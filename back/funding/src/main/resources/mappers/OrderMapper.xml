@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssafy.funding.mapper.OrderMapper">
+
+    <resultMap id="FundingResultMap" type="com.ssafy.funding.entity.Funding">
+        <id column="funding_id" property="fundingId"/>
+        <result column="seller_id" property="sellerId"/>
+        <result column="title" property="title"/>
+        <result column="description" property="description"/>
+        <result column="story_file_url" property="storyFileUrl"/>
+        <result column="image_urls" property="imageUrls"/>
+        <result column="price" property="price"/>
+        <result column="quantity" property="quantity"/>
+        <result column="target_amount" property="targetAmount"/>
+        <result column="current_amount" property="currentAmount"/>
+        <result column="start_date" property="startDate"/>
+        <result column="end_date" property="endDate"/>
+        <result column="status" property="status" typeHandler="com.ssafy.funding.entity.typeHandlers.StatusTypeHandler"/>
+        <result column="category" property="category" typeHandler="com.ssafy.funding.entity.typeHandlers.CategoryTypeHandler"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+
+
+    <!-- 구매전 현재 펀딩 진행중 확인 -->
+    <select id="isOngoing" resultMap="FundingResultMap">
+        SELECT * FROM funding
+        WHERE funding.funding_id = #{fundingId}
+        AND funding.status = 'ONGOING'
+    </select>
+
+</mapper>
