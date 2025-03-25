@@ -3,8 +3,8 @@ class AppStrings {
   static const String appName = 'SIMPLE';
 
   // 로그인/회원가입
-  static const String signUpWithGoogle = 'Sign Up with Google';
-  static const String signUpWithApple = 'Sign Up with Apple';
+  static const String signUpWithGoogle = '구글 로그인';
+  static const String signUpWithApple = '애플 로그인';
   static const String welcome = '환영합니다!';
   static const String signUpTitle = '회원가입';
   static const String signUpDescription = '간단한 정보를 입력하고 시작하세요';

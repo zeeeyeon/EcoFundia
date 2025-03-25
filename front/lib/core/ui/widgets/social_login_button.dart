@@ -6,9 +6,9 @@ class SocialLoginButton extends StatelessWidget {
   final String text;
   final String iconPath;
   final Color backgroundColor;
-  final Color textColor;
   final VoidCallback onPressed;
   final TextStyle? textStyle;
+  final Color textColor;
 
   const SocialLoginButton({
     super.key,
@@ -16,8 +16,8 @@ class SocialLoginButton extends StatelessWidget {
     required this.iconPath,
     required this.backgroundColor,
     required this.onPressed,
-    this.textColor = AppColors.grey,
     this.textStyle,
+    this.textColor = AppColors.grey,
   });
 
   @override
@@ -59,7 +59,9 @@ class SocialLoginButton extends StatelessWidget {
                 const SizedBox(width: 15),
                 Text(
                   text,
-                  style: textStyle ?? AppTextStyles.buttonText,
+                  style: (textStyle ?? AppTextStyles.buttonText).copyWith(
+                    color: textColor,
+                  ),
                 ),
               ],
             ),

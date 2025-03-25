@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/features/auth/domain/entities/auth_state.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:front/core/services/api_service.dart';
@@ -12,6 +13,7 @@ import 'package:front/features/auth/domain/use_cases/complete_sign_up_use_case.d
 import 'package:front/features/auth/domain/use_cases/sign_out_use_case.dart';
 import 'package:front/features/auth/domain/use_cases/check_login_status_use_case.dart';
 import 'package:front/features/auth/ui/view_model/auth_view_model.dart';
+import 'package:front/routing/router.dart';
 
 /// Auth Service Provider
 final authServiceProvider = Provider<AuthService>((ref) {
@@ -44,33 +46,32 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 
 /// UseCase Provider들
 final googleSignInUseCaseProvider = Provider<GoogleSignInUseCase>((ref) {
-  final repository = ref.watch(authRepositoryProvider);
-  return GoogleSignInUseCase(repository);
+  return GoogleSignInUseCase(ref.watch(authRepositoryProvider));
 });
 
 final completeSignUpUseCaseProvider = Provider<CompleteSignUpUseCase>((ref) {
-  final repository = ref.watch(authRepositoryProvider);
-  return CompleteSignUpUseCase(repository);
+  return CompleteSignUpUseCase(ref.watch(authRepositoryProvider));
 });
 
 final signOutUseCaseProvider = Provider<SignOutUseCase>((ref) {
-  final repository = ref.watch(authRepositoryProvider);
-  return SignOutUseCase(repository);
+  return SignOutUseCase(ref.watch(authRepositoryProvider));
 });
 
 final checkLoginStatusUseCaseProvider =
     Provider<CheckLoginStatusUseCase>((ref) {
-  final repository = ref.watch(authRepositoryProvider);
-  return CheckLoginStatusUseCase(repository);
+  return CheckLoginStatusUseCase(ref.watch(authRepositoryProvider));
 });
 
-/// 인증 ViewModel Provider
-final authProvider = StateNotifierProvider<AuthViewModel, bool>((ref) {
+/// Auth ViewModel Provider
+final authProvider = StateNotifierProvider<AuthViewModel, AuthState>((ref) {
+  final router = ref.watch(routerProvider);
   return AuthViewModel(
-    googleSignInUseCase: ref.watch(googleSignInUseCaseProvider),
-    checkLoginStatusUseCase: ref.watch(checkLoginStatusUseCaseProvider),
     appStateViewModel: ref.watch(appStateProvider.notifier),
     authRepository: ref.watch(authRepositoryProvider),
+    checkLoginStatusUseCase: ref.watch(checkLoginStatusUseCaseProvider),
+    googleSignInUseCase: ref.watch(googleSignInUseCaseProvider),
+    signOutUseCase: ref.watch(signOutUseCaseProvider),
+    router: router,
   );
 });
 

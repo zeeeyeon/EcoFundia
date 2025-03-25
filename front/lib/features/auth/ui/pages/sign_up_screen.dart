@@ -71,7 +71,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
         // 결과 처리
         if (result is AuthSuccessEntity) {
           // 회원가입 성공 - 완료 화면으로 이동
-          context.goNamed('signup-complete');
+          context.goNamed(
+            'signup-complete',
+            extra: {'nickname': _nicknameController.text.trim()},
+          );
         } else if (result is AuthErrorEntity) {
           // 에러 처리
           ScaffoldMessenger.of(context).showSnackBar(
@@ -163,6 +166,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     backgroundColor: AppColors.primary,
                     onPressed: () => _handleSignUp(context, ref),
                   ),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),

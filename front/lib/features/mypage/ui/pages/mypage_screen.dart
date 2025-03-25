@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/core/ui/widgets/loading_overlay.dart';
 import 'package:front/core/ui/widgets/app_dialog.dart';
 import 'package:front/core/providers/app_state_provider.dart';
-import 'package:front/features/auth/ui/view_model/auth_provider.dart';
+import 'package:front/features/auth/providers/auth_providers.dart';
 import 'package:front/utils/logger_util.dart';
 import 'package:go_router/go_router.dart';
 

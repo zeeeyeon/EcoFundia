@@ -43,8 +43,8 @@ class AppTextStyles {
       );
 
   // 버튼 텍스트 스타일
-  static TextStyle get buttonText => GoogleFonts.roboto(
-        fontSize: 22,
+  static TextStyle get buttonText => GoogleFonts.robotoMono(
+        fontSize: 24,
         fontWeight: FontWeight.w500,
         height: 1.17,
         color: AppColors.grey,

@@ -2,8 +2,9 @@
 class AuthException implements Exception {
   final String message;
   final int? statusCode;
+  final bool isNewUser;
 
-  AuthException(this.message, {this.statusCode});
+  AuthException(this.message, {this.statusCode, this.isNewUser = false});
 
   @override
   String toString() => message;

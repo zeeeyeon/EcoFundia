@@ -31,6 +31,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/signup',
+        name: 'signup',
         builder: (context, state) {
           final extras = state.extra as Map<String, dynamic>?;
           return SignUpScreen(
@@ -41,7 +42,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
-        path: '/signup-success',
+        path: '/signup-complete',
+        name: 'signup-complete',
         builder: (context, state) {
           final extras = state.extra as Map<String, dynamic>?;
           return SignupCompleteScreen(nickname: extras?['nickname'] ?? '');

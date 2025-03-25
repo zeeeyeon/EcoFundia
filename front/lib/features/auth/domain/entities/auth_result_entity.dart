@@ -21,7 +21,8 @@ sealed class AuthResultEntity extends Equatable {
 
   const factory AuthResultEntity.cancelled() = AuthCancelledEntity;
 
-  const factory AuthResultEntity.newUser(String message) = AuthNewUserEntity;
+  const factory AuthResultEntity.newUser(String message,
+      {required String token}) = AuthNewUserEntity;
 }
 
 /// 인증 성공 결과
@@ -61,9 +62,10 @@ class AuthCancelledEntity extends AuthResultEntity {
 /// 신규 사용자 결과 (회원가입 필요)
 class AuthNewUserEntity extends AuthResultEntity {
   final String message;
+  final String token;
 
-  const AuthNewUserEntity(this.message);
+  const AuthNewUserEntity(this.message, {required this.token});
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [message, token];
 }

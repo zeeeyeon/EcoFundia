@@ -9,7 +9,9 @@ class UserEntity extends Equatable {
   final String nickname;
   final String gender;
   final int age;
-  final DateTime createdAt;
+  final DateTime? createdAt;
+  final String? account;
+  final String? ssafyUserKey;
 
   const UserEntity({
     required this.userId,
@@ -18,7 +20,9 @@ class UserEntity extends Equatable {
     required this.nickname,
     required this.gender,
     required this.age,
-    required this.createdAt,
+    this.createdAt,
+    this.account,
+    this.ssafyUserKey,
   });
 
   @override
@@ -30,5 +34,7 @@ class UserEntity extends Equatable {
         gender,
         age,
         createdAt,
+        account,
+        ssafyUserKey,
       ];
 }

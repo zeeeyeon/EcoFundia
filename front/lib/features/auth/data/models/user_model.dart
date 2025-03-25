@@ -9,7 +9,9 @@ class UserModel {
   final String nickname;
   final String gender;
   final int age;
-  final DateTime createdAt;
+  final DateTime? createdAt;
+  final String? account;
+  final String? ssafyUserKey;
 
   const UserModel({
     required this.userId,
@@ -18,7 +20,9 @@ class UserModel {
     required this.nickname,
     required this.gender,
     required this.age,
-    required this.createdAt,
+    this.createdAt,
+    this.account,
+    this.ssafyUserKey,
   });
 
   /// JSON으로부터 모델 객체 생성
@@ -30,7 +34,11 @@ class UserModel {
       nickname: json['nickname'] as String,
       gender: json['gender'] as String,
       age: json['age'] as int,
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'] as String)
+          : null,
+      account: json['account'] as String?,
+      ssafyUserKey: json['ssafyUserKey'] as String?,
     );
   }
 
@@ -42,7 +50,9 @@ class UserModel {
         'nickname': nickname,
         'gender': gender,
         'age': age,
-        'createdAt': createdAt.toIso8601String(),
+        'createdAt': createdAt?.toIso8601String(),
+        'account': account,
+        'ssafyUserKey': ssafyUserKey,
       };
 
   /// 도메인 엔티티로 변환
@@ -55,6 +65,8 @@ class UserModel {
       gender: gender,
       age: age,
       createdAt: createdAt,
+      account: account,
+      ssafyUserKey: ssafyUserKey,
     );
   }
 
@@ -68,6 +80,8 @@ class UserModel {
       gender: entity.gender,
       age: entity.age,
       createdAt: entity.createdAt,
+      account: entity.account,
+      ssafyUserKey: entity.ssafyUserKey,
     );
   }
 }

@@ -15,9 +15,13 @@ class AppConfig {
 /// API 엔드포인트를 관리하는 클래스
 class ApiEndpoints {
   // Auth 관련 엔드포인트
-  final String login = '/user/login';
+  final String login = '/user/login'; // Google 로그인 전용
   final String signup = '/user/signup';
-  final String refresh = '/user/reissue';
+  final String reissue = '/user/reissue';
+  final String funding = '/funding';
+  final String wishlist = '/wishlist';
+  final String mypage = '/mypage';
+  final String test = '/user/health';
 
   // 다른 기능별 엔드포인트는 여기에 추가
   const ApiEndpoints();

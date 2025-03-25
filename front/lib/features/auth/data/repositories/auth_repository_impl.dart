@@ -34,10 +34,7 @@ class AuthRepositoryImpl implements AuthRepository {
   /// Google 토큰으로 서버에 인증 요청 (내부 구현용)
   Future<AuthResponseModel> _authenticateWithGoogle(String accessToken) async {
     try {
-      LoggerUtil.i('🔄 Google 토큰으로 로그인 시도');
-      LoggerUtil.d('요청 URL: ${ApiService.apiEndpoints.login}');
-      LoggerUtil.d(
-          '요청 데이터: {"token": "${accessToken.substring(0, min(10, accessToken.length))}..."}');
+      LoggerUtil.i('Google 토큰으로 로그인 시도');
 
       // 웹 환경에서는 CORS 문제로 인해 커스텀 헤더를 사용하지 않음
       const isWeb = kIsWeb;
@@ -50,61 +47,33 @@ class AuthRepositoryImpl implements AuthRepository {
         options: options,
       );
 
-      LoggerUtil.i('✅ 서버 응답 코드: ${response.statusCode}');
-      LoggerUtil.d('응답 데이터: ${response.data}');
-
       if (response.data == null) {
         throw AuthException('서버 응답이 올바르지 않습니다.');
       }
 
-      final authResponse = AuthResponseModel.fromJson(response.data);
-      LoggerUtil.d('파싱된 응답: $authResponse');
-
-      // 응답 코드 확인
-      if (authResponse.status.code != 'SU') {
-        throw AuthException(authResponse.status.message,
-            statusCode: authResponse.status.code == 'NF' ? 404 : 400);
-      }
-
-      // 인증 정보 저장
-      if (authResponse.accessToken != null) {
-        await StorageService.saveToken(authResponse.accessToken!);
-        LoggerUtil.d('액세스 토큰 저장됨');
-      }
-      if (authResponse.refreshToken != null) {
-        await StorageService.saveRefreshToken(authResponse.refreshToken!);
-        LoggerUtil.d('리프레시 토큰 저장됨');
-      }
-      if (authResponse.user?.userId != null) {
-        await StorageService.saveUserId(authResponse.user!.userId.toString());
-        await StorageService.saveUserEmail(authResponse.user!.email);
-        await StorageService.saveUserNickname(authResponse.user!.nickname);
-        LoggerUtil.d('사용자 정보 저장됨');
-      }
-      if (authResponse.role != null) {
-        await StorageService.saveUserRole(authResponse.role!);
-        LoggerUtil.d('사용자 역할 저장됨: ${authResponse.role}');
-      }
-
-      return authResponse;
+      return AuthResponseModel.fromJson(response.data);
     } on DioException catch (e) {
       final statusCode = e.response?.statusCode;
-      LoggerUtil.e('❌ API 오류 발생: $statusCode');
+      var message = '인증 중 오류가 발생했습니다.';
+      var isNewUser = false;
 
-      // 404 응답 처리 (회원가입 필요)
+      // 404 상태 코드인 경우 회원가입이 필요한지 확인
       if (statusCode == 404) {
-        String message = '해당 이메일로 가입된 사용자가 없습니다. 회원가입이 필요합니다.';
-
         try {
           if (e.response?.data != null) {
             final data = e.response!.data;
-            if (data['status'] != null && data['status']['message'] != null) {
-              message = data['status']['message'];
+            if (data['status'] != null) {
+              final status = data['status'];
+              if (status['message'] != null) {
+                message = status['message'];
+              }
+              // NF 코드인 경우에만 회원가입이 필요한 것으로 처리
+              isNewUser = status['code'] == 'NF';
             }
           }
         } catch (_) {}
 
-        throw AuthException(message, statusCode: 404);
+        throw AuthException(message, statusCode: 404, isNewUser: isNewUser);
       }
 
       switch (statusCode) {
@@ -138,22 +107,22 @@ class AuthRepositoryImpl implements AuthRepository {
 
         // 로그인 성공 (사용자 정보가 있는 경우)
         if (responseModel.status.code == 'SU' && responseModel.user != null) {
-          LoggerUtil.i('✅ 로그인 성공: ${responseModel.user?.email}');
+          LoggerUtil.i('로그인 성공: ${responseModel.user?.email}');
           return responseModel.toEntity();
         } else {
           // 상태 코드가 SU이지만 사용자 정보가 없는 경우 (일어나지 않아야 함)
-          LoggerUtil.w('⚠️ 로그인 성공했지만 사용자 정보가 없습니다.');
-          return const AuthResultEntity.newUser('회원가입이 필요합니다.');
+          LoggerUtil.w('로그인 성공했지만 사용자 정보가 없습니다.');
+          return AuthResultEntity.newUser('회원가입이 필요합니다.', token: accessToken);
         }
       } catch (e) {
-        if (e is AuthException && e.statusCode == 404) {
-          LoggerUtil.i('🔄 회원가입이 필요한 사용자: ${e.message}');
-          return AuthResultEntity.newUser(e.message);
+        if (e is AuthException && e.statusCode == 404 && e.isNewUser) {
+          LoggerUtil.i('회원가입이 필요한 사용자: ${e.message}');
+          return AuthResultEntity.newUser(e.message, token: accessToken);
         }
         rethrow;
       }
     } catch (e) {
-      LoggerUtil.e('❌ Google 로그인 실패', e);
+      LoggerUtil.e('Google 로그인 실패', e);
       if (e is AuthException) {
         return AuthResultEntity.error(e.message, statusCode: e.statusCode);
       }
@@ -168,10 +137,14 @@ class AuthRepositoryImpl implements AuthRepository {
       final signUpModel = SignUpModel.fromEntity(signUpData);
       final userData = signUpModel.toJson();
 
+      LoggerUtil.d('회원가입 요청 데이터: $userData');
+
       final response = await _apiService.post(
         ApiService.apiEndpoints.signup,
         data: userData,
       );
+
+      LoggerUtil.d('회원가입 응답 데이터: ${response.data}');
 
       if (response.data == null) {
         throw AuthException('서버 응답이 올바르지 않습니다.');
@@ -229,15 +202,15 @@ class AuthRepositoryImpl implements AuthRepository {
       await StorageService.clearAll();
     } catch (e) {
       LoggerUtil.e('로그아웃 실패', e);
-      // 오류가 발생해도 로컬 데이터는 지워야 함
-      await StorageService.clearAll();
+      throw AuthException('로그아웃 중 오류가 발생했습니다: $e');
     }
   }
 
   @override
   Future<bool> isLoggedIn() async {
     try {
-      return await StorageService.isAuthenticated();
+      final token = await StorageService.getToken();
+      return token != null;
     } catch (e) {
       LoggerUtil.e('로그인 상태 확인 실패', e);
       return false;
@@ -247,21 +220,40 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Map<String, dynamic>?> getGoogleUserInfo() async {
     try {
-      final account =
-          await _googleSignIn.signInSilently() ?? await _googleSignIn.signIn();
-      if (account == null) return null;
+      final currentUser = _googleSignIn.currentUser;
+      if (currentUser == null) {
+        return null;
+      }
 
-      // 기본 정보 반환
-      final userInfo = {
-        'email': account.email,
-        'name': account.displayName,
+      return {
+        'email': currentUser.email,
+        'name': currentUser.displayName,
       };
-
-      LoggerUtil.i('✅ Repository - Google 사용자 정보 획득 성공: $userInfo');
-      return userInfo;
     } catch (e) {
       LoggerUtil.e('Google 사용자 정보 획득 실패', e);
       return null;
+    }
+  }
+
+  @override
+  Future<AuthResponseModel> refreshToken(String refreshToken) async {
+    try {
+      final response = await _apiService.post(
+        ApiService.apiEndpoints.reissue,
+        data: {'refreshToken': refreshToken},
+      );
+
+      if (response.data == null) {
+        throw AuthException('서버 응답이 올바르지 않습니다.');
+      }
+
+      return AuthResponseModel.fromJson(response.data);
+    } on DioException catch (e) {
+      LoggerUtil.e('토큰 갱신 실패', e);
+      rethrow;
+    } catch (e) {
+      LoggerUtil.e('토큰 갱신 중 예외 발생', e);
+      throw AuthException('토큰 갱신 중 오류가 발생했습니다: $e');
     }
   }
 }

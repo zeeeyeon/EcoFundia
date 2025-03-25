@@ -4,9 +4,9 @@ import 'package:front/core/providers/app_state_provider.dart';
 import 'package:front/features/auth/domain/entities/sign_up_entity.dart';
 import 'package:front/features/auth/domain/entities/auth_result_entity.dart';
 import 'package:front/features/auth/domain/use_cases/complete_sign_up_use_case.dart';
-import 'package:front/features/auth/ui/view_model/auth_provider.dart';
 import 'package:front/utils/logger_util.dart';
 import 'package:front/utils/sign_up_validator.dart';
+import 'package:front/features/auth/providers/auth_providers.dart';
 
 /// 회원가입 관련 ViewModel
 class SignUpViewModel extends StateNotifier<bool> {
@@ -47,7 +47,6 @@ class SignUpViewModel extends StateNotifier<bool> {
 
       // 회원가입 데이터 생성
       final signUpData = SignUpEntity(
-        email: email,
         nickname: nickname,
         gender: gender,
         age: age,
