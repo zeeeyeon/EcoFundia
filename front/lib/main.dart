@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'package:front/routing/router.dart';
 import 'package:front/core/constants/app_strings.dart';
 import 'package:front/core/themes/app_colors.dart';
@@ -13,9 +12,6 @@ import 'package:front/features/wishlist/ui/view_model/wishlist_view_model.dart';
 void main() async {
   // Flutter 초기화 확인
   WidgetsFlutterBinding.ensureInitialized();
-
-  // 웹 설정: URL 전략을 pathUrlStrategy로 설정 (# 없는 URL)
-  setUrlStrategy(PathUrlStrategy());
 
   // 로그 수준 설정
   LoggerUtil.setLogLevel(LogLevel.info); // info 레벨 이상만 출력
