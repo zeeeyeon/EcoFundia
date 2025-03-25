@@ -2,7 +2,10 @@ package com.seller.client;
 
 import com.seller.config.FeignMultipartSupportConfig;
 import com.seller.dto.request.FundingCreateRequestDto;
+import com.seller.dto.request.FundingCreateSendDto;
 import com.seller.dto.request.FundingUpdateRequestDto;
+import com.seller.dto.request.FundingUpdateSendDto;
+import com.seller.dto.response.FundingResponseDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -14,22 +17,18 @@ import java.util.List;
 @FeignClient(name = "funding", configuration = FeignMultipartSupportConfig.class)
 public interface FundingClient {
 
-    @GetMapping("/{fundingId}")
-    ResponseEntity<?> getFunding(@PathVariable int fundingId);
+    @GetMapping("/api/funding/{fundingId}")
+    ResponseEntity<?> getFundingId(@PathVariable int fundingId);
 
-    @PostMapping(value = "/{sellerId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    ResponseEntity<?> createFunding(@PathVariable int sellerId,
-                                           @RequestPart("dto") FundingCreateRequestDto dto,
-                                           @RequestPart("storyFile") MultipartFile storyFile,
-                                           @RequestPart("imageFiles") List<MultipartFile> imageFiles);
+    @PostMapping(value = "/api/funding/{sellerId}")
+    ResponseEntity<?> createFunding(@PathVariable int sellerId, @RequestBody FundingCreateSendDto dto);
 
-    @PatchMapping(value = "/{fundingId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    ResponseEntity<?> updateFunding(
-            @PathVariable int fundingId,
-            @RequestPart("dto") FundingUpdateRequestDto dto,
-            @RequestPart(value = "storyFile", required = false) MultipartFile storyFile,
-            @RequestPart(value = "imageFiles", required = false) List<MultipartFile> imageFiles);
+    @PutMapping(value = "/api/funding/{fundingId}")
+    ResponseEntity<?> updateFunding(@PathVariable int fundingId, @RequestBody FundingUpdateSendDto dto);
 
-    @DeleteMapping("/{fundingId}")
+    @DeleteMapping("/api/funding/{fundingId}")
     ResponseEntity<?> deleteFunding(@PathVariable int fundingId);
+
+    @GetMapping("/api/funding/{fundingId}")
+    FundingResponseDto getFundingById(@PathVariable("fundingId") int fundingId);
 }

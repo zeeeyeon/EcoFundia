@@ -1,5 +1,6 @@
 package com.seller.dto.request;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 public record FundingUpdateRequestDto(
@@ -13,6 +14,22 @@ public record FundingUpdateRequestDto(
         LocalDateTime startDate,
         LocalDateTime endDate,
         String category,
-        String status,
-        LocalDateTime updateAt
-) {}
+        String status
+) implements Serializable {
+
+    public FundingUpdateSendDto toDto(String storyFileUrl, String imageUrlsJson) {
+        return new FundingUpdateSendDto(
+                title,
+                description,
+                price,
+                quantity,
+                targetAmount,
+                startDate,
+                endDate,
+                category,
+                status,
+                storyFileUrl,
+                imageUrlsJson
+        );
+    }
+}

@@ -1,4 +1,4 @@
-package com.seller.config;
+package com.ssafy.funding.config;
 
 import feign.codec.Encoder;
 import feign.form.spring.SpringFormEncoder;
