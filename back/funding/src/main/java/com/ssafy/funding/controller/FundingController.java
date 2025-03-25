@@ -5,8 +5,10 @@ import com.ssafy.funding.dto.funding.request.FundingCreateRequestDto;
 import com.ssafy.funding.dto.funding.request.FundingUpdateRequestDto;
 import com.ssafy.funding.dto.funding.response.FundingResponseDto;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
+import com.ssafy.funding.dto.order.response.IsOngoingResponseDto;
 import com.ssafy.funding.dto.review.response.ReviewResponseDto;
 import com.ssafy.funding.dto.seller.SellerDetailResponseDto;
+import com.ssafy.funding.service.OrderService;
 import com.ssafy.funding.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -24,6 +26,7 @@ import static com.ssafy.funding.common.response.ResponseCode.*;
 public class FundingController {
 
     private final ProductService productService;
+    private final OrderService orderService;
 
     @GetMapping("/{fundingId}")
     public ResponseEntity<?> getFunding(@PathVariable int fundingId) {
@@ -111,5 +114,12 @@ public class FundingController {
     SellerDetailResponseDto getSellerDetail(@PathVariable int sellerId){
         SellerDetailResponseDto sellerDetailResponseDto = productService.getSellerDetail(sellerId);
         return sellerDetailResponseDto;
+    }
+
+    // 결제전 현재 펀딩이 진행중인지 확인
+    @GetMapping("/is-ongoing/{fundingId}")
+    IsOngoingResponseDto isOngoing(@PathVariable int fundingId) {
+        IsOngoingResponseDto isOngoingResponseDto = orderService.isOngoing(fundingId);
+        return isOngoingResponseDto;
     }
 }

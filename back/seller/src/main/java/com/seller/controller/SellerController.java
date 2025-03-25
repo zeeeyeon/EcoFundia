@@ -1,12 +1,10 @@
 package com.seller.controller;
 
 import com.seller.dto.FundingDetailSellerResponseDto;
+import com.seller.dto.response.SellerAccountResponseDto;
 import com.seller.service.SellerService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/seller")
@@ -26,5 +24,12 @@ public class SellerController {
     @GetMapping("/detail/{sellerID}")
     String sellerDetail(@PathVariable int sellerId){
         return null;
+    }
+
+    // 판매자 계좌 번호 조회
+    @GetMapping("api/seller/find/account")
+    SellerAccountResponseDto getSellerAccount(@RequestParam(name = "sellerId") int sellerId){
+        SellerAccountResponseDto sellerAccountResponseDto = sellerService.getSellerAccount(sellerId);
+        return sellerAccountResponseDto;
     }
 }
