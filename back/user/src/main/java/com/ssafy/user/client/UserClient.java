@@ -22,6 +22,9 @@ public interface UserClient {
     @PutMapping("/api/user/me")
     public ResponseEntity<?> updateMyInfo(@RequestBody UpdateMyInfoRequestDto requestDto);
 
+    @GetMapping("api/user/health")
+    public ResponseEntity<?> healthCheck();
+
     @GetMapping("/api/user/funding")
     public ResponseEntity<?> getMyFunding(@RequestHeader("X-User-Id") String userId);
 
