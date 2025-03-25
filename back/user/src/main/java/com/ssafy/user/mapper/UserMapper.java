@@ -16,9 +16,7 @@ public interface UserMapper {
     void insertUser(User user);
 
     void insertRefreshToken(@Param("userId") int userId,
-                            @Param("refreshToken") String refreshToken,
-                            @Param("issuedAt") LocalDateTime issuedAt,
-                            @Param("expiresAt") LocalDateTime expiresAt);
+                            @Param("refreshToken") String refreshToken);
 
     List<RefreshToken> findRefreshTokensByUserId(int userId);
 
