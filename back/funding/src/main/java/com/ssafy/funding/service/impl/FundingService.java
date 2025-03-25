@@ -6,6 +6,7 @@ import com.ssafy.funding.common.util.JsonConverter;
 import com.ssafy.funding.dto.funding.request.FundingCreateRequestDto;
 import com.ssafy.funding.dto.funding.request.FundingCreateSendDto;
 import com.ssafy.funding.dto.funding.request.FundingUpdateRequestDto;
+import com.ssafy.funding.dto.funding.request.FundingUpdateSendDto;
 import com.ssafy.funding.dto.funding.response.FundingResponseDto;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
 import com.ssafy.funding.dto.review.response.ReviewDto;
@@ -48,21 +49,10 @@ public class FundingService implements ProductService {
 
     @Override
     @Transactional
-    public Funding updateFunding(int fundingId, FundingUpdateRequestDto dto, MultipartFile storyFile, List<MultipartFile> imageFiles) {
+    public Funding updateFunding(int fundingId, FundingUpdateSendDto dto) {
         Funding funding = findByFundingId(fundingId);
-
-        String oldStoryFileUrl = funding.getStoryFileUrl();
-        List<String> oldImageUrls = funding.getImageUrlList();
-
-        String newStoryFileUrl = s3FileService.uploadFile(storyFile, "funding/story");
-        List<String> newImageUrls = s3FileService.uploadFiles(imageFiles, "funding/images");
-
-        funding.update(dto, newStoryFileUrl, newImageUrls);
+        funding.update(dto);
         fundingMapper.updateFunding(funding);
-
-        if (newStoryFileUrl != null && !newStoryFileUrl.equals(oldStoryFileUrl)) s3FileService.deleteFile(oldStoryFileUrl);
-        if (!newImageUrls.isEmpty() && !newImageUrls.equals(oldImageUrls)) s3FileService.deleteFiles(oldImageUrls);
-
         return funding;
     }
 

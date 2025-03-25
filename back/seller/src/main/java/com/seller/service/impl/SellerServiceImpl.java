@@ -5,7 +5,9 @@ import com.seller.common.util.JsonConverter;
 import com.seller.dto.request.FundingCreateRequestDto;
 import com.seller.dto.request.FundingCreateSendDto;
 import com.seller.dto.request.FundingUpdateRequestDto;
+import com.seller.dto.request.FundingUpdateSendDto;
 import com.seller.dto.response.FundingDetailSellerResponseDto;
+import com.seller.dto.response.FundingResponseDto;
 import com.seller.dto.response.SellerAccountResponseDto;
 import com.seller.entity.Seller;
 import com.seller.mapper.SellerMapper;
@@ -49,7 +51,21 @@ public class SellerServiceImpl implements SellerService {
     @Override
     public ResponseEntity<?> updateFunding(int fundingId, FundingUpdateRequestDto dto,
                                            MultipartFile storyFile, List<MultipartFile> imageFiles) {
-        return fundingClient.updateFunding(fundingId, dto, storyFile, imageFiles);
+
+        String newStoryFileUrl = s3FileService.uploadFile(storyFile, "funding/story");
+        List<String> newImageUrls = s3FileService.uploadFiles(imageFiles, "funding/images");
+
+        FundingResponseDto oldFunding = fundingClient.getFundingById(fundingId);
+        String oldStoryFileUrl = oldFunding.storyFileUrl();
+        List<String> oldImageUrls = oldFunding.imageUrlList();
+
+        if (newStoryFileUrl != null && !newStoryFileUrl.equals(oldStoryFileUrl)) s3FileService.deleteFile(oldStoryFileUrl);
+        if (!newImageUrls.isEmpty() && !newImageUrls.equals(oldImageUrls)) s3FileService.deleteFiles(oldImageUrls);
+
+        String imageUrlsJson = JsonConverter.convertImageUrlsToJson(newImageUrls);
+        FundingUpdateSendDto updateDto = dto.toDto(newStoryFileUrl, imageUrlsJson);
+
+        return fundingClient.updateFunding(fundingId, updateDto);
     }
 
     @Override

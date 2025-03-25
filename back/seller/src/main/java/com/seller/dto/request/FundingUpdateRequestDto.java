@@ -14,6 +14,22 @@ public record FundingUpdateRequestDto(
         LocalDateTime startDate,
         LocalDateTime endDate,
         String category,
-        String status,
-        LocalDateTime updateAt
-) implements Serializable {}
+        String status
+) implements Serializable {
+
+    public FundingUpdateSendDto toDto(String storyFileUrl, String imageUrlsJson) {
+        return new FundingUpdateSendDto(
+                title,
+                description,
+                price,
+                quantity,
+                targetAmount,
+                startDate,
+                endDate,
+                category,
+                status,
+                storyFileUrl,
+                imageUrlsJson
+        );
+    }
+}
