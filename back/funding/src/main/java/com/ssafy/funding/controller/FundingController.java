@@ -4,6 +4,7 @@ import com.ssafy.funding.common.response.Response;
 import com.ssafy.funding.dto.funding.request.FundingCreateRequestDto;
 import com.ssafy.funding.dto.funding.request.FundingCreateSendDto;
 import com.ssafy.funding.dto.funding.request.FundingUpdateRequestDto;
+import com.ssafy.funding.dto.funding.request.FundingUpdateSendDto;
 import com.ssafy.funding.dto.funding.response.FundingResponseDto;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
 import com.ssafy.funding.dto.order.response.IsOngoingResponseDto;
@@ -41,14 +42,9 @@ public class FundingController {
         return new ResponseEntity<>(Response.create(CREATE_FUNDING, null), CREATE_FUNDING.getHttpStatus());
     }
 
-    @PatchMapping(value = "/{fundingId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> updateFunding(
-            @PathVariable int fundingId,
-            @RequestPart("dto") FundingUpdateRequestDto dto,
-            @RequestPart(value = "storyFile", required = false) MultipartFile storyFile,
-            @RequestPart(value = "imageFiles", required = false) List<MultipartFile> imageFiles
-    ) {
-        productService.updateFunding(fundingId, dto, storyFile, imageFiles);
+    @PutMapping(value = "/{fundingId}")
+    public ResponseEntity<?> updateFunding(@PathVariable int fundingId, @RequestBody FundingUpdateSendDto dto) {
+        productService.updateFunding(fundingId, dto);
         return new ResponseEntity<>(Response.create(UPDATE_FUNDING, null), UPDATE_FUNDING.getHttpStatus());
     }
 

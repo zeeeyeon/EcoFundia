@@ -2,6 +2,7 @@ package com.ssafy.funding.entity;
 
 import com.ssafy.funding.common.util.JsonConverter;
 import com.ssafy.funding.dto.funding.request.FundingUpdateRequestDto;
+import com.ssafy.funding.dto.funding.request.FundingUpdateSendDto;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
 import com.ssafy.funding.entity.enums.Category;
 import com.ssafy.funding.entity.enums.Status;
@@ -55,7 +56,7 @@ public class Funding {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public Funding update(FundingUpdateRequestDto dto, String newStoryFileUrl, List<String> newImageUrls) {
+    public Funding update(FundingUpdateSendDto dto) {
         if (dto.title() != null) this.title = dto.title();
         if (dto.description() != null) this.description = dto.description();
         if (dto.price() != 0) this.price = dto.price();
@@ -63,14 +64,10 @@ public class Funding {
         if (dto.targetAmount() != 0) this.targetAmount = dto.targetAmount();
         if (dto.startDate() != null) this.startDate = dto.startDate();
         if (dto.endDate() != null) this.endDate = dto.endDate();
-        if (dto.category() != null) this.category = dto.category();
-        if (dto.status() != null) this.status = dto.status();
-
-        if (newStoryFileUrl != null) this.storyFileUrl = newStoryFileUrl;
-        if (newImageUrls != null && !newImageUrls.isEmpty()) {
-            this.imageUrls = JsonConverter.convertImageUrlsToJson(newImageUrls);
-        }
-
+        if (dto.category() != null) this.category = Category.valueOf(dto.category());
+        if (dto.status() != null) this.status = Status.valueOf(dto.status());
+        if (dto.storyFileUrl() != null) this.storyFileUrl = dto.storyFileUrl();
+        if (dto.imageUrls() != null) this.imageUrls = dto.imageUrls();
         this.updatedAt = LocalDateTime.now();
         return this;
     }

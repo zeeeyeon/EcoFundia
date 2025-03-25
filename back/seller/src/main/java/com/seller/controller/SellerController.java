@@ -35,7 +35,7 @@ public class SellerController {
         return sellerService.createFunding(sellerId, dto, storyFile, imageFiles);
     }
 
-    @PatchMapping(value = "/funding/{fundingId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "/funding/{fundingId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateFunding(
             @PathVariable int fundingId,
             @RequestPart("dto") FundingUpdateRequestDto dto,

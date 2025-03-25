@@ -4,6 +4,8 @@ import com.seller.config.FeignMultipartSupportConfig;
 import com.seller.dto.request.FundingCreateRequestDto;
 import com.seller.dto.request.FundingCreateSendDto;
 import com.seller.dto.request.FundingUpdateRequestDto;
+import com.seller.dto.request.FundingUpdateSendDto;
+import com.seller.dto.response.FundingResponseDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,13 +23,12 @@ public interface FundingClient {
     @PostMapping(value = "/api/funding/{sellerId}")
     ResponseEntity<?> createFunding(@PathVariable int sellerId, @RequestBody FundingCreateSendDto dto);
 
-    @PatchMapping(value = "/api/funding/{fundingId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    ResponseEntity<?> updateFunding(
-            @PathVariable int fundingId,
-            @RequestPart("dto") FundingUpdateRequestDto dto,
-            @RequestPart(value = "storyFile", required = false) MultipartFile storyFile,
-            @RequestPart(value = "imageFiles", required = false) List<MultipartFile> imageFiles);
+    @PutMapping(value = "/api/funding/{fundingId}")
+    ResponseEntity<?> updateFunding(@PathVariable int fundingId, @RequestBody FundingUpdateSendDto dto);
 
     @DeleteMapping("/api/funding/{fundingId}")
     ResponseEntity<?> deleteFunding(@PathVariable int fundingId);
+
+    @GetMapping("/api/funding/{fundingId}")
+    FundingResponseDto getFundingById(@PathVariable("fundingId") int fundingId);
 }

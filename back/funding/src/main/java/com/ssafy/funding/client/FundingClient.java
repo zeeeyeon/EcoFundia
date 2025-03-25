@@ -31,12 +31,8 @@ public interface FundingClient {
     @PostMapping(value = "/api/funding/{sellerId}")
     ResponseEntity<?> createFunding(@PathVariable int sellerId, @RequestBody FundingCreateSendDto dto);
 
-    @PatchMapping(value = "/api/funding/{fundingId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    ResponseEntity<?> updateFunding(
-            @PathVariable int fundingId,
-            @RequestPart("dto") FundingUpdateRequestDto dto,
-            @RequestPart(value = "storyFile", required = false) MultipartFile storyFile,
-            @RequestPart(value = "imageFiles", required = false) List<MultipartFile> imageFiles);
+    @PutMapping(value = "/api/funding/{fundingId}")
+    ResponseEntity<?> updateFunding(@PathVariable int fundingId, @RequestBody FundingUpdateRequestDto dto);
 
     @DeleteMapping("/api/funding/{fundingId}")
     ResponseEntity<?> deleteFunding(@PathVariable int fundingId);

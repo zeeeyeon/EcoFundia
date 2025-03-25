@@ -12,7 +12,9 @@ import java.util.List;
 
 @FeignClient(name = "seller")
 public interface SellerClient {
+
     @GetMapping("/api/seller/sellerName/{sellerId}")
     String getSellerName(@PathVariable("sellerId") int sellerId);
+
 
 }
