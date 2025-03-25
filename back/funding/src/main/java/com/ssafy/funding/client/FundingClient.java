@@ -1,5 +1,8 @@
 package com.ssafy.funding.client;
 
+import com.ssafy.funding.dto.funding.request.FundingCreateRequestDto;
+import com.ssafy.funding.dto.funding.request.FundingCreateSendDto;
+import com.ssafy.funding.dto.funding.request.FundingUpdateRequestDto;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
 import com.ssafy.funding.dto.order.response.IsOngoingResponseDto;
 import com.ssafy.funding.dto.funding.response.UserWishlistFundingDto;
@@ -9,8 +12,10 @@ import com.ssafy.funding.dto.review.response.ReviewDto;
 import com.ssafy.funding.dto.review.response.ReviewResponseDto;
 import com.ssafy.funding.dto.seller.SellerDetailResponseDto;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -20,6 +25,21 @@ import java.util.List;
 @FeignClient(name = "funding")
 public interface FundingClient {
 
+    @GetMapping("/api/funding/{fundingId}")
+    ResponseEntity<?> getFundingId(@PathVariable int fundingId);
+
+    @PostMapping(value = "/api/funding/{sellerId}")
+    ResponseEntity<?> createFunding(@PathVariable int sellerId, @RequestBody FundingCreateSendDto dto);
+
+    @PatchMapping(value = "/api/funding/{fundingId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    ResponseEntity<?> updateFunding(
+            @PathVariable int fundingId,
+            @RequestPart("dto") FundingUpdateRequestDto dto,
+            @RequestPart(value = "storyFile", required = false) MultipartFile storyFile,
+            @RequestPart(value = "imageFiles", required = false) List<MultipartFile> imageFiles);
+
+    @DeleteMapping("/api/funding/{fundingId}")
+    ResponseEntity<?> deleteFunding(@PathVariable int fundingId);
 
     @GetMapping("/api/funding")
     ResponseEntity<Object> getAllfunding();
@@ -85,5 +105,6 @@ public interface FundingClient {
 
     @DeleteMapping("/{fundingId}")
     ResponseEntity<?> deleteWish(@RequestHeader("X-User-Id") int userId, @PathVariable int fundingId);
+
 }
 

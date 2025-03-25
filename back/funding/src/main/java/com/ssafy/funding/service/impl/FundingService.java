@@ -4,6 +4,7 @@ import com.ssafy.funding.common.exception.CustomException;
 import com.ssafy.funding.common.response.ResponseCode;
 import com.ssafy.funding.common.util.JsonConverter;
 import com.ssafy.funding.dto.funding.request.FundingCreateRequestDto;
+import com.ssafy.funding.dto.funding.request.FundingCreateSendDto;
 import com.ssafy.funding.dto.funding.request.FundingUpdateRequestDto;
 import com.ssafy.funding.dto.funding.response.FundingResponseDto;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
@@ -39,15 +40,9 @@ public class FundingService implements ProductService {
 
     @Override
     @Transactional
-    public Funding createFunding(int sellerId, FundingCreateRequestDto dto, MultipartFile storyFile, List<MultipartFile> imageFiles) {
-        String storyFileUrl = s3FileService.uploadFile(storyFile, "funding/story");
-        List<String> imageUrls = s3FileService.uploadFiles(imageFiles, "funding/images");
-
-        String imageUrlsJson = JsonConverter.convertImageUrlsToJson(imageUrls);
-
-        Funding funding = dto.toEntity(sellerId, storyFileUrl, imageUrlsJson);
+    public Funding createFunding(int sellerId, FundingCreateSendDto dto) {
+        Funding funding = dto.toEntity(sellerId);
         fundingMapper.createFunding(funding);
-
         return funding;
     }
 

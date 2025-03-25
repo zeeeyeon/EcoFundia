@@ -2,6 +2,7 @@ package com.ssafy.funding.controller;
 
 import com.ssafy.funding.common.response.Response;
 import com.ssafy.funding.dto.funding.request.FundingCreateRequestDto;
+import com.ssafy.funding.dto.funding.request.FundingCreateSendDto;
 import com.ssafy.funding.dto.funding.request.FundingUpdateRequestDto;
 import com.ssafy.funding.dto.funding.response.FundingResponseDto;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
@@ -29,17 +30,14 @@ public class FundingController {
     private final OrderService orderService;
 
     @GetMapping("/{fundingId}")
-    public ResponseEntity<?> getFunding(@PathVariable int fundingId) {
+    public ResponseEntity<?> getFundingId(@PathVariable int fundingId) {
         FundingResponseDto funding = productService.getFunding(fundingId);
         return new ResponseEntity<>(Response.create(GET_FUNDING, funding), GET_FUNDING.getHttpStatus());
     }
 
-    @PostMapping(value = "/{sellerId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> createFunding(@PathVariable int sellerId,
-                                           @RequestPart("dto") FundingCreateRequestDto dto,
-                                           @RequestPart("storyFile") MultipartFile storyFile,
-                                           @RequestPart("imageFiles") List<MultipartFile> imageFiles) {
-        productService.createFunding(sellerId, dto, storyFile, imageFiles);
+    @PostMapping(value = "/{sellerId}")
+    public ResponseEntity<?> createFunding(@PathVariable int sellerId, @RequestBody FundingCreateSendDto dto) {
+        productService.createFunding(sellerId, dto);
         return new ResponseEntity<>(Response.create(CREATE_FUNDING, null), CREATE_FUNDING.getHttpStatus());
     }
 

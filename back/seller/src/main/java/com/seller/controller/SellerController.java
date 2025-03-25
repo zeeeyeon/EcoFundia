@@ -22,30 +22,31 @@ public class SellerController {
 
 
     @GetMapping("/{fundingId}")
-    ResponseEntity<?> getFunding(@PathVariable int fundingId) {
-        return null;
+    public ResponseEntity<?> getFundingId(@PathVariable int fundingId) {
+        return sellerService.getFundingId(fundingId);
     }
 
-    @PostMapping(value = "api/funding/{sellerId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    ResponseEntity<?> createFunding(@PathVariable int sellerId,
-                                    @RequestPart("dto") FundingCreateRequestDto dto,
-                                    @RequestPart("storyFile") MultipartFile storyFile,
-                                    @RequestPart("imageFiles") List<MultipartFile> imageFiles) {
-        return null;
+    @PostMapping(value = "/funding/{sellerId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> createFunding(
+            @PathVariable int sellerId,
+            @RequestPart("dto") FundingCreateRequestDto dto,
+            @RequestPart("storyFile") MultipartFile storyFile,
+            @RequestPart("imageFiles") List<MultipartFile> imageFiles) {
+        return sellerService.createFunding(sellerId, dto, storyFile, imageFiles);
     }
 
-    @PatchMapping(value = "/{fundingId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    ResponseEntity<?> updateFunding(
+    @PatchMapping(value = "/funding/{fundingId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateFunding(
             @PathVariable int fundingId,
             @RequestPart("dto") FundingUpdateRequestDto dto,
             @RequestPart(value = "storyFile", required = false) MultipartFile storyFile,
             @RequestPart(value = "imageFiles", required = false) List<MultipartFile> imageFiles) {
-        return null;
+        return sellerService.updateFunding(fundingId, dto, storyFile, imageFiles);
     }
 
-    @DeleteMapping("/{fundingId}")
-    ResponseEntity<?> deleteFunding(@PathVariable int fundingId) {
-        return null;
+    @DeleteMapping("/funding/{fundingId}")
+    public ResponseEntity<?> deleteFunding(@PathVariable int fundingId) {
+        return sellerService.deleteFunding(fundingId);
     }
 
     // 펀딩 상세페이지에 필요한 판매자 데이터 요청
