@@ -14,7 +14,7 @@
         VALUES (#{userId}, #{fundingId})
     </insert>
 
-    <select id="findByUserId" parameterType="int" resultType="com.ssafy.user.entity.WishList">
+    <select id="findByUserId" parameterType="int" resultType="com.ssafy.funding.entity.WishList">
         SELECT * FROM wishlist WHERE user_id = #{userId}
     </select>
 
