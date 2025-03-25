@@ -26,6 +26,9 @@ public interface FundingMapper {
     // 최신 펀딩 리스트 조회
     List<Funding> getLatestFundingList(int page);
 
+    // 펀딩 페이지 펀딩 조회
+    List<Funding> getFundingPageList(String sort, List<String> categories, int offset, int PAGE_SIZE);
+
     // 카테고리별 펀딩 리스트 조회
     List<Funding> getCategoryFundingList(@Param("category") String category, @Param("page") int page);
 
