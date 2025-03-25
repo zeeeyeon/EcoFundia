@@ -1,6 +1,7 @@
 package com.ssafy.user.util;
 
 import com.ssafy.user.common.exception.CustomException;
+import com.ssafy.user.common.response.ResponseCode;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import com.ssafy.user.entity.User;
@@ -56,10 +57,8 @@ public class JwtUtil {
                     .build()
                     .parseClaimsJws(token);
             return true;
-        } catch (ExpiredJwtException e) {
-            throw new CustomException("토큰이 만료되었습니다.", HttpStatus.UNAUTHORIZED);
-        } catch (JwtException e) {
-            throw new CustomException("유효하지 않은 토큰입니다.", HttpStatus.FORBIDDEN);
+        } catch (Exception e) {
+            throw new CustomException(ResponseCode.INVALID_ACCESS_TOKEN);
         }
     }
 
