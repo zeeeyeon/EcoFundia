@@ -12,4 +12,21 @@ public record FundingCreateRequestDto(
         LocalDateTime startDate,
         LocalDateTime endDate,
         String category
-) implements Serializable {}
+
+) implements Serializable {
+
+    public FundingCreateSendDto toDto(String storyFileUrl, String imageUrlsJson) {
+        return new FundingCreateSendDto(
+                this.title,
+                this.description,
+                this.price,
+                this.quantity,
+                this.targetAmount,
+                this.startDate,
+                this.endDate,
+                this.category,
+                storyFileUrl,
+                imageUrlsJson
+        );
+    }
+}
