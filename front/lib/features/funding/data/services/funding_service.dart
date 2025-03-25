@@ -16,8 +16,7 @@ class FundingService {
   // 최신 펀딩 리스트 가져오기
   Future<List<FundingModel>> fetchFundingList(int page) async {
     try {
-      final response =
-          await api.get('/api/business/latest-funding/${page + 1}');
+      final response = await api.get('/api/business/latest-funding/$page');
       final List<dynamic> content = response.data['content'];
 
       return content.map((json) => FundingModel.fromJson(json)).toList();

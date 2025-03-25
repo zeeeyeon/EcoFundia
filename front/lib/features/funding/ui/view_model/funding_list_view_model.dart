@@ -19,6 +19,9 @@ final fundingRepositoryProvider = Provider(
 // 검색어 상태 Provider
 final searchQueryProvider = StateProvider<String>((ref) => '');
 
+// 추가 로딩 상태 Provider
+final isFetchingMoreProvider = StateProvider<bool>((ref) => false);
+
 // 펀딩 리스트 상태 Provider
 final fundingListProvider =
     StateNotifierProvider<FundingListNotifier, AsyncValue<List<FundingModel>>>(
@@ -44,14 +47,43 @@ class FundingListNotifier
     required this.searchFundingUseCase,
   }) : super(const AsyncLoading());
 
-  // ✅ 펀딩 리스트 호출 (페이지 0 기준)
-  Future<void> fetchFundingList({int page = 0}) async {
+  int _currentPage = 1;
+  bool _isFetching = false;
+  bool _hasMore = true; // 끝났는지 여부
+
+  bool get isFetching => _isFetching;
+
+  // 펀딩 리스트 호출 (페이지 0 기준)
+  Future<void> fetchFundingList({int page = 1}) async {
     try {
       state = const AsyncLoading();
       final fundings = await getFundingListUseCase.execute(page);
       state = AsyncValue.data(fundings);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
+    }
+  }
+
+  // ⏬ 스크롤 시 다음 페이지 호출
+  Future<void> fetchNextPage() async {
+    if (_isFetching || !_hasMore) return;
+
+    _isFetching = true;
+    _currentPage++;
+
+    try {
+      final newFundings = await getFundingListUseCase.execute(_currentPage);
+
+      state = state.whenData((existingFundings) {
+        final combined = [...existingFundings, ...newFundings];
+        return combined;
+      });
+
+      if (newFundings.length < 5) _hasMore = false;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    } finally {
+      _isFetching = false;
     }
   }
 
