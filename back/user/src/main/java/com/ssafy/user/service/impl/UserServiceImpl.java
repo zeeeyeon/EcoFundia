@@ -2,6 +2,7 @@ package com.ssafy.user.service.impl;
 
 import com.ssafy.user.client.FundingClient;
 import com.ssafy.user.client.OrderClient;
+import com.ssafy.user.client.SellerClient;
 import com.ssafy.user.dto.request.*;
 import com.ssafy.user.dto.response.*;
 import com.ssafy.user.entity.RefreshToken;
@@ -33,6 +34,7 @@ public class UserServiceImpl implements UserService {
     private static final String GOOGLE_USER_INFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo";
     private final FundingClient fundingClient;
     private final OrderClient orderClient;
+    private final SellerClient sellerClient;
 
     @Override
     public LoginResponseDto verifyUser(LoginRequestDto requestDto) {
@@ -45,7 +47,14 @@ public class UserServiceImpl implements UserService {
         }
 
         // role 수정
-        String role = "SELLER";
+        String role;
+        String userId = String.valueOf(user.getUserId());
+//        if(sellerClient.checkSeller(userId).isSeller()){
+//            role = "SELLER";
+//        }else{
+//            role = "USER";
+//        }
+        role = "SELLER";
         String accessToken = jwtUtil.generateAccessToken(user, role);
         String refreshToken = jwtUtil.generateRefreshToken(user);
 

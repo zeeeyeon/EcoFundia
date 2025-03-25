@@ -21,8 +21,8 @@
 
     <!-- 사용자 정보 등록 -->
     <insert id="insertUser" parameterType="com.ssafy.user.entity.User">
-        INSERT INTO user (email, name, nickname, gender, account, age, created_at)
-        VALUES (#{email}, #{name}, #{nickname}, #{gender}, #{account}, #{age}, #{createdAt})
+        INSERT INTO user (email, name, nickname, gender, account, ssafy_user_key, age, created_at)
+        VALUES (#{email}, #{name}, #{nickname}, #{gender}, #{account}, #{ssafyUserKey} #{age}, #{createdAt})
     </insert>
 
     <!-- 사용자 정보 수정 -->
