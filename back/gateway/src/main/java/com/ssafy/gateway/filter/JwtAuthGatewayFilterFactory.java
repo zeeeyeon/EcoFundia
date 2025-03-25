@@ -7,6 +7,7 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -68,9 +69,12 @@ public class JwtAuthGatewayFilterFactory extends AbstractGatewayFilterFactory<Jw
                 }
             }
 
-            // JWT에서 userId와 email(Subject) 추출
-            String userId = claims.get("userId").toString();
-
+            // JWT에서 userId 추출 (null 체크 포함)
+            Object userIdObj = claims.get("userId");
+            if (userIdObj == null) {
+                return unauthorized(exchange);
+            }
+            String userId = userIdObj.toString();
 
             // 요청을 변경하여 downstream으로 전달할 때 인증 정보를 헤더에 추가
             ServerWebExchange modifiedExchange = exchange.mutate()
@@ -85,11 +89,19 @@ public class JwtAuthGatewayFilterFactory extends AbstractGatewayFilterFactory<Jw
 
     private Mono<Void> unauthorized(ServerWebExchange exchange) {
         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-        return exchange.getResponse().setComplete();
+        exchange.getResponse().getHeaders().add(HttpHeaders.CONTENT_TYPE, "text/plain");
+        String message = "Gateway Error: Unauthorized access - token missing or invalid";
+        byte[] bytes = message.getBytes(StandardCharsets.UTF_8);
+        DataBuffer buffer = exchange.getResponse().bufferFactory().wrap(bytes);
+        return exchange.getResponse().writeWith(Mono.just(buffer));
     }
 
     private Mono<Void> forbidden(ServerWebExchange exchange) {
         exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-        return exchange.getResponse().setComplete();
+        exchange.getResponse().getHeaders().add(HttpHeaders.CONTENT_TYPE, "text/plain");
+        String message = "Gateway Error: Forbidden - insufficient permissions";
+        byte[] bytes = message.getBytes(StandardCharsets.UTF_8);
+        DataBuffer buffer = exchange.getResponse().bufferFactory().wrap(bytes);
+        return exchange.getResponse().writeWith(Mono.just(buffer));
     }
 }
