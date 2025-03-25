@@ -18,6 +18,20 @@
         SELECT * FROM wishlist WHERE user_id = #{userId}
     </select>
 
+    <select id="findOngoingByUserId" parameterType="int" resultMap="WishListResultMap">
+        SELECT w.*
+        FROM wishlist w
+                 JOIN funding f ON w.funding_id = f.funding_id
+        WHERE w.user_id = #{userId} AND f.status = 'ONGOING'
+    </select>
+
+    <select id="findDoneByUserId" parameterType="int" resultMap="WishListResultMap">
+        SELECT w.*
+        FROM wishlist w
+                 JOIN funding f ON w.funding_id = f.funding_id
+        WHERE w.user_id = #{userId} AND f.status IN ('SUCCESS', 'FAIL')
+    </select>
+
     <delete id="deleteWish">
         DELETE FROM wishlist WHERE user_id = #{userId} AND funding_id = #{fundingId}
     </delete>

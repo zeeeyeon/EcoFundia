@@ -6,6 +6,7 @@ import java.util.List;
 
 public interface WishListService {
     void createWish(int userId, int fundingId);
-    List<UserWishlistFundingDto> getWishList(int userId);
+    List<UserWishlistFundingDto> getOngoingWishlist(int userId);
+    List<UserWishlistFundingDto> getDoneWishlist(int userId);
     void deleteWish(int userId, int fundingId);
 }

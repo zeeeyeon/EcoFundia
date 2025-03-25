@@ -30,16 +30,15 @@ public class WishListServiceImpl implements WishListService {
     }
 
     @Override
-    public List<UserWishlistFundingDto> getWishList(int userId) {
-        List<WishList> wishList = wishListMapper.findByUserId(userId);
+    public List<UserWishlistFundingDto> getOngoingWishlist(int userId) {
+        List<WishList> wishList = wishListMapper.findOngoingByUserId(userId);
+        return WishListDto(wishList);
+    }
 
-        return wishList.stream()
-                .map(wish -> {
-                    Funding funding = fundingMapper.findById(wish.getFundingId());
-                    String sellerName = sellerClient.getSellerName(funding.getSellerId());
-                    return UserWishlistFundingDto.from(funding, sellerName);
-                })
-                .toList();
+    @Override
+    public List<UserWishlistFundingDto> getDoneWishlist(int userId) {
+        List<WishList> wishList = wishListMapper.findDoneByUserId(userId);
+        return WishListDto(wishList);
     }
 
     @Override
@@ -50,5 +49,15 @@ public class WishListServiceImpl implements WishListService {
 
     private void existsByUserIdAndFundingId(int userId, int fundingId) {
         if (wishListMapper.existsByUserIdAndFundingId(userId, fundingId)) throw new CustomException(ResponseCode.WISHLIST_ALREADY_EXISTS);
+    }
+
+    private List<UserWishlistFundingDto> WishListDto(List<WishList> wishList) {
+        return wishList.stream()
+                .map(wish -> {
+                    Funding funding = fundingMapper.findById(wish.getFundingId());
+                    String sellerName = sellerClient.getSellerName(funding.getSellerId());
+                    return UserWishlistFundingDto.from(funding, sellerName);
+                })
+                .toList();
     }
 }

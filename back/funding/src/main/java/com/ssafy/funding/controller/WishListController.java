@@ -1,6 +1,7 @@
 package com.ssafy.funding.controller;
 
 import com.ssafy.funding.common.response.Response;
+import com.ssafy.funding.dto.funding.response.UserWishlistFundingDto;
 import com.ssafy.funding.entity.WishList;
 import com.ssafy.funding.service.WishListService;
 import lombok.RequiredArgsConstructor;
@@ -24,10 +25,14 @@ public class WishListController {
         return new ResponseEntity<>(Response.create(CREATE_WISHLIST, null), CREATE_WISHLIST.getHttpStatus());
     }
 
-    @GetMapping
-    public ResponseEntity<?> getMyWishlist(@RequestHeader("X-User-Id") int userId) {
-//        List<WishList> list = wishListService.getWishList(userId);
-//        return new ResponseEntity<>(Response.create(GET_WISHLIST, list), GET_WISHLIST.getHttpStatus());
+    @GetMapping("/ongoing")
+    public List<UserWishlistFundingDto> getOngoingWishlist(@RequestHeader("X-User-Id") int userId) {
+        return wishListService.getOngoingWishlist(userId);
+    }
+
+    @GetMapping("/done")
+    public List<UserWishlistFundingDto> getDoneWishlist(@RequestHeader("X-User-Id") int userId) {
+        return wishListService.getDoneWishlist(userId);
     }
 
     @DeleteMapping("/{fundingId}")
