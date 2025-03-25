@@ -25,8 +25,14 @@ public class WishListController {
     }
 
     @GetMapping("/onging")
-    public ResponseEntity<?> getMyWishlist(@RequestHeader("X-User-Id") String userId) {
+    public ResponseEntity<?> getMyWishList(@RequestHeader("X-User-Id") String userId) {
         List<WishList> list = wishListService.getWishList(userId);
+        return new ResponseEntity<>(Response.create(GET_WISHLIST, list), GET_WISHLIST.getHttpStatus());
+    }
+
+    @GetMapping("/done")
+    public ResponseEntity<?> getDoneMyWishList(@RequestHeader("X-User-Id") String userId) {
+        List<WishList> list = wishListService.getDoneWishList(userId);
         return new ResponseEntity<>(Response.create(GET_WISHLIST, list), GET_WISHLIST.getHttpStatus());
     }
 
