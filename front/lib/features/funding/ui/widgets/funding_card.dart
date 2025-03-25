@@ -19,7 +19,7 @@ class FundingCard extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: Image.network(
-                funding.imageUrl,
+                funding.imageUrls.first,
                 width: 120,
                 height: 90,
                 fit: BoxFit.cover,

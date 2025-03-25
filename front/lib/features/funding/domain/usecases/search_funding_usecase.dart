@@ -1,16 +1,13 @@
 import '../../data/models/funding_model.dart';
+import '../../data/repositories/funding_repository.dart';
 
 class SearchFundingUseCase {
-  final List<FundingModel> allFundingList;
+  final FundingRepository repository;
 
-  SearchFundingUseCase(this.allFundingList);
+  SearchFundingUseCase(this.repository);
 
-  List<FundingModel> execute(String query) {
-    if (query.isEmpty) return allFundingList;
-    return allFundingList
-        .where((funding) =>
-            funding.title.toLowerCase().contains(query.toLowerCase()) ||
-            funding.description.toLowerCase().contains(query.toLowerCase()))
-        .toList();
+  Future<List<FundingModel>> execute(String query) async {
+    // query를 서버에 전달해서 검색 요청
+    return await repository.searchFunding(query);
   }
 }

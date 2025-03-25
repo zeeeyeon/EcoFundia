@@ -14,7 +14,7 @@ class FundingDetailCard extends StatelessWidget {
         ClipRRect(
           borderRadius: BorderRadius.circular(10),
           child: Image.network(
-            funding.imageUrl,
+            funding.imageUrls.first,
             height: 200,
             width: double.infinity,
             fit: BoxFit.cover,
