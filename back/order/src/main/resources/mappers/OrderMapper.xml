@@ -20,9 +20,9 @@
         SELECT * FROM order WHERE user_id = #{userId}
     </select>
 
-    <insert id="createOrder">
-        INSERT INTO funding (user_id, funding_id, amount, quantity, total_price)
-        VALUES (#{userId}, #{fundingId}, #{amount}, #{quantity}, #{totalPrice})
+    <insert id="createOrder" parameterType="com.order.entity.Order" useGeneratedKeys="true" keyProperty="orderId">
+        INSERT INTO `order` (user_id, funding_id, amount, quantity, total_price, created_at, updated_at)
+        VALUES (#{userId}, #{fundingId}, #{amount}, #{quantity}, #{totalPrice}, #{createdAt}, #{updatedAt})
     </insert>
 
 

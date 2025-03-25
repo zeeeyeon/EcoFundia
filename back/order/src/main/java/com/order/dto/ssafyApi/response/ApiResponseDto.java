@@ -1,5 +1,6 @@
 package com.order.dto.ssafyApi.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.util.List;
@@ -7,7 +8,10 @@ import java.util.List;
 @Data
 public class ApiResponseDto {
 
+    @JsonProperty("Header")
     private Header header;
+
+    @JsonProperty("REC")
     private List<Rec> REC;
 
     @Data

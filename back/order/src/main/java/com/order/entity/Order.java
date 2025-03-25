@@ -1,7 +1,13 @@
 package com.order.entity;
 
+import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
+
 import java.time.LocalDateTime;
 
+@Data
+@Builder
 public class Order {
 
     private int orderId;
@@ -10,7 +16,8 @@ public class Order {
     private int amount;
     private int quantity;
     private int totalPrice;
-    private LocalDateTime createAt;
-    private LocalDateTime updateAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
 
 }

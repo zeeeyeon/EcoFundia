@@ -1,11 +1,6 @@
 package com.order.dto.ssafyApi.request;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import javax.lang.model.element.NestingKind;
+import lombok.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Random;
@@ -26,7 +21,9 @@ public class HeaderDto {
     private String apiKey;
     private String userKey;
 
-    public HeaderDto buildHeaderDto(String apiName, String userKey) {
+    public HeaderDto buildHeaderDto(String apiName, String userKey, String apiKey) {
+
+
         String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HHmmss"));
         String transactionId = date + time + String.format("%06d", new Random().nextInt(999999));
@@ -39,7 +36,7 @@ public class HeaderDto {
                 .fintechAppNo("001")
                 .apiServiceCode(apiName)
                 .institutionTransactionUniqueNo(transactionId)
-                .apiKey("db2f69fc7f7e49b8a6460ffe136ca608")
+                .apiKey(apiKey)
                 .userKey(userKey)
                 .build();
     }
