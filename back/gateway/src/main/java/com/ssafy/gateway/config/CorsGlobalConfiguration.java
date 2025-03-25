@@ -14,9 +14,8 @@ public class CorsGlobalConfiguration {
     @Bean
     public CorsWebFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);
-//        config.addAllowedOrigin("*");
-        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowCredentials(true); // 인증 정보 허용
+        config.setAllowedOrigins(List.of("http://localhost:59343"));
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
 
@@ -25,3 +24,4 @@ public class CorsGlobalConfiguration {
         return new CorsWebFilter(source);
     }
 }
+
