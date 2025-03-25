@@ -3,8 +3,7 @@ package com.seller.dto.request;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-@Builder
-public record FundingCreateRequestDto (
+public record FundingCreateRequestDto(
         String title,
         String description,
         int price,
