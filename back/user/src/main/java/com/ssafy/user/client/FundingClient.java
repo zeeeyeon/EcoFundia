@@ -7,6 +7,7 @@ import com.ssafy.user.dto.request.UpdateMyReviewRequestDto;
 import com.ssafy.user.dto.response.FundingResponseDto;
 import com.ssafy.user.dto.response.GetMyTotalFundingResponseDto;
 import com.ssafy.user.dto.response.ReviewResponseDto;
+import com.ssafy.user.dto.response.WishiListResponseDto;
 import com.ssafy.user.entity.WishList;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
@@ -37,8 +38,8 @@ public interface FundingClient {
     void deleteWish(@RequestHeader("X-User-Id") String userId, @PathVariable("fundingId") int fundingId);
 
     @GetMapping("/api/wishList/ongoing")
-    List<WishList> getMyWishList(@RequestHeader("X-User-Id") String userId);
+    List<WishiListResponseDto> getMyWishList(@RequestHeader("X-User-Id") String userId);
 
     @GetMapping("/api/wishList/done")
-    List<WishList> getDoneMyWishList(@RequestHeader("X-User-Id") String userId);
+    List<WishiListResponseDto> getDoneMyWishList(@RequestHeader("X-User-Id") String userId);
 }

@@ -3,6 +3,7 @@ package com.ssafy.user.service.impl;
 import com.ssafy.user.client.FundingClient;
 import com.ssafy.user.client.OrderClient;
 import com.ssafy.user.client.SellerClient;
+import com.ssafy.user.common.response.PageResponse;
 import com.ssafy.user.dto.request.*;
 import com.ssafy.user.dto.response.*;
 import com.ssafy.user.entity.RefreshToken;
@@ -11,7 +12,6 @@ import com.ssafy.user.common.exception.CustomException;
 import com.ssafy.user.mapper.UserMapper;
 import com.ssafy.user.service.UserService;
 import com.ssafy.user.util.JwtUtil;
-import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -169,30 +169,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<FundingResponseDto> getMyFundingDetails(String userId) {
-        try {
-            return orderClient.getMyFundings(userId);
-        }catch (FeignException e){
-            throw new CustomException(INTERNAL_SERVER_ERROR);
-        }
+    public PageResponse<FundingResponseDto> getMyFundingDetails(String userId, int page, int size) {
+        List<FundingResponseDto> all = orderClient.getMyFundings(userId);
+        return paginate(all, page, size);
     }
 
     @Override
     public GetMyTotalFundingResponseDto getMyFundingTotal(String userId) {
-        try {
-            return orderClient.getMyTotalFunding(userId);
-        }catch (FeignException e){
-            throw new CustomException(INTERNAL_SERVER_ERROR);
-        }
+        return orderClient.getMyTotalFunding(userId);
     }
 
     @Override
-    public List<ReviewResponseDto> getMyReviews(String userId) {
-        try {
-            return fundingClient.getMyReviews(userId);
-        }catch (FeignException e){
-            throw new CustomException(INTERNAL_SERVER_ERROR);
-        }
+    public PageResponse<ReviewResponseDto> getMyReviews(String userId, int page, int size) {
+        List<ReviewResponseDto> all = fundingClient.getMyReviews(userId);
+        return paginate(all, page, size);
     }
 
     @Override
@@ -204,29 +194,18 @@ public class UserServiceImpl implements UserService {
                 .nickname(nickname)
                 .fundingId(requestDto.getFundingId())
                 .build();
-        try {
-            fundingClient.postMyReview(userId, dto);
-        }catch (FeignException e){
-            throw new CustomException(INTERNAL_SERVER_ERROR);
-        }
+
+        fundingClient.postMyReview(userId, dto);
     }
 
     @Override
     public void updateMyReview(String userId, int reviewId, UpdateMyReviewRequestDto requestDto) {
-        try {
-            fundingClient.updateMyReview(userId, reviewId, requestDto);
-        }catch (FeignException e){
-            throw new CustomException(INTERNAL_SERVER_ERROR);
-        }
+        fundingClient.updateMyReview(userId, reviewId, requestDto);
     }
 
     @Override
     public void deleteMyReview(String userId, int reviewId) {
-        try {
-            fundingClient.deleteMyReview(userId, reviewId);
-        }catch (FeignException e){
-            throw new CustomException(INTERNAL_SERVER_ERROR);
-        }
+        fundingClient.deleteMyReview(userId, reviewId);
     }
 
     @Override
@@ -238,11 +217,7 @@ public class UserServiceImpl implements UserService {
                 .quantity(requestDto.getQuantity())
                 .account(account)
                 .build();
-        try {
-            fundingClient.createPayment(userId,dto);
-        }catch (FeignException e){
-            throw new CustomException(INTERNAL_SERVER_ERROR);
-        }
+        fundingClient.createPayment(userId,dto);
     }
 
     private Map<String, Object> getGoogleUserInfo(String accessToken) {
@@ -253,5 +228,14 @@ public class UserServiceImpl implements UserService {
                 .retrieve()
                 .bodyToMono(Map.class)
                 .block();
+    }
+
+    private <T> PageResponse<T> paginate(List<T> list, int page, int size) {
+        int total = list.size();
+        int start = Math.min(page * size, total);
+        int end = Math.min(start + size, total);
+        List<T> content = list.subList(start, end);
+        int totalPages = (int) Math.ceil((double) total / size);
+        return new PageResponse<>(content, page, size, total, totalPages);
     }
 }
