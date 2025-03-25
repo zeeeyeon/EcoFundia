@@ -1,6 +1,6 @@
 package com.seller.service.impl;
 
-import com.seller.dto.FundingDetailSellerResponseDto;
+import com.seller.dto.response.FundingDetailSellerResponseDto;
 import com.seller.mapper.SellerMapper;
 import com.seller.service.SellerService;
 import lombok.RequiredArgsConstructor;
