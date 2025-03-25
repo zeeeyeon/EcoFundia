@@ -94,7 +94,11 @@ public class UserController {
         return new ResponseEntity<>(Response.create(SUCCESS, null), SUCCESS.getHttpStatus());
     }
 
-
+    @GetMapping("/health")
+    public ResponseEntity<?> healthCheck(){
+        System.out.println("연결됨!");
+        return new ResponseEntity<>(Response.create(SUCCESS, null), SUCCESS.getHttpStatus());
+    }
 
 
 }
