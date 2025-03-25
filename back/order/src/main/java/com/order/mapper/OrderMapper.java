@@ -9,7 +9,7 @@ import java.util.List;
 @Mapper
 public interface OrderMapper {
 
-    OrderResponseDto createOrder(int userId, int fundingId, int amount, int totalPrice, int quantity);
+    void createOrder(Order order);
 
     List<Order> getOrders(int userId);
 }
