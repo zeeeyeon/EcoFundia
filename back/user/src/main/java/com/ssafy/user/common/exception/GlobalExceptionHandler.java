@@ -14,13 +14,10 @@ public class GlobalExceptionHandler {
 
     // CustomException을 처리하는 핸들러
     @ExceptionHandler(CustomException.class)
-    public ResponseEntity<?> handleCustomException(CustomException ex) {
-        // 예외 메시지와 적절한 ResponseCode를 이용해 Response 객체 생성
-        Response response = Response.create(
-                // 만약 CustomException 생성 시 ResponseCode를 이용했다면, 해당 코드 대신 ex.getMessage()를 활용할 수도 있습니다.
-                ResponseCode.BAD_REQUEST, ex.getMessage()
-        );
-        return new ResponseEntity<>(response, ex.getHttpStatus());
+    public ResponseEntity<Response<?>> handleCustomException(CustomException ex) {
+        return ResponseEntity
+                .status(ex.getResponseCode().getHttpStatus())
+                .body(Response.create(ex.getResponseCode(), null));
     }
     // 기타 처리하지 않은 예외에 대한 기본 핸들러 (옵션)
     @ExceptionHandler(Exception.class)
