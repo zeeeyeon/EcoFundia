@@ -5,10 +5,12 @@ import com.ssafy.user.common.response.PageResponse;
 import com.ssafy.user.dto.response.WishListResponseDto;
 import com.ssafy.user.service.WishListService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class WishListServiceImpl implements WishListService {
@@ -22,6 +24,7 @@ public class WishListServiceImpl implements WishListService {
 
     @Override
     public PageResponse<WishListResponseDto> getWishList(int userId, int page, int size) {
+        log.info("유저 서비스 도착");
         List<WishListResponseDto> all = fundingClient.getMyWishList(userId);
         return paginate(all, page, size);
     }
