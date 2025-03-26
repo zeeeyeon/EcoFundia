@@ -76,7 +76,7 @@ class _FundingListScreenState extends ConsumerState<FundingListScreen> {
             const SizedBox(height: 8),
             Expanded(
               child: fundingState.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () => const SizedBox.shrink(),
                 error: (err, _) => Center(child: Text("오류 발생: $err")),
                 data: (fundingList) {
                   if (fundingList.isEmpty) {
