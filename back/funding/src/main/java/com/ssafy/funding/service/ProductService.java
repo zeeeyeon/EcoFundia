@@ -37,7 +37,7 @@ public interface ProductService {
     List<GetFundingResponseDto> getFundingPageList(String sort, int page, List<String> categories);
 
     // 펀딩 키워드 검색 조회
-    List<GetFundingResponseDto> getSearchFundingList(String keyword, int page);
+    List<GetFundingResponseDto> getSearchFundingList(String sort, String keyword, int page);
 
     // 펀딩 상세 페이지
     GetFundingResponseDto getFundingDetail(int fundingId);
