@@ -84,13 +84,13 @@ public interface FundingClient {
     @GetMapping("api/funding/is-ongoing/{fundingId}")
     IsOngoingResponseDto isOngoing(@PathVariable int fundingId);
 
-    @GetMapping("api/review/user")
+    @GetMapping("/api/review/user")
     List<ReviewDto> getReviewsByUserId(@RequestHeader("X-User-Id") String userId);
 
-    @PostMapping("api/review")
+    @PostMapping("/api/review")
     ResponseEntity<?> createReview(@RequestHeader("X-User-Id") int userId, @RequestBody ReviewCreateRequestDto dto);
 
-    @RequestMapping(method = RequestMethod.PATCH, value = "/api/review/{reviewId}")
+    @PutMapping("/api/review/{reviewId}")
     ResponseEntity<?> updateReview(@RequestHeader("X-User-Id") int userId,
                                    @PathVariable int reviewId,
                                    @RequestBody ReviewUpdateRequestDto dto);
