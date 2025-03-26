@@ -3,6 +3,7 @@ package com.ssafy.funding.mapper;
 import com.ssafy.funding.dto.review.response.ReviewDto;
 import com.ssafy.funding.dto.seller.SellerDetailDto;
 import com.ssafy.funding.entity.Funding;
+import com.ssafy.funding.entity.FundingWishCount;
 import org.apache.ibatis.annotations.*;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -36,6 +37,13 @@ public interface FundingMapper {
             @Param("keyword") String keyword,
             @Param("offset") int offset,
             @Param("limit") int limit);
+
+    // 베스트 펀팅으로 리스트 조회
+    List<FundingWishCount> getBestFundingList(@Param("sort") String sort, @Param("offset") int offset, @Param("limit") int limit);
+
+    // 마감임박 펀딩 리스트 조회
+    List<Funding> getSoonFinishFundingList(@Param("sort") String sort, @Param("offset") int offset, @Param("limit") int limit);
+
 
     // 최신 펀딩 리스트 조회
     List<Funding> getLatestFundingList(int page);

@@ -10,12 +10,14 @@ import com.ssafy.funding.dto.funding.request.FundingCreateSendDto;
 import com.ssafy.funding.dto.funding.request.FundingUpdateRequestDto;
 import com.ssafy.funding.dto.funding.request.FundingUpdateSendDto;
 import com.ssafy.funding.dto.funding.response.FundingResponseDto;
+import com.ssafy.funding.dto.funding.response.FundingWishCountResponseDto;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
 import com.ssafy.funding.dto.review.response.ReviewDto;
 import com.ssafy.funding.dto.review.response.ReviewResponseDto;
 import com.ssafy.funding.dto.seller.SellerDetailDto;
 import com.ssafy.funding.dto.seller.SellerDetailResponseDto;
 import com.ssafy.funding.entity.Funding;
+import com.ssafy.funding.entity.FundingWishCount;
 import com.ssafy.funding.entity.enums.Status;
 import com.ssafy.funding.mapper.FundingMapper;
 import com.ssafy.funding.service.ProductService;
@@ -27,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.ssafy.funding.common.response.ResponseCode.*;
@@ -104,6 +107,13 @@ public class FundingService implements ProductService {
         return fundingList.stream().map(Funding::toDto).collect(Collectors.toList());
     }
 
+    // 카테고리별 펀딩 리스트 조회
+    @Transactional
+    public List<GetFundingResponseDto> getCategoryFundingList(String category, int page){
+        List<Funding> fundingList = fundingMapper.getCategoryFundingList(category, (page - 1)  * 5);
+        return fundingList.stream().map(Funding::toDto).collect(Collectors.toList());
+    }
+
     // 레디스키 생성 메서드
     private String makeRedisKey(String sort, List<String> categories, int page){
         String categoryPart = (categories == null || categories.isEmpty())
@@ -112,19 +122,15 @@ public class FundingService implements ProductService {
         return String.format("funding::%s::%s::%d", sort, categoryPart, page);
     }
 
-    // redis key 조회
-    private String getRedisKey(String redisKey) {
-        // redis에서 키 조회
-        String cachedJson = redisTemplate.opsForValue().get(redisKey);
-
-        if (cachedJson != null) {
-            try {
-                return objectMapper.readValue(cachedJson, new TypeReference<>() {});
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
+    // redis 캐싱 메서드
+    private void redisCaching(String redisKey, List<?> dtoList) {
+        // redis에 캐싱
+        try {
+            String json = objectMapper.writeValueAsString(dtoList);
+            redisTemplate.opsForValue().set(redisKey, json, Duration.ofMinutes(1)); // TTL 설정
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
         }
-        return cachedJson;
     }
 
     // 펀딩 페이지 조회
@@ -152,21 +158,57 @@ public class FundingService implements ProductService {
                 .map(Funding::toDto).collect(Collectors.toList());
 
         // redis에 캐싱
-        try {
-            String json = objectMapper.writeValueAsString(dtoList);
-            redisTemplate.opsForValue().set(redisKey, json, Duration.ofMinutes(1)); // TTL 설정
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-
+        redisCaching(redisKey, dtoList);
         return dtoList;
     }
 
-    // 카테고리별 펀딩 리스트 조회
+    // 펀딩 검색페이지 토픽 검색 (베스트 펀딩, 마감임박, 오늘의 검색어)
     @Transactional
-    public List<GetFundingResponseDto> getCategoryFundingList(String category, int page){
-        List<Funding> fundingList = fundingMapper.getCategoryFundingList(category, (page - 1)  * 5);
-        return fundingList.stream().map(Funding::toDto).collect(Collectors.toList());
+    public List<?> getSearchSpecialFunding(String sort , String topic, int page){
+
+        String redisKey = String.format("special::%s::%s::%d", sort, topic, page);
+        System.out.println(redisKey);
+
+        // redis에서 키 조회
+        String cachedJson = redisTemplate.opsForValue().get(redisKey);
+
+        if (cachedJson != null) {
+            try {
+                return objectMapper.readValue(cachedJson, new TypeReference<>() {});
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // redis에 없으면 DB 조회
+        int offset = (page -1) * PAGE_SIZE;
+
+        if (topic.equals("best")) {
+
+            // 베스트 번딩 - 찜이 많은 순으로 정렬 review 테이블
+            // wishlist테이블에서 참조하는 funding_id 개수가 많은 순으로 Funding 정렬
+            List<FundingWishCount> fundingList = fundingMapper.getBestFundingList(sort, offset, PAGE_SIZE);
+            List<FundingWishCountResponseDto> dtoList = fundingList.stream()
+                    .map(FundingWishCount::toDto).collect(Collectors.toList());
+
+            // redis에 캐싱
+            redisCaching(redisKey, dtoList);
+
+            return dtoList;
+
+        } else if (topic.equals("soon")) { //마감임박 - end_date이랑 현재 시간이 한시간 이내인 펀딩만 나열
+
+            List<Funding> fundingList = fundingMapper.getSoonFinishFundingList(sort, offset, PAGE_SIZE);
+            List<GetFundingResponseDto> dtoList = fundingList.stream()
+                    .map(Funding::toDto).collect(Collectors.toList());
+
+            // redis에 캐싱
+            redisCaching(redisKey, dtoList);
+
+            return dtoList;
+        } else {
+            throw new CustomException(BAD_REQUEST);
+        }
     }
 
     // 펀딩 키워드 검색 조회
@@ -194,12 +236,7 @@ public class FundingService implements ProductService {
                 .map(Funding::toDto).collect(Collectors.toList());
 
         // redis에 캐싱
-        try {
-            String json = objectMapper.writeValueAsString(dtoList);
-            redisTemplate.opsForValue().set(redisKey, json, Duration.ofMinutes(1)); // TTL 설정
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+        redisCaching(redisKey, dtoList);
 
         return dtoList;
     }

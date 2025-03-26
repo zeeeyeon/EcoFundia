@@ -39,6 +39,9 @@ public interface ProductService {
     // 펀딩 키워드 검색 조회
     List<GetFundingResponseDto> getSearchFundingList(String sort, String keyword, int page);
 
+    // 펀딩 검색페이지 토픽 검색 (오늘의 펀딩 마감임박, 오늘의 검색어)
+    List<?> getSearchSpecialFunding(String sort , String topic, int page);
+
     // 펀딩 상세 페이지
     GetFundingResponseDto getFundingDetail(int fundingId);
 
