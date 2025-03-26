@@ -98,16 +98,16 @@ public interface FundingClient {
     ResponseEntity<?> deleteReview(@RequestHeader("X-User-Id") int userId,
                                    @PathVariable int reviewId);
 
-    @PostMapping("/{fundingId}")
+    @PostMapping("/api/wishlist/{fundingId}")
     ResponseEntity<?> createWish(@RequestHeader("X-User-Id") int userId, @PathVariable int fundingId);
 
-    @GetMapping("/ongoing")
+    @GetMapping("/api/wishlist/ongoing")
     List<UserWishlistFundingDto> getOngoingWishlist(@RequestHeader("X-User-Id") int userId);
 
-    @GetMapping("/done")
+    @GetMapping("/api/wishlist/done")
     List<UserWishlistFundingDto> getDoneWishlist(@RequestHeader("X-User-Id") int userId);
 
-    @DeleteMapping("/{fundingId}")
+    @DeleteMapping("/api/wishlist/{fundingId}")
     ResponseEntity<?> deleteWish(@RequestHeader("X-User-Id") int userId, @PathVariable int fundingId);
 
 }
