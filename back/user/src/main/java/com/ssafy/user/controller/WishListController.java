@@ -30,7 +30,6 @@ public class WishListController {
             @RequestHeader("X-User-Id") int userId,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size",defaultValue = "10") int size) {
-        log.info("유저컨트롤러도착");
         PageResponse<WishListResponseDto> result = wishListService.getWishList(userId, page, size);
         return new ResponseEntity<>(Response.create(GET_WISHLIST, result), GET_WISHLIST.getHttpStatus());
     }
