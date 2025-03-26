@@ -18,5 +18,8 @@ public  interface FundingService {
     // 카테고리별 펀딩 리스트 조회
     List<FundingResponseDTO> getCategoryFundingList(String category, int page);
 
+    // 펀딩 페이지 펀딩 조회
+    List<FundingResponseDTO> getFundingPageList(String sort, List<String> categories ,int page);
+
 
 }

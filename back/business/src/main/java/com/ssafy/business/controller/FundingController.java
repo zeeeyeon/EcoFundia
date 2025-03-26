@@ -48,6 +48,17 @@ public class FundingController {
         return new ResponseEntity<>(Response.create(ResponseCode.GET_FUNDING, fundingList), ResponseCode.GET_FUNDING.getHttpStatus());
     }
 
+    //
+    @GetMapping("/funding-page")
+    public ResponseEntity<?> getFundingPageList(
+            @RequestParam(name = "sort") String sort,
+            @RequestParam(name = "categories" ,required = false) List<String> categories,
+            @RequestParam(name = "page") int page
+    ) {
+        List<FundingResponseDTO> fundingList = fundingService.getFundingPageList(sort, categories, page);
+        return new ResponseEntity<>(Response.create(ResponseCode.GET_FUNDING, fundingList), ResponseCode.GET_FUNDING.getHttpStatus());
+    }
+
     // 카테고리별 펀딩 리스트 조회
     @GetMapping("/category")
     public ResponseEntity<?> getCategoryFundingList(@RequestParam(name="category") String category , @RequestParam(name="page") int page) {

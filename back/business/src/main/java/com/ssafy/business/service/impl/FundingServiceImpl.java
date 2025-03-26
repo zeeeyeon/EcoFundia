@@ -33,6 +33,10 @@ public class FundingServiceImpl implements FundingService {
     public List<FundingResponseDTO> getCategoryFundingList(String category, int page){
         return fundingClient.getCategoryFundingList(category, page);
     }
+
+    public List<FundingResponseDTO> getFundingPageList(String sort, List<String> categories ,int page) {
+        return fundingClient.getFundingPageList(sort, categories, page);
+    }
 }
 
 
