@@ -2,7 +2,7 @@ package com.ssafy.user.controller;
 
 import com.ssafy.user.common.response.Response;
 import com.ssafy.user.common.response.PageResponse;
-import com.ssafy.user.dto.response.WishiListResponseDto;
+import com.ssafy.user.dto.response.WishListResponseDto;
 import com.ssafy.user.service.WishListService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +29,7 @@ public class WishListController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
-        PageResponse<WishiListResponseDto> result = wishListService.getWishList(userId, page, size);
+        PageResponse<WishListResponseDto> result = wishListService.getWishList(userId, page, size);
         return new ResponseEntity<>(Response.create(GET_WISHLIST, result), GET_WISHLIST.getHttpStatus());
     }
 
@@ -39,7 +39,7 @@ public class WishListController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
-        PageResponse<WishiListResponseDto> result = wishListService.getDoneWishList(userId, page, size);
+        PageResponse<WishListResponseDto> result = wishListService.getDoneWishList(userId, page, size);
         return new ResponseEntity<>(Response.create(GET_WISHLIST, result), GET_WISHLIST.getHttpStatus());
     }
 

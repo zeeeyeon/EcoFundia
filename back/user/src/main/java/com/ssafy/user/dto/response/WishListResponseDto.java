@@ -7,7 +7,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class WishiListResponseDto {
+public class WishListResponseDto {
     private int fundingId;
     private String title;
     private String imageUrl;
