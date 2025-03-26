@@ -36,7 +36,6 @@ import static com.ssafy.funding.common.response.ResponseCode.*;
 public class FundingService implements ProductService {
 
     private final FundingMapper fundingMapper;
-    private final S3FileService s3FileService;
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper objectMapper;
 
