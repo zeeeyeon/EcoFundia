@@ -37,7 +37,10 @@ public interface BusinessClient {
 
     // 펀딩 키워드 검색 조회
     @GetMapping("api/business/search")
-    ResponseEntity<?> getSearchFundingList(@RequestParam(name="keyword") String keyword, @RequestParam(name="page") int page);
+    ResponseEntity<?> getSearchFundingList(
+            @RequestParam(name = "sort") String sort,
+            @RequestParam(name = "keyword") String keyword,
+            @RequestParam(name= "page") int page);
 
     // 펀딩 상세 페이지
     @GetMapping("api/business/detail/{fundingId}")

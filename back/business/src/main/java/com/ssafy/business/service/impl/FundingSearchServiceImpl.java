@@ -15,7 +15,7 @@ public class FundingSearchServiceImpl implements FundingSearchService {
     private final FundingClient fundingClient;
 
     // 펀딩 키워드 검색 조회
-    public List<FundingResponseDTO> getSearchFundingList(String keyword, int page){
-        return fundingClient.getSearchFundingList(keyword, page);
+    public List<FundingResponseDTO> getSearchFundingList(String sort, String keyword, int page){
+        return fundingClient.getSearchFundingList(sort, keyword, page);
     }
 }
