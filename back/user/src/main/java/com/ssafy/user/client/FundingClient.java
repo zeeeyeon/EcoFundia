@@ -1,14 +1,10 @@
 package com.ssafy.user.client;
 
 import com.ssafy.user.dto.request.CreateOrderRequestDto;
-import com.ssafy.user.dto.request.PostReviewRequestDto;
 import com.ssafy.user.dto.request.PostReviewWithNicknameRequestDto;
 import com.ssafy.user.dto.request.UpdateMyReviewRequestDto;
-import com.ssafy.user.dto.response.FundingResponseDto;
-import com.ssafy.user.dto.response.GetMyTotalFundingResponseDto;
 import com.ssafy.user.dto.response.ReviewResponseDto;
-import com.ssafy.user.dto.response.WishiListResponseDto;
-import com.ssafy.user.entity.WishList;
+import com.ssafy.user.dto.response.WishListResponseDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,8 +34,8 @@ public interface FundingClient {
     void deleteWish(@RequestHeader("X-User-Id") int userId, @PathVariable("fundingId") int fundingId);
 
     @GetMapping("/api/wishList/ongoing")
-    List<WishiListResponseDto> getMyWishList(@RequestHeader("X-User-Id") int userId);
+    List<WishListResponseDto> getMyWishList(@RequestHeader("X-User-Id") int userId);
 
     @GetMapping("/api/wishList/done")
-    List<WishiListResponseDto> getDoneMyWishList(@RequestHeader("X-User-Id") int userId);
+    List<WishListResponseDto> getDoneMyWishList(@RequestHeader("X-User-Id") int userId);
 }
