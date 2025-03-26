@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:front/core/ui/widgets/app_dialog.dart';
 import 'package:go_router/go_router.dart';
 
 class CustomerSupportSection extends StatelessWidget {
@@ -24,7 +25,7 @@ class CustomerSupportSection extends StatelessWidget {
 
         const Divider(height: 1, thickness: 1, color: Colors.grey),
 
-        _buildSupportItem(context, title: "1:1 문의", route: '/support/inquiry'),
+        _buildLogoutItem(context),
         _buildSupportItem(context, title: "자주 물어보는 Q&A", route: '/support/faq'),
         _buildSupportItem(context, title: "공지사항", route: '/support/notice'),
         _buildSupportItem(context, title: "앱 사용 가이드", route: '/support/guide'),
@@ -38,6 +39,45 @@ class CustomerSupportSection extends StatelessWidget {
         _buildInfoItem("고객센터", "000-0000"),
         _buildInfoItem("버전 정보", "v1.0.0"),
       ],
+    );
+  }
+
+  // 로그아웃 항목 (모달 띄우기)
+  Widget _buildLogoutItem(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        // 로그아웃 확인 모달 띄우기
+        AppDialog.show(
+          context: context,
+          title: "로그아웃",
+          content: "정말 로그아웃 하시겠습니까?",
+          confirmText: "로그아웃",
+          cancelText: "취소",
+          onConfirm: () {
+            Navigator.of(context).pop(); // 모달만 닫음 (로그아웃 로직은 별도 처리)
+          },
+        );
+      },
+      child: const Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                Text(
+                  "로그아웃",
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Divider(height: 1, thickness: 1, color: Colors.grey),
+        ],
+      ),
     );
   }
 
