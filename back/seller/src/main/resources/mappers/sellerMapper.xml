@@ -9,6 +9,13 @@
         <result property="sellerName" column="name" />
     </resultMap>
 
+    <select id="findByUserId" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1
+            FROM seller
+            WHERE user_id = #{userId}
+        )
+    </select>
 
     <!-- 펀딩 키워드 검색 조회 -->
     <select id="sellerInfo" resultMap="sellerResultMap">

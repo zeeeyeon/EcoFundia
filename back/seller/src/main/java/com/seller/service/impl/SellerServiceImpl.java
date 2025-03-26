@@ -1,6 +1,7 @@
 package com.seller.service.impl;
 
 import com.seller.client.FundingClient;
+import com.seller.common.exception.CustomException;
 import com.seller.common.util.JsonConverter;
 import com.seller.dto.request.FundingCreateRequestDto;
 import com.seller.dto.request.FundingCreateSendDto;
@@ -20,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+
+import static com.seller.common.response.ResponseCode.SELLER_NOT_FOUND;
 
 @Slf4j
 @Service
@@ -71,6 +74,12 @@ public class SellerServiceImpl implements SellerService {
     @Override
     public ResponseEntity<?> deleteFunding(int fundingId) {
         return fundingClient.deleteFunding(fundingId);
+    }
+
+    @Override
+    public Boolean findByUserId(int userId) {
+        if (!sellerMapper.findByUserId(userId)) throw new CustomException(SELLER_NOT_FOUND);
+        return sellerMapper.findByUserId(userId);
     }
 
     // 펀딩 상세페이지 seller 정보 조회
