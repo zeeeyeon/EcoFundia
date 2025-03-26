@@ -17,7 +17,7 @@ public enum ResponseCode {
     REISSUE_SUCCESS("SU", HttpStatus.OK, "액세스토큰이 재발급 되었습니다."),
     GET_MYINFO("SU", HttpStatus.OK, "내정보를 불러오는데 성공했습니다."),
     UPDATE_MYINFO("SU", HttpStatus.OK, "내정보를 수정하는데 성공했습니다."),
-    GET_MY_FUNDING_SUCCESS("GF", HttpStatus.OK, "내 펀딩 상세 조회 성공"),
+    GET_MY_FUNDING_SUCCESS("GF", HttpStatus.OK, "내 펀딩 조회 성공"),
     GET_MY_TOTAL_FUNDING_SUCCESS("GT", HttpStatus.OK, "내 총 펀딩 금액 조회 성공"),
     GET_MY_REVIEW_SUCCESS("GR", HttpStatus.OK, "내 리뷰 조회 성공"),
     UPDATE_MY_REVIEW_SUCCESS("UR", HttpStatus.OK, "리뷰 수정 성공"),

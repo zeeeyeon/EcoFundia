@@ -16,18 +16,18 @@ public interface UserService {
 
     // 외부서비스 호출
 
-    PageResponse<FundingResponseDto> getMyFundingDetails(String userId, int page, int size);
+    PageResponse<FundingResponseDto> getMyFundingDetails(int userId, int page, int size);
 
-    GetMyTotalFundingResponseDto getMyFundingTotal(String userId);
+    GetMyTotalFundingResponseDto getMyFundingTotal(int userId);
 
-    PageResponse<ReviewResponseDto> getMyReviews(String userId, int page, int size);
+    PageResponse<ReviewResponseDto> getMyReviews(int userId, int page, int size);
 
-    void postMyReview(String userId, PostReviewRequestDto requestDto);
+    void postMyReview(int userId, PostReviewRequestDto requestDto);
 
-    void updateMyReview(String userId, int reviewId, UpdateMyReviewRequestDto requestDto);
+    void updateMyReview(int userId, int reviewId, UpdateMyReviewRequestDto requestDto);
 
-    void deleteMyReview(String userId, int reviewId);
+    void deleteMyReview(int userId, int reviewId);
 
-    void createPayment(String userId, CreatePaymentRequestDto requestDto);
+    void createPayment(int userId, CreatePaymentRequestDto requestDto);
 
 }
