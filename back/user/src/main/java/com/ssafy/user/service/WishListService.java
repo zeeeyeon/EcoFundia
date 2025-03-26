@@ -1,13 +1,15 @@
 package com.ssafy.user.service;
 
-import com.ssafy.user.entity.WishList;
-
-import java.util.List;
+import com.ssafy.user.common.response.PageResponse;
+import com.ssafy.user.dto.response.WishiListResponseDto;
 
 public interface WishListService {
-    void createWish(String userId, int fundingId);
-    List<WishList> getWishList(String userId);
-    void deleteWish(String userId, int fundingId);
-    List<WishList> getDoneWishList(String userId);
-}
 
+    void createWish(int userId, int fundingId);
+
+    PageResponse<WishiListResponseDto> getWishList(int userId, int page, int size);
+
+    void deleteWish(int userId, int fundingId);
+
+    PageResponse<WishiListResponseDto> getDoneWishList(int userId, int page, int size);
+}
