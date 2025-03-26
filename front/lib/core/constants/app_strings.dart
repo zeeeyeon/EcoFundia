@@ -27,11 +27,12 @@ class AppStrings {
   static const String errorLoadingSellerReviews = '판매자 리뷰를 불러오는데 실패했습니다';
 
   // 메인 페이지
-  static const String totalFund = 'total Fund';
+  static const String totalFund = 'TOTAL FUND';
   static const String topProject = 'TOP Project';
   static const String purchase = '펀딩하기';
   static const String introduction = '한줄 소개';
   static const String remainingTime = '남은시간';
+  static const String wonCurrency = '원';
 
   // 로그인 모달
   static const String loginRequired = '로그인이 필요한 서비스입니다';

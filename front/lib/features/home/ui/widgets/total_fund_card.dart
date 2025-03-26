@@ -139,7 +139,7 @@ class _TotalFundCardState extends State<TotalFundCard>
                   color: AppColors.primary,
                   height: 1.1,
                   fontSize: 40,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
             ),

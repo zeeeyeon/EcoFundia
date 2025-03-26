@@ -10,7 +10,9 @@ import 'package:front/features/mypage/ui/pages/mypage_screen.dart';
 import 'package:front/features/wishlist/ui/pages/wishlist_screen.dart';
 import 'package:front/features/auth/ui/pages/signup_complete_screen.dart';
 import 'package:front/shared/seller/ui/pages/seller_detail_screen.dart';
+import 'package:front/features/home/ui/pages/project_detail_screen.dart';
 import 'package:front/utils/auth_utils.dart';
+import 'package:front/features/home/domain/entities/project_entity.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -53,6 +55,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/splash',
         builder: (context, state) => const SplashPage(),
       ),
+      // 프로젝트 상세 페이지
+      GoRoute(
+        path: '/project/:id',
+        builder: (context, state) {
+          final projectId = int.parse(state.pathParameters['id'] ?? '1');
+          final project = (state.extra as Map<String, dynamic>?)?['project']
+              as ProjectEntity?;
+          return ProjectDetailScreen(projectId: projectId, project: project);
+        },
+      ),
       // 판매자 상세 페이지
       GoRoute(
         path: '/seller/:id',
@@ -71,7 +83,12 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/funding',
-                builder: (context, state) => const FundingScreen(),
+                pageBuilder: (context, state) {
+                  return const NoTransitionPage(
+                    key: ValueKey('funding'),
+                    child: FundingScreen(),
+                  );
+                },
               ),
             ],
           ),
@@ -79,7 +96,12 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/',
-                builder: (context, state) => const HomeScreen(),
+                pageBuilder: (context, state) {
+                  return const NoTransitionPage(
+                    key: ValueKey('home'),
+                    child: HomeScreen(),
+                  );
+                },
               ),
             ],
           ),
@@ -87,7 +109,12 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/wishlist',
-                builder: (context, state) => const WishlistScreen(),
+                pageBuilder: (context, state) {
+                  return const NoTransitionPage(
+                    key: ValueKey('wishlist'),
+                    child: WishlistScreen(),
+                  );
+                },
               ),
             ],
           ),
@@ -95,7 +122,12 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/mypage',
-                builder: (context, state) => const MypageScreen(),
+                pageBuilder: (context, state) {
+                  return const NoTransitionPage(
+                    key: ValueKey('mypage'),
+                    child: MypageScreen(),
+                  );
+                },
               ),
             ],
           ),

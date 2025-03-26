@@ -1,18 +1,23 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:front/core/constants/app_strings.dart';
+import 'package:front/core/themes/app_colors.dart';
 import 'package:front/core/themes/app_text_styles.dart';
-import 'package:front/utils/auth_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/features/home/domain/entities/project_entity.dart';
 import 'project_card.dart';
-import 'package:front/core/providers/app_state_provider.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 
+/// 프로젝트 캐러셀 위젯
 class ProjectCarousel extends ConsumerStatefulWidget {
-  final List<Map<String, dynamic>> projects;
+  final List<ProjectEntity> projects;
+  final Function(ProjectEntity) onPurchaseTap;
+  final Function(ProjectEntity) onLikeTap;
 
   const ProjectCarousel({
     super.key,
     required this.projects,
+    required this.onPurchaseTap,
+    required this.onLikeTap,
   });
 
   @override
@@ -21,207 +26,184 @@ class ProjectCarousel extends ConsumerStatefulWidget {
 
 class _ProjectCarouselState extends ConsumerState<ProjectCarousel>
     with SingleTickerProviderStateMixin {
-  final PageController _pageController = PageController();
   late final AnimationController _fireAnimationController;
-  Timer? _timer;
   int _currentPage = 0;
-  bool _isDisposed = false;
 
   @override
   void initState() {
     super.initState();
+
+    // 불꽃 애니메이션 초기화
     _fireAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
-
-    // 초기화 후 타이머 시작
-    _startAutoScroll();
   }
 
   @override
   void dispose() {
-    _isDisposed = true;
-    if (_timer != null) {
-      _timer!.cancel();
-      _timer = null;
-    }
-    _pageController.dispose();
     _fireAnimationController.dispose();
     super.dispose();
-  }
-
-  void _startAutoScroll() {
-    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      // 위젯이 dispose 되었는지 확인
-      if (_isDisposed) {
-        timer.cancel();
-        return;
-      }
-
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
-
-      if (_currentPage < widget.projects.length - 1) {
-        _currentPage++;
-      } else {
-        _currentPage = 0;
-      }
-
-      if (_pageController.hasClients) {
-        _pageController.animateToPage(
-          _currentPage,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-        );
-      }
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
-    final isSmallScreen = screenSize.width < 360; // 작은 화면 기준
-    // 화면 크기에 따라 캐러셀 높이 동적 조정
-    final carouselHeight = isSmallScreen
-        ? screenSize.height * 0.5 // 작은 화면에서는 높이를 줄임
-        : screenSize.height * 0.6; // 보통 크기 화면에서는 원래 높이 유지
+    final isSmallScreen = screenSize.width < 360;
+    final scaleFactor = isSmallScreen ? 0.85 : 1.0;
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // 화면 너비를 기준으로 동적인 여백 및 크기 계산
-        final horizontalPadding = isSmallScreen
-            ? constraints.maxWidth * 0.02
-            : constraints.maxWidth * 0.05;
-        final titleFontSize = isSmallScreen ? 16.0 : screenSize.width * 0.06;
-        final dotSize =
-            isSmallScreen ? screenSize.width * 0.015 : screenSize.width * 0.02;
-        final dotSpacing =
-            isSmallScreen ? screenSize.width * 0.005 : screenSize.width * 0.01;
+    // 카드와 동일한 크기로 캐러셀 높이 설정
+    final double carouselHeight = 460 * scaleFactor;
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: horizontalPadding,
+    // 반응형 UI 요소 계산
+    final horizontalPadding = 20.0 * scaleFactor;
+    final titleFontSize = isSmallScreen ? 20.0 : 24.0;
+    final dotSize = 5.0 * scaleFactor;
+    final dotSpacing = 3.0 * scaleFactor;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // "TOP PROJECT" 제목 영역
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+          child: Row(
+            children: [
+              Text(
+                AppStrings.topProject,
+                style: AppTextStyles.heading2.copyWith(
+                  fontSize: titleFontSize,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              child: Row(
-                children: [
-                  Text(
-                    AppStrings.topProject,
-                    style: HomeTextStyles.projectTitle.copyWith(
-                      fontSize: titleFontSize,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  AnimatedBuilder(
-                    animation: _fireAnimationController,
-                    builder: (context, child) {
-                      return Transform.translate(
-                        offset: Offset(0, 2 * _fireAnimationController.value),
-                        child: ShaderMask(
-                          shaderCallback: (bounds) => LinearGradient(
-                            colors: const [
-                              Color(0xFFFF0000), // 빨간색 (불꽃 중심)
-                              Color(0xFFFF4500), // 밝은 주황색
-                              Color(0xFFFFD700), // 황금색 (불꽃 끝)
-                            ],
-                            stops: [
-                              0.0,
-                              0.5,
-                              1.0 - _fireAnimationController.value * 0.3,
-                            ],
-                            begin: Alignment.bottomCenter,
-                            end: Alignment.topCenter,
-                          ).createShader(bounds),
-                          child: Text(
-                            ' 🔥',
-                            style: TextStyle(
-                              fontSize: titleFontSize,
-                              height: 1,
-                              color: Colors.white,
-                            ),
-                          ),
+              // 불꽃 애니메이션 아이콘
+              AnimatedBuilder(
+                animation: _fireAnimationController,
+                builder: (context, child) {
+                  return Transform.translate(
+                    offset: Offset(0, 2 * _fireAnimationController.value),
+                    child: ShaderMask(
+                      shaderCallback: (bounds) => const LinearGradient(
+                        colors: [
+                          Color(0xFFFF0000),
+                          Color(0xFFFF4500),
+                          Color(0xFFFFD700),
+                        ],
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                      ).createShader(bounds),
+                      child: Text(
+                        ' 🔥',
+                        style: TextStyle(
+                          fontSize: titleFontSize,
+                          height: 1,
+                          color: Colors.white,
                         ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: isSmallScreen ? 8 : 16),
-            SizedBox(
-              height: carouselHeight,
-              child: PageView.builder(
-                controller: _pageController,
-                itemCount: widget.projects.length,
-                onPageChanged: (index) {
-                  setState(() {
-                    _currentPage = index;
-                  });
-                },
-                itemBuilder: (context, index) {
-                  final project = widget.projects[index];
-                  return Padding(
-                    padding: EdgeInsets.symmetric(
-                      // 화면 크기에 따라 패딩 조정
-                      horizontal:
-                          constraints.maxWidth * (isSmallScreen ? 0.01 : 0.025),
-                    ),
-                    child: ProjectCard(
-                      title: project['title'],
-                      description: project['description'],
-                      imageUrl: project['imageUrl'],
-                      percentage: project['percentage'],
-                      price: project['price'],
-                      remainingTime: project['remainingTime'],
-                      onPurchaseTap: () async {
-                        if (await AuthUtils.checkAuthAndShowModal(
-                            context, ref, AuthRequiredFeature.purchase)) {
-                          // TODO: 구매 로직 구현
-                        }
-                      },
-                      onLikeTap: () async {
-                        if (await AuthUtils.checkAuthAndShowModal(
-                            context, ref, AuthRequiredFeature.like)) {
-                          // TODO: 좋아요 로직 구현
-                        }
-                      },
+                      ),
                     ),
                   );
                 },
               ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 6),
+
+        // 프로젝트 캐러셀
+        SizedBox(
+          height: carouselHeight,
+          child: widget.projects.isEmpty
+              ? _buildEmptyState(scaleFactor)
+              : _buildCarousel(carouselHeight, dotSize, dotSpacing),
+        ),
+      ],
+    );
+  }
+
+  /// 프로젝트가 없을 때 표시할 빈 상태 위젯
+  Widget _buildEmptyState(double scaleFactor) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.info_outline,
+            size: 48 * scaleFactor,
+            color: Colors.grey[400],
+          ),
+          SizedBox(height: 16 * scaleFactor),
+          Text(
+            '프로젝트 데이터가 없습니다',
+            style: AppTextStyles.body1.copyWith(
+              fontSize: 16 * scaleFactor,
+              color: Colors.grey[600],
             ),
-            SizedBox(
-                height: isSmallScreen
-                    ? screenSize.height * 0.01
-                    : screenSize.height * 0.02),
-            Row(
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 프로젝트 캐러셀 위젯
+  Widget _buildCarousel(
+      double carouselHeight, double dotSize, double dotSpacing) {
+    return Stack(
+      alignment: Alignment.bottomCenter,
+      children: [
+        CarouselSlider.builder(
+          itemCount: widget.projects.length,
+          itemBuilder: (context, index, realIndex) {
+            if (index >= widget.projects.length) {
+              return const SizedBox();
+            }
+            final project = widget.projects[index];
+            return ProjectCard(
+              project: project,
+              onPurchaseTap: () => widget.onPurchaseTap(project),
+              onLikeTap: () => widget.onLikeTap(project),
+            );
+          },
+          options: CarouselOptions(
+            height: carouselHeight,
+            aspectRatio: 4 / 5,
+            viewportFraction: 0.85,
+            enlargeCenterPage: true,
+            enlargeFactor: 0.2,
+            enableInfiniteScroll: widget.projects.length > 1,
+            autoPlay: widget.projects.length > 1,
+            autoPlayInterval: const Duration(seconds: 3),
+            autoPlayAnimationDuration: const Duration(milliseconds: 800),
+            autoPlayCurve: Curves.fastOutSlowIn,
+            onPageChanged: (index, reason) {
+              setState(() => _currentPage = index);
+            },
+          ),
+        ),
+
+        // 하단 도트 인디케이터 (프로젝트가 2개 이상일 때만 표시)
+        if (widget.projects.length > 1)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
                 widget.projects.length,
                 (index) => Container(
                   width: dotSize,
                   height: dotSize,
-                  margin: EdgeInsets.symmetric(
-                    horizontal: dotSpacing,
-                  ),
+                  margin: EdgeInsets.symmetric(horizontal: dotSpacing),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: _currentPage == index
-                        ? Colors.black
-                        : Colors.grey.withOpacity(0.3),
+                        ? AppColors.primary
+                        : Colors.grey.withOpacity(0.5),
                   ),
                 ),
               ),
             ),
-          ],
-        );
-      },
+          ),
+      ],
     );
   }
 }

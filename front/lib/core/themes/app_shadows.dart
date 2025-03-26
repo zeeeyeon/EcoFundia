@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'app_colors.dart';
 
 /// 앱 전체에서 사용할 그림자 스타일 정의
 class AppShadows {
@@ -32,5 +33,13 @@ class AppShadows {
     blurRadius: 15.0,
     spreadRadius: 1.0,
     offset: Offset(0, 5),
+  );
+
+  /// 펀드 금액 표시 박스에 사용할 그림자
+  static BoxShadow fundBox = BoxShadow(
+    color: AppColors.fundBoxShadow,
+    spreadRadius: 0,
+    blurRadius: 10,
+    offset: const Offset(0, 3),
   );
 }
