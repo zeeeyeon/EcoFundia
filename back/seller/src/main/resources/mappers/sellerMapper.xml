@@ -18,7 +18,13 @@
     </select>
 
     <select id="findByIds" resultType="com.ssafy.seller.domain.Seller">
-        SELECT seller_id, name
+        SELECT
+        seller_id,
+        user_id,
+        profile_img,
+        account,
+        ssafy_user_key,
+        name
         FROM seller
         WHERE seller_id IN
         <foreach collection="sellerIds" item="id" open="(" separator="," close=")">
