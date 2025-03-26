@@ -56,8 +56,8 @@ public class UserController {
     @GetMapping("/funding")
     public ResponseEntity<?> getMyFunding(
             @RequestHeader("X-User-Id") int userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(name = "page",defaultValue = "0") int page,
+            @RequestParam(name = "size",defaultValue = "10") int size) {
 
         PageResponse<FundingResponseDto> dto = userService.getMyFundingDetails(userId, page, size);
         return new ResponseEntity<>(Response.create(GET_MY_FUNDING_SUCCESS, dto), GET_MY_FUNDING_SUCCESS.getHttpStatus());
@@ -72,8 +72,8 @@ public class UserController {
     @GetMapping("/review")
     public ResponseEntity<?> getMyReviews(
             @RequestHeader("X-User-Id") int userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
 
         PageResponse<ReviewResponseDto> dto = userService.getMyReviews(userId, page, size);
         return new ResponseEntity<>(Response.create(GET_MY_REVIEW_SUCCESS, dto), GET_MY_REVIEW_SUCCESS.getHttpStatus());
