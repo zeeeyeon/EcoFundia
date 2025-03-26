@@ -26,13 +26,19 @@ public interface UserClient {
     public ResponseEntity<?> healthCheck();
 
     @GetMapping("/api/user/funding")
-    public ResponseEntity<?> getMyFunding(@RequestHeader("X-User-Id") int userId);
+    public ResponseEntity<?> getMyFunding(
+            @RequestHeader("X-User-Id") int userId,
+            @RequestParam(name = "page",defaultValue = "0") int page,
+            @RequestParam(name = "size",defaultValue = "10") int size);
 
     @GetMapping("/api/user/funding/total")
     public ResponseEntity<?> getMyTotalFunding(@RequestHeader("X-User-Id") int userId);
 
     @GetMapping("/api/user/review")
-    public ResponseEntity<?> getMyReviews(@RequestHeader("X-User-Id") int userId);
+    public ResponseEntity<?> getMyReviews(
+            @RequestHeader("X-User-Id") int userId,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size);
 
     @PostMapping("/api/user/review")
     public ResponseEntity<?> postMyReview(@RequestHeader("X-User-Id") int userId, @RequestBody PostReviewRequestDto requestDto);
@@ -50,10 +56,10 @@ public interface UserClient {
     public ResponseEntity<?> createWish(@RequestHeader("X-User-Id") int userId, @PathVariable int fundingId);
 
     @GetMapping("/api/user/wishList/ongoing")
-    public ResponseEntity<?> getMyWishList(@RequestHeader("X-User-Id") int userId, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size);
+    public ResponseEntity<?> getMyWishList(@RequestHeader("X-User-Id") int userId, @RequestParam(name = "page",defaultValue = "0") int page, @RequestParam(name = "size",defaultValue = "10") int size);
 
     @GetMapping("/api/user/wishList/done")
-    public ResponseEntity<?> getDoneMyWishList(@RequestHeader("X-User-Id") int userId, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size);
+    public ResponseEntity<?> getDoneMyWishList(@RequestHeader("X-User-Id") int userId, @RequestParam(name = "page",defaultValue = "0") int page, @RequestParam(name = "size",defaultValue = "10") int size);
 
     @DeleteMapping("/api/user/wishList/{fundingId}")
     public ResponseEntity<?> deleteWish(@RequestHeader("X-User-Id") int userId, @PathVariable int fundingId);

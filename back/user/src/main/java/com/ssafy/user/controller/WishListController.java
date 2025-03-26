@@ -26,8 +26,8 @@ public class WishListController {
     @GetMapping("/ongoing")
     public ResponseEntity<?> getMyWishList(
             @RequestHeader("X-User-Id") int userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size",defaultValue = "10") int size) {
 
         PageResponse<WishListResponseDto> result = wishListService.getWishList(userId, page, size);
         return new ResponseEntity<>(Response.create(GET_WISHLIST, result), GET_WISHLIST.getHttpStatus());
@@ -36,8 +36,8 @@ public class WishListController {
     @GetMapping("/done")
     public ResponseEntity<?> getDoneMyWishList(
             @RequestHeader("X-User-Id") int userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(name = "page",defaultValue = "0") int page,
+            @RequestParam(name = "size",defaultValue = "10") int size) {
 
         PageResponse<WishListResponseDto> result = wishListService.getDoneWishList(userId, page, size);
         return new ResponseEntity<>(Response.create(GET_WISHLIST, result), GET_WISHLIST.getHttpStatus());
