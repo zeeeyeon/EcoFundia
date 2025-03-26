@@ -41,13 +41,6 @@ public interface FundingClient {
     @GetMapping("/api/funding/{fundingId}")
     ResponseEntity<Object> getFunding(@PathVariable int fundingId);
 
-    // 펀딩 페이지 펀딩 리스트 조회
-    @GetMapping("/api/funding/funding-page")
-    List<GetFundingResponseDto>getFundingPageList(
-            @RequestParam(name = "sort") String sort,
-            @RequestParam(name = "categories" ,required = false) List<String> categories,
-            @RequestParam(name = "page") int page
-    );
 
     // funding 서비스에게 top-funding 데이터 요청
     @GetMapping("/api/funding/top-funding")
@@ -61,11 +54,26 @@ public interface FundingClient {
     @GetMapping("api/funding/category")
     List<GetFundingResponseDto> getCategoryFundingList(@RequestParam(name = "category") String category , @RequestParam(name = "sortNum") int sortNum ,@RequestParam(name = "page") int page);
 
+    // 펀딩 페이지 펀딩 리스트 조회
+    @GetMapping("/api/funding/funding-page")
+    List<GetFundingResponseDto>getFundingPageList(
+            @RequestParam(name = "sort") String sort,
+            @RequestParam(name = "categories" ,required = false) List<String> categories,
+            @RequestParam(name = "page") int page
+    );
+
     // funding 서비스에게 키워드 검색으로 펀딩 리스트 데이터 요청
     @GetMapping("api/funding/search")
     List<GetFundingResponseDto> getSearchFundingList(
             @RequestParam(name = "sort") String sort,
             @RequestParam(name = "keyword") String keyword,
+            @RequestParam(name= "page") int page);
+
+    // funding 서비스에서 검색페이지에 오늘의 펀딩, 마감임박 선택한 색션 펀딩 리스트 데이터 요청
+    @GetMapping("api/funding/search/special")
+    List<GetFundingResponseDto> getSearchSpecialFunding(
+            @RequestParam(name = "sort") String sort,
+            @RequestParam(name = "topic") String topic,
             @RequestParam(name= "page") int page);
 
     // funding 서비스에게 펀딩 상세 정보 요청

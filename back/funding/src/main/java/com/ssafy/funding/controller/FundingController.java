@@ -103,6 +103,16 @@ public class FundingController {
         return fundingList;
     }
 
+    // funding 서비스에서 검색페이지에 배스트 펀딩, 마감임박, 오늘의 검색어 중 선택한 색션 펀딩 리스트 데이터 요청
+    @GetMapping("api/funding/search/special")
+    List<GetFundingResponseDto> getSearchSpecialFunding(
+            @RequestParam(name = "sort") String sort,
+            @RequestParam(name = "topic") String topic,
+            @RequestParam(name= "page") int page) {
+        List<GetFundingResponseDto> fundingList = productService.getSearchFundingList(sort ,topic, page);
+        return fundingList;
+    }
+
     // 펀딩 프로젝트 상세 정보 요청
     @GetMapping("/detail/{fundingId}")
     GetFundingResponseDto getFundingDetail(@PathVariable int fundingId) {
