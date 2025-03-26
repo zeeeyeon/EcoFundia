@@ -70,15 +70,26 @@ public class FundingController {
 
     // funding 서비스에게 최신 펀딩 리스트 데이터 요청
     @GetMapping("/latest-funding/{page}")
-    List<GetFundingResponseDto> getLatestFundingList(@PathVariable int page) {
+    List<GetFundingResponseDto> getLatestFundingList(@RequestParam(name = "sortNum") String sortNum , @RequestParam(name = "page") int page) {
         List<GetFundingResponseDto> fundingList = productService.getLatestFundingList(page);
         return fundingList;
     }
 
     // funding 서비스에게 카테고리별 펀딩 리스트 데이터 요청
     @GetMapping("/category")
-    List<GetFundingResponseDto> getCategoryFundingList(@RequestParam(name = "category") String category , @RequestParam(name = "page") int page) {
+    List<GetFundingResponseDto> getCategoryFundingList(@RequestParam(name = "category") String category , @RequestParam(name = "sortNum") String sortNum, @RequestParam(name = "page") int page) {
         List<GetFundingResponseDto> fundingList = productService.getCategoryFundingList(category, page);
+        return fundingList;
+    }
+
+    // 펀딩 페이지 펀딩 리스트 조회
+    @GetMapping("/funding-page")
+    List<GetFundingResponseDto>getFundingPageList(
+            @RequestParam(name = "sort") String sort,
+            @RequestParam(name = "categories" ,required = false) List<String> categories,
+            @RequestParam(name = "page") int page
+    ) {
+        List<GetFundingResponseDto> fundingList = productService.getFundingPageList(sort, page, categories);
         return fundingList;
     }
 
