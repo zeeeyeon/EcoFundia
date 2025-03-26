@@ -72,6 +72,11 @@ public class Funding {
         return this;
     }
 
+    public List<String> getImageUrlList() {
+        return JsonConverter.convertJsonToImageUrls(this.imageUrls);
+    }
+
+
     public GetFundingResponseDto toDto() {
         return GetFundingResponseDto
                 .builder()
