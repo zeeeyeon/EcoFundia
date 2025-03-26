@@ -19,6 +19,13 @@
         WHERE email = #{email}
     </select>
 
+    <select id="findById" parameterType="Integer" resultType="com.ssafy.user.entity.User">
+        SELECT
+        *
+        FROM user
+        WHERE user_id = #{userId}
+    </select>
+
     <!-- 사용자 정보 등록 -->
     <insert id="insertUser" parameterType="com.ssafy.user.entity.User">
         INSERT INTO user (email, name, nickname, gender, account, ssafy_user_key, age, created_at)
@@ -31,7 +38,7 @@
         set
         nickname = #{nickname},
         account = #{account}
-        where email = #{email}
+        where user_id = #{userId}
     </update>
 
     <!-- Refresh Token 등록 (리프레쉬 토큰 생성 시 사용) -->

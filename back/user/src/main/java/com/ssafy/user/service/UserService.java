@@ -10,9 +10,9 @@ public interface UserService {
     LoginResponseDto verifyUser(LoginRequestDto requestDto);
     SignupResponseDto registerUser(SignupRequestDto requestDto);
     ReissueResponseDto reissueAccessToken(ReissueRequestDto requestDto);
-    GetMyInfoResponseDto getMyInfo();
+    GetMyInfoResponseDto getMyInfo(int userId);
 
-    void updateMyInfo(UpdateMyInfoRequestDto requestDto);
+    void updateMyInfo(int userId, UpdateMyInfoRequestDto requestDto);
 
     // 외부서비스 호출
 
@@ -28,6 +28,6 @@ public interface UserService {
 
     void deleteMyReview(int userId, int reviewId);
 
-    void createPayment(int userId, CreatePaymentRequestDto requestDto);
+    OrderResponseDto createPayment(int userId, CreatePaymentRequestDto requestDto);
 
 }

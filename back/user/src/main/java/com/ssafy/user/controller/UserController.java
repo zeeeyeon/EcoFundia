@@ -40,14 +40,14 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<?> getMyInfo(){
-        GetMyInfoResponseDto dto = userService.getMyInfo();
+    public ResponseEntity<?> getMyInfo(@RequestHeader("X-User-Id") int userId){
+        GetMyInfoResponseDto dto = userService.getMyInfo(userId);
         return new ResponseEntity<>(Response.create(GET_MYINFO, dto), GET_MYINFO.getHttpStatus());
     }
 
     @PutMapping("/me")
-    public ResponseEntity<?> updateMyInfo(@RequestBody UpdateMyInfoRequestDto requestDto){
-        userService.updateMyInfo(requestDto);
+    public ResponseEntity<?> updateMyInfo(@RequestHeader("X-User-Id") int userId, @RequestBody UpdateMyInfoRequestDto requestDto){
+        userService.updateMyInfo(userId, requestDto);
         return new ResponseEntity<>(Response.create(UPDATE_MYINFO, null), UPDATE_MYINFO.getHttpStatus());
     }
 
@@ -112,8 +112,8 @@ public class UserController {
             @RequestHeader("X-User-Id") int userId,
             @RequestBody CreatePaymentRequestDto requestDto) {
 
-        userService.createPayment(userId, requestDto);
-        return new ResponseEntity<>(Response.create(CREATE_PAYMENT_SUCCESS, null), CREATE_PAYMENT_SUCCESS.getHttpStatus());
+        OrderResponseDto dto = userService.createPayment(userId, requestDto);
+        return new ResponseEntity<>(Response.create(CREATE_PAYMENT_SUCCESS, dto), CREATE_PAYMENT_SUCCESS.getHttpStatus());
     }
 
 
