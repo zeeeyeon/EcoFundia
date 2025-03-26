@@ -122,7 +122,9 @@ public class FundingService implements ProductService {
 
     // 레디스키 생성 메서드
     private String makeRedisKey(String sort, List<String> categories, int page){
-        String categoryPart = categories.isEmpty() ? "전체" : String.join(",", categories);
+        String categoryPart = (categories == null || categories.isEmpty())
+                ? "전체"
+                : String.join(",", categories);
         return String.format("funding::%s::%s::%d", sort, categoryPart, page);
     }
 
@@ -131,6 +133,7 @@ public class FundingService implements ProductService {
     public List<GetFundingResponseDto> getFundingPageList(String sort, int page, List<String> categories){
 
         String redisKey = makeRedisKey(sort, categories, page);
+        System.out.println(redisKey);
 
         // redis에서 키 조회
         String cachedJson = redisTemplate.opsForValue().get(redisKey);
@@ -152,7 +155,7 @@ public class FundingService implements ProductService {
         // redis에 캐싱
         try {
             String json = objectMapper.writeValueAsString(dtoList);
-            redisTemplate.opsForValue().set(redisKey, json, Duration.ofMinutes(5)); // TTL 설정
+            redisTemplate.opsForValue().set(redisKey, json, Duration.ofMinutes(1)); // TTL 설정
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
