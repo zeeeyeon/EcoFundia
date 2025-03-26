@@ -13,7 +13,7 @@ import java.util.List;
 import static com.ssafy.funding.common.response.ResponseCode.*;
 
 @RestController
-@RequestMapping("/api/wishlist")
+@RequestMapping("/api/wishList")
 @RequiredArgsConstructor
 public class WishListController {
 
