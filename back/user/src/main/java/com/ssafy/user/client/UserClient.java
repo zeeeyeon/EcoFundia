@@ -17,10 +17,10 @@ public interface UserClient {
     public ResponseEntity<?> reissue(@RequestBody ReissueRequestDto requestDto);
 
     @GetMapping("/api/user/me")
-    public ResponseEntity<?> getMyInfo();
+    public ResponseEntity<?> getMyInfo(@RequestHeader("X-User-Id") int userId);
 
     @PutMapping("/api/user/me")
-    public ResponseEntity<?> updateMyInfo(@RequestBody UpdateMyInfoRequestDto requestDto);
+    public ResponseEntity<?> updateMyInfo(@RequestHeader("X-User-Id") int userId, @RequestBody UpdateMyInfoRequestDto requestDto);
 
     @GetMapping("/api/user/health")
     public ResponseEntity<?> healthCheck();
