@@ -14,7 +14,7 @@ public class Response<T> {
     @Getter
     @AllArgsConstructor
     private static class Status {
-        private String code;
+        private int code;
         private String message;
     }
 
@@ -27,7 +27,7 @@ public class Response<T> {
 
     public static <T> Response<?> error(int statusCode, String message) {
         return Response.builder()
-                .status(new Status(String.valueOf(statusCode), message))
+                .status(new Status(statusCode, message))
                 .content(null)
                 .build();
     }

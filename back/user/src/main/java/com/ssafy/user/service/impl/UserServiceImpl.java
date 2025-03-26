@@ -148,13 +148,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public GetMyInfoResponseDto getMyInfo() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new CustomException(INVALID_ACCESS_TOKEN);
-        }
-        String email = (String) authentication.getPrincipal();
-        User user = userMapper.findByEmail(email);
+    public GetMyInfoResponseDto getMyInfo(int userId) {
+        User user = userMapper.findById(userId);
         if (user == null) {
             throw new CustomException(USER_NOT_FOUND);
         }
@@ -162,13 +157,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateMyInfo(UpdateMyInfoRequestDto requestDto) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new CustomException(INVALID_ACCESS_TOKEN);
-        }
-        String email = (String) authentication.getPrincipal();
-        int count = userMapper.updateMyInfo(email, requestDto.getNickname(),requestDto.getAccount());
+    public void updateMyInfo(int userId, UpdateMyInfoRequestDto requestDto) {
+        int count = userMapper.updateMyInfo(userId, requestDto.getNickname(),requestDto.getAccount());
 
     }
 
@@ -213,15 +203,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void createPayment(int userId, CreatePaymentRequestDto requestDto) {
-        // 테이블정해지고 구현 매퍼에 추가
-        String account = null;
-        CreateOrderRequestDto dto = CreateOrderRequestDto.builder()
-                .fundingId(requestDto.getFundingId())
-                .quantity(requestDto.getQuantity())
-                .account(account)
-                .build();
-        fundingClient.createPayment(userId,dto);
+    public OrderResponseDto createPayment(int userId, CreatePaymentRequestDto requestDto) {
+
+        User user = userMapper.findById(userId);
+
+        return orderClient.createPayment(userId,requestDto.getFundingId(),requestDto.getAmount(),requestDto.getTotalPrice(),user.getSsafyUserKey(),user.getAccount());
     }
 
     private Map<String, Object> getGoogleUserInfo(String accessToken) {
