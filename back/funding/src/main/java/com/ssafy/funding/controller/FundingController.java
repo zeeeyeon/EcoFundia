@@ -95,8 +95,11 @@ public class FundingController {
 
     //funding 서비스에게 키워드 검색으로 펀딩 리스트 데이터 요청
     @GetMapping("/search")
-    List<GetFundingResponseDto> getSearchFundingList(@RequestParam(name = "keyword") String keyword, @RequestParam(name= "page") int page) {
-        List<GetFundingResponseDto> fundingList = productService.getSearchFundingList(keyword, page);
+    List<GetFundingResponseDto> getSearchFundingList(
+            @RequestParam(name = "sort") String sort,
+            @RequestParam(name = "keyword") String keyword,
+            @RequestParam(name= "page") int page) {
+        List<GetFundingResponseDto> fundingList = productService.getSearchFundingList(sort ,keyword, page);
         return fundingList;
     }
 
