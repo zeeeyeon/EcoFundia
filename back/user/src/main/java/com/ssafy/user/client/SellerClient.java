@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 @FeignClient(name = "seller")
 public interface SellerClient {
 
-    @GetMapping("/api/seller/isSeller")
-    CheckSellerResponseDto checkSeller(@RequestHeader("X-User-Id") String userId);
+    @GetMapping("/api/seller/check")
+    boolean checkSeller(@RequestHeader("X-User-Id") int userId);
 
 }

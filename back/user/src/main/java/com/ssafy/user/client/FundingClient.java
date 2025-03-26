@@ -7,6 +7,7 @@ import com.ssafy.user.dto.request.UpdateMyReviewRequestDto;
 import com.ssafy.user.dto.response.FundingResponseDto;
 import com.ssafy.user.dto.response.GetMyTotalFundingResponseDto;
 import com.ssafy.user.dto.response.ReviewResponseDto;
+import com.ssafy.user.dto.response.WishiListResponseDto;
 import com.ssafy.user.entity.WishList;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
@@ -16,29 +17,29 @@ import java.util.List;
 @FeignClient(name = "funding")
 public interface FundingClient {
     @GetMapping("/api/review/user")
-    List<ReviewResponseDto> getMyReviews(@RequestHeader("X-User-Id") String userId);
+    List<ReviewResponseDto> getMyReviews(@RequestHeader("X-User-Id") int userId);
 
     @PostMapping("/api/review")
-    void postMyReview(@RequestHeader("X-User-Id") String userId, PostReviewWithNicknameRequestDto requestDto);
+    void postMyReview(@RequestHeader("X-User-Id") int userId, PostReviewWithNicknameRequestDto requestDto);
 
     @PatchMapping("/api/review/{reviewId}")
-    void updateMyReview(@RequestHeader("X-User-Id") String userId, @PathVariable("reviewId") int reviewId, UpdateMyReviewRequestDto requestDto);
+    void updateMyReview(@RequestHeader("X-User-Id") int userId, @PathVariable("reviewId") int reviewId, UpdateMyReviewRequestDto requestDto);
 
     @DeleteMapping("/api/review/{reviewId}")
-    void deleteMyReview(@RequestHeader("X-User-Id") String userId, @PathVariable("reviewId") int reviewId);
+    void deleteMyReview(@RequestHeader("X-User-Id") int userId, @PathVariable("reviewId") int reviewId);
 
     @PostMapping("/api/order/funding")
-    void createPayment(@RequestHeader("X-User-Id") String userId, CreateOrderRequestDto requestDto);
+    void createPayment(@RequestHeader("X-User-Id") int userId, CreateOrderRequestDto requestDto);
 
     @PostMapping("/api/wishList/{fundingId}")
-    void createWish(@RequestHeader("X-User-Id") String userId, @PathVariable("fundingId") int fundingId);
+    void createWish(@RequestHeader("X-User-Id") int userId, @PathVariable("fundingId") int fundingId);
 
     @DeleteMapping("/api/wishList/{fundingId}")
-    void deleteWish(@RequestHeader("X-User-Id") String userId, @PathVariable("fundingId") int fundingId);
+    void deleteWish(@RequestHeader("X-User-Id") int userId, @PathVariable("fundingId") int fundingId);
 
     @GetMapping("/api/wishList/ongoing")
-    List<WishList> getMyWishList(@RequestHeader("X-User-Id") String userId);
+    List<WishiListResponseDto> getMyWishList(@RequestHeader("X-User-Id") int userId);
 
     @GetMapping("/api/wishList/done")
-    List<WishList> getDoneMyWishList(@RequestHeader("X-User-Id") String userId);
+    List<WishiListResponseDto> getDoneMyWishList(@RequestHeader("X-User-Id") int userId);
 }
