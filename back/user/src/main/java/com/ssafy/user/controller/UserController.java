@@ -88,7 +88,7 @@ public class UserController {
         return new ResponseEntity<>(Response.create(CREATE_MY_REVIEW_SUCCESS, null), CREATE_MY_REVIEW_SUCCESS.getHttpStatus());
     }
 
-    @PatchMapping("/review/{reviewId}")
+    @PutMapping("/review/{reviewId}")
     public ResponseEntity<?> updateMyReview(
             @RequestHeader("X-User-Id") int userId,
             @PathVariable int reviewId,
