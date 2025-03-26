@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
+
 @FeignClient(name = "business")
 public interface BusinessClient {
 
@@ -21,6 +23,13 @@ public interface BusinessClient {
     // 최신 펀딩 리스트 조회
     @GetMapping("api/business/latest-funding/{page}")
     ResponseEntity<?> getLatestFundingList(@PathVariable int page);
+
+    @GetMapping("/api/business/funding-page")
+    ResponseEntity<?> getFundingPageList(
+            @RequestParam(name = "sort") String sort,
+            @RequestParam(name = "categories" ,required = false) List<String> categories,
+            @RequestParam(name = "page") int page
+    );
 
     // 카테고리별 펀딩 리스트 조회
     @GetMapping("api/business/category")
