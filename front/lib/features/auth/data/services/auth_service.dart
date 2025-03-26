@@ -83,10 +83,8 @@ class AuthService {
 
       if (e.response?.statusCode == 404) {
         // 회원가입이 필요한 경우
-        final data = e.response?.data;
-        final message = data?['status']?['message'] as String? ??
-            '해당 이메일로 가입된 사용자가 없습니다. 회원가입이 필요합니다.';
-        throw AuthException(message, statusCode: 404);
+        LoggerUtil.i('신규 회원: 회원가입이 필요합니다.');
+        throw AuthException('회원가입이 필요합니다.', statusCode: 404, isNewUser: true);
       }
 
       // 기타 오류

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:front/features/home/data/services/project_service.dart';
+import 'package:front/features/home/data/repositories/project_repository_impl.dart';
+import 'package:front/features/home/domain/repositories/project_repository.dart';
 import 'package:logger/logger.dart';
 
 class HomeState {
@@ -28,11 +29,11 @@ class HomeState {
 }
 
 class HomeViewModel extends StateNotifier<HomeState> {
-  final ProjectService _projectService;
+  final ProjectRepository _projectRepository;
   final Logger _logger;
   Timer? _refreshTimer;
 
-  HomeViewModel(this._projectService)
+  HomeViewModel(this._projectRepository)
       : _logger = Logger(),
         super(const HomeState()) {
     // 초기 데이터 로드
@@ -50,7 +51,7 @@ class HomeViewModel extends StateNotifier<HomeState> {
   Future<void> fetchTotalFund() async {
     try {
       state = state.copyWith(isLoading: true);
-      final totalFund = await _projectService.getTotalFund();
+      final totalFund = await _projectRepository.getTotalFund();
       state = state.copyWith(
         totalFund: totalFund,
         isLoading: false,
@@ -74,6 +75,6 @@ class HomeViewModel extends StateNotifier<HomeState> {
 
 final homeViewModelProvider =
     StateNotifierProvider<HomeViewModel, HomeState>((ref) {
-  final projectService = ref.watch(projectServiceProvider);
-  return HomeViewModel(projectService);
+  final projectRepository = ref.watch(projectRepositoryProvider);
+  return HomeViewModel(projectRepository);
 });

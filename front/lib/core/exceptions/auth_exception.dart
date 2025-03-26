@@ -12,5 +12,5 @@ class AuthException implements Exception {
 
 /// 유효성 검증 예외
 class ValidationException extends AuthException {
-  ValidationException(String message) : super(message);
+  ValidationException(String message) : super(message, statusCode: 400);
 }

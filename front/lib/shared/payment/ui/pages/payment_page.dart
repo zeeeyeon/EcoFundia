@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/core/themes/app_colors.dart';
 import 'package:front/core/themes/app_text_styles.dart';
-import 'package:front/shared/payment/ui/viewmodels/payment_view_model.dart';
+import 'package:front/shared/payment/ui/view_model/payment_view_model.dart';
 import 'package:front/shared/payment/ui/widgets/product_info_section.dart';
-import 'package:front/shared/payment/ui/widgets/address_info_section.dart';
 import 'package:front/shared/payment/ui/widgets/payment_info_section.dart';
 import 'package:front/shared/payment/ui/widgets/payment_confirm_dialog.dart';
-import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 
 /// 결제 페이지
@@ -116,32 +114,6 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
 
           // 상품 정보 섹션
           const ProductInfoSection(),
-          const SizedBox(height: 24),
-
-          // 배송 정보 타이틀
-          Text(
-            '배송 정보',
-            style: AppTextStyles.body1.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-
-          // 배송 정보 섹션
-          const AddressInfoSection(),
-          const SizedBox(height: 24),
-
-          // 결제 요약 타이틀
-          Text(
-            '결제 요약',
-            style: AppTextStyles.body1.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-
-          // 결제 요약 섹션
-          const PaymentInfoSection(),
         ],
       ),
     );
@@ -157,62 +129,58 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
       return const SizedBox(height: 60);
     }
 
-    final priceFormatter = NumberFormat('#,##0');
-
-    return SafeArea(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              offset: const Offset(0, -1),
-              blurRadius: 8,
-            ),
-          ],
-        ),
-        child: Row(
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            offset: const Offset(0, -1),
+            blurRadius: 8,
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // 금액 정보
-            Expanded(
+            // 결제 요약 섹션
+            Padding(
+              padding: const EdgeInsets.all(16),
               child: Column(
-                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    '최종 결제 금액',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                  ),
                   Text(
-                    '${priceFormatter.format(payment.finalAmount)}원',
-                    style: const TextStyle(
-                      fontSize: 24,
+                    '결제 요약',
+                    style: AppTextStyles.body1.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  const PaymentInfoSection(),
                 ],
               ),
             ),
 
-            // 펀딩하기 버튼
-            Material(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(8),
-              child: InkWell(
-                onTap: () {
-                  _logger.d('펀딩하기 버튼 클릭');
-                  viewModel.startPaymentProcess();
-                },
-                borderRadius: BorderRadius.circular(8),
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  child: Text(
-                    '펀딩하기',
+            // 결제하기 버튼
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    _logger.d('결제하기 버튼 클릭');
+                    viewModel.startPaymentProcess();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text(
+                    '결제하기',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/core/themes/app_colors.dart';
 import 'package:front/core/themes/app_text_styles.dart';
 import 'package:front/shared/payment/domain/entities/payment_entity.dart';
-import 'package:front/shared/payment/ui/viewmodels/payment_view_model.dart';
+import 'package:front/shared/payment/ui/view_model/payment_view_model.dart';
 
 /// 배송 정보 섹션 위젯
 class AddressInfoSection extends ConsumerWidget {

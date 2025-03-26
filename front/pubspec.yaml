@@ -78,6 +78,11 @@ flutter:
     - assets/images/
     - assets/images/apple.png
     - assets/images/google.png
+    - assets/images/test01.png
+    - assets/images/test02.png
+    - assets/images/test03.png
+    - assets/images/test04.png
+    - assets/images/test05.png
     - assets/images/wishlist/product_image.png
 
   # An image asset can refer to one or more resolution-specific "variants", see

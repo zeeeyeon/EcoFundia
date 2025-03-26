@@ -55,25 +55,11 @@ class AuthRepositoryImpl implements AuthRepository {
     } on DioException catch (e) {
       final statusCode = e.response?.statusCode;
       var message = '인증 중 오류가 발생했습니다.';
-      var isNewUser = false;
 
       // 404 상태 코드인 경우 회원가입이 필요한지 확인
       if (statusCode == 404) {
-        try {
-          if (e.response?.data != null) {
-            final data = e.response!.data;
-            if (data['status'] != null) {
-              final status = data['status'];
-              if (status['message'] != null) {
-                message = status['message'];
-              }
-              // NF 코드인 경우에만 회원가입이 필요한 것으로 처리
-              isNewUser = status['code'] == 'NF';
-            }
-          }
-        } catch (_) {}
-
-        throw AuthException(message, statusCode: 404, isNewUser: isNewUser);
+        LoggerUtil.i('신규 회원: 회원가입이 필요합니다.');
+        throw AuthException('회원가입이 필요합니다.', statusCode: 404, isNewUser: true);
       }
 
       switch (statusCode) {

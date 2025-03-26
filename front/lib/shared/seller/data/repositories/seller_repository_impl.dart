@@ -1,5 +1,6 @@
 import 'package:front/core/services/api_service.dart';
-import 'package:front/shared/data/models/dummy_data.dart';
+import 'package:front/shared/dummy/data/seller_dummy.dart';
+import 'package:front/shared/dummy/data/wishlist_dummy.dart';
 import 'package:front/shared/seller/data/models/seller_model.dart';
 import 'package:front/shared/seller/data/models/review_model.dart';
 import 'package:front/shared/seller/domain/entities/seller_entity.dart';
@@ -22,7 +23,7 @@ class SellerRepositoryImpl implements SellerRepository {
       // return SellerModel.fromJson(response.data);
 
       // 더미 데이터 사용 (API 연동 전)
-      return DummyData.getSeller();
+      return sellerDummy;
     } catch (e) {
       throw Exception('판매자 정보를 불러오는데 실패했습니다: $e');
     }
@@ -37,7 +38,18 @@ class SellerRepositoryImpl implements SellerRepository {
       // return (response.data as List).map((e) => SellerProjectModel.fromJson(e)).toList();
 
       // 더미 데이터 사용 (API 연동 전)
-      return DummyData.getActiveSellerProjects();
+      return activeWishlistDummyList
+          .map((project) => SellerProjectEntity(
+                id: project.id,
+                title: project.title,
+                companyName: project.companyName,
+                imageUrl: project.imageUrl,
+                fundingPercentage: project.fundingPercentage,
+                fundingAmount: project.fundingAmount,
+                remainingDays: project.remainingDays,
+                isActive: project.isActive,
+              ))
+          .toList();
     } catch (e) {
       throw Exception('진행 중인 프로젝트 목록을 불러오는데 실패했습니다: $e');
     }
@@ -52,7 +64,18 @@ class SellerRepositoryImpl implements SellerRepository {
       // return (response.data as List).map((e) => SellerProjectModel.fromJson(e)).toList();
 
       // 더미 데이터 사용 (API 연동 전)
-      return DummyData.getEndedSellerProjects();
+      return endedWishlistDummyList
+          .map((project) => SellerProjectEntity(
+                id: project.id,
+                title: project.title,
+                companyName: project.companyName,
+                imageUrl: project.imageUrl,
+                fundingPercentage: project.fundingPercentage,
+                fundingAmount: project.fundingAmount,
+                remainingDays: project.remainingDays,
+                isActive: project.isActive,
+              ))
+          .toList();
     } catch (e) {
       throw Exception('종료된 프로젝트 목록을 불러오는데 실패했습니다: $e');
     }
@@ -67,7 +90,7 @@ class SellerRepositoryImpl implements SellerRepository {
       // return (response.data as List).map((e) => ReviewModel.fromJson(e)).toList();
 
       // 더미 데이터 사용 (API 연동 전)
-      return DummyData.getSellerReviews();
+      return sellerReviewDummyList;
     } catch (e) {
       throw Exception('리뷰 목록을 불러오는데 실패했습니다: $e');
     }

@@ -3,8 +3,6 @@ import 'package:front/core/constants/app_strings.dart';
 import 'package:front/core/themes/app_colors.dart';
 import 'package:front/core/themes/app_text_styles.dart';
 import 'package:front/features/home/domain/entities/project_entity.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:go_router/go_router.dart';
 
 /// 프로젝트 카드 위젯
@@ -68,15 +66,10 @@ class ProjectCard extends StatelessWidget {
                       const BorderRadius.vertical(top: Radius.circular(16)),
                   child: SizedBox(
                     height: imageHeight,
-                    child: CachedNetworkImage(
-                      imageUrl: project.imageUrl,
+                    child: Image.asset(
+                      project.imageUrl,
                       fit: BoxFit.cover,
-                      placeholder: (context, url) => Shimmer.fromColors(
-                        baseColor: Colors.grey[300]!,
-                        highlightColor: Colors.grey[100]!,
-                        child: Container(color: Colors.white),
-                      ),
-                      errorWidget: (context, url, error) => Container(
+                      errorBuilder: (context, error, stackTrace) => Container(
                         color: AppColors.lightGrey.withOpacity(0.3),
                         child: Center(
                           child: Column(
@@ -200,54 +193,42 @@ class ProjectCard extends StatelessWidget {
                           ],
                         ),
                       ),
-
-                      // 버튼 (좋아요, 펀딩하기)
+                      // 버튼 그룹
                       Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          // 좋아요 버튼
+                          //좋아요버튼튼
                           InkWell(
                             onTap: onLikeTap,
-                            customBorder: const CircleBorder(),
-                            child: Padding(
-                              padding: EdgeInsets.all(5 * scaleFactor),
-                              child: Icon(
-                                project.isLiked
-                                    ? Icons.favorite
-                                    : Icons.favorite_border,
-                                color: project.isLiked
-                                    ? Colors.red
-                                    : AppColors.grey,
-                                size: 20 * scaleFactor,
-                              ),
+                            child: Icon(
+                              project.isLiked
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color: project.isLiked
+                                  ? AppColors.primary
+                                  : AppColors.grey,
+                              size: 24 * scaleFactor,
                             ),
                           ),
-                          SizedBox(width: 6 * scaleFactor),
-
-                          // 펀딩하기 버튼
-                          SizedBox(
-                            height: 26 * scaleFactor,
-                            child: ElevatedButton(
-                              onPressed: onPurchaseTap,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary,
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 10 * scaleFactor,
-                                  vertical: 0,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(6 * scaleFactor),
-                                ),
-                                elevation: 0,
+                          SizedBox(width: 8 * scaleFactor),
+                          ElevatedButton(
+                            onPressed: onPurchaseTap,
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 16 * scaleFactor,
+                                vertical: 8 * scaleFactor,
                               ),
-                              child: Text(
-                                AppStrings.purchase,
-                                style: AppTextStyles.body1.copyWith(
-                                  color: AppColors.white,
-                                  fontSize: descSize,
-                                  fontWeight: FontWeight.w600,
-                                  height: 1,
-                                ),
+                              backgroundColor: AppColors.primary,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: Text(
+                              AppStrings.purchase,
+                              style: AppTextStyles.body1.copyWith(
+                                fontSize: descSize,
+                                color: AppColors.white,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),

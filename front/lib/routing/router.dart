@@ -75,6 +75,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           return SellerDetailScreen(sellerId: sellerId);
         },
       ),
+      // 결제 완료 페이지
+      GoRoute(
+        path: '/payment/complete',
+        name: 'payment-complete',
+        builder: (context, state) {
+          return const PaymentCompletePage();
+        },
+      ),
       // 결제 페이지
       GoRoute(
         path: '/payment/:productId',
@@ -82,14 +90,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final productId = state.pathParameters['productId'] ?? '';
           return PaymentPage(productId: productId);
-        },
-      ),
-      // 결제 완료 페이지
-      GoRoute(
-        path: '/payment/complete',
-        name: 'payment-complete',
-        builder: (context, state) {
-          return const PaymentCompletePage();
         },
       ),
       // 메인 네비게이션

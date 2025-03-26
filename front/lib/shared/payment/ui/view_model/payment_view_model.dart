@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
-import 'package:front/shared/payment/domain/entities/payment_entity.dart';
 import 'package:front/shared/payment/domain/usecases/payment_use_case.dart';
 import 'package:front/shared/payment/data/repositories/payment_repository_impl.dart';
 import 'package:front/shared/payment/domain/repositories/payment_repository.dart';

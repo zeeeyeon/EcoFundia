@@ -58,4 +58,31 @@ class WishlistItemModel extends WishlistItemEntity {
       'isLiked': isLiked,
     };
   }
+
+  /// 복사본 생성
+  WishlistItemModel copyWith({
+    int? id,
+    String? title,
+    String? description,
+    String? companyName,
+    String? imageUrl,
+    double? fundingPercentage,
+    String? fundingAmount,
+    String? remainingDays,
+    bool? isActive,
+    bool? isLiked,
+  }) {
+    return WishlistItemModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      companyName: companyName ?? this.companyName,
+      imageUrl: imageUrl ?? this.imageUrl,
+      fundingPercentage: fundingPercentage ?? this.fundingPercentage,
+      fundingAmount: fundingAmount ?? this.fundingAmount,
+      remainingDays: remainingDays ?? this.remainingDays,
+      isActive: isActive ?? this.isActive,
+      isLiked: isLiked ?? this.isLiked,
+    );
+  }
 }

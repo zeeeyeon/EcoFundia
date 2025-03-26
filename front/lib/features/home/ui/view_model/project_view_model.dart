@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:front/features/home/data/services/project_service.dart';
+import 'package:front/features/home/data/repositories/project_repository_impl.dart';
+import 'package:front/features/home/domain/repositories/project_repository.dart';
 import 'package:front/features/home/domain/entities/project_entity.dart';
 import 'package:logger/logger.dart';
 
@@ -30,10 +31,10 @@ class ProjectState {
 
 // ViewModel 정의
 class ProjectViewModel extends StateNotifier<ProjectState> {
-  final ProjectService _projectService;
+  final ProjectRepository _projectRepository;
   final Logger _logger;
 
-  ProjectViewModel(this._projectService)
+  ProjectViewModel(this._projectRepository)
       : _logger = Logger(),
         super(ProjectState(projects: []));
 
@@ -41,9 +42,9 @@ class ProjectViewModel extends StateNotifier<ProjectState> {
   Future<void> loadProjects() async {
     try {
       state = state.copyWith(isLoading: true, error: null);
-      final projects = await _projectService.getProjects();
+      final projects = await _projectRepository.getProjects();
       state = state.copyWith(
-        projects: projects.map((dto) => ProjectEntity.fromDTO(dto)).toList(),
+        projects: projects,
         isLoading: false,
       );
     } catch (e) {
@@ -58,7 +59,7 @@ class ProjectViewModel extends StateNotifier<ProjectState> {
   // 좋아요 토글
   Future<void> toggleLike(ProjectEntity project) async {
     try {
-      await _projectService.toggleProjectLike(project.id);
+      await _projectRepository.toggleProjectLike(project.id);
       final updatedProjects = state.projects.map((p) {
         if (p.id == project.id) {
           return p.copyWith(isLiked: !p.isLiked);
@@ -77,6 +78,6 @@ class ProjectViewModel extends StateNotifier<ProjectState> {
 // Provider 정의
 final projectViewModelProvider =
     StateNotifierProvider<ProjectViewModel, ProjectState>((ref) {
-  final projectService = ref.watch(projectServiceProvider);
-  return ProjectViewModel(projectService);
+  final projectRepository = ref.watch(projectRepositoryProvider);
+  return ProjectViewModel(projectRepository);
 });

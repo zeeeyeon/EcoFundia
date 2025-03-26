@@ -14,6 +14,9 @@ class ApiService {
   static ApiService? _instance;
   late final Dio _dio;
 
+  // dio getter 추가
+  Dio get dio => _dio;
+
   // 앱 설정에서 기본 URL 가져오기
   static const String _baseUrl = AppConfig.baseUrl;
 
@@ -197,9 +200,6 @@ class ApiService {
       rethrow;
     }
   }
-
-  /// 현재 Dio 인스턴스 반환 (특수 케이스 처리용)
-  Dio get dio => _dio;
 }
 
 // 문자열 길이의 최소값 계산 헬퍼 함수

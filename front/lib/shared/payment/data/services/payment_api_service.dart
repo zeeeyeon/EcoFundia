@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/core/services/api_service.dart';
 import 'package:front/shared/payment/data/models/payment_dto.dart';
+import 'package:front/shared/dummy/data/payment_dummy.dart';
 import 'package:logger/logger.dart';
 
 /// 결제 관련 API 서비스
@@ -22,7 +23,7 @@ class PaymentApiService {
 
       // Mock 데이터 반환
       await Future.delayed(const Duration(milliseconds: 800));
-      return _getMockPaymentData(productId);
+      return paymentDummy;
     } catch (e) {
       _logger.e('결제 정보 조회 실패', error: e);
       rethrow;
@@ -69,25 +70,6 @@ class PaymentApiService {
       _logger.e('결제 처리 실패', error: e);
       rethrow;
     }
-  }
-
-  /// Mock 결제 정보 데이터
-  PaymentDTO _getMockPaymentData(String productId) {
-    return PaymentDTO(
-      id: 'pay-${DateTime.now().millisecondsSinceEpoch}',
-      productId: productId,
-      productName: '슈퍼 노트북 vER.02',
-      sellerName: '김한민 컴퍼니',
-      imageUrl:
-          'https://images.unsplash.com/photo-1611078489935-0cb964de46d6?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-      price: 1000000,
-      quantity: 1,
-      couponDiscount: 0,
-      recipientName: '김한민',
-      address: '부산시 서면 입니다. 살살라사라',
-      phoneNumber: '010-1234-1244',
-      isDefaultAddress: true,
-    );
   }
 
   /// Mock 쿠폰 할인 데이터

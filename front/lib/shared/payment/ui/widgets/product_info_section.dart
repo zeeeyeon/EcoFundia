@@ -5,7 +5,8 @@ import 'package:shimmer/shimmer.dart';
 import 'package:front/core/themes/app_colors.dart';
 import 'package:front/core/themes/app_text_styles.dart';
 import 'package:front/shared/payment/domain/entities/payment_entity.dart';
-import 'package:front/shared/payment/ui/viewmodels/payment_view_model.dart';
+import 'package:front/shared/payment/ui/view_model/payment_view_model.dart';
+import 'package:front/shared/payment/ui/widgets/coupon_dialog.dart';
 import 'package:intl/intl.dart';
 
 /// 상품 정보 섹션 위젯
@@ -27,12 +28,14 @@ class ProductInfoSection extends ConsumerWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border.all(color: AppColors.lightGrey),
-        borderRadius: BorderRadius.circular(5),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildProductInfo(payment),
+          const SizedBox(height: 16),
+          const Divider(color: AppColors.lightGrey),
           const SizedBox(height: 16),
           _buildQuantityAndCoupon(context, payment, viewModel),
         ],
@@ -49,7 +52,7 @@ class ProductInfoSection extends ConsumerWidget {
       children: [
         // 상품 이미지
         ClipRRect(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(8),
           child: SizedBox(
             width: 80,
             height: 80,
@@ -89,29 +92,16 @@ class ProductInfoSection extends ConsumerWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 8),
               Text(
                 '${priceFormatter.format(payment.price)}원',
                 style: AppTextStyles.body1.copyWith(
                   fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: AppColors.primary,
                 ),
               ),
             ],
-          ),
-        ),
-
-        // 삭제 버튼
-        Container(
-          width: 22,
-          height: 22,
-          decoration: const BoxDecoration(
-            color: AppColors.grey,
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Icons.close,
-            color: Colors.white,
-            size: 12,
           ),
         ),
       ],
@@ -126,10 +116,10 @@ class ProductInfoSection extends ConsumerWidget {
       children: [
         // 수량 조절 UI
         Container(
-          height: 30,
+          height: 36,
           decoration: BoxDecoration(
             border: Border.all(color: AppColors.lightGrey),
-            borderRadius: BorderRadius.circular(5),
+            borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -138,8 +128,8 @@ class ProductInfoSection extends ConsumerWidget {
               InkWell(
                 onTap: () => viewModel.decrementQuantity(),
                 child: Container(
-                  width: 30,
-                  height: 30,
+                  width: 36,
+                  height: 36,
                   alignment: Alignment.center,
                   child: const Icon(
                     Icons.remove,
@@ -151,10 +141,12 @@ class ProductInfoSection extends ConsumerWidget {
               // 수량 표시
               Container(
                 alignment: Alignment.center,
-                padding: const EdgeInsets.symmetric(horizontal: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
                   '${payment.quantity}',
-                  style: AppTextStyles.body1,
+                  style: AppTextStyles.body1.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
 
@@ -162,8 +154,8 @@ class ProductInfoSection extends ConsumerWidget {
               InkWell(
                 onTap: () => viewModel.incrementQuantity(),
                 child: Container(
-                  width: 30,
-                  height: 30,
+                  width: 36,
+                  height: 36,
                   alignment: Alignment.center,
                   child: const Icon(
                     Icons.add,
@@ -177,69 +169,29 @@ class ProductInfoSection extends ConsumerWidget {
 
         // 쿠폰 버튼
         InkWell(
-          onTap: () => _showCouponDialog(context, viewModel),
+          onTap: () => CouponDialog.show(
+            context: context,
+            onCouponSelected: (couponCode) {
+              viewModel.applyCoupon(couponCode);
+            },
+          ),
           child: Container(
-            height: 30,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            height: 36,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
               border: Border.all(color: AppColors.lightGrey),
-              borderRadius: BorderRadius.circular(5),
+              borderRadius: BorderRadius.circular(8),
             ),
             alignment: Alignment.center,
             child: Text(
               '쿠폰 사용',
-              style: AppTextStyles.body2,
+              style: AppTextStyles.body2.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ),
       ],
-    );
-  }
-
-  /// 쿠폰 입력 다이얼로그
-  void _showCouponDialog(BuildContext context, PaymentViewModel viewModel) {
-    final couponController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          '쿠폰 코드 입력',
-          style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.bold),
-        ),
-        content: TextField(
-          controller: couponController,
-          decoration: InputDecoration(
-            hintText: '쿠폰 코드를 입력하세요',
-            hintStyle: AppTextStyles.body2.copyWith(color: AppColors.grey),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              '취소',
-              style: AppTextStyles.body2.copyWith(color: AppColors.grey),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              final couponCode = couponController.text.trim();
-              if (couponCode.isNotEmpty) {
-                viewModel.applyCoupon(couponCode);
-              }
-              Navigator.pop(context);
-            },
-            child: Text(
-              '적용',
-              style: AppTextStyles.body2.copyWith(color: AppColors.primary),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

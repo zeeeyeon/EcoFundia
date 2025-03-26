@@ -3,7 +3,7 @@ import 'package:front/features/wishlist/domain/entities/wishlist_item_entity.dar
 import 'package:front/features/wishlist/domain/repositories/wishlist_repository.dart';
 import 'package:front/utils/logger_util.dart';
 import 'package:front/core/services/api_service.dart';
-import 'package:front/shared/data/models/dummy_data.dart';
+import 'package:front/shared/dummy/data/wishlist_dummy.dart';
 
 /// 위시리스트 리포지토리 구현
 class WishlistRepositoryImpl implements WishlistRepository {
@@ -23,8 +23,8 @@ class WishlistRepositoryImpl implements WishlistRepository {
   void _initDummyData() {
     if (_isInitialized) return;
 
-    _activeWishlist = DummyData.getActiveProjects();
-    _endedWishlist = DummyData.getEndedProjects();
+    _activeWishlist = List.from(activeWishlistDummyList);
+    _endedWishlist = List.from(endedWishlistDummyList);
     _isInitialized = true;
   }
 
@@ -54,6 +54,13 @@ class WishlistRepositoryImpl implements WishlistRepository {
   Future<List<WishlistItemEntity>> getEndedWishlist() async {
     try {
       // API 연동 전까지는 더미 데이터 사용
+      // final response = await _apiService.get('/wishlist/ended');
+      // final List<dynamic> items = response.data['items'];
+      // final List<WishlistItemModel> wishlistItems = items
+      //     .map((item) => WishlistItemModel.fromJson(item as Map<String, dynamic>))
+      //     .toList();
+      // return wishlistItems;
+
       _initDummyData();
       LoggerUtil.i('✅ 종료된 펀딩 위시리스트 조회 완료: ${_endedWishlist.length}개');
       return _endedWishlist;
@@ -67,63 +74,36 @@ class WishlistRepositoryImpl implements WishlistRepository {
   @override
   Future<bool> toggleLike(int itemId) async {
     try {
-      // 1. 활성 프로젝트에서 검색
+      _initDummyData();
       final activeIndex =
           _activeWishlist.indexWhere((item) => item.id == itemId);
+      final endedIndex = _endedWishlist.indexWhere((item) => item.id == itemId);
+
       if (activeIndex != -1) {
         final item = _activeWishlist[activeIndex];
         if (!item.isLiked) {
-          // 좋아요가 해제되어 있을 경우 다시 좋아요 처리
-          _activeWishlist[activeIndex] = WishlistItemModel(
-            id: item.id,
-            title: item.title,
-            description: item.description,
-            companyName: item.companyName,
-            imageUrl: item.imageUrl,
-            fundingPercentage: item.fundingPercentage,
-            fundingAmount: item.fundingAmount,
-            remainingDays: item.remainingDays,
-            isActive: item.isActive,
-            isLiked: true,
-          );
+          _activeWishlist[activeIndex] = item.copyWith(isLiked: true);
           return true;
         } else {
-          // 좋아요가 설정되어 있을 경우 목록에서 제거
           _activeWishlist.removeAt(activeIndex);
           return false;
         }
-      }
-
-      // 2. 종료된 프로젝트에서 검색
-      final endedIndex = _endedWishlist.indexWhere((item) => item.id == itemId);
-      if (endedIndex != -1) {
+      } else if (endedIndex != -1) {
         final item = _endedWishlist[endedIndex];
         if (!item.isLiked) {
-          // 좋아요가 해제되어 있을 경우 다시 좋아요 처리
-          _endedWishlist[endedIndex] = WishlistItemModel(
-            id: item.id,
-            title: item.title,
-            description: item.description,
-            companyName: item.companyName,
-            imageUrl: item.imageUrl,
-            fundingPercentage: item.fundingPercentage,
-            fundingAmount: item.fundingAmount,
-            remainingDays: item.remainingDays,
-            isActive: item.isActive,
-            isLiked: true,
-          );
+          _endedWishlist[endedIndex] = item.copyWith(isLiked: true);
           return true;
         } else {
-          // 좋아요가 설정되어 있을 경우 목록에서 제거
           _endedWishlist.removeAt(endedIndex);
           return false;
         }
       }
 
+      LoggerUtil.i('✅ 위시리스트 좋아요 토글 완료: $itemId');
       return false;
     } catch (e) {
-      LoggerUtil.e('❌ 좋아요 상태 변경 실패', e);
-      throw Exception('좋아요 상태 변경에 실패했습니다: $e');
+      LoggerUtil.e('❌ 위시리스트 좋아요 토글 실패', e);
+      throw Exception('위시리스트 좋아요 토글에 실패했습니다: $e');
     }
   }
 

@@ -6,7 +6,6 @@ import 'package:front/core/themes/app_shadows.dart';
 import 'package:front/features/home/domain/entities/project_entity.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:intl/intl.dart';
 
 class ProjectDetailScreen extends ConsumerWidget {
   final int projectId;
@@ -17,11 +16,6 @@ class ProjectDetailScreen extends ConsumerWidget {
     required this.projectId,
     this.project,
   });
-
-  String _formatNumber(int number) {
-    final formatter = NumberFormat('#,###');
-    return formatter.format(number);
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
