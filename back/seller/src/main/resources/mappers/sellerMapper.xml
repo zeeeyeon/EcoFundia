@@ -9,13 +9,13 @@
         <result property="sellerName" column="name" />
     </resultMap>
 
-    <select id="findByUserId" resultType="boolean">
-        SELECT EXISTS (
-            SELECT 1
-            FROM seller
-            WHERE user_id = #{userId}
-        )
-    </select>
+<!--    <select id="findByUserId" resultType="boolean">-->
+<!--        SELECT EXISTS (-->
+<!--            SELECT 1-->
+<!--            FROM seller-->
+<!--            WHERE user_id = #{userId}-->
+<!--        )-->
+<!--    </select>-->
 
 <!--    <select id="findByIds" resultType="com.ssafy.seller.domain.Seller">-->
 <!--        SELECT-->
