@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/core/services/api_service.dart';
 import '../models/funding_model.dart';
@@ -13,16 +12,33 @@ class FundingService {
 
   FundingService(this.api);
 
-  // 최신 펀딩 리스트 가져오기
-  Future<List<FundingModel>> fetchFundingList(int page) async {
-    try {
-      final response = await api.get('/api/business/latest-funding/$page');
-      final List<dynamic> content = response.data['content'];
+  // 펀딩 리스트 가져오기
+  Future<List<FundingModel>> fetchFundingList({
+    required int page,
+    String sort = 'latest',
+    List<String>? categories,
+  }) async {
+    final Map<String, dynamic> queryParams = {
+      'sort': sort,
+      'page': page.toString(),
+    };
 
-      return content.map((json) => FundingModel.fromJson(json)).toList();
-    } on DioException catch (e) {
-      throw Exception('펀딩 리스트 요청 실패: ${e.message}');
+    // ✅ 카테고리가 있다면 각각 개별 키로 추가
+    if (categories != null && categories.isNotEmpty) {
+      for (var category in categories) {
+        queryParams.putIfAbsent('categories', () => <String>[]).add(category);
+      }
     }
+
+    final response = await api.get(
+      '/api/business/funding-page',
+      queryParameters: queryParams,
+    );
+
+    final rawData = response.data;
+    final content = rawData['content'] as List;
+
+    return content.map((e) => FundingModel.fromJson(e)).toList();
   }
 
   Future<List<FundingModel>> searchFunding(String query) async {

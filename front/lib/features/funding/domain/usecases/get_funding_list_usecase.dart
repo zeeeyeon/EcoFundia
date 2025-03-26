@@ -6,7 +6,15 @@ class GetFundingListUseCase {
 
   GetFundingListUseCase(this.repository);
 
-  Future<List<FundingModel>> execute(int page) async {
-    return await repository.getFundingList(page);
+  Future<List<FundingModel>> execute(
+    int page, {
+    String sort = 'latest',
+    List<String>? categories,
+  }) {
+    return repository.getFundingList(
+      page: page,
+      sort: sort,
+      categories: categories,
+    );
   }
 }

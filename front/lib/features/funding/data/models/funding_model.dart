@@ -34,22 +34,13 @@ class FundingModel {
   });
 
   factory FundingModel.fromJson(Map<String, dynamic> json) {
-    final imageListString = json['imageUrls'] as String;
-    final decodedImageList = imageListString
-        .replaceAll('[', '')
-        .replaceAll(']', '')
-        .replaceAll('"', '')
-        .split(',')
-        .map((e) => e.trim())
-        .toList();
-
     return FundingModel(
       fundingId: json['fundingId'],
       sellerId: json['sellerId'],
       title: json['title'],
       description: json['description'],
       storyFileUrl: json['storyFileUrl'],
-      imageUrls: decodedImageList,
+      imageUrls: List<String>.from(json['imageUrls']),
       price: json['price'],
       quantity: json['quantity'],
       targetAmount: json['targetAmount'],

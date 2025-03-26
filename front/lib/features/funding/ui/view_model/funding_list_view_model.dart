@@ -22,6 +22,12 @@ final searchQueryProvider = StateProvider<String>((ref) => '');
 // 추가 로딩 상태 Provider
 final isFetchingMoreProvider = StateProvider<bool>((ref) => false);
 
+// 정렬 기준 상태 (latest, oldest, popular 등)
+final sortOptionProvider = StateProvider<String>((ref) => 'latest');
+
+// 선택된 카테고리 상태 (빈 배열이면 전체)
+final selectedCategoriesProvider = StateProvider<List<String>>((ref) => []);
+
 // 펀딩 리스트 상태 Provider
 final fundingListProvider =
     StateNotifierProvider<FundingListNotifier, AsyncValue<List<FundingModel>>>(
@@ -31,6 +37,7 @@ final fundingListProvider =
     final searchFundingUseCase = SearchFundingUseCase(repository);
 
     return FundingListNotifier(
+      ref: ref,
       getFundingListUseCase: getFundingListUseCase,
       searchFundingUseCase: searchFundingUseCase,
     )..fetchFundingList(); // 앱 시작 시 펀딩 리스트 로드
@@ -39,10 +46,12 @@ final fundingListProvider =
 
 class FundingListNotifier
     extends StateNotifier<AsyncValue<List<FundingModel>>> {
+  final Ref ref;
   final GetFundingListUseCase getFundingListUseCase;
   final SearchFundingUseCase searchFundingUseCase;
 
   FundingListNotifier({
+    required this.ref,
     required this.getFundingListUseCase,
     required this.searchFundingUseCase,
   }) : super(const AsyncLoading());
@@ -54,10 +63,15 @@ class FundingListNotifier
   bool get isFetching => _isFetching;
 
   // 펀딩 리스트 호출 (페이지 0 기준)
-  Future<void> fetchFundingList({int page = 1}) async {
+  Future<void> fetchFundingList({
+    int page = 1,
+    String sort = 'latest',
+    List<String>? categories,
+  }) async {
     try {
       state = const AsyncLoading();
-      final fundings = await getFundingListUseCase.execute(page);
+      final fundings = await getFundingListUseCase.execute(page,
+          sort: sort, categories: categories);
       state = AsyncValue.data(fundings);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -72,13 +86,16 @@ class FundingListNotifier
     _currentPage++;
 
     try {
-      final newFundings = await getFundingListUseCase.execute(_currentPage);
+      final sort = ref.read(sortOptionProvider);
+      final categories = ref.read(selectedCategoriesProvider);
 
-      state = state.whenData((existingFundings) {
-        final combined = [...existingFundings, ...newFundings];
-        return combined;
-      });
+      final newFundings = await getFundingListUseCase.execute(
+        _currentPage,
+        sort: sort,
+        categories: categories,
+      );
 
+      state = state.whenData((existing) => [...existing, ...newFundings]);
       if (newFundings.length < 5) _hasMore = false;
     } catch (e, st) {
       state = AsyncValue.error(e, st);

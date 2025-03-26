@@ -6,9 +6,17 @@ class FundingRepository {
 
   FundingRepository(this.service);
 
-  // 🔹 최신 펀딩 리스트 가져오기
-  Future<List<FundingModel>> getFundingList(int page) async {
-    return await service.fetchFundingList(page);
+  // 펀딩 리스트 가져오기
+  Future<List<FundingModel>> getFundingList({
+    required int page,
+    String sort = 'latest',
+    List<String>? categories,
+  }) {
+    return service.fetchFundingList(
+      page: page,
+      sort: sort,
+      categories: categories,
+    );
   }
 
   // 추후 검색 기능 등도 여기에 추가할 수 있음
