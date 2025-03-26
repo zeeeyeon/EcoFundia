@@ -1,0 +1,230 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/core/themes/app_colors.dart';
+import 'package:front/core/themes/app_text_styles.dart';
+import 'package:front/shared/payment/ui/viewmodels/payment_view_model.dart';
+import 'package:front/shared/payment/ui/widgets/product_info_section.dart';
+import 'package:front/shared/payment/ui/widgets/address_info_section.dart';
+import 'package:front/shared/payment/ui/widgets/payment_info_section.dart';
+import 'package:front/shared/payment/ui/widgets/payment_confirm_dialog.dart';
+import 'package:intl/intl.dart';
+import 'package:logger/logger.dart';
+
+/// 결제 페이지
+class PaymentPage extends ConsumerStatefulWidget {
+  /// 상품 ID
+  final String productId;
+
+  const PaymentPage({
+    Key? key,
+    required this.productId,
+  }) : super(key: key);
+
+  @override
+  ConsumerState<PaymentPage> createState() => _PaymentPageState();
+}
+
+class _PaymentPageState extends ConsumerState<PaymentPage> {
+  final Logger _logger = Logger();
+
+  @override
+  void initState() {
+    super.initState();
+    // 결제 정보 로드
+    Future.microtask(() {
+      ref
+          .read(paymentViewModelProvider.notifier)
+          .loadPaymentInfo(widget.productId);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(paymentViewModelProvider);
+    final viewModel = ref.read(paymentViewModelProvider.notifier);
+    final payment = state.payment;
+
+    // 확인 다이얼로그 표시
+    if (state.showSuccessDialog && payment != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => PaymentConfirmDialog(
+            amount: payment.finalAmount,
+            onCancel: () {
+              viewModel.closePaymentDialog();
+              Navigator.pop(context);
+            },
+            onConfirm: () async {
+              final result = await viewModel.processPayment();
+              if (result) {
+                // 다이얼로그 닫기
+                Navigator.pop(context);
+                // 결제 완료 페이지로 이동
+                if (mounted) {
+                  Navigator.pushNamed(context, '/payment/complete');
+                }
+              }
+            },
+          ),
+        );
+      });
+    }
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        title: Text(
+          '결제',
+          style: AppTextStyles.body1.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: state.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : state.error != null
+              ? Center(child: Text(state.error!))
+              : _buildContent(context),
+      bottomNavigationBar: _buildBottomBar(context),
+    );
+  }
+
+  /// 메인 컨텐츠
+  Widget _buildContent(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 섹션 타이틀
+          Text(
+            '상품 정보',
+            style: AppTextStyles.body1.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // 상품 정보 섹션
+          const ProductInfoSection(),
+          const SizedBox(height: 24),
+
+          // 배송 정보 타이틀
+          Text(
+            '배송 정보',
+            style: AppTextStyles.body1.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // 배송 정보 섹션
+          const AddressInfoSection(),
+          const SizedBox(height: 24),
+
+          // 결제 요약 타이틀
+          Text(
+            '결제 요약',
+            style: AppTextStyles.body1.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // 결제 요약 섹션
+          const PaymentInfoSection(),
+        ],
+      ),
+    );
+  }
+
+  /// 하단 결제 버튼 영역
+  Widget _buildBottomBar(BuildContext context) {
+    final state = ref.watch(paymentViewModelProvider);
+    final viewModel = ref.read(paymentViewModelProvider.notifier);
+    final payment = state.payment;
+
+    if (payment == null) {
+      return const SizedBox(height: 60);
+    }
+
+    final priceFormatter = NumberFormat('#,##0');
+
+    return SafeArea(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              offset: const Offset(0, -1),
+              blurRadius: 8,
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // 금액 정보
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    '최종 결제 금액',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  Text(
+                    '${priceFormatter.format(payment.finalAmount)}원',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // 펀딩하기 버튼
+            Material(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(8),
+              child: InkWell(
+                onTap: () {
+                  _logger.d('펀딩하기 버튼 클릭');
+                  viewModel.startPaymentProcess();
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  child: Text(
+                    '펀딩하기',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

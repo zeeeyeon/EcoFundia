@@ -11,6 +11,8 @@ import 'package:front/features/wishlist/ui/pages/wishlist_screen.dart';
 import 'package:front/features/auth/ui/pages/signup_complete_screen.dart';
 import 'package:front/shared/seller/ui/pages/seller_detail_screen.dart';
 import 'package:front/features/home/ui/pages/project_detail_screen.dart';
+import 'package:front/shared/payment/ui/pages/payment_page.dart';
+import 'package:front/shared/payment/ui/pages/payment_complete_page.dart';
 import 'package:front/utils/auth_utils.dart';
 import 'package:front/features/home/domain/entities/project_entity.dart';
 
@@ -71,6 +73,23 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final sellerId = int.parse(state.pathParameters['id'] ?? '1');
           return SellerDetailScreen(sellerId: sellerId);
+        },
+      ),
+      // 결제 페이지
+      GoRoute(
+        path: '/payment/:productId',
+        name: 'payment',
+        builder: (context, state) {
+          final productId = state.pathParameters['productId'] ?? '';
+          return PaymentPage(productId: productId);
+        },
+      ),
+      // 결제 완료 페이지
+      GoRoute(
+        path: '/payment/complete',
+        name: 'payment-complete',
+        builder: (context, state) {
+          return const PaymentCompletePage();
         },
       ),
       // 메인 네비게이션

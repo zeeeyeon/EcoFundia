@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:front/core/network/dio_provider.dart';
+import 'package:front/core/services/api_service.dart';
 import 'package:front/features/home/data/models/project_dto.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
@@ -154,6 +154,6 @@ class ProjectServiceImpl extends ProjectService {
 }
 
 final projectServiceProvider = Provider<ProjectService>((ref) {
-  final dio = ref.watch(dioProvider);
-  return ProjectServiceImpl(dio);
+  final apiService = ref.watch(apiServiceProvider);
+  return ProjectServiceImpl(apiService.dio);
 });
