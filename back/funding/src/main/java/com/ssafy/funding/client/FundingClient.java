@@ -43,17 +43,25 @@ public interface FundingClient {
     @GetMapping("/api/funding/{fundingId}")
     ResponseEntity<Object> getFunding(@PathVariable int fundingId);
 
+    // 펀딩 페이지 펀딩 리스트 조회
+    @GetMapping("/api/funding/funding-page")
+    List<GetFundingResponseDto>getFundingPageList(
+            @RequestParam(name = "sort") String sort,
+            @RequestParam(name = "categories" ,required = false) List<String> categories,
+            @RequestParam(name = "page") int page
+    );
+
     // funding 서비스에게 top-funding 데이터 요청
     @GetMapping("/api/funding/top-funding")
     List<GetFundingResponseDto> getTopFundingList();
 
     // funding 서비스에게 최신 펀딩 리스트 데이터 요청
-    @GetMapping("api/funding/latest-funding/{page}")
-    List<GetFundingResponseDto> getLatestFundingList(@PathVariable int page);
+    @GetMapping("api/funding/latest-funding")
+    List<GetFundingResponseDto> getLatestFundingList(@RequestParam(name = "sortNum") int sortNum , @RequestParam(name = "page") int page);
 
     // funding 서비스에게 카테고리별 펀딩 리스트 데이터 요청
     @GetMapping("api/funding/category")
-    List<GetFundingResponseDto> getCategoryFundingList(@RequestParam(name = "category") String category , @RequestParam(name = "page") int page);
+    List<GetFundingResponseDto> getCategoryFundingList(@RequestParam(name = "category") String category , @RequestParam(name = "sortNum") int sortNum ,@RequestParam(name = "page") int page);
 
     // funding 서비스에게 키워드 검색으로 펀딩 리스트 데이터 요청
     @GetMapping("api/funding/search")

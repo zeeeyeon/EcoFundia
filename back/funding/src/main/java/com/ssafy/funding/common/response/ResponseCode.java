@@ -16,6 +16,8 @@ public enum ResponseCode {
     GET_FUNDING_STATUS(successCode(), HttpStatus.OK, "펀딩상태가 성공적으로 조회되었습니다."),
 
     FUNDING_NOT_FOUND(404, HttpStatus.NOT_FOUND, "해당 ID의 펀딩이 존재하지 않습니다"),
+    FUNDING_NOT_ONGOING(204,HttpStatus.NO_CONTENT ,"진행 중인 펀딩 이 없습니다."),
+    FUNDING_NOT_SEARCH(204,HttpStatus.NO_CONTENT ,"키워드와 일치하거나 진행 중인 펀딩 이 없습니다."),
 
     // 파일 관련
     FAIL_FILE_UPLOAD(500, HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류로 인해 파일 업로드가 실패하였습니다."),
