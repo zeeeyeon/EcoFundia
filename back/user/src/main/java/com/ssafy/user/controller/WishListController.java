@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import static com.ssafy.user.common.response.ResponseCode.*;
 
 @RestController
-@RequestMapping("/api/user/wishlist")
+@RequestMapping("/api/user/wishList")
 @RequiredArgsConstructor
 public class WishListController {
 
