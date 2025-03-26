@@ -78,7 +78,6 @@ public class SellerServiceImpl implements SellerService {
 
     @Override
     public Boolean findByUserId(int userId) {
-        if (!sellerMapper.findByUserId(userId)) throw new CustomException(SELLER_NOT_FOUND);
         return sellerMapper.findByUserId(userId);
     }
 
