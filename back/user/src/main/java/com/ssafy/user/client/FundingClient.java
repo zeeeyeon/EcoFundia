@@ -18,7 +18,7 @@ public interface FundingClient {
     @PostMapping("/api/review")
     void postMyReview(@RequestHeader("X-User-Id") int userId, PostReviewWithNicknameRequestDto requestDto);
 
-    @PatchMapping("/api/review/{reviewId}")
+    @PutMapping("/api/review/{reviewId}")
     void updateMyReview(@RequestHeader("X-User-Id") int userId, @PathVariable("reviewId") int reviewId, UpdateMyReviewRequestDto requestDto);
 
     @DeleteMapping("/api/review/{reviewId}")
