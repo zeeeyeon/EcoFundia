@@ -23,17 +23,25 @@ public interface FundingMapper {
     // Top 펀딩 리스트 조회
     List<Funding> getTopFundingList();
 
+    // 펀딩 페이지 펀딩 조회
+    List<Funding> getFundingPageList(
+            @Param("sort") String sort,
+            @Param("categories") List<String> categories,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+
+    // 펀딩 키워드 검색 조회
+    List<Funding> getSearchFundingList(
+            @Param("sort") String sort,
+            @Param("keyword") String keyword,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+
     // 최신 펀딩 리스트 조회
     List<Funding> getLatestFundingList(int page);
 
-    // 펀딩 페이지 펀딩 조회
-    List<Funding> getFundingPageList(String sort, List<String> categories, int offset, int limit);
-
     // 카테고리별 펀딩 리스트 조회
     List<Funding> getCategoryFundingList(@Param("category") String category, @Param("page") int page);
-
-    // 펀딩 키워드 검색 조회
-    List<Funding> getSearchFunding(@Param("keyword") String keyword, @Param("page") int page);
 
     // 브랜드 만족도 조회
     List<ReviewDto> getReviewList(@Param("sellerId") int sellerId, @Param("page") int page);
