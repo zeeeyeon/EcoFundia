@@ -22,33 +22,33 @@ public class SellerController {
     private final SellerService sellerService;
 
 
-    @GetMapping("/{fundingId}")
-    public ResponseEntity<?> getFundingId(@PathVariable int fundingId) {
-        return sellerService.getFundingId(fundingId);
-    }
-
-    @PostMapping(value = "/funding/{sellerId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> createFunding(
-            @PathVariable int sellerId,
-            @RequestPart("dto") FundingCreateRequestDto dto,
-            @RequestPart("storyFile") MultipartFile storyFile,
-            @RequestPart("imageFiles") List<MultipartFile> imageFiles) {
-        return sellerService.createFunding(sellerId, dto, storyFile, imageFiles);
-    }
-
-    @PutMapping(value = "/funding/{fundingId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> updateFunding(
-            @PathVariable int fundingId,
-            @RequestPart("dto") FundingUpdateRequestDto dto,
-            @RequestPart(value = "storyFile", required = false) MultipartFile storyFile,
-            @RequestPart(value = "imageFiles", required = false) List<MultipartFile> imageFiles) {
-        return sellerService.updateFunding(fundingId, dto, storyFile, imageFiles);
-    }
-
-    @DeleteMapping("/funding/{fundingId}")
-    public ResponseEntity<?> deleteFunding(@PathVariable int fundingId) {
-        return sellerService.deleteFunding(fundingId);
-    }
+//    @GetMapping("/{fundingId}")
+//    public ResponseEntity<?> getFundingId(@PathVariable int fundingId) {
+//        return sellerService.getFundingId(fundingId);
+//    }
+//
+//    @PostMapping(value = "/funding/{sellerId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//    public ResponseEntity<?> createFunding(
+//            @PathVariable int sellerId,
+//            @RequestPart("dto") FundingCreateRequestDto dto,
+//            @RequestPart("storyFile") MultipartFile storyFile,
+//            @RequestPart("imageFiles") List<MultipartFile> imageFiles) {
+//        return sellerService.createFunding(sellerId, dto, storyFile, imageFiles);
+//    }
+//
+//    @PutMapping(value = "/funding/{fundingId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//    public ResponseEntity<?> updateFunding(
+//            @PathVariable int fundingId,
+//            @RequestPart("dto") FundingUpdateRequestDto dto,
+//            @RequestPart(value = "storyFile", required = false) MultipartFile storyFile,
+//            @RequestPart(value = "imageFiles", required = false) List<MultipartFile> imageFiles) {
+//        return sellerService.updateFunding(fundingId, dto, storyFile, imageFiles);
+//    }
+//
+//    @DeleteMapping("/funding/{fundingId}")
+//    public ResponseEntity<?> deleteFunding(@PathVariable int fundingId) {
+//        return sellerService.deleteFunding(fundingId);
+//    }
 
     @GetMapping("/check")
     public Boolean findByUserId(@RequestHeader("X-User-Id") int userId) {
