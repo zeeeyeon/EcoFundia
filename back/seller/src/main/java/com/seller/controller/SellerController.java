@@ -49,6 +49,11 @@ public class SellerController {
         return sellerService.deleteFunding(fundingId);
     }
 
+    @GetMapping("/check")
+    public Boolean findByUserId(@RequestHeader("X-User-Id") int userId) {
+        return sellerService.findByUserId(userId);
+    }
+
     // 펀딩 상세페이지에 필요한 판매자 데이터 요청
     @GetMapping("/info/funding-page/{sellerId}")
     FundingDetailSellerResponseDto sellerInfo(@PathVariable int sellerId){

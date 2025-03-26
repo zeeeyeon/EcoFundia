@@ -15,6 +15,7 @@ public interface SellerService {
     ResponseEntity<?> createFunding(int sellerId, FundingCreateRequestDto dto, MultipartFile storyFile, List<MultipartFile> imageFiles);
     ResponseEntity<?> updateFunding(int fundingId, FundingUpdateRequestDto dto, MultipartFile storyFile, List<MultipartFile> imageFiles);
     ResponseEntity<?> deleteFunding(int fundingId);
+    Boolean findByUserId(int userId);
 
     FundingDetailSellerResponseDto sellerInfo(int sellerId);
 
