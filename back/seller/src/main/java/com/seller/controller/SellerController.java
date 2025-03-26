@@ -55,11 +55,11 @@ public class SellerController {
         return sellerService.findByUserId(userId);
     }
 
-    @PostMapping("/sellerNames")
-    public ResponseEntity<Map<Integer, String>> getSellerNames(@RequestBody List<Integer> sellerIds) {
-        Map<Integer, String> nameMap = sellerService.getSellerNamesByIds(sellerIds);
-        return ResponseEntity.ok(nameMap);
-    }
+//    @PostMapping("/sellerNames")
+//    public ResponseEntity<Map<Integer, String>> getSellerNames(@RequestBody List<Integer> sellerIds) {
+//        Map<Integer, String> nameMap = sellerService.getSellerNamesByIds(sellerIds);
+//        return ResponseEntity.ok(nameMap);
+//    }
 
     // 펀딩 상세페이지에 필요한 판매자 데이터 요청
     @GetMapping("/info/funding-page/{sellerId}")
