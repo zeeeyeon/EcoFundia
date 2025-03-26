@@ -112,6 +112,21 @@ public class FundingService implements ProductService {
         return String.format("funding::%s::%s::%d", sort, categoryPart, page);
     }
 
+    // redis key 조회
+    private String getRedisKey(String redisKey) {
+        // redis에서 키 조회
+        String cachedJson = redisTemplate.opsForValue().get(redisKey);
+
+        if (cachedJson != null) {
+            try {
+                return objectMapper.readValue(cachedJson, new TypeReference<>() {});
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+        }
+        return cachedJson;
+    }
+
     // 펀딩 페이지 조회
     @Transactional
     public List<GetFundingResponseDto> getFundingPageList(String sort, int page, List<String> categories){
@@ -156,9 +171,37 @@ public class FundingService implements ProductService {
 
     // 펀딩 키워드 검색 조회
     @Transactional
-    public List<GetFundingResponseDto> getSearchFundingList(String keyword, int page) {
-        List<Funding> fundingList = fundingMapper.getSearchFunding(keyword, (page - 1)  * 5);
-        return fundingList.stream().map(Funding::toDto).collect(Collectors.toList());
+    public List<GetFundingResponseDto> getSearchFundingList(String sort, String keyword, int page) {
+
+        String redisKey = String.format("search::%s::%s::%d", sort, keyword, page);
+        System.out.println(redisKey);
+
+        // redis에서 키 조회
+        String cachedJson = redisTemplate.opsForValue().get(redisKey);
+
+        if (cachedJson != null) {
+            try {
+                return objectMapper.readValue(cachedJson, new TypeReference<>() {});
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // redis에 없으면 DB 조회
+        int offset = (page -1) * PAGE_SIZE;
+        List<Funding> fundingList = fundingMapper.getSearchFundingList(sort, keyword, offset, PAGE_SIZE);
+        List<GetFundingResponseDto> dtoList = fundingList.stream()
+                .map(Funding::toDto).collect(Collectors.toList());
+
+        // redis에 캐싱
+        try {
+            String json = objectMapper.writeValueAsString(dtoList);
+            redisTemplate.opsForValue().set(redisKey, json, Duration.ofMinutes(1)); // TTL 설정
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        return dtoList;
     }
 
     // 펀딩 상세 페이지
