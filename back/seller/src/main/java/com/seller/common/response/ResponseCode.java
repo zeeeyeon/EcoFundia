@@ -33,6 +33,10 @@ public enum ResponseCode {
     REVIEW_ALREADY_EXISTS(400, HttpStatus.BAD_REQUEST, "해당 유저는 이미 이 펀딩에 리뷰를 작성했습니다."),
     FORBIDDEN_REVIEW_ACCESS(403, HttpStatus.FORBIDDEN, "해당 리뷰에 대한 수정/삭제 권한이 없습니다."),
 
+    // 판매자 관련
+    SELLER_NOT_FOUND(404, HttpStatus.NOT_FOUND, "존재하지 않는 판매자입니다."),
+
+
     // 찜 관련
     CREATE_WISHLIST(successCode(), HttpStatus.OK, "위시리스트에 추가되었습니다."),
     GET_WISHLIST(successCode(), HttpStatus.OK, "위시리스트를 성공적으로 조회했습니다."),
