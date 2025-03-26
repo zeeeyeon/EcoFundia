@@ -20,7 +20,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.seller.common.response.ResponseCode.SELLER_NOT_FOUND;
 
@@ -79,6 +82,12 @@ public class SellerServiceImpl implements SellerService {
     @Override
     public Boolean findByUserId(int userId) {
         return sellerMapper.findByUserId(userId);
+    }
+
+    @Override
+    public Map<Integer, String> getSellerNamesByIds(List<Integer> sellerIds) {
+        return sellerMapper.findByIds(sellerIds).stream()
+                .collect(Collectors.toMap(Seller::getSellerId, Seller::getName));
     }
 
     // 펀딩 상세페이지 seller 정보 조회

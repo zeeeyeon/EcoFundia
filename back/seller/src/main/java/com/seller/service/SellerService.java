@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 public interface SellerService {
     ResponseEntity<?> getFundingId(int fundingId);
@@ -16,6 +17,7 @@ public interface SellerService {
     ResponseEntity<?> updateFunding(int fundingId, FundingUpdateRequestDto dto, MultipartFile storyFile, List<MultipartFile> imageFiles);
     ResponseEntity<?> deleteFunding(int fundingId);
     Boolean findByUserId(int userId);
+    Map<Integer, String> getSellerNamesByIds(List<Integer> sellerIds);
 
     FundingDetailSellerResponseDto sellerInfo(int sellerId);
 
