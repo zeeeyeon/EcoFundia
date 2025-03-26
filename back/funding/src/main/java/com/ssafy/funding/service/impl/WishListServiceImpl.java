@@ -10,10 +10,12 @@ import com.ssafy.funding.mapper.FundingMapper;
 import com.ssafy.funding.mapper.WishListMapper;
 import com.ssafy.funding.service.WishListService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class WishListServiceImpl implements WishListService {
@@ -32,6 +34,7 @@ public class WishListServiceImpl implements WishListService {
     @Override
     public List<UserWishlistFundingDto> getOngoingWishlist(int userId) {
         List<WishList> wishList = wishListMapper.findOngoingByUserId(userId);
+        log.info("신호입니당~~~~~: {}", wishList);
         return WishListDto(wishList);
     }
 
