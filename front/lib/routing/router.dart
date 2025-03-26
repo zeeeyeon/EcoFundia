@@ -3,6 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/features/mypage/ui/pages/coupon_screen.dart';
 import 'package:front/features/mypage/ui/pages/my_review_screen.dart';
 import 'package:front/features/mypage/ui/pages/profile_edit_screen.dart';
+import 'package:front/features/mypage/ui/pages/support/faq_screen.dart';
+import 'package:front/features/mypage/ui/pages/support/guide_screen.dart';
+import 'package:front/features/mypage/ui/pages/support/notice_screen.dart';
+import 'package:front/features/mypage/ui/pages/support/policy_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:front/features/auth/ui/pages/login_screen.dart';
 import 'package:front/features/auth/ui/pages/sign_up_screen.dart';
@@ -126,6 +130,22 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/coupons',
                 builder: (context, state) => const CouponScreen(),
+              ),
+              GoRoute(
+                path: '/support/faq',
+                builder: (context, state) => const FaqScreen(),
+              ),
+              GoRoute(
+                path: '/support/notice',
+                builder: (context, state) => const NoticeScreen(),
+              ),
+              GoRoute(
+                path: '/support/guide',
+                builder: (context, state) => const GuideScreen(),
+              ),
+              GoRoute(
+                path: '/support/policy',
+                builder: (context, state) => const PolicyScreen(),
               ),
             ],
           ),
