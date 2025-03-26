@@ -29,7 +29,6 @@ public class WishListController {
 
     @GetMapping("/ongoing")
     public List<UserWishlistFundingDto> getOngoingWishlist(@RequestHeader("X-User-Id") int userId) {
-        log.info("신호 들어옴");
         return wishListService.getOngoingWishlist(userId);
     }
 
