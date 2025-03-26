@@ -16,23 +16,23 @@ public class WishListServiceImpl implements WishListService {
     private final FundingClient fundingClient;
 
     @Override
-    public void createWish(String userId, int fundingId) {
+    public void createWish(int userId, int fundingId) {
         fundingClient.createWish(userId, fundingId);
     }
 
     @Override
-    public PageResponse<WishiListResponseDto> getWishList(String userId, int page, int size) {
+    public PageResponse<WishiListResponseDto> getWishList(int userId, int page, int size) {
         List<WishiListResponseDto> all = fundingClient.getMyWishList(userId);
         return paginate(all, page, size);
     }
 
     @Override
-    public void deleteWish(String userId, int fundingId) {
+    public void deleteWish(int userId, int fundingId) {
         fundingClient.deleteWish(userId, fundingId);
     }
 
     @Override
-    public PageResponse<WishiListResponseDto> getDoneWishList(String userId, int page, int size) {
+    public PageResponse<WishiListResponseDto> getDoneWishList(int userId, int page, int size) {
         List<WishiListResponseDto> all = fundingClient.getDoneMyWishList(userId);
         return paginate(all, page, size);
     }

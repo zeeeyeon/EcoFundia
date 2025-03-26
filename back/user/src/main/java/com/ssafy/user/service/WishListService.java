@@ -5,11 +5,11 @@ import com.ssafy.user.dto.response.WishiListResponseDto;
 
 public interface WishListService {
 
-    void createWish(String userId, int fundingId);
+    void createWish(int userId, int fundingId);
 
-    PageResponse<WishiListResponseDto> getWishList(String userId, int page, int size);
+    PageResponse<WishiListResponseDto> getWishList(int userId, int page, int size);
 
-    void deleteWish(String userId, int fundingId);
+    void deleteWish(int userId, int fundingId);
 
-    PageResponse<WishiListResponseDto> getDoneWishList(String userId, int page, int size);
+    PageResponse<WishiListResponseDto> getDoneWishList(int userId, int page, int size);
 }

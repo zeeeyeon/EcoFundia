@@ -11,9 +11,9 @@ import java.util.List;
 @FeignClient(name = "order")
 public interface OrderClient {
     @GetMapping("/api/order/my")
-    List<FundingResponseDto> getMyFundings(@RequestHeader("X-User-Id") String userId);
+    List<FundingResponseDto> getMyFundings(@RequestHeader("X-User-Id") int userId);
 
     @GetMapping("/api/order/my/total")
-    GetMyTotalFundingResponseDto getMyTotalFunding(@RequestHeader("X-User-Id") String userId);
+    GetMyTotalFundingResponseDto getMyTotalFunding(@RequestHeader("X-User-Id") int userId);
 
 }

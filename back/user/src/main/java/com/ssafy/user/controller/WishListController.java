@@ -18,14 +18,14 @@ public class WishListController {
     private final WishListService wishListService;
 
     @PostMapping("/{fundingId}")
-    public ResponseEntity<?> createWish(@RequestHeader("X-User-Id") String userId, @PathVariable int fundingId) {
+    public ResponseEntity<?> createWish(@RequestHeader("X-User-Id") int userId, @PathVariable int fundingId) {
         wishListService.createWish(userId, fundingId);
         return new ResponseEntity<>(Response.create(CREATE_WISHLIST, null), CREATE_WISHLIST.getHttpStatus());
     }
 
     @GetMapping("/ongoing")
     public ResponseEntity<?> getMyWishList(
-            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-User-Id") int userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
@@ -35,7 +35,7 @@ public class WishListController {
 
     @GetMapping("/done")
     public ResponseEntity<?> getDoneMyWishList(
-            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-User-Id") int userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
@@ -44,7 +44,7 @@ public class WishListController {
     }
 
     @DeleteMapping("/{fundingId}")
-    public ResponseEntity<?> deleteWish(@RequestHeader("X-User-Id") String userId, @PathVariable int fundingId) {
+    public ResponseEntity<?> deleteWish(@RequestHeader("X-User-Id") int userId, @PathVariable int fundingId) {
         wishListService.deleteWish(userId, fundingId);
         return new ResponseEntity<>(Response.create(DELETE_WISHLIST, null), DELETE_WISHLIST.getHttpStatus());
     }

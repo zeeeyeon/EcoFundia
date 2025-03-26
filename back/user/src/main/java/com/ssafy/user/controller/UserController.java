@@ -55,7 +55,7 @@ public class UserController {
 
     @GetMapping("/funding")
     public ResponseEntity<?> getMyFunding(
-            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-User-Id") int userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
@@ -64,14 +64,14 @@ public class UserController {
     }
 
     @GetMapping("/funding/total")
-    public ResponseEntity<?> getMyTotalFunding(@RequestHeader("X-User-Id") String userId){
+    public ResponseEntity<?> getMyTotalFunding(@RequestHeader("X-User-Id") int userId){
         GetMyTotalFundingResponseDto dto = userService.getMyFundingTotal(userId);
         return new ResponseEntity<>(Response.create(GET_MY_TOTAL_FUNDING_SUCCESS, dto), GET_MY_TOTAL_FUNDING_SUCCESS.getHttpStatus());
     }
 
     @GetMapping("/review")
     public ResponseEntity<?> getMyReviews(
-            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-User-Id") int userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
@@ -81,7 +81,7 @@ public class UserController {
 
     @PostMapping("/review")
     public ResponseEntity<?> postMyReview(
-            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-User-Id") int userId,
             @RequestBody PostReviewRequestDto requestDto) {
 
         userService.postMyReview(userId, requestDto);
@@ -90,7 +90,7 @@ public class UserController {
 
     @PatchMapping("/review/{reviewId}")
     public ResponseEntity<?> updateMyReview(
-            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-User-Id") int userId,
             @PathVariable int reviewId,
             @RequestBody UpdateMyReviewRequestDto requestDto) {
 
@@ -100,7 +100,7 @@ public class UserController {
 
     @DeleteMapping("/review/{reviewId}")
     public ResponseEntity<?> deleteMyReview(
-            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-User-Id") int userId,
             @PathVariable int reviewId) {
 
         userService.deleteMyReview(userId, reviewId);
@@ -109,7 +109,7 @@ public class UserController {
 
     @PostMapping("/order/funding")
     public ResponseEntity<?> createPayment(
-            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-User-Id") int userId,
             @RequestBody CreatePaymentRequestDto requestDto) {
 
         userService.createPayment(userId, requestDto);

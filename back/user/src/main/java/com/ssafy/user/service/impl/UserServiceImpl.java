@@ -48,13 +48,12 @@ public class UserServiceImpl implements UserService {
 
         // role 수정
         String role;
-        String userId = String.valueOf(user.getUserId());
-//        if(sellerClient.checkSeller(userId).isSeller()){
-//            role = "SELLER";
-//        }else{
-//            role = "USER";
-//        }
-        role = "SELLER";
+        int userId = user.getUserId();
+        if(sellerClient.checkSeller(userId)){
+            role = "SELLER";
+        }else{
+            role = "USER";
+        }
         String accessToken = jwtUtil.generateAccessToken(user, role);
         String refreshToken = jwtUtil.generateRefreshToken(user);
 
@@ -83,8 +82,13 @@ public class UserServiceImpl implements UserService {
 
         User nowUser = userMapper.findByEmail(email);
 
-        // role 수정
-        String role = "SELLER";
+        String role;
+        int userId = user.getUserId();
+        if(sellerClient.checkSeller(userId)){
+            role = "SELLER";
+        }else{
+            role = "USER";
+        }
         String accessToken = jwtUtil.generateAccessToken(user, role);
         String refreshToken = jwtUtil.generateRefreshToken(user);
 
@@ -169,25 +173,25 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public PageResponse<FundingResponseDto> getMyFundingDetails(String userId, int page, int size) {
+    public PageResponse<FundingResponseDto> getMyFundingDetails(int userId, int page, int size) {
         List<FundingResponseDto> all = orderClient.getMyFundings(userId);
         return paginate(all, page, size);
     }
 
     @Override
-    public GetMyTotalFundingResponseDto getMyFundingTotal(String userId) {
+    public GetMyTotalFundingResponseDto getMyFundingTotal(int userId) {
         return orderClient.getMyTotalFunding(userId);
     }
 
     @Override
-    public PageResponse<ReviewResponseDto> getMyReviews(String userId, int page, int size) {
+    public PageResponse<ReviewResponseDto> getMyReviews(int userId, int page, int size) {
         List<ReviewResponseDto> all = fundingClient.getMyReviews(userId);
         return paginate(all, page, size);
     }
 
     @Override
-    public void postMyReview(String userId, PostReviewRequestDto requestDto) {
-        String nickname = userMapper.findNicknameById(Integer.parseInt(userId));
+    public void postMyReview(int userId, PostReviewRequestDto requestDto) {
+        String nickname = userMapper.findNicknameById(userId);
         PostReviewWithNicknameRequestDto dto = PostReviewWithNicknameRequestDto.builder()
                 .content(requestDto.getContent())
                 .rating(requestDto.getRating())
@@ -199,17 +203,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateMyReview(String userId, int reviewId, UpdateMyReviewRequestDto requestDto) {
+    public void updateMyReview(int userId, int reviewId, UpdateMyReviewRequestDto requestDto) {
         fundingClient.updateMyReview(userId, reviewId, requestDto);
     }
 
     @Override
-    public void deleteMyReview(String userId, int reviewId) {
+    public void deleteMyReview(int userId, int reviewId) {
         fundingClient.deleteMyReview(userId, reviewId);
     }
 
     @Override
-    public void createPayment(String userId, CreatePaymentRequestDto requestDto) {
+    public void createPayment(int userId, CreatePaymentRequestDto requestDto) {
         // 테이블정해지고 구현 매퍼에 추가
         String account = null;
         CreateOrderRequestDto dto = CreateOrderRequestDto.builder()
