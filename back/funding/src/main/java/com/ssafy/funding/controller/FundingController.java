@@ -88,10 +88,11 @@ public class FundingController {
         return fundingList;
     }
 
+    // 펀딩 페이지 펀딩 리스트 조회
     @GetMapping("/funding-page")
     List<GetFundingResponseDto>getFundingPageList(
             @RequestParam(name = "sort") String sort,
-            @RequestParam(name = "categories") List<String> categories,
+            @RequestParam(name = "categories" ,required = false) List<String> categories,
             @RequestParam(name = "page") int page
     ) {
         List<GetFundingResponseDto> fundingList = productService.getFundingPageList(sort, page, categories);

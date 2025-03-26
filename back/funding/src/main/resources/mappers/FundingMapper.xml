@@ -159,7 +159,7 @@
         WHERE f.seller_id = #{sellerId}
     </select>
 
-    <select id="getFundngPageList" resultMap="FundingResultMap">
+    <select id="getFundingPageList" resultMap="FundingResultMap">
         SELECT * FROM funding
         WHERE status = 'ONGOING'
         <if test="categories != null and categories.size() > 0">
@@ -170,16 +170,16 @@
         </if>
         <choose>
             <when test="sort == 'latest'">
-                ORDER BY created_at DESC
+                ORDER BY start_date DESC
             </when>
             <when test="sort == 'oldest'">
-                ORDER BY created_at ASC
+                ORDER BY start_date ASC
             </when>
             <when test="sort == 'popular'">
-                ORDER BY view_count DESC
+                ORDER BY current_amount DESC
             </when>
             <otherwise>
-                ORDER BY created_at DESC
+                ORDER BY start_date DESC
             </otherwise>
         </choose>
         LIMIT #{limit} OFFSET #{offset}

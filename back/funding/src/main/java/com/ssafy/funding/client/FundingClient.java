@@ -27,6 +27,14 @@ public interface FundingClient {
     @GetMapping("/api/funding/{fundingId}")
     ResponseEntity<Object> getFunding(@PathVariable int fundingId);
 
+    // 펀딩 페이지 펀딩 리스트 조회
+    @GetMapping("/api/funding/funding-page")
+    List<GetFundingResponseDto>getFundingPageList(
+            @RequestParam(name = "sort") String sort,
+            @RequestParam(name = "categories" ,required = false) List<String> categories,
+            @RequestParam(name = "page") int page
+    );
+
     // funding 서비스에게 top-funding 데이터 요청
     @GetMapping("/api/funding/top-funding")
     List<GetFundingResponseDto> getTopFundingList();
