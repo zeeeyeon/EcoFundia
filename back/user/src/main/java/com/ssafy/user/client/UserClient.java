@@ -46,5 +46,15 @@ public interface UserClient {
     @PostMapping("/api/user/order/funding")
     public ResponseEntity<?> createPayment(@RequestHeader("X-User-Id") int userId, @RequestBody CreatePaymentRequestDto requestDto);
 
+    @PostMapping("/api/user/wishList/{fundingId}")
+    public ResponseEntity<?> createWish(@RequestHeader("X-User-Id") int userId, @PathVariable int fundingId);
 
+    @GetMapping("/api/user/wishList/ongoing")
+    public ResponseEntity<?> getMyWishList(@RequestHeader("X-User-Id") int userId, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size);
+
+    @GetMapping("/api/user/wishList/done")
+    public ResponseEntity<?> getDoneMyWishList(@RequestHeader("X-User-Id") int userId, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size);
+
+    @DeleteMapping("/api/user/wishList/{fundingId}")
+    public ResponseEntity<?> deleteWish(@RequestHeader("X-User-Id") int userId, @PathVariable int fundingId);
 }
