@@ -42,6 +42,13 @@ public interface FundingClient {
             @RequestParam(name = "keyword") String keyword,
             @RequestParam(name= "page") int page);
 
+    // funding 서비스에서 검색페이지에 오늘의 펀딩, 마감임박 선택한 색션 펀딩 리스트 데이터 요청
+    @GetMapping("api/funding/search/special")
+    List<FundingWishCountResponseDto> getSearchSpecialFunding(
+            @RequestParam(name = "sort") String sort,
+            @RequestParam(name = "topic") String topic,
+            @RequestParam(name= "page") int page);
+
     // funding 서비스에게 펀딩 상세 정보 요청
     @GetMapping("api/funding/detail/{fundingId}")
     FundingResponseDTO getFundingDetail(@PathVariable int fundingId);

@@ -3,6 +3,7 @@ package com.ssafy.funding.client;
 import com.ssafy.funding.dto.funding.request.FundingCreateRequestDto;
 import com.ssafy.funding.dto.funding.request.FundingCreateSendDto;
 import com.ssafy.funding.dto.funding.request.FundingUpdateRequestDto;
+import com.ssafy.funding.dto.funding.response.FundingWishCountResponseDto;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
 import com.ssafy.funding.dto.order.response.IsOngoingResponseDto;
 import com.ssafy.funding.dto.funding.response.UserWishlistFundingDto;
@@ -71,7 +72,7 @@ public interface FundingClient {
 
     // funding 서비스에서 검색페이지에 오늘의 펀딩, 마감임박 선택한 색션 펀딩 리스트 데이터 요청
     @GetMapping("api/funding/search/special")
-    List<GetFundingResponseDto> getSearchSpecialFunding(
+    List<FundingWishCountResponseDto> getSearchSpecialFunding(
             @RequestParam(name = "sort") String sort,
             @RequestParam(name = "topic") String topic,
             @RequestParam(name= "page") int page);
