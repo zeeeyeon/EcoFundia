@@ -37,6 +37,7 @@ public class WishListServiceImpl implements WishListService {
     @Override
     public PageResponse<WishListResponseDto> getDoneWishList(int userId, int page, int size) {
         List<WishListResponseDto> all = fundingClient.getDoneMyWishList(userId);
+        log.info("user~~");
         return paginate(all, page, size);
     }
 

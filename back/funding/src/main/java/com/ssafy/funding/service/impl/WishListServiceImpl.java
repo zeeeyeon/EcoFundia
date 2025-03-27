@@ -13,10 +13,11 @@ import com.ssafy.funding.service.WishListService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -34,15 +35,20 @@ public class WishListServiceImpl implements WishListService {
     }
 
     @Override
+    @Transactional
     public List<UserWishlistFundingDto> getOngoingWishlist(int userId) {
-        List<WishList> wishList = wishListMapper.findOngoingByUserId(userId);
-        return toWishlistDto(wishList);
+        log.info("getOngoingWishlist");
+        List<Integer> fundingIds = wishListMapper.findFundingIdsByUserId(userId);
+        List<Funding> fundings = fundingMapper.findFundingsByIds(fundingIds);
+        List<Funding> ongoingFundings = filterOngoing(fundings);
+        Map<Integer, String> sellerNames = getSellerNames(ongoingFundings);
+
+        return convertToDtos(ongoingFundings, sellerNames);
     }
 
     @Override
     public List<UserWishlistFundingDto> getDoneWishlist(int userId) {
-        List<WishList> wishList = wishListMapper.findDoneByUserId(userId);
-        return toWishlistDto(wishList);
+        return List.of();
     }
 
     @Override
@@ -51,30 +57,35 @@ public class WishListServiceImpl implements WishListService {
         wishListMapper.deleteWish(userId, fundingId);
     }
 
+    public List<Integer> getWishlistFundingIds(int userId) {
+        return wishListMapper.findFundingIdsByUserId(userId);
+    }
+
     private void validateWishNotExists(int userId, int fundingId) {
         if (wishListMapper.existsByUserIdAndFundingId(userId, fundingId)) {
             throw new CustomException(ResponseCode.WISHLIST_ALREADY_EXISTS);
         }
     }
 
-    private List<UserWishlistFundingDto> toWishlistDto(List<WishList> wishList) {
-        if (wishList.isEmpty()) return Collections.emptyList();
-
-        List<Integer> fundingIds = wishList.stream()
-                .map(WishList::getFundingId)
-                .toList();
-
-        List<Funding> fundings = fundingMapper.findFundingsByIds(fundingIds); // MyBatis
-
-        List<Integer> sellerIds = fundings.stream()
-                .map(Funding::getSellerId)
-                .distinct()
-                .toList();
-
-        Map<Integer, String> sellerNameMap = sellerClient.getSellerNames(sellerIds);
-
+    private List<Funding> filterOngoing(List<Funding> fundings) {
+        log.info("filterOngoing");
         return fundings.stream()
-                .map(f -> UserWishlistFundingDto.from(f, sellerNameMap.get(f.getSellerId())))
-                .toList();
+                .filter(funding -> funding.getEndDate().isAfter(LocalDateTime.now()))
+                .collect(Collectors.toList());
+    }
+
+    private Map<Integer, String> getSellerNames(List<Funding> fundings) {
+        Set<Integer> sellerIds = fundings.stream()
+                .map(Funding::getSellerId)
+                .collect(Collectors.toSet());
+
+        log.info("여기까지 오나요");
+        return sellerClient.getSellerNames(new ArrayList<>(sellerIds));
+    }
+
+    private List<UserWishlistFundingDto> convertToDtos(List<Funding> fundings, Map<Integer, String> sellerNames) {
+        return fundings.stream()
+                .map(funding -> UserWishlistFundingDto.from(funding, sellerNames.get(funding.getSellerId())))
+                .collect(Collectors.toList());
     }
 }

@@ -84,11 +84,19 @@ public class SellerServiceImpl implements SellerService {
         return sellerMapper.findByUserId(userId);
     }
 
-//    @Override
-//    public Map<Integer, String> getSellerNamesByIds(List<Integer> sellerIds) {
-//        return sellerMapper.findByIds(sellerIds).stream()
-//                .collect(Collectors.toMap(Seller::getSellerId, Seller::getName));
-//    }
+    @Override
+    public Map<Integer, String> getNamesByIds(List<Integer> sellerIds) {
+        List<Seller> sellers = sellerMapper.findNamesByIds(sellerIds);
+        log.info("sellerIds: {}", sellerIds);
+
+        return sellers.stream()
+                .collect(Collectors.toMap(
+                        Seller::getSellerId,
+                        Seller::getName,
+                        (existing, replacement) -> existing
+                ));
+    }
+
 
     // 펀딩 상세페이지 seller 정보 조회
     @Transactional
