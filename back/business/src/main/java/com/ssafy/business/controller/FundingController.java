@@ -86,7 +86,6 @@ public class FundingController {
         return new ResponseEntity<>(Response.create(ResponseCode.GET_FUNDING, fundingList), ResponseCode.GET_FUNDING.getHttpStatus());
     }
 
-
     // 펀딩 상세 페이지
     @GetMapping("/detail/{fundingId}")
     public ResponseEntity<?> getFundingDetail(@PathVariable int fundingId) {
