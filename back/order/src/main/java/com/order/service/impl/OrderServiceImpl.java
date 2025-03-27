@@ -97,4 +97,14 @@ public class OrderServiceImpl implements OrderService {
         List<Order> orders = orderMapper.getOrders(userId);
         return orders;
     }
+
+    public int getMyOrderPrice(int userId){
+        int price = orderMapper.getMyOrderPrice(userId);
+        return price;
+    }
+
+    public List<Integer> getMyFundingIds(int userId){
+        List<Integer> fundingIds = orderMapper.getMyFundingIds(userId);
+        return fundingIds;
+    }
 }
