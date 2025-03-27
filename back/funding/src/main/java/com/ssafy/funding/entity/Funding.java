@@ -12,6 +12,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 @Getter
@@ -73,6 +74,10 @@ public class Funding {
     }
 
     public List<String> getImageUrlList() {
+        if (this.imageUrls == null || this.imageUrls.isEmpty()) {
+            return Collections.emptyList();
+        }
+
         return JsonConverter.convertJsonToImageUrls(this.imageUrls);
     }
 
