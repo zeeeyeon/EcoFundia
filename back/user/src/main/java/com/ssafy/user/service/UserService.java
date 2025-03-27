@@ -30,4 +30,6 @@ public interface UserService {
 
     OrderResponseDto createPayment(int userId, CreatePaymentRequestDto requestDto);
 
+    void logout(int userId);
+
 }
