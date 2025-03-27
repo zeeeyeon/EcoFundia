@@ -12,6 +12,7 @@ import com.ssafy.funding.dto.funding.request.FundingUpdateSendDto;
 import com.ssafy.funding.dto.funding.response.FundingResponseDto;
 import com.ssafy.funding.dto.funding.response.FundingWishCountResponseDto;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
+import com.ssafy.funding.dto.funding.response.MyFundingResponseDto;
 import com.ssafy.funding.dto.review.response.ReviewDto;
 import com.ssafy.funding.dto.review.response.ReviewResponseDto;
 import com.ssafy.funding.dto.seller.SellerDetailDto;
@@ -263,5 +264,13 @@ public class FundingService implements ProductService {
         return SellerDetailResponseDto.from(sellerDetailList);
     }
 
+    // 내가 주훔한 펀딩 조회
+    @Transactional
+    public List<MyFundingResponseDto> getMyFunding(List<Integer> fundingIds){
+        List<Funding> fundingList = fundingMapper.getMyFunding(fundingIds);
+
+        return fundingList.stream()
+                .map(MyFundingResponseDto::toDto).collect(Collectors.toList());
+    }
 
 }
