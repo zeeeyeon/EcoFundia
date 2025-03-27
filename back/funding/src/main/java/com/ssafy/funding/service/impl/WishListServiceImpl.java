@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -35,19 +36,13 @@ public class WishListServiceImpl implements WishListService {
     }
 
     @Override
-    @Transactional
     public List<UserWishlistFundingDto> getOngoingWishlist(int userId) {
-        List<Integer> fundingIds = wishListMapper.findFundingIdsByUserId(userId);
-        List<Funding> fundings = fundingMapper.findFundingsByIds(fundingIds);
-        List<Funding> ongoingFundings = filterOngoing(fundings);
-        Map<Integer, String> sellerNames = getSellerNames(ongoingFundings);
-
-        return convertToDtos(ongoingFundings, sellerNames);
+        return getWishlist(userId, this::filterOngoing);
     }
 
     @Override
     public List<UserWishlistFundingDto> getDoneWishlist(int userId) {
-        return List.of();
+        return getWishlist(userId, this::filterDone);
     }
 
     @Override
@@ -56,13 +51,23 @@ public class WishListServiceImpl implements WishListService {
         wishListMapper.deleteWish(userId, fundingId);
     }
 
-    public List<Integer> getWishlistFundingIds(int userId) {
-        return wishListMapper.findFundingIdsByUserId(userId);
+    private List<UserWishlistFundingDto> getWishlist(int userId, Function<List<Funding>, List<Funding>> filter) {
+        List<Integer> fundingIds = wishListMapper.findFundingIdsByUserId(userId);
+        List<Funding> fundings = fundingMapper.findFundingsByIds(fundingIds);
+        List<Funding> filteredFundings = filter.apply(fundings);
+        Map<Integer, String> sellerNames = getSellerNames(filteredFundings);
+        return convertToDtos(filteredFundings, sellerNames);
     }
 
     private List<Funding> filterOngoing(List<Funding> fundings) {
         return fundings.stream()
-                .filter(funding -> funding.getEndDate().isAfter(LocalDateTime.now()))
+                .filter(f -> f.getEndDate().isAfter(LocalDateTime.now()))
+                .collect(Collectors.toList());
+    }
+
+    private List<Funding> filterDone(List<Funding> fundings) {
+        return fundings.stream()
+                .filter(f -> f.getEndDate().isBefore(LocalDateTime.now()) || f.getEndDate().isEqual(LocalDateTime.now()))
                 .collect(Collectors.toList());
     }
 
