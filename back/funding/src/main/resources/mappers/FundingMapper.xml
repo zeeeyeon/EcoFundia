@@ -281,4 +281,14 @@
         </foreach>
     </select>
 
+    <!-- 내가 주문한 펀딩 조회 -->
+    <select id="getMyFunding" parameterType="java.util.List" resultMap="FundingResultMap">
+        SELECT * FROM funding
+        WHERE funding_id IN
+        <foreach item="id" collection="fundingIds" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+
 </mapper>
