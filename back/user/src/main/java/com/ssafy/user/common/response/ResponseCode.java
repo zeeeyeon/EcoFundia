@@ -21,6 +21,7 @@ public enum ResponseCode {
     GET_MY_REVIEW_SUCCESS(200, HttpStatus.OK, "내 리뷰 조회 성공"),
     UPDATE_MY_REVIEW_SUCCESS(200, HttpStatus.OK, "리뷰 수정 성공"),
     DELETE_MY_REVIEW_SUCCESS(200, HttpStatus.OK, "리뷰 삭제 성공"),
+    LOGOUT_SUCCESS(200,HttpStatus.OK, "로그아웃에 성공하였습니다."),
 
 
     // 생성 응답 (201)

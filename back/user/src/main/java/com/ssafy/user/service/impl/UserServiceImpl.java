@@ -207,6 +207,12 @@ public class UserServiceImpl implements UserService {
         return orderClient.createPayment(userId, requestDto.getFundingId(), requestDto.getAmount(), requestDto.getTotalPrice(), user.getSsafyUserKey(), user.getAccount());
     }
 
+    @Override
+    public void logout(int userId) {
+        String key = "refreshToken:" + userId;
+        redisTemplate.delete(key);
+    }
+
     private Map<String, Object> getGoogleUserInfo(String accessToken) {
         String url = GOOGLE_USER_INFO_URL + "?access_token=" + accessToken;
         return WebClient.create()

@@ -17,14 +17,7 @@ public interface UserMapper {
 
     void insertUser(User user);
 
-    void insertRefreshToken(@Param("userId") int userId,
-                            @Param("refreshToken") String refreshToken);
-
-    List<RefreshToken> findRefreshTokensByUserId(int userId);
-
-    void deleteRefreshTokenById(@Param("id") int id);
-
-    int updateMyInfo(@Param("userId") int userId, @Param("nickname") String nickname, @Param("account") String account);
+    void updateMyInfo(@Param("userId") int userId, @Param("nickname") String nickname, @Param("account") String account);
 
     String findNicknameById(@Param("userId") int userId);
 }
