@@ -8,6 +8,7 @@ import com.ssafy.funding.dto.funding.request.FundingUpdateSendDto;
 import com.ssafy.funding.dto.funding.response.FundingResponseDto;
 import com.ssafy.funding.dto.funding.response.FundingWishCountResponseDto;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
+import com.ssafy.funding.dto.funding.response.MyFundingResponseDto;
 import com.ssafy.funding.dto.order.response.IsOngoingResponseDto;
 import com.ssafy.funding.dto.review.response.ReviewResponseDto;
 import com.ssafy.funding.dto.seller.SellerDetailResponseDto;
@@ -30,6 +31,13 @@ public class FundingController {
 
     private final ProductService productService;
     private final OrderService orderService;
+
+    //내가 주문한 펀딩 프로젝트 조회
+    @GetMapping("/my/funding")
+    List<MyFundingResponseDto> getMyFunding(@RequestParam List<Integer> fundingIds){
+        List<MyFundingResponseDto> fundingList = productService.getMyFunding(fundingIds);
+        return fundingList;
+    }
 
     @GetMapping("/{fundingId}")
     public ResponseEntity<?> getFundingId(@PathVariable int fundingId) {

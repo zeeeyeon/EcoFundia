@@ -12,6 +12,7 @@ import com.ssafy.funding.dto.funding.request.FundingUpdateSendDto;
 import com.ssafy.funding.dto.funding.response.FundingResponseDto;
 import com.ssafy.funding.dto.funding.response.FundingWishCountResponseDto;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
+import com.ssafy.funding.dto.funding.response.MyFundingResponseDto;
 import com.ssafy.funding.dto.review.response.ReviewDto;
 import com.ssafy.funding.dto.review.response.ReviewResponseDto;
 import com.ssafy.funding.dto.seller.SellerDetailDto;
@@ -22,6 +23,7 @@ import com.ssafy.funding.entity.enums.Status;
 import com.ssafy.funding.mapper.FundingMapper;
 import com.ssafy.funding.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +36,7 @@ import java.util.stream.Collectors;
 
 import static com.ssafy.funding.common.response.ResponseCode.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FundingService implements ProductService {
@@ -263,5 +266,13 @@ public class FundingService implements ProductService {
         return SellerDetailResponseDto.from(sellerDetailList);
     }
 
+    // 내가 주훔한 펀딩 조회
+    @Transactional
+    public List<MyFundingResponseDto> getMyFunding(List<Integer> fundingIds){
+        List<Funding> fundingList = fundingMapper.getMyFunding(fundingIds);
+        log.info("fundingList: " + fundingList);
+        return fundingList.stream()
+                .map(MyFundingResponseDto::toDto).collect(Collectors.toList());
+    }
 
 }
