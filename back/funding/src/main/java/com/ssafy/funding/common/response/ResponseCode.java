@@ -41,7 +41,7 @@ public enum ResponseCode {
     DELETE_WISHLIST(successCode(), HttpStatus.OK, "위시리스트에서 삭제되었습니다."),
 
     WISHLIST_ALREADY_EXISTS(400, HttpStatus.BAD_REQUEST, "이미 위시리스트에 추가된 상품입니다."),
-    WISHLIST_NOT_FOUND(404, HttpStatus.BAD_REQUEST, "해당 위시리스트는 존재하지 않습니다."),
+    WISHLIST_NOT_FOUND(404, HttpStatus.NOT_FOUND, "해당 위시리스트는 존재하지 않습니다."),
 
     // 일반 오류
     BINDING_ERROR(400, HttpStatus.BAD_REQUEST, "입력값 중 검증에 실패한 값이 있습니다."),
