@@ -31,7 +31,7 @@ public interface OrderClient {
     @GetMapping("api/order/funding/total")
     int getMyOrderPrice(@RequestHeader("X-User-Id") int userId);
 
-    // 내가 주문한 펀딩 아이디 조회
+    // 내가 주문한 펀딩 조회
     @GetMapping("api/order/funding")
-    List<Integer> getMyFundingIds(@RequestHeader("X-User-Id") int userId);
+    List<Integer> getMyFunding(@RequestHeader("X-User-Id") int userId);
 }

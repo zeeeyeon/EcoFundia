@@ -1,5 +1,6 @@
 package com.order.controller;
 
+import com.order.dto.funding.response.FundingResponseDto;
 import com.order.dto.order.response.OrderResponseDto;
 import com.order.entity.Order;
 import com.order.service.OrderService;
@@ -37,9 +38,9 @@ public class OrderController {
 
     // 내가 주문한 펀딩 아이디 조회
     @GetMapping("/funding")
-    public List<Integer> getMyFundingIds(@RequestHeader("X-User-Id") int userId){
-        List<Integer> fundingIds = orderService.getMyFundingIds(userId);
-        return fundingIds;
+    public List<FundingResponseDto> getMyFunding(@RequestHeader("X-User-Id") int userId){
+        List<FundingResponseDto> fundingList = orderService.getMyFunding(userId);
+        return fundingList;
     }
 
     // 내 펀딩 내역 조회
