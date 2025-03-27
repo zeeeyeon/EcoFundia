@@ -17,7 +17,7 @@ public interface OrderClient {
     List<FundingResponseDto> getMyFundings(@RequestHeader("X-User-Id") int userId);
 
     @GetMapping("/api/order/my/total")
-    GetMyTotalFundingResponseDto getMyTotalFunding(@RequestHeader("X-User-Id") int userId);
+    int getMyTotalFunding(@RequestHeader("X-User-Id") int userId);
 
     @PostMapping("/api/order/funding")
     OrderResponseDto createPayment(@RequestHeader("X-User-Id") int userId,
