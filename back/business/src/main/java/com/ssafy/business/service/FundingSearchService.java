@@ -7,6 +7,6 @@ import java.util.List;
 public interface FundingSearchService {
 
     // 펀딩 키워드 검색 조회
-    public List<FundingResponseDTO> getSearchFundingList(String keyword, int page);
+    List<FundingResponseDTO> getSearchFundingList(String sort, String keyword, int page);
 
 }

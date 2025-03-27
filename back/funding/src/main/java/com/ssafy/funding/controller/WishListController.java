@@ -2,9 +2,10 @@ package com.ssafy.funding.controller;
 
 import com.ssafy.funding.common.response.Response;
 import com.ssafy.funding.dto.funding.response.UserWishlistFundingDto;
-import com.ssafy.funding.entity.WishList;
 import com.ssafy.funding.service.WishListService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,10 +14,11 @@ import java.util.List;
 import static com.ssafy.funding.common.response.ResponseCode.*;
 
 @RestController
-@RequestMapping("/api/wishlist")
+@RequestMapping("/api/wishList")
 @RequiredArgsConstructor
 public class WishListController {
 
+    private static final Logger log = LoggerFactory.getLogger(WishListController.class);
     private final WishListService wishListService;
 
     @PostMapping("/{fundingId}")

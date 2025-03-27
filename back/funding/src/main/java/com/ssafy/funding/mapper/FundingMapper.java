@@ -16,7 +16,7 @@ public interface FundingMapper {
     Funding findById(int fundingId);
     void updateFunding(Funding funding);
     void deleteFunding(int fundingId);
-
+    List<Funding> findFundingsByIds(List<Integer> fundingIds);
 
     // 현재까지 펀딩 금액 조회
     Long getTotalFund();

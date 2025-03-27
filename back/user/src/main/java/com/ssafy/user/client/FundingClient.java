@@ -1,6 +1,5 @@
 package com.ssafy.user.client;
 
-import com.ssafy.user.dto.request.CreateOrderRequestDto;
 import com.ssafy.user.dto.request.PostReviewWithNicknameRequestDto;
 import com.ssafy.user.dto.request.UpdateMyReviewRequestDto;
 import com.ssafy.user.dto.response.ReviewResponseDto;
@@ -18,14 +17,13 @@ public interface FundingClient {
     @PostMapping("/api/review")
     void postMyReview(@RequestHeader("X-User-Id") int userId, PostReviewWithNicknameRequestDto requestDto);
 
-    @PatchMapping("/api/review/{reviewId}")
+    @PutMapping("/api/review/{reviewId}")
     void updateMyReview(@RequestHeader("X-User-Id") int userId, @PathVariable("reviewId") int reviewId, UpdateMyReviewRequestDto requestDto);
 
     @DeleteMapping("/api/review/{reviewId}")
     void deleteMyReview(@RequestHeader("X-User-Id") int userId, @PathVariable("reviewId") int reviewId);
 
-    @PostMapping("/api/order/funding")
-    void createPayment(@RequestHeader("X-User-Id") int userId, CreateOrderRequestDto requestDto);
+
 
     @PostMapping("/api/wishList/{fundingId}")
     void createWish(@RequestHeader("X-User-Id") int userId, @PathVariable("fundingId") int fundingId);

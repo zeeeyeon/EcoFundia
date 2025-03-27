@@ -12,4 +12,5 @@ public interface WishListMapper {
     List<WishList> findDoneByUserId(int userId);
     void deleteWish(int userId, int fundingId);
     boolean existsByUserIdAndFundingId(int userId, int fundingId);
+    List<Integer> findFundingIdsByUserId(int userId);
 }

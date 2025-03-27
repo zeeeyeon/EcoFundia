@@ -92,33 +92,31 @@ public interface FundingClient {
     @GetMapping("api/funding/is-ongoing/{fundingId}")
     IsOngoingResponseDto isOngoing(@PathVariable int fundingId);
 
-    @GetMapping("api/review/user")
+    @GetMapping("/api/review/user")
     List<ReviewDto> getReviewsByUserId(@RequestHeader("X-User-Id") String userId);
 
-    @PostMapping("api/review")
+    @PostMapping("/api/review")
     ResponseEntity<?> createReview(@RequestHeader("X-User-Id") int userId, @RequestBody ReviewCreateRequestDto dto);
 
-    @RequestMapping(method = RequestMethod.PATCH, value = "/api/review/{reviewId}")
+    @PutMapping("/api/review/{reviewId}")
     ResponseEntity<?> updateReview(@RequestHeader("X-User-Id") int userId,
                                    @PathVariable int reviewId,
                                    @RequestBody ReviewUpdateRequestDto dto);
-
-
 
     @RequestMapping(method = RequestMethod.DELETE, value = "/api/review/{reviewId}")
     ResponseEntity<?> deleteReview(@RequestHeader("X-User-Id") int userId,
                                    @PathVariable int reviewId);
 
-    @PostMapping("/{fundingId}")
+    @PostMapping("/api/wishList/{fundingId}")
     ResponseEntity<?> createWish(@RequestHeader("X-User-Id") int userId, @PathVariable int fundingId);
 
-    @GetMapping("/ongoing")
+    @GetMapping("/api/wishList/ongoing")
     List<UserWishlistFundingDto> getOngoingWishlist(@RequestHeader("X-User-Id") int userId);
 
-    @GetMapping("/done")
+    @GetMapping("/api/wishList/done")
     List<UserWishlistFundingDto> getDoneWishlist(@RequestHeader("X-User-Id") int userId);
 
-    @DeleteMapping("/{fundingId}")
+    @DeleteMapping("/api/wishList/{fundingId}")
     ResponseEntity<?> deleteWish(@RequestHeader("X-User-Id") int userId, @PathVariable int fundingId);
 
 }

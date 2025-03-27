@@ -271,5 +271,14 @@
         </choose>
         LIMIT #{limit} OFFSET #{offset}
     </select>
+    <select id="findFundingsByIds" resultType="com.ssafy.funding.entity.Funding">
+        SELECT funding_id, title, current_amount, target_amount,
+        start_date, end_date, seller_id
+        FROM funding
+        WHERE funding_id IN
+        <foreach collection="fundingIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
 
 </mapper>

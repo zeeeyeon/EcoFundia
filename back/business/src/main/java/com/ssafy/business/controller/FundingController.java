@@ -48,7 +48,14 @@ public class FundingController {
         return new ResponseEntity<>(Response.create(ResponseCode.GET_FUNDING, fundingList), ResponseCode.GET_FUNDING.getHttpStatus());
     }
 
-    //
+    // 카테고리별 펀딩 리스트 조회
+    @GetMapping("/category")
+    public ResponseEntity<?> getCategoryFundingList(@RequestParam(name="category") String category , @RequestParam(name="page") int page) {
+        List<FundingResponseDTO> fundingList = fundingService.getCategoryFundingList(category, page);
+        return new ResponseEntity<>(Response.create(ResponseCode.GET_FUNDING, fundingList), ResponseCode.GET_FUNDING.getHttpStatus());
+    }
+
+    // 펀딩 페이지 펀딩 조회
     @GetMapping("/funding-page")
     public ResponseEntity<?> getFundingPageList(
             @RequestParam(name = "sort") String sort,
@@ -59,17 +66,13 @@ public class FundingController {
         return new ResponseEntity<>(Response.create(ResponseCode.GET_FUNDING, fundingList), ResponseCode.GET_FUNDING.getHttpStatus());
     }
 
-    // 카테고리별 펀딩 리스트 조회
-    @GetMapping("/category")
-    public ResponseEntity<?> getCategoryFundingList(@RequestParam(name="category") String category , @RequestParam(name="page") int page) {
-        List<FundingResponseDTO> fundingList = fundingService.getCategoryFundingList(category, page);
-        return new ResponseEntity<>(Response.create(ResponseCode.GET_FUNDING, fundingList), ResponseCode.GET_FUNDING.getHttpStatus());
-    }
-
     // 펀딩 키워드 검색 조회
     @GetMapping("/search")
-    public ResponseEntity<?> getSearchFundingList(@RequestParam(name="keyword") String keyword, @RequestParam(name="page") int page){
-        List<FundingResponseDTO> fundingList = fundingSearchService.getSearchFundingList(keyword, page);
+    public ResponseEntity<?> getSearchFundingList(
+            @RequestParam(name = "sort") String sort,
+            @RequestParam(name = "keyword") String keyword,
+            @RequestParam(name= "page") int page){
+        List<FundingResponseDTO> fundingList = fundingSearchService.getSearchFundingList(sort, keyword, page);
         return new ResponseEntity<>(Response.create(ResponseCode.GET_FUNDING, fundingList), ResponseCode.GET_FUNDING.getHttpStatus());
     }
 
