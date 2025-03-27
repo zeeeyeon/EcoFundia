@@ -19,8 +19,14 @@ class FundingRepository {
     );
   }
 
-  // 추후 검색 기능 등도 여기에 추가할 수 있음
-  Future<List<FundingModel>> searchFunding(String query) {
+  Future<List<FundingModel>> searchFunding(String query, {int page = 1}) {
     return service.searchFunding(query);
+  }
+
+  Future<List<FundingModel>> fetchSpecialFunding({
+    required String topic,
+    int page = 1,
+  }) {
+    return service.getSpecialFunding(topic: topic, page: page);
   }
 }

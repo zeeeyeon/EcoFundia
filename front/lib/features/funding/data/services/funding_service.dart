@@ -41,13 +41,31 @@ class FundingService {
     return content.map((e) => FundingModel.fromJson(e)).toList();
   }
 
-  Future<List<FundingModel>> searchFunding(String query) async {
+  Future<List<FundingModel>> searchFunding(String query, {int page = 1}) async {
     final response = await api.get(
       '/api/business/search',
       queryParameters: {
         'sort': 'latest',
         'page': 1,
-        'keyword': query, // ✅ 백엔드 명세서에 따라 'keyword'로!
+        'keyword': query, // 백엔드 명세서에 따라 'keyword'로!
+      },
+    );
+
+    final List<dynamic> data = response.data['content'];
+    return data.map((item) => FundingModel.fromJson(item)).toList();
+  }
+
+  Future<List<FundingModel>> getSpecialFunding({
+    required String topic,
+    String sort = 'none',
+    int page = 1,
+  }) async {
+    final response = await api.get(
+      '/api/business/search/special',
+      queryParameters: {
+        'topic': topic,
+        'sort': sort,
+        'page': page,
       },
     );
 
