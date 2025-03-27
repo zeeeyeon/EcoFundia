@@ -38,8 +38,8 @@ public interface FundingClient {
     ResponseEntity<?> deleteFunding(@PathVariable int fundingId);
 
     //내가 주문한 펀딩 프로젝트 조회
-    @GetMapping("/api/funding")
-    List<MyFundingResponseDto> getMyFunding(@RequestBody List<Integer> fundingIds);
+    @GetMapping("/api/funding/my")
+    List<MyFundingResponseDto> getMyFunding(@RequestParam List<Integer> fundingIds);
 
     @GetMapping("/api/funding/{fundingId}")
     ResponseEntity<Object> getFunding(@PathVariable int fundingId);

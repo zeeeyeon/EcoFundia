@@ -33,8 +33,8 @@ public class FundingController {
     private final OrderService orderService;
 
     //내가 주문한 펀딩 프로젝트 조회
-    @GetMapping("/")
-    List<MyFundingResponseDto> getMyFunding(@RequestBody List<Integer> fundingIds){
+    @GetMapping("/my/funding")
+    List<MyFundingResponseDto> getMyFunding(@RequestParam List<Integer> fundingIds){
         List<MyFundingResponseDto> fundingList = productService.getMyFunding(fundingIds);
         return fundingList;
     }
