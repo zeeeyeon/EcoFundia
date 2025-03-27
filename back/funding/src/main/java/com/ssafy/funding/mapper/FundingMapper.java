@@ -51,4 +51,7 @@ public interface FundingMapper {
     List<ReviewDto> getReviewList(@Param("sellerId") int sellerId, @Param("page") int page);
 
     List<SellerDetailDto> getSellerDetail(@PathVariable int sellerId);
+
+    // 내가 주문한 펀딩 조회
+    List<Funding> getMyFunding(List<Integer> fundingIds);
 }

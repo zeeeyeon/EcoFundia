@@ -1,5 +1,6 @@
 package com.order.client;
 
+import com.order.dto.funding.response.FundingResponseDto;
 import com.order.entity.Order;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,5 +34,5 @@ public interface OrderClient {
 
     // 내가 주문한 펀딩 조회
     @GetMapping("api/order/funding")
-    List<Integer> getMyFunding(@RequestHeader("X-User-Id") int userId);
+    List<FundingResponseDto> getMyFunding(@RequestHeader("X-User-Id") int userId);
 }

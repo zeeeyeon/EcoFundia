@@ -5,6 +5,7 @@ import com.ssafy.funding.dto.funding.request.FundingCreateSendDto;
 import com.ssafy.funding.dto.funding.request.FundingUpdateRequestDto;
 import com.ssafy.funding.dto.funding.response.FundingWishCountResponseDto;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
+import com.ssafy.funding.dto.funding.response.MyFundingResponseDto;
 import com.ssafy.funding.dto.order.response.IsOngoingResponseDto;
 import com.ssafy.funding.dto.funding.response.UserWishlistFundingDto;
 import com.ssafy.funding.dto.review.request.ReviewCreateRequestDto;
@@ -36,8 +37,9 @@ public interface FundingClient {
     @DeleteMapping("/api/funding/{fundingId}")
     ResponseEntity<?> deleteFunding(@PathVariable int fundingId);
 
+    //내가 주문한 펀딩 프로젝트 조회
     @GetMapping("/api/funding")
-    ResponseEntity<Object> getAllfunding();
+    List<MyFundingResponseDto> getMyFunding(@RequestBody List<Integer> fundingIds);
 
     @GetMapping("/api/funding/{fundingId}")
     ResponseEntity<Object> getFunding(@PathVariable int fundingId);
