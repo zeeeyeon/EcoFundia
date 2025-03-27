@@ -17,7 +17,7 @@ public interface SellerService {
 //    ResponseEntity<?> updateFunding(int fundingId, FundingUpdateRequestDto dto, MultipartFile storyFile, List<MultipartFile> imageFiles);
 //    ResponseEntity<?> deleteFunding(int fundingId);
     Boolean findByUserId(int userId);
-//    Map<Integer, String> getSellerNamesByIds(List<Integer> sellerIds);
+    Map<Integer, String> getNamesByIds(List<Integer> sellerIds);
 
     FundingDetailSellerResponseDto sellerInfo(int sellerId);
 

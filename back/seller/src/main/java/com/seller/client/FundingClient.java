@@ -21,17 +21,17 @@ public interface FundingClient {
 //    @GetMapping("/api/funding/{fundingId}")
 //    ResponseEntity<?> getFundingId(@PathVariable int fundingId);
 //
-//    @PostMapping(value = "/api/funding/{sellerId}")
-//    ResponseEntity<?> createFunding(@PathVariable int sellerId, @RequestBody FundingCreateSendDto dto);
-//
-//    @PutMapping(value = "/api/funding/{fundingId}")
-//    ResponseEntity<?> updateFunding(@PathVariable int fundingId, @RequestBody FundingUpdateSendDto dto);
-//
-//    @DeleteMapping("/api/funding/{fundingId}")
-//    ResponseEntity<?> deleteFunding(@PathVariable int fundingId);
-//
-//    @GetMapping("/api/funding/{fundingId}")
-//    FundingResponseDto getFundingById(@PathVariable("fundingId") int fundingId);
+    @PostMapping(value = "/api/funding/{sellerId}")
+    ResponseEntity<?> createFunding(@PathVariable int sellerId, @RequestBody FundingCreateSendDto dto);
+
+    @PutMapping(value = "/api/funding/{fundingId}")
+    ResponseEntity<?> updateFunding(@PathVariable int fundingId, @RequestBody FundingUpdateSendDto dto);
+
+    @DeleteMapping("/api/funding/{fundingId}")
+    ResponseEntity<?> deleteFunding(@PathVariable int fundingId);
+
+    @GetMapping("/api/funding/{fundingId}")
+    FundingResponseDto getFundingById(@PathVariable("fundingId") int fundingId);
 //
 //    @PostMapping("/api/seller/sellerNames")
 //    Map<Integer, String> getSellerNames(@RequestBody List<Integer> sellerIds);

@@ -11,7 +11,7 @@ import java.util.List;
 public interface SellerMapper {
 
     boolean findByUserId(int userId);
-//    List<Seller> findByIds(@Param("sellerIds") List<Integer> sellerIds);
+    List<Seller> findNamesByIds(@Param("sellerIds") List<Integer> sellerIds);
     FundingDetailSellerResponseDto sellerInfo(int sellerId);
 
     //판매자 조회

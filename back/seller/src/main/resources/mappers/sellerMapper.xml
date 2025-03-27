@@ -9,38 +9,39 @@
         <result property="sellerName" column="name" />
     </resultMap>
 
-<!--    <select id="findByUserId" resultType="boolean">-->
-<!--        SELECT EXISTS (-->
-<!--            SELECT 1-->
-<!--            FROM seller-->
-<!--            WHERE user_id = #{userId}-->
-<!--        )-->
-<!--    </select>-->
+<!--    <resultMap id="SellerResultMap" type="com.ssafy.seller.entity.Seller">-->
+<!--        <id property="sellerId" column="seller_id"/>-->
+<!--        <result property="name" column="name"/>-->
+<!--    </resultMap>-->
 
-<!--    <select id="findByIds" resultType="com.ssafy.seller.domain.Seller">-->
-<!--        SELECT-->
-<!--        seller_id,-->
-<!--        user_id,-->
-<!--        profile_img,-->
-<!--        account,-->
-<!--        ssafy_user_key,-->
-<!--        name-->
-<!--        FROM seller-->
-<!--        WHERE seller_id IN-->
-<!--        <foreach collection="sellerIds" item="id" open="(" separator="," close=")">-->
-<!--            #{id}-->
-<!--        </foreach>-->
-<!--    </select>-->
-
-    <!-- 펀딩 키워드 검색 조회 -->
-    <select id="sellerInfo" resultMap="sellerResultMap">
-        SELECT seller_id, profile_img, name
-        FROM seller WHERE seller_id = #{sellerId}
+    <select id="findByUserId" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1
+            FROM seller
+            WHERE user_id = #{userId}
+        )
     </select>
 
-    <select id="getSeller" resultMap="sellerResultMap">
-        SELECT *
-        FROM seller WHERE seller_id = #{sellerId}
+    <select id="findNamesByIds" parameterType="java.util.List" resultMap="SellerResultMap">
+        SELECT
+            seller_id,
+            name
+        FROM sellers
+        WHERE seller_id IN
+        <foreach item="id" collection="sellerIds" open="(" separator="," close=")">
+            #{id}
+        </foreach>
     </select>
+
+<!--    &lt;!&ndash; 펀딩 키워드 검색 조회 &ndash;&gt;-->
+<!--    <select id="sellerInfo" resultMap="sellerResultMap">-->
+<!--        SELECT seller_id, profile_img, name-->
+<!--        FROM seller WHERE seller_id = #{sellerId}-->
+<!--    </select>-->
+
+<!--    <select id="getSeller" resultMap="sellerResultMap">-->
+<!--        SELECT *-->
+<!--        FROM seller WHERE seller_id = #{sellerId}-->
+<!--    </select>-->
 
 </mapper>
