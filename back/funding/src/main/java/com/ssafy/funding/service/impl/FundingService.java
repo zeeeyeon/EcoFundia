@@ -164,7 +164,11 @@ public class FundingService implements ProductService {
 
     // 펀딩 검색페이지 토픽 검색 (베스트 펀딩, 마감임박, 오늘의 검색어)
     @Transactional
-    public List<?> getSearchSpecialFunding(String sort , String topic, int page){
+    public List<FundingWishCountResponseDto> getSearchSpecialFunding(String sort , String topic, int page){
+
+        if (!topic.equals("soon") && !topic.equals("best")) {
+            throw new CustomException(BAD_REQUEST);
+        }
 
         String redisKey = String.format("special::%s::%s::%d", sort, topic, page);
         System.out.println(redisKey);
@@ -183,32 +187,13 @@ public class FundingService implements ProductService {
         // redis에 없으면 DB 조회
         int offset = (page -1) * PAGE_SIZE;
 
-        if (topic.equals("best")) {
+        List<FundingWishCount> fundingList = fundingMapper.getSpecialFundingList(topic, sort, offset, PAGE_SIZE);
+        List<FundingWishCountResponseDto> dtoList = fundingList.stream()
+                .map(FundingWishCount::toDto).collect(Collectors.toList());
 
-            // 베스트 번딩 - 찜이 많은 순으로 정렬 review 테이블
-            // wishlist테이블에서 참조하는 funding_id 개수가 많은 순으로 Funding 정렬
-            List<FundingWishCount> fundingList = fundingMapper.getBestFundingList(sort, offset, PAGE_SIZE);
-            List<FundingWishCountResponseDto> dtoList = fundingList.stream()
-                    .map(FundingWishCount::toDto).collect(Collectors.toList());
-
-            // redis에 캐싱
-            redisCaching(redisKey, dtoList);
-
-            return dtoList;
-
-        } else if (topic.equals("soon")) { //마감임박 - end_date이랑 현재 시간이 한시간 이내인 펀딩만 나열
-
-            List<Funding> fundingList = fundingMapper.getSoonFinishFundingList(sort, offset, PAGE_SIZE);
-            List<GetFundingResponseDto> dtoList = fundingList.stream()
-                    .map(Funding::toDto).collect(Collectors.toList());
-
-            // redis에 캐싱
-            redisCaching(redisKey, dtoList);
-
-            return dtoList;
-        } else {
-            throw new CustomException(BAD_REQUEST);
-        }
+        // redis에 캐싱
+        redisCaching(redisKey, dtoList);
+        return dtoList;
     }
 
     // 펀딩 키워드 검색 조회

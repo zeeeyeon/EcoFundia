@@ -6,6 +6,7 @@ import com.ssafy.funding.dto.funding.request.FundingCreateSendDto;
 import com.ssafy.funding.dto.funding.request.FundingUpdateRequestDto;
 import com.ssafy.funding.dto.funding.request.FundingUpdateSendDto;
 import com.ssafy.funding.dto.funding.response.FundingResponseDto;
+import com.ssafy.funding.dto.funding.response.FundingWishCountResponseDto;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
 import com.ssafy.funding.dto.order.response.IsOngoingResponseDto;
 import com.ssafy.funding.dto.review.response.ReviewResponseDto;
@@ -105,11 +106,11 @@ public class FundingController {
 
     // funding 서비스에서 검색페이지에 배스트 펀딩, 마감임박, 오늘의 검색어 중 선택한 색션 펀딩 리스트 데이터 요청
     @GetMapping("/search/special")
-    List<?> getSearchSpecialFunding(
+    List<FundingWishCountResponseDto> getSearchSpecialFunding(
             @RequestParam(name = "sort") String sort,
             @RequestParam(name = "topic") String topic,
             @RequestParam(name= "page") int page) {
-        List<?> fundingList = productService.getSearchSpecialFunding(sort ,topic, page);
+        List<FundingWishCountResponseDto> fundingList = productService.getSearchSpecialFunding(sort ,topic, page);
         return fundingList;
     }
 

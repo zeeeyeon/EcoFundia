@@ -38,12 +38,8 @@ public interface FundingMapper {
             @Param("offset") int offset,
             @Param("limit") int limit);
 
-    // 베스트 펀팅으로 리스트 조회
-    List<FundingWishCount> getBestFundingList(@Param("sort") String sort, @Param("offset") int offset, @Param("limit") int limit);
-
-    // 마감임박 펀딩 리스트 조회
-    List<Funding> getSoonFinishFundingList(@Param("sort") String sort, @Param("offset") int offset, @Param("limit") int limit);
-
+    // 베스트 , 마감임박 펀팅으로 리스트 조회
+    List<FundingWishCount> getSpecialFundingList(@Param("topic") String topic, @Param("sort") String sort, @Param("offset") int offset, @Param("limit") int limit);
 
     // 최신 펀딩 리스트 조회
     List<Funding> getLatestFundingList(int page);
