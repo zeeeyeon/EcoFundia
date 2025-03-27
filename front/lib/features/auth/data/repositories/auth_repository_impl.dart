@@ -32,87 +32,75 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   /// Google 토큰으로 서버에 인증 요청 (내부 구현용)
-  Future<AuthResponseModel> _authenticateWithGoogle(String accessToken) async {
+  Future<AuthResponseModel> _authenticateWithGoogle(
+      String accessToken, String email) async {
     try {
-      LoggerUtil.i('Google 토큰으로 로그인 시도');
-
-      // 웹 환경에서는 CORS 문제로 인해 커스텀 헤더를 사용하지 않음
-      const isWeb = kIsWeb;
-      final options =
-          isWeb ? null : Options(headers: {'X-Skip-Token-Refresh': 'true'});
-
       final response = await _apiService.post(
         ApiService.apiEndpoints.login,
-        data: {'token': accessToken},
-        options: options,
+        data: {
+          'token': accessToken,
+        },
       );
 
       if (response.data == null) {
-        throw AuthException('서버 응답이 올바르지 않습니다.');
+        throw AuthException('응답 데이터가 없습니다.');
       }
 
-      return AuthResponseModel.fromJson(response.data);
+      final authResponseModel = AuthResponseModel.fromJson(response.data);
+
+      if (authResponseModel.status.code == 404 &&
+          authResponseModel.status.message ==
+              "해당 이메일로 가입된 사용자가 없습니다. 회원가입이 필요합니다.") {
+        throw AuthException(authResponseModel.status.message,
+            statusCode: authResponseModel.status.code, isNewUser: true);
+      }
+
+      if (authResponseModel.status.code != 200) {
+        throw AuthException(authResponseModel.status.message,
+            statusCode: authResponseModel.status.code);
+      }
+
+      return authResponseModel;
     } on DioException catch (e) {
-      final statusCode = e.response?.statusCode;
-      var message = '인증 중 오류가 발생했습니다.';
-
-      // 404 상태 코드인 경우 회원가입이 필요한지 확인
-      if (statusCode == 404) {
-        LoggerUtil.i('신규 회원: 회원가입이 필요합니다.');
-        throw AuthException('회원가입이 필요합니다.', statusCode: 404, isNewUser: true);
-      }
-
-      switch (statusCode) {
-        case 400:
-          throw AuthException('잘못된 액세스 토큰입니다.', statusCode: 400);
-        case 401:
-          LoggerUtil.e('인증 실패 - 토큰이 유효하지 않거나 만료되었습니다.');
-          throw AuthException('인증에 실패했습니다.', statusCode: 401);
-        case 500:
-          throw AuthException('서버 오류가 발생했습니다.', statusCode: 500);
-        default:
-          throw AuthException('인증 중 오류가 발생했습니다: ${e.message}');
-      }
-    } catch (e) {
-      LoggerUtil.e('인증 실패', e);
-      throw AuthException('인증 중 오류가 발생했습니다: $e');
+      LoggerUtil.e('Google 인증 실패: ${e.message}');
+      throw AuthException(e.message ?? '인증 중 오류가 발생했습니다.',
+          statusCode: e.response?.statusCode);
     }
   }
 
   @override
   Future<AuthResultEntity> signInWithGoogle() async {
     try {
-      final accessToken = await _getGoogleAccessToken();
+      final googleSignIn = GoogleSignIn();
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
 
-      if (accessToken == null) {
-        return const AuthResultEntity.cancelled();
+      if (googleUser == null) {
+        return const AuthResultEntity.error('Google 로그인이 취소되었습니다.');
       }
 
-      try {
-        final responseModel = await _authenticateWithGoogle(accessToken);
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
 
-        // 로그인 성공 (사용자 정보가 있는 경우)
-        if (responseModel.status.code == 'SU' && responseModel.user != null) {
-          LoggerUtil.i('로그인 성공: ${responseModel.user?.email}');
-          return responseModel.toEntity();
-        } else {
-          // 상태 코드가 SU이지만 사용자 정보가 없는 경우 (일어나지 않아야 함)
-          LoggerUtil.w('로그인 성공했지만 사용자 정보가 없습니다.');
-          return AuthResultEntity.newUser('회원가입이 필요합니다.', token: accessToken);
-        }
-      } catch (e) {
-        if (e is AuthException && e.statusCode == 404 && e.isNewUser) {
-          LoggerUtil.i('회원가입이 필요한 사용자: ${e.message}');
-          return AuthResultEntity.newUser(e.message, token: accessToken);
-        }
-        rethrow;
+      final response = await _authenticateWithGoogle(
+        googleAuth.accessToken ?? '',
+        googleUser.email,
+      );
+
+      if (response.status.code == 404 &&
+          response.status.message == "해당 이메일로 가입된 사용자가 없습니다. 회원가입이 필요합니다.") {
+        return AuthResultEntity.newUser(
+          "해당 이메일로 가입된 사용자가 없습니다. 회원가입이 필요합니다.",
+          token: googleAuth.accessToken ?? '',
+        );
       }
+
+      return response.toEntity();
+    } on AuthException catch (e) {
+      LoggerUtil.e('Google 로그인 실패: ${e.message}');
+      return AuthResultEntity.error(e.message);
     } catch (e) {
-      LoggerUtil.e('Google 로그인 실패', e);
-      if (e is AuthException) {
-        return AuthResultEntity.error(e.message, statusCode: e.statusCode);
-      }
-      return AuthResultEntity.error('로그인 중 오류가 발생했습니다: ${e.toString()}');
+      LoggerUtil.e('Google 로그인 중 예상치 못한 오류 발생: $e');
+      return const AuthResultEntity.error('로그인 중 오류가 발생했습니다.');
     }
   }
 
@@ -138,40 +126,32 @@ class AuthRepositoryImpl implements AuthRepository {
 
       final authResponseModel = AuthResponseModel.fromJson(response.data);
 
-      // 인증 정보 저장
-      if (authResponseModel.accessToken != null) {
-        await StorageService.saveToken(authResponseModel.accessToken!);
-      }
-      if (authResponseModel.refreshToken != null) {
-        await StorageService.saveRefreshToken(authResponseModel.refreshToken!);
-      }
-      if (authResponseModel.user != null) {
-        await StorageService.saveUserId(
-            authResponseModel.user!.userId.toString());
-        await StorageService.saveUserEmail(authResponseModel.user!.email);
-        await StorageService.saveUserNickname(authResponseModel.user!.nickname);
+      // 회원가입 성공 (201)
+      if (authResponseModel.status.code == 201) {
+        // 인증 정보 저장
+        if (authResponseModel.accessToken != null) {
+          await StorageService.saveToken(authResponseModel.accessToken!);
+        }
+        if (authResponseModel.refreshToken != null) {
+          await StorageService.saveRefreshToken(
+              authResponseModel.refreshToken!);
+        }
+        if (authResponseModel.user != null) {
+          await StorageService.saveUserId(
+              authResponseModel.user!.userId.toString());
+          await StorageService.saveUserEmail(authResponseModel.user!.email);
+          await StorageService.saveUserNickname(
+              authResponseModel.user!.nickname);
+        }
+
+        return authResponseModel.toEntity();
       }
 
-      // 모델을 엔티티로 변환하여 반환
-      return authResponseModel.toEntity();
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 201) {
-        return AuthResponseModel.fromJson(e.response!.data).toEntity();
-      }
-
-      switch (e.response?.statusCode) {
-        case 400:
-          return const AuthResultEntity.error('회원가입 정보가 올바르지 않습니다.',
-              statusCode: 400);
-        case 409:
-          return const AuthResultEntity.error('이미 존재하는 회원입니다.',
-              statusCode: 409);
-        case 500:
-          return const AuthResultEntity.error('서버 오류가 발생했습니다.',
-              statusCode: 500);
-        default:
-          return AuthResultEntity.error('회원가입 중 오류가 발생했습니다: ${e.message}');
-      }
+      // 에러 처리
+      return AuthResultEntity.error(
+        authResponseModel.status.message,
+        statusCode: authResponseModel.status.code,
+      );
     } catch (e) {
       LoggerUtil.e('회원가입 실패', e);
       if (e is AuthException) {

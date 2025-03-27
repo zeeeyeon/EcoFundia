@@ -70,7 +70,7 @@ class AuthService {
 
         // status 코드 검증
         final status = data['status'];
-        if (status == null || status['code'] != 'SU') {
+        if (status == null || status['code'] != '201') {
           throw AuthException(status?['message'] ?? '서버 응답이 올바르지 않습니다.');
         }
 

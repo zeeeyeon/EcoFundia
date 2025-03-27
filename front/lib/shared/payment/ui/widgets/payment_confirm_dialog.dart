@@ -62,7 +62,7 @@ class PaymentConfirmDialog extends StatelessWidget {
               textAlign: TextAlign.center,
               text: TextSpan(
                 style: AppTextStyles.body1.copyWith(
-                  fontSize: 16,
+                  fontSize: 20,
                   color: Colors.black,
                 ),
                 children: [
@@ -96,7 +96,7 @@ class PaymentConfirmDialog extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 20),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -105,6 +105,7 @@ class PaymentConfirmDialog extends StatelessWidget {
                       '확인',
                       style: AppTextStyles.body2.copyWith(
                         fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -114,7 +115,7 @@ class PaymentConfirmDialog extends StatelessWidget {
                   child: OutlinedButton(
                     onPressed: onCancel,
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 20),
                       side: const BorderSide(color: AppColors.lightGrey),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),

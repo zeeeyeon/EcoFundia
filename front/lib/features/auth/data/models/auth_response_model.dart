@@ -4,7 +4,7 @@ import 'package:front/features/auth/domain/entities/auth_result_entity.dart';
 
 /// 백엔드 응답의 status 부분 모델
 class StatusModel extends Equatable {
-  final String code;
+  final int code;
   final String message;
 
   const StatusModel({
@@ -14,7 +14,7 @@ class StatusModel extends Equatable {
 
   factory StatusModel.fromJson(Map<String, dynamic> json) {
     return StatusModel(
-      code: json['code'] as String,
+      code: json['code'] as int,
       message: json['message'] as String,
     );
   }
@@ -72,19 +72,33 @@ class AuthResponseModel extends Equatable {
       };
 
   /// 도메인 엔티티로 변환
-  /// 성공 케이스에서만 호출되어야 함 (모든 필드가 null이 아닌 경우)
   AuthResultEntity toEntity() {
-    if (accessToken != null && refreshToken != null && user != null) {
+    // 로그인 성공 (200) 또는 회원가입 성공 (201)
+    if ((status.code == 200 || status.code == 201) &&
+        accessToken != null &&
+        refreshToken != null &&
+        user != null) {
       return AuthResultEntity.success(
         accessToken: accessToken!,
         refreshToken: refreshToken!,
         user: user!.toEntity(),
         role: role,
       );
-    } else {
-      // 필수 값이 없는 경우 에러로 처리
+    }
+    // 회원가입 필요 (404)
+    else if (status.code == 404 &&
+        status.message == "해당 이메일로 가입된 사용자가 없습니다. 회원가입이 필요합니다.") {
+      // token은 외부에서 주입해야 함
       return const AuthResultEntity.error(
-        '인증 응답이 올바르지 않습니다: 필수 값이 누락되었습니다.',
+        "해당 이메일로 가입된 사용자가 없습니다. 회원가입이 필요합니다.",
+        statusCode: 404,
+      );
+    }
+    // 기타 에러
+    else {
+      return AuthResultEntity.error(
+        status.message,
+        statusCode: status.code,
       );
     }
   }
