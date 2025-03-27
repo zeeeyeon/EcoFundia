@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/features/funding/ui/pages/search_screen.dart';
 import 'package:front/features/mypage/ui/pages/coupon_screen.dart';
 import 'package:front/features/mypage/ui/pages/my_review_screen.dart';
 import 'package:front/features/mypage/ui/pages/profile_edit_screen.dart';
@@ -68,6 +69,11 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/funding',
                 builder: (context, state) => const FundingListScreen(),
+              ),
+              GoRoute(
+                path: '/funding/search',
+                builder: (context, state) =>
+                    const SearchScreen(), // 🔍 검색 화면 추가
               ),
               GoRoute(
                 path: '/funding/detail',

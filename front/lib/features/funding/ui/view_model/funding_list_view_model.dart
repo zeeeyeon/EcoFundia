@@ -78,7 +78,7 @@ class FundingListNotifier
     }
   }
 
-  // ⏬ 스크롤 시 다음 페이지 호출
+  // 스크롤 시 다음 페이지 호출
   Future<void> fetchNextPage() async {
     if (_isFetching || !_hasMore) return;
 

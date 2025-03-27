@@ -23,7 +23,7 @@ class FundingService {
       'page': page.toString(),
     };
 
-    // ✅ 카테고리가 있다면 각각 개별 키로 추가
+    // 카테고리가 있다면 각각 개별 키로 추가
     if (categories != null && categories.isNotEmpty) {
       for (var category in categories) {
         queryParams.putIfAbsent('categories', () => <String>[]).add(category);

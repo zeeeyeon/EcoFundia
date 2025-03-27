@@ -52,18 +52,10 @@ class _FundingListScreenState extends ConsumerState<FundingListScreen> {
       message: '펀딩 정보를 불러오는 중...',
       child: Scaffold(
         appBar: CustomAppBar(
-          showBackButton: false,
           showHomeButton: true,
           showSearchField: true,
-          searchController: searchController,
-          onSearchChanged: (query) {
-            ref.read(searchQueryProvider.notifier).state = query;
-            ref.read(fundingListProvider.notifier).searchFunding(query);
-          },
-          onSearchSubmit: () {
-            setState(() {
-              showFilteredResults = true;
-            });
+          onSearchTap: () {
+            context.push('/funding/search'); // 검색 필드 or 아이콘 누르면 이동
           },
         ),
         body: Column(
