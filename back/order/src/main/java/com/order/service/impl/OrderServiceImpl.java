@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.order.client.FundingClient;
 import com.order.client.SellerClient;
 import com.order.common.exception.CustomException;
+import com.order.dto.funding.response.FundingResponseDto;
 import com.order.dto.funding.response.IsOngoingResponseDto;
 import com.order.dto.ssafyApi.request.HeaderDto;
 import com.order.dto.ssafyApi.request.TransferRequestDto;
@@ -103,8 +104,9 @@ public class OrderServiceImpl implements OrderService {
         return price;
     }
 
-    public List<Integer> getMyFundingIds(int userId){
+    public List<FundingResponseDto> getMyFunding(int userId){
         List<Integer> fundingIds = orderMapper.getMyFundingIds(userId);
-        return fundingIds;
+        List<FundingResponseDto> fundingList = fundingClient.getMyFunding(fundingIds);
+        return fundingList;
     }
 }
