@@ -104,7 +104,7 @@ public class FundingController {
     }
 
     // funding 서비스에서 검색페이지에 배스트 펀딩, 마감임박, 오늘의 검색어 중 선택한 색션 펀딩 리스트 데이터 요청
-    @GetMapping("api/funding/search/special")
+    @GetMapping("/search/special")
     List<GetFundingResponseDto> getSearchSpecialFunding(
             @RequestParam(name = "sort") String sort,
             @RequestParam(name = "topic") String topic,
