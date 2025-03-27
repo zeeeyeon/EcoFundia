@@ -39,6 +39,12 @@ public class UserController {
         return new ResponseEntity<>(Response.create(REISSUE_SUCCESS, dto), REISSUE_SUCCESS.getHttpStatus());
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestHeader("X-User-Id") int userId) {
+        userService.logout(userId);
+        return new ResponseEntity<>(Response.create(LOGOUT_SUCCESS,null), LOGOUT_SUCCESS.getHttpStatus());
+    }
+
     @GetMapping("/me")
     public ResponseEntity<?> getMyInfo(@RequestHeader("X-User-Id") int userId){
         GetMyInfoResponseDto dto = userService.getMyInfo(userId);
@@ -122,6 +128,8 @@ public class UserController {
         System.out.println("연결됨!");
         return new ResponseEntity<>(Response.create(SUCCESS, null), SUCCESS.getHttpStatus());
     }
+
+
 
 
 }
