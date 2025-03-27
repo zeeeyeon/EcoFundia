@@ -76,6 +76,17 @@ public class FundingController {
         return new ResponseEntity<>(Response.create(ResponseCode.GET_FUNDING, fundingList), ResponseCode.GET_FUNDING.getHttpStatus());
     }
 
+    @GetMapping("/search/special")
+    public ResponseEntity<?> getSearchSpecialFunding(
+            @RequestParam(name = "sort") String sort,
+            @RequestParam(name = "topic") String topic,
+            @RequestParam(name= "page") int page) {
+
+        List<FundingWishCountResponseDto> fundingList = fundingSearchService.getSearchSpecialFunding(sort, topic, page);
+        return new ResponseEntity<>(Response.create(ResponseCode.GET_FUNDING, fundingList), ResponseCode.GET_FUNDING.getHttpStatus());
+    }
+
+
     // 펀딩 상세 페이지
     @GetMapping("/detail/{fundingId}")
     public ResponseEntity<?> getFundingDetail(@PathVariable int fundingId) {
