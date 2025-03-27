@@ -37,7 +37,7 @@ public class OrderController {
     }
 
     // 내가 주문한 펀딩 조회
-    @GetMapping("/my/funding")
+    @GetMapping("/funding")
     public List<FundingResponseDto> getMyFunding(@RequestHeader("X-User-Id") int userId){
         List<FundingResponseDto> fundingList = orderService.getMyFunding(userId);
         return fundingList;
