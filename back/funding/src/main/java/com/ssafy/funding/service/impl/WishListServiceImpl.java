@@ -37,9 +37,7 @@ public class WishListServiceImpl implements WishListService {
     @Override
     @Transactional
     public List<UserWishlistFundingDto> getOngoingWishlist(int userId) {
-        log.info("getOngoingWishlist");
         List<Integer> fundingIds = wishListMapper.findFundingIdsByUserId(userId);
-
         List<Funding> fundings = fundingMapper.findFundingsByIds(fundingIds);
         List<Funding> ongoingFundings = filterOngoing(fundings);
         Map<Integer, String> sellerNames = getSellerNames(ongoingFundings);
@@ -69,7 +67,6 @@ public class WishListServiceImpl implements WishListService {
     }
 
     private List<Funding> filterOngoing(List<Funding> fundings) {
-        log.info("filterOngoing");
         return fundings.stream()
                 .filter(funding -> funding.getEndDate().isAfter(LocalDateTime.now()))
                 .collect(Collectors.toList());
@@ -80,7 +77,6 @@ public class WishListServiceImpl implements WishListService {
                 .map(Funding::getSellerId)
                 .collect(Collectors.toSet());
 
-        log.info("여기까지 오나요");
         return sellerClient.getSellerNames(new ArrayList<>(sellerIds));
     }
 
