@@ -30,7 +30,7 @@ public class WishListServiceImpl implements WishListService {
 
     @Override
     public void createWish(int userId, int fundingId) {
-        validateWishNotExists(userId, fundingId);
+        if (wishListMapper.existsByUserIdAndFundingId(userId, fundingId)) throw new CustomException(ResponseCode.WISHLIST_ALREADY_EXISTS);
         wishListMapper.createWish(WishList.createWish(userId, fundingId));
     }
 
@@ -52,18 +52,12 @@ public class WishListServiceImpl implements WishListService {
 
     @Override
     public void deleteWish(int userId, int fundingId) {
-        validateWishNotExists(userId, fundingId);
+        if (!wishListMapper.existsByUserIdAndFundingId(userId, fundingId))  throw new CustomException(ResponseCode.WISHLIST_NOT_FOUND);
         wishListMapper.deleteWish(userId, fundingId);
     }
 
     public List<Integer> getWishlistFundingIds(int userId) {
         return wishListMapper.findFundingIdsByUserId(userId);
-    }
-
-    private void validateWishNotExists(int userId, int fundingId) {
-        if (wishListMapper.existsByUserIdAndFundingId(userId, fundingId)) {
-            throw new CustomException(ResponseCode.WISHLIST_ALREADY_EXISTS);
-        }
     }
 
     private List<Funding> filterOngoing(List<Funding> fundings) {
