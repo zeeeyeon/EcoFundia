@@ -39,6 +39,7 @@ public class WishListServiceImpl implements WishListService {
     public List<UserWishlistFundingDto> getOngoingWishlist(int userId) {
         log.info("getOngoingWishlist");
         List<Integer> fundingIds = wishListMapper.findFundingIdsByUserId(userId);
+
         List<Funding> fundings = fundingMapper.findFundingsByIds(fundingIds);
         List<Funding> ongoingFundings = filterOngoing(fundings);
         Map<Integer, String> sellerNames = getSellerNames(ongoingFundings);

@@ -9,6 +9,6 @@ import java.util.Map;
 @FeignClient(name = "seller")
 public interface SellerClient {
 
-    @PostMapping("/api/seller/sellers-name")
+    @PostMapping("/api/seller/seller-names")
     Map<Integer, String> getSellerNames(@RequestBody List<Integer> sellerIds);
 }
