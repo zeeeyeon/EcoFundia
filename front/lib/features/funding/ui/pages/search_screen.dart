@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/core/ui/widgets/custom_app_bar.dart';
-import 'package:front/features/funding/data/models/funding_model.dart';
-import 'package:go_router/go_router.dart';
+import 'package:front/features/funding/ui/widgets/search_category_chip.dart';
+import 'package:front/features/funding/ui/widgets/search_funding_list.dart';
 import 'package:front/features/funding/ui/view_model/search_view_model.dart';
 import 'package:front/features/funding/ui/view_model/search_special_view_model.dart';
-import 'package:front/features/funding/ui/widgets/funding_card.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
@@ -76,18 +75,18 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             child: Wrap(
               spacing: 8,
               children: [
-                _CategoryChip(
-                  label: "\ud83c\udf1f \ubca0\uc2a4\ud2b8\ud380\ub529",
+                SearchCategoryChip(
+                  label: "⭐ 베스트펀딩",
                   isSelected: _selectedTopic == "best",
                   onTap: () => setState(() => _selectedTopic = "best"),
                 ),
-                _CategoryChip(
-                  label: "\u23f0 \ub9c8\uac10\uc784\ubc00",
+                SearchCategoryChip(
+                  label: "⏰ 마감임박",
                   isSelected: _selectedTopic == "soon",
                   onTap: () => setState(() => _selectedTopic = "soon"),
                 ),
-                _CategoryChip(
-                  label: "# \uc624\ub984\uc758 \uac80\uc0c9\uc5b4",
+                SearchCategoryChip(
+                  label: "# 오늘의 검색어",
                   isSelected: false,
                   onTap: () {},
                 ),
@@ -100,73 +99,30 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 ? specialState!.when(
                     loading: () =>
                         const Center(child: CircularProgressIndicator()),
-                    error: (err, _) =>
-                        Center(child: Text("\uc5d0\ub7ec \ubc1c\uc0dd: $err")),
-                    data: (results) => _buildFundingList(results),
+                    error: (err, _) => Center(child: Text("검색 오류: $err")),
+                    data: (results) => SearchFundingList(
+                      fundingList: results,
+                      scrollController: _scrollController,
+                      isFetching: ref
+                          .read(
+                              specialFundingProvider(_selectedTopic!).notifier)
+                          .isFetching,
+                    ),
                   )
                 : resultState.when(
                     loading: () =>
                         const Center(child: CircularProgressIndicator()),
                     error: (err, _) =>
-                        Center(child: Text("\uac80\uc0c9 \uc624\ub958: $err")),
-                    data: (results) => _buildFundingList(results),
+                        Center(child: Text("\uAC80\uC0C9 \uC624\uB958: $err")),
+                    data: (results) => SearchFundingList(
+                      fundingList: results,
+                      scrollController: _scrollController,
+                      isFetching:
+                          ref.read(searchResultProvider.notifier).isFetching,
+                    ),
                   ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildFundingList(List<FundingModel> list) {
-    if (list.isEmpty) {
-      return const Center(child: Text("검색 결과가 없습니다."));
-    }
-    final isFetching =
-        ref.read(searchResultProvider.notifier).isFetching; // 로딩 상태 읽기
-    return ListView.builder(
-      controller: _scrollController,
-      padding: const EdgeInsets.all(16),
-      itemCount: list.length + (isFetching ? 1 : 0), // 로딩 인디케이터 추가
-      itemBuilder: (context, index) {
-        if (index < list.length) {
-          final funding = list[index];
-          return GestureDetector(
-            onTap: () => context.push('/funding/detail', extra: funding),
-            child: FundingCard(funding: funding),
-          );
-        } else {
-          // 아래쪽 로딩 인디케이터
-          return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16),
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
-      },
-    );
-  }
-}
-
-class _CategoryChip extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _CategoryChip({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ChoiceChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (_) => onTap(),
-      selectedColor: Colors.green.shade100,
-      backgroundColor: const Color(0xFFF1F1F1),
-      shape: StadiumBorder(
-        side: BorderSide(color: Colors.grey.shade300),
       ),
     );
   }
