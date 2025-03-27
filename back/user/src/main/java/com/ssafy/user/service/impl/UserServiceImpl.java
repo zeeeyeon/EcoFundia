@@ -10,6 +10,7 @@ import com.ssafy.user.entity.RefreshToken;
 import com.ssafy.user.entity.User;
 import com.ssafy.user.common.exception.CustomException;
 import com.ssafy.user.mapper.UserMapper;
+import com.ssafy.user.service.RedisService;
 import com.ssafy.user.service.UserService;
 import com.ssafy.user.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ import static com.ssafy.user.common.response.ResponseCode.*;
 public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final JwtUtil jwtUtil;
+    private final RedisService redisService;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private static final String GOOGLE_USER_INFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo";
     private final FundingClient fundingClient;
@@ -59,7 +61,8 @@ public class UserServiceImpl implements UserService {
 
         String hashedRefreshToken = passwordEncoder.encode(refreshToken);
 
-        userMapper.insertRefreshToken(user.getUserId(), hashedRefreshToken);
+        String key = "refreshToken:" + user.getUserId();
+        redisService.setValue(key, hashedRefreshToken, jwtUtil.getRefreshTokenExpiration());
 
         return new LoginResponseDto(accessToken, refreshToken, user, role);
     }
@@ -93,8 +96,8 @@ public class UserServiceImpl implements UserService {
         String refreshToken = jwtUtil.generateRefreshToken(user);
 
         String hashedRefreshToken = passwordEncoder.encode(refreshToken);
-
-        userMapper.insertRefreshToken(nowUser.getUserId(), hashedRefreshToken);
+        String key = "refreshToken:" + nowUser.getUserId();
+        redisService.setValue(key, hashedRefreshToken, jwtUtil.getRefreshTokenExpiration());
 
         return new SignupResponseDto(accessToken, refreshToken, nowUser, role);
     }
@@ -118,31 +121,31 @@ public class UserServiceImpl implements UserService {
             throw new CustomException(USER_NOT_FOUND);
         }
 
-        List<RefreshToken> storedTokens = userMapper.findRefreshTokensByUserId(user.getUserId());
-        RefreshToken validToken = null;
-        for (RefreshToken token : storedTokens) {
-            if (!token.isExpired() && passwordEncoder.matches(refreshToken, token.getRefreshToken())) {
-                validToken = token;
-                break;
-            }
-        }
-
-        if (validToken == null) {
+        // Redis에서 저장된 해싱된 refresh token 조회
+        String key = "refreshToken:" + user.getUserId();
+        String storedHashedToken = redisService.getValue(key);
+        if (storedHashedToken == null || !passwordEncoder.matches(refreshToken, storedHashedToken)) {
             throw new CustomException(INVALID_REFRESH_TOKEN);
         }
 
-        userMapper.deleteRefreshTokenById(validToken.getTokenId());
+        // 기존 refresh token 삭제 (토큰 회전)
+        redisService.deleteValue(key);
 
         //이거 role 수정해야함
-        String role = "SELLER";
+        String role;
+        int userId = user.getUserId();
+        if(sellerClient.checkSeller(userId)){
+            role = "SELLER";
+        }else{
+            role = "USER";
+        }
         String newAccessToken = jwtUtil.generateAccessToken(user, role);
         String newRefreshToken = jwtUtil.generateRefreshToken(user);
         String newHashedRefreshToken = passwordEncoder.encode(newRefreshToken);
-        LocalDateTime newIssuedAt = LocalDateTime.now();
-        LocalDateTime newExpiresAt = newIssuedAt.plusDays(7);
 
-        // 기존 토큰 삭제 및 새 토큰 DB 업데이트 (토큰 회전)
-        userMapper.insertRefreshToken(user.getUserId(), newHashedRefreshToken);
+        // 새로운 refresh token을 Redis에 저장
+        redisService.setValue(key, newHashedRefreshToken, jwtUtil.getRefreshTokenExpiration());
+
 
         return new ReissueResponseDto(newAccessToken,newRefreshToken);
     }
