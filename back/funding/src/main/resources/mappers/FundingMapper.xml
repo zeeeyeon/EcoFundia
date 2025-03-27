@@ -23,6 +23,26 @@
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
+    <resultMap id="FundingWishResultMap" type="com.ssafy.funding.entity.FundingWishCount">
+        <id column="funding_id" property="fundingId"/>
+        <result column="seller_id" property="sellerId"/>
+        <result column="title" property="title"/>
+        <result column="description" property="description"/>
+        <result column="story_file_url" property="storyFileUrl"/>
+        <result column="image_urls" property="imageUrls"/>
+        <result column="price" property="price"/>
+        <result column="quantity" property="quantity"/>
+        <result column="target_amount" property="targetAmount"/>
+        <result column="current_amount" property="currentAmount"/>
+        <result column="start_date" property="startDate"/>
+        <result column="end_date" property="endDate"/>
+        <result column="status" property="status" typeHandler="com.ssafy.funding.entity.typeHandlers.StatusTypeHandler"/>
+        <result column="category" property="category" typeHandler="com.ssafy.funding.entity.typeHandlers.CategoryTypeHandler"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="wish_count" property="wishCount"/>
+    </resultMap>
+
     <resultMap id="ReviewResultMap" type="com.ssafy.funding.dto.review.response.ReviewDto">
         <id column="review_id" property="reviewId"/>
         <result column="rating" property="rating"/>
@@ -209,6 +229,48 @@
         LIMIT #{limit} OFFSET #{offset}
     </select>
 
+    <!-- 베스트, 마감임박 펀딩 조회 -->
+    <select id="getSpecialFundingList" resultMap="FundingWishResultMap">
+        SELECT *
+        FROM (
+        SELECT f.*, COUNT(w.wishlist_id) AS wish_count
+        FROM funding f
+        LEFT JOIN wishlist w ON f.funding_id = w.funding_id
+        WHERE f.status = 'ONGOING'
+        <if test="topic == 'soon'">
+            AND TIMESTAMPDIFF(MINUTE, NOW(), f.end_date) BETWEEN 0 AND 60
+        </if>
+        GROUP BY f.funding_id
+        <if test="topic == 'best'">
+            ORDER BY wish_count DESC
+        </if>
+        ) AS ranked_funding
+        <choose>
+            <when test="sort == 'latest'">
+                ORDER BY start_date DESC
+            </when>
+            <when test="sort == 'oldest'">
+                ORDER BY start_date ASC
+            </when>
+            <when test="sort == 'popular'">
+                ORDER BY current_amount DESC
+            </when>
+            <otherwise> <!-- sort == 'none' -->
+                <choose>
+                    <when test="topic == 'soon'">
+                        ORDER BY end_date ASC
+                    </when>
+                    <when test="topic == 'best'">
+                        ORDER BY wish_count DESC
+                    </when>
+                    <otherwise>
+                        ORDER BY start_date DESC <!-- fallback -->
+                    </otherwise>
+                </choose>
+            </otherwise>
+        </choose>
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
     <select id="findFundingsByIds" resultType="com.ssafy.funding.entity.Funding">
         SELECT funding_id, title, current_amount, target_amount,
         start_date, end_date, seller_id
