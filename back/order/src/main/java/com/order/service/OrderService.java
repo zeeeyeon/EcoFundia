@@ -11,5 +11,7 @@ public interface OrderService {
 
     List<Order> getOrder(int userId);
 
+    int getMyOrderPrice(int userId);
 
+    List<Integer> getMyFundingIds(int userId);
 }
