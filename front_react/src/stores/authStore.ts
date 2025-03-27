@@ -1,69 +1,45 @@
-import { create } from "zustand";
+import { create } from 'zustand';
 import * as authApi from "../api/auth";
 
 interface User {
   id: string;
   email: string;
-  role: "user" | "seller";
-  nickname?: string;
-  businessNumber?: string;
+  role: string;
 }
 
 interface AuthState {
-  user: User | null;
   isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  registerSeller: (nickname: string, businessNumber: string) => Promise<void>;
-  logout: () => Promise<void>;
-  setUser: (user: User | null) => void;
+  user: User | null;
+  accessToken: string | null;
+  refreshToken: string | null;
+  login: (data: { user: User; accessToken: string; refreshToken: string }) => void;
+  logout: () => void;
 }
 
-const useAuthStore = create<AuthState>((set) => ({
-  user: null,
+const useAuthStore = create<AuthState>()((set) => ({
   isAuthenticated: false,
-  isLoading: false,
-
-  login: async (email: string, password: string) => {
-    set({ isLoading: true });
-    try {
-      const response = await authApi.login(email, password);
-      if (response.user.role !== "seller") {
-        throw new Error("판매자 권한이 없습니다.");
-      }
-      set({ user: response.user, isAuthenticated: true });
-    } finally {
-      set({ isLoading: false });
-    }
+  user: null,
+  accessToken: null,
+  refreshToken: null,
+  login: (data: { user: User; accessToken: string; refreshToken: string }) => {
+    set({
+      isAuthenticated: true,
+      user: data.user,
+      accessToken: data.accessToken,
+      refreshToken: data.refreshToken,
+    });
   },
+  logout: () => {
+    // 세션 스토리지에서 토큰 제거
+    sessionStorage.removeItem('accessToken');
+    sessionStorage.removeItem('refreshToken');
 
-  registerSeller: async (nickname: string, businessNumber: string) => {
-    set({ isLoading: true });
-    try {
-      const response = await authApi.registerSeller({
-        nickname,
-        businessNumber,
-      });
-      set({ user: response.user, isAuthenticated: true });
-      // 회원가입 완료 후 자동 로그아웃
-      await authApi.logout();
-      set({ user: null, isAuthenticated: false });
-    } finally {
-      set({ isLoading: false });
-    }
-  },
-
-  logout: async () => {
-    set({ isLoading: true });
-    try {
-      await authApi.logout();
-    } finally {
-      set({ user: null, isAuthenticated: false, isLoading: false });
-    }
-  },
-
-  setUser: (user: User | null) => {
-    set({ user, isAuthenticated: !!user });
+    set({
+      isAuthenticated: false,
+      user: null,
+      accessToken: null,
+      refreshToken: null,
+    });
   },
 }));
 

@@ -1,4 +1,9 @@
 ---
+description: 
+globs: 
+alwaysApply: false
+---
+---
 description: react rules
 globs: 
 alwaysApply: false
@@ -81,9 +86,8 @@ src/
 
 3. 스타일 가이드
 
-- Tailwind CSS Utility-First 스타일링
 - 컴포넌트 기반 스타일 재사용을 위해 @apply 지향
-- 추가적으로 shadcn/ui 사용 가능 (Tailwind 기반 무료 UI 컴포넌트)
+
 
 4. 코드 품질
 
