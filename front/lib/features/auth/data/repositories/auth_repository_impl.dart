@@ -15,21 +15,10 @@ import 'package:flutter/foundation.dart';
 /// 인증 리포지토리 구현체
 class AuthRepositoryImpl implements AuthRepository {
   final ApiService _apiService;
-  final AuthService _authService;
   final GoogleSignIn _googleSignIn;
 
-  AuthRepositoryImpl(this._apiService, this._authService)
-      : _googleSignIn = _authService.googleSignIn;
-
-  /// Google 로그인 액세스 토큰 획득 (내부 구현용)
-  Future<String?> _getGoogleAccessToken() async {
-    try {
-      return await _authService.getGoogleAccessToken();
-    } catch (e) {
-      LoggerUtil.e('Google 로그인 실패', e);
-      throw Exception('Google 로그인 중 오류가 발생했습니다: $e');
-    }
-  }
+  AuthRepositoryImpl(this._apiService, AuthService authService)
+      : _googleSignIn = authService.googleSignIn;
 
   /// Google 토큰으로 서버에 인증 요청 (내부 구현용)
   Future<AuthResponseModel> _authenticateWithGoogle(
@@ -71,8 +60,7 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<AuthResultEntity> signInWithGoogle() async {
     try {
-      final googleSignIn = GoogleSignIn();
-      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {
         return const AuthResultEntity.error('Google 로그인이 취소되었습니다.');
