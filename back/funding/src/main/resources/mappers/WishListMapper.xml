@@ -10,13 +10,16 @@
     </resultMap>
 
     <insert id="createWish">
-        INSERT INTO wishlist (user_id, funding_id)
+        INSERT INTO wishList (user_id, funding_id)
         VALUES (#{userId}, #{fundingId})
     </insert>
 
-    <select id="findByUserId" parameterType="int" resultType="com.ssafy.funding.entity.WishList">
-        SELECT * FROM wishlist WHERE user_id = #{userId}
+    <select id="findFundingIdsByUserId" parameterType="int" resultType="int">
+        SELECT funding_id
+        FROM wishlist
+        WHERE user_id = #{userId}
     </select>
+
 
     <select id="findOngoingByUserId" parameterType="int" resultMap="WishListResultMap">
         SELECT w.*
@@ -27,17 +30,17 @@
 
     <select id="findDoneByUserId" parameterType="int" resultMap="WishListResultMap">
         SELECT w.*
-        FROM wishlist w
+        FROM wishList w
                  JOIN funding f ON w.funding_id = f.funding_id
         WHERE w.user_id = #{userId} AND f.status IN ('SUCCESS', 'FAIL')
     </select>
 
     <delete id="deleteWish">
-        DELETE FROM wishlist WHERE user_id = #{userId} AND funding_id = #{fundingId}
+        DELETE FROM wishList WHERE user_id = #{userId} AND funding_id = #{fundingId}
     </delete>
 
     <select id="existsByUserIdAndFundingId" resultType="boolean">
-        SELECT COUNT(*) > 0 FROM wishlist WHERE user_id = #{userId} AND funding_id = #{fundingId}
+        SELECT COUNT(*) > 0 FROM wishList WHERE user_id = #{userId} AND funding_id = #{fundingId}
     </select>
 
 </mapper>
