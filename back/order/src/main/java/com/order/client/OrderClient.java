@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
+
 @FeignClient(name="order")
 public interface OrderClient {
 
@@ -23,6 +25,13 @@ public interface OrderClient {
 
     // 내 펀딩 내역 조회
     @GetMapping("api/order/my")
-    Order getOrder(@RequestParam(name = "userId") int userId);
+    Order getOrder(@RequestHeader("X-User-Id") int userId);
 
+    // 내 펀딩 금액 조회
+    @GetMapping("api/order/funding/total")
+    int getMyOrderPrice(@RequestHeader("X-User-Id") int userId);
+
+    // 내가 주문한 펀딩 아이디 조회
+    @GetMapping("api/order/funding")
+    List<Integer> getMyFundingIds(@RequestHeader("X-User-Id") int userId);
 }
