@@ -9,12 +9,28 @@
         <result property="sellerName" column="name" />
     </resultMap>
 
+    <resultMap id="SellerResultMap" type="com.seller.entity.Seller">
+        <id property="sellerId" column="seller_id"/>
+        <result property="name" column="name"/>
+    </resultMap>
+
     <select id="findByUserId" resultType="boolean">
         SELECT EXISTS (
             SELECT 1
             FROM seller
             WHERE user_id = #{userId}
         )
+    </select>
+
+    <select id="findNamesByIds" parameterType="java.util.List" resultMap="SellerResultMap">
+        SELECT
+            seller_id,
+            name
+        FROM seller
+        WHERE seller_id IN
+        <foreach item="id" collection="sellerIds" open="(" separator="," close=")">
+            #{id}
+        </foreach>
     </select>
 
     <!-- 펀딩 키워드 검색 조회 -->

@@ -4,6 +4,7 @@ import com.ssafy.funding.entity.Funding;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 public record UserWishlistFundingDto(
         int fundingId,
@@ -19,10 +20,13 @@ public record UserWishlistFundingDto(
         int remainingDays = (int) ChronoUnit.DAYS.between(LocalDateTime.now(), funding.getEndDate());
         int amountGap = funding.getCurrentAmount() - funding.getTargetAmount();
 
+        List<String> imageUrls = funding.getImageUrlList();
+        String imageUrl = imageUrls.isEmpty() ? "https://example.com/default_image.jpg" : imageUrls.get(0);
+
         return new UserWishlistFundingDto(
                 funding.getFundingId(),
                 funding.getTitle(),
-                funding.getImageUrlList().get(0),
+                imageUrl,
                 rate,
                 remainingDays,
                 amountGap,

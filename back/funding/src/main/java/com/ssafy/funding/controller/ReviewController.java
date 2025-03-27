@@ -47,7 +47,6 @@ public class ReviewController {
         return new ResponseEntity<>(Response.create(GET_REVIEW_LIST, result), GET_REVIEW_LIST.getHttpStatus());
     }
 
-    // user 에서 요청 받을 때 nickname 도 함께 받는 것 생각해보기
     @PostMapping
     public ResponseEntity<?> createReview(
             @RequestHeader("X-User-Id") int userId,
@@ -56,7 +55,7 @@ public class ReviewController {
         return new ResponseEntity<>(Response.create(CREATE_REVIEW, null), CREATE_REVIEW.getHttpStatus());
     }
 
-    @PatchMapping("/{reviewId}")
+    @PutMapping("/{reviewId}")
     public ResponseEntity<?> updateReview(@RequestHeader("X-User-Id") int userId, @PathVariable int reviewId, @RequestBody ReviewUpdateRequestDto dto) {
         reviewService.updateReview(userId, reviewId, dto);
         return new ResponseEntity<>(Response.create(UPDATE_REVIEW, null), UPDATE_REVIEW.getHttpStatus());

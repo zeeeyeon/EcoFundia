@@ -13,13 +13,14 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @FeignClient(name = "funding", configuration = FeignMultipartSupportConfig.class)
 public interface FundingClient {
 
-    @GetMapping("/api/funding/{fundingId}")
-    ResponseEntity<?> getFundingId(@PathVariable int fundingId);
-
+//    @GetMapping("/api/funding/{fundingId}")
+//    ResponseEntity<?> getFundingId(@PathVariable int fundingId);
+//
     @PostMapping(value = "/api/funding/{sellerId}")
     ResponseEntity<?> createFunding(@PathVariable int sellerId, @RequestBody FundingCreateSendDto dto);
 
@@ -31,4 +32,7 @@ public interface FundingClient {
 
     @GetMapping("/api/funding/{fundingId}")
     FundingResponseDto getFundingById(@PathVariable("fundingId") int fundingId);
+//
+//    @PostMapping("/api/seller/sellerNames")
+//    Map<Integer, String> getSellerNames(@RequestBody List<Integer> sellerIds);
 }
