@@ -6,16 +6,13 @@ import com.ssafy.user.client.SellerClient;
 import com.ssafy.user.common.response.PageResponse;
 import com.ssafy.user.dto.request.*;
 import com.ssafy.user.dto.response.*;
-import com.ssafy.user.entity.RefreshToken;
 import com.ssafy.user.entity.User;
 import com.ssafy.user.common.exception.CustomException;
 import com.ssafy.user.mapper.UserMapper;
-import com.ssafy.user.service.RedisService;
 import com.ssafy.user.service.UserService;
 import com.ssafy.user.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -23,6 +20,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static com.ssafy.user.common.response.ResponseCode.*;
 
@@ -31,7 +29,7 @@ import static com.ssafy.user.common.response.ResponseCode.*;
 public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final JwtUtil jwtUtil;
-    private final RedisService redisService;
+    private final RedisTemplate<String, String> redisTemplate;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private static final String GOOGLE_USER_INFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo";
     private final FundingClient fundingClient;
@@ -51,18 +49,18 @@ public class UserServiceImpl implements UserService {
         // role 수정
         String role;
         int userId = user.getUserId();
-        if(sellerClient.checkSeller(userId)){
+        if (sellerClient.checkSeller(userId)) {
             role = "SELLER";
-        }else{
+        } else {
             role = "USER";
         }
         String accessToken = jwtUtil.generateAccessToken(user, role);
         String refreshToken = jwtUtil.generateRefreshToken(user);
 
         String hashedRefreshToken = passwordEncoder.encode(refreshToken);
-
         String key = "refreshToken:" + user.getUserId();
-        redisService.setValue(key, hashedRefreshToken, jwtUtil.getRefreshTokenExpiration());
+        // RedisTemplate을 사용하여 refresh token 저장 (초 단위 만료 시간)
+        redisTemplate.opsForValue().set(key, hashedRefreshToken, jwtUtil.getRefreshTokenExpiration(), TimeUnit.SECONDS);
 
         return new LoginResponseDto(accessToken, refreshToken, user, role);
     }
@@ -82,22 +80,21 @@ public class UserServiceImpl implements UserService {
                 .build();
 
         userMapper.insertUser(user);
-
         User nowUser = userMapper.findByEmail(email);
 
         String role;
-        int userId = user.getUserId();
-        if(sellerClient.checkSeller(userId)){
+        int userId = nowUser.getUserId();
+        if (sellerClient.checkSeller(userId)) {
             role = "SELLER";
-        }else{
+        } else {
             role = "USER";
         }
-        String accessToken = jwtUtil.generateAccessToken(user, role);
-        String refreshToken = jwtUtil.generateRefreshToken(user);
+        String accessToken = jwtUtil.generateAccessToken(nowUser, role);
+        String refreshToken = jwtUtil.generateRefreshToken(nowUser);
 
         String hashedRefreshToken = passwordEncoder.encode(refreshToken);
         String key = "refreshToken:" + nowUser.getUserId();
-        redisService.setValue(key, hashedRefreshToken, jwtUtil.getRefreshTokenExpiration());
+        redisTemplate.opsForValue().set(key, hashedRefreshToken, jwtUtil.getRefreshTokenExpiration(), TimeUnit.SECONDS);
 
         return new SignupResponseDto(accessToken, refreshToken, nowUser, role);
     }
@@ -121,22 +118,21 @@ public class UserServiceImpl implements UserService {
             throw new CustomException(USER_NOT_FOUND);
         }
 
-        // Redis에서 저장된 해싱된 refresh token 조회
         String key = "refreshToken:" + user.getUserId();
-        String storedHashedToken = redisService.getValue(key);
+        String storedHashedToken = redisTemplate.opsForValue().get(key);
         if (storedHashedToken == null || !passwordEncoder.matches(refreshToken, storedHashedToken)) {
             throw new CustomException(INVALID_REFRESH_TOKEN);
         }
 
         // 기존 refresh token 삭제 (토큰 회전)
-        redisService.deleteValue(key);
+        redisTemplate.delete(key);
 
-        //이거 role 수정해야함
+        // role 수정
         String role;
         int userId = user.getUserId();
-        if(sellerClient.checkSeller(userId)){
+        if (sellerClient.checkSeller(userId)) {
             role = "SELLER";
-        }else{
+        } else {
             role = "USER";
         }
         String newAccessToken = jwtUtil.generateAccessToken(user, role);
@@ -144,10 +140,9 @@ public class UserServiceImpl implements UserService {
         String newHashedRefreshToken = passwordEncoder.encode(newRefreshToken);
 
         // 새로운 refresh token을 Redis에 저장
-        redisService.setValue(key, newHashedRefreshToken, jwtUtil.getRefreshTokenExpiration());
+        redisTemplate.opsForValue().set(key, newHashedRefreshToken, jwtUtil.getRefreshTokenExpiration(), TimeUnit.SECONDS);
 
-
-        return new ReissueResponseDto(newAccessToken,newRefreshToken);
+        return new ReissueResponseDto(newAccessToken, newRefreshToken);
     }
 
     @Override
@@ -161,8 +156,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void updateMyInfo(int userId, UpdateMyInfoRequestDto requestDto) {
-        int count = userMapper.updateMyInfo(userId, requestDto.getNickname(),requestDto.getAccount());
-
+        userMapper.updateMyInfo(userId, requestDto.getNickname(), requestDto.getAccount());
     }
 
     @Override
@@ -173,7 +167,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public GetMyTotalFundingResponseDto getMyFundingTotal(int userId) {
-        return orderClient.getMyTotalFunding(userId);
+        return GetMyTotalFundingResponseDto.builder()
+                .total(orderClient.getMyTotalFunding(userId))
+                .build();
     }
 
     @Override
@@ -207,10 +203,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public OrderResponseDto createPayment(int userId, CreatePaymentRequestDto requestDto) {
-
         User user = userMapper.findById(userId);
-
-        return orderClient.createPayment(userId,requestDto.getFundingId(),requestDto.getAmount(),requestDto.getTotalPrice(),user.getSsafyUserKey(),user.getAccount());
+        return orderClient.createPayment(userId, requestDto.getFundingId(), requestDto.getAmount(), requestDto.getTotalPrice(), user.getSsafyUserKey(), user.getAccount());
     }
 
     private Map<String, Object> getGoogleUserInfo(String accessToken) {
