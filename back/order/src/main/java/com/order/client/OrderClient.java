@@ -33,6 +33,6 @@ public interface OrderClient {
     int getMyOrderPrice(@RequestHeader("X-User-Id") int userId);
 
     // 내가 주문한 펀딩 조회
-    @GetMapping("api/order/funding")
+    @GetMapping("api/order/my/funding")
     List<FundingResponseDto> getMyFunding(@RequestHeader("X-User-Id") int userId);
 }
