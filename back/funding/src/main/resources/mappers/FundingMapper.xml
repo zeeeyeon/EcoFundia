@@ -229,17 +229,21 @@
         LIMIT #{limit} OFFSET #{offset}
     </select>
 
-    <!-- 베스트 펀딩 조회 -->
-    <select id="getBestFundingList" resultMap="FundingWishResultMap">
+    <!-- 베스트, 마감임박 펀딩 조회 -->
+    <select id="getSpecialFundingList" resultMap="FundingWishResultMap">
         SELECT *
         FROM (
         SELECT f.*, COUNT(w.wishlist_id) AS wish_count
         FROM funding f
         LEFT JOIN wishlist w ON f.funding_id = w.funding_id
         WHERE f.status = 'ONGOING'
+        <if test="topic == 'soon'">
+            AND TIMESTAMPDIFF(MINUTE, NOW(), f.end_date) BETWEEN 0 AND 60
+        </if>
         GROUP BY f.funding_id
-        ORDER BY wish_count DESC
-        LIMIT #{limit} OFFSET #{offset}
+        <if test="topic == 'best'">
+            ORDER BY wish_count DESC
+        </if>
         ) AS ranked_funding
         <choose>
             <when test="sort == 'latest'">
@@ -252,32 +256,20 @@
                 ORDER BY current_amount DESC
             </when>
             <otherwise> <!-- sort == 'none' -->
-                ORDER BY wish_count DESC
-            </otherwise>
-        </choose>
-    </select>
-
-    <select id="getSoonFinishFundingList" resultMap="FundingResultMap">
-        SELECT *
-        FROM funding
-        WHERE status = 'ONGOING'
-        AND TIMESTAMPDIFF(MINUTE, NOW(), end_date) BETWEEN 0 AND 60
-        <choose>
-            <when test="sort == 'latest'">
-                ORDER BY start_date DESC
-            </when>
-            <when test="sort == 'oldest'">
-                ORDER BY start_date ASC
-            </when>
-            <otherwise>
-                ORDER BY end_date ASC
+                <choose>
+                    <when test="topic == 'soon'">
+                        ORDER BY end_date ASC
+                    </when>
+                    <when test="topic == 'best'">
+                        ORDER BY wish_count DESC
+                    </when>
+                    <otherwise>
+                        ORDER BY start_date DESC <!-- fallback -->
+                    </otherwise>
+                </choose>
             </otherwise>
         </choose>
         LIMIT #{limit} OFFSET #{offset}
     </select>
-
-
-
-
 
 </mapper>
