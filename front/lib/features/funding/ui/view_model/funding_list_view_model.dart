@@ -16,9 +16,6 @@ final fundingRepositoryProvider = Provider(
   (ref) => FundingRepository(ref.read(fundingServiceProvider)),
 );
 
-// 검색어 상태 Provider
-final searchQueryProvider = StateProvider<String>((ref) => '');
-
 // 추가 로딩 상태 Provider
 final isFetchingMoreProvider = StateProvider<bool>((ref) => false);
 
@@ -34,12 +31,10 @@ final fundingListProvider =
   (ref) {
     final repository = ref.read(fundingRepositoryProvider);
     final getFundingListUseCase = GetFundingListUseCase(repository);
-    final searchFundingUseCase = SearchFundingUseCase(repository);
 
     return FundingListNotifier(
       ref: ref,
       getFundingListUseCase: getFundingListUseCase,
-      searchFundingUseCase: searchFundingUseCase,
     )..fetchFundingList(); // 앱 시작 시 펀딩 리스트 로드
   },
 );
@@ -48,12 +43,10 @@ class FundingListNotifier
     extends StateNotifier<AsyncValue<List<FundingModel>>> {
   final Ref ref;
   final GetFundingListUseCase getFundingListUseCase;
-  final SearchFundingUseCase searchFundingUseCase;
 
   FundingListNotifier({
     required this.ref,
     required this.getFundingListUseCase,
-    required this.searchFundingUseCase,
   }) : super(const AsyncLoading());
 
   int _currentPage = 1;
@@ -101,17 +94,6 @@ class FundingListNotifier
       state = AsyncValue.error(e, st);
     } finally {
       _isFetching = false;
-    }
-  }
-
-  // 검색 기능
-  Future<void> searchFunding(String query) async {
-    try {
-      state = const AsyncLoading();
-      final result = await searchFundingUseCase.execute(query);
-      state = AsyncValue.data(result);
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
     }
   }
 }

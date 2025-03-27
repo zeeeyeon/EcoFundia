@@ -42,10 +42,14 @@ class FundingService {
   }
 
   Future<List<FundingModel>> searchFunding(String query) async {
-    final response =
-        await api.get('/api/business/funding/search', queryParameters: {
-      'q': query,
-    });
+    final response = await api.get(
+      '/api/business/search',
+      queryParameters: {
+        'sort': 'latest',
+        'page': 1,
+        'keyword': query, // ✅ 백엔드 명세서에 따라 'keyword'로!
+      },
+    );
 
     final List<dynamic> data = response.data['content'];
     return data.map((item) => FundingModel.fromJson(item)).toList();
