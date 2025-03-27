@@ -23,7 +23,7 @@
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
-    <resultMap id="FundingResultMap" type="com.ssafy.funding.entity.FundingWishCount">
+    <resultMap id="FundingWishResultMap" type="com.ssafy.funding.entity.FundingWishCount">
         <id column="funding_id" property="fundingId"/>
         <result column="seller_id" property="sellerId"/>
         <result column="title" property="title"/>
@@ -230,7 +230,7 @@
     </select>
 
     <!-- 베스트 펀딩 조회 -->
-    <select id="getBestFundingList" resultMap="FundingResultMap">
+    <select id="getBestFundingList" resultMap="FundingWishResultMap">
         SELECT *
         FROM (
         SELECT f.*, COUNT(w.wishlist_id) AS wish_count
@@ -238,7 +238,7 @@
         LEFT JOIN wishlist w ON f.funding_id = w.funding_id
         WHERE f.status = 'ONGOING'
         GROUP BY f.funding_id
-        ORDER BY wishlist_count DESC
+        ORDER BY wish_count DESC
         LIMIT #{limit} OFFSET #{offset}
         ) AS ranked_funding
         <choose>
@@ -252,11 +252,10 @@
                 ORDER BY current_amount DESC
             </when>
             <otherwise> <!-- sort == 'none' -->
-                ORDER BY wishlist_count DESC
+                ORDER BY wish_count DESC
             </otherwise>
         </choose>
     </select>
-
     <select id="getSoonFinishFundingList" resultMap="FundingResultMap">
         SELECT *
         FROM funding
