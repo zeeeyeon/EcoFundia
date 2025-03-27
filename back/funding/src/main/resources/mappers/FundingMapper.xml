@@ -256,6 +256,7 @@
             </otherwise>
         </choose>
     </select>
+
     <select id="getSoonFinishFundingList" resultMap="FundingResultMap">
         SELECT *
         FROM funding
