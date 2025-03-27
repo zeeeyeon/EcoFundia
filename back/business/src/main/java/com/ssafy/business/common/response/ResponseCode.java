@@ -16,7 +16,7 @@ public enum ResponseCode {
     GET_FUNDING(successCode(), HttpStatus.OK, "펀딩이 성공적으로 조회되었습니다."),
     GET_TOTAL_FUNDING(successCode(), HttpStatus.OK, "현재까지 펀딩 금액이 성공적으로 조회되었습니다."),
     GET_FUNDING_DETAIL(successCode(), HttpStatus.OK, "해당 펀딩 상세 정보가 성공적으로 조회되었습니다."),
-    GET_FUNDING_REVIEW(successCode(), HttpStatus.OK, "해당 펀딩 리뷰를 성공적으로 조회되었습니다."),
+    GET_FUNDING_REVIEW(successCode(), HttpStatus.OK, "리뷰를 성공적으로 조회되었습니다."),
     GET_SELLER_DETAIL(successCode(), HttpStatus.OK, "판매자 상세 정보를 성공적으로 조회되었습니다."),
     GET_SELLER_FUNDING(successCode(), HttpStatus.OK, "판매자의 펀딩 프로젝트 정보를 성공적으로 조회되었습니다."),
 
@@ -28,9 +28,11 @@ public enum ResponseCode {
     TOPIC_BAD_REQUEST(400, HttpStatus.BAD_REQUEST, "토픽값이 올바르지 않습니다"),
     SORT_BAD_REQUEST(400, HttpStatus.BAD_REQUEST, "정렬값이 올바르지 않습니다"),
     CATEGORIES_BAD_REQUEST(400, HttpStatus.BAD_REQUEST, "카테고리가 올바르지 않습니다"),
-    CURRENT_NOT_FUNDING(204, HttpStatus.NOT_FOUND, "현재 진행중인 펀딩이 없습니다.."),
-    FUNDING_NOT_FOUND(204, HttpStatus.NOT_FOUND, "조회된 편딩이 없습니다..");
+    CURRENT_NOT_FUNDING(204, HttpStatus.NO_CONTENT, "현재 진행중인 펀딩이 없습니다.."),
+    FUNDING_NOT_FOUND(204, HttpStatus.NO_CONTENT, "조회된 편딩이 없습니다.."),
 
+    REVIEW_NOT_FOUND(204,HttpStatus.NO_CONTENT, "조회된 리뷰가 없습니다.."),
+    SELLER_NOT_FOUND(404, HttpStatus.NOT_FOUND, "해당 ID의 셀러가 존재하지 않습니다");
 
     private int code;
     private HttpStatus httpStatus;
