@@ -13,7 +13,7 @@ class SearchFundingUseCase {
 
   SearchFundingUseCase(this.repository);
 
-  Future<List<FundingModel>> execute(String query) async {
+  Future<List<FundingModel>> execute(String query, {int page = 1}) async {
     // query를 서버에 전달해서 검색 요청
     return await repository.searchFunding(query);
   }

@@ -4,7 +4,6 @@ import '../../data/models/funding_model.dart';
 import '../../data/services/funding_service.dart';
 import '../../data/repositories/funding_repository.dart';
 import '../../domain/usecases/get_funding_list_usecase.dart';
-import '../../domain/usecases/search_funding_usecase.dart';
 
 // 서비스 Provider
 final fundingServiceProvider = Provider(
@@ -35,7 +34,11 @@ final fundingListProvider =
     return FundingListNotifier(
       ref: ref,
       getFundingListUseCase: getFundingListUseCase,
-    )..fetchFundingList(); // 앱 시작 시 펀딩 리스트 로드
+    )..fetchFundingList(
+        page: 1,
+        sort: ref.read(sortOptionProvider),
+        categories: ref.read(selectedCategoriesProvider),
+      ); // 앱 시작 시 펀딩 리스트 로드
   },
 );
 
@@ -57,15 +60,23 @@ class FundingListNotifier
 
   // 펀딩 리스트 호출 (페이지 0 기준)
   Future<void> fetchFundingList({
-    int page = 1,
-    String sort = 'latest',
+    required int page,
+    required String sort,
     List<String>? categories,
   }) async {
+    state = const AsyncLoading();
+    _currentPage = 1;
+    _hasMore = true;
+    _isFetching = false;
+
     try {
-      state = const AsyncLoading();
-      final fundings = await getFundingListUseCase.execute(page,
-          sort: sort, categories: categories);
+      final fundings = await getFundingListUseCase.execute(
+        page,
+        sort: sort,
+        categories: categories,
+      );
       state = AsyncValue.data(fundings);
+      if (fundings.length < 2) _hasMore = false;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
@@ -89,7 +100,7 @@ class FundingListNotifier
       );
 
       state = state.whenData((existing) => [...existing, ...newFundings]);
-      if (newFundings.length < 5) _hasMore = false;
+      if (newFundings.length < 2) _hasMore = false;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     } finally {
