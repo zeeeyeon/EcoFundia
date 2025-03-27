@@ -87,7 +87,6 @@ public class SellerServiceImpl implements SellerService {
     @Override
     public Map<Integer, String> getNamesByIds(List<Integer> sellerIds) {
         List<Seller> sellers = sellerMapper.findNamesByIds(sellerIds);
-        log.info("sellerIds: {}", sellerIds);
 
         return sellers.stream()
                 .collect(Collectors.toMap(

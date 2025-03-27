@@ -6,6 +6,7 @@ import com.seller.dto.response.FundingDetailSellerResponseDto;
 import com.seller.dto.response.SellerAccountResponseDto;
 import com.seller.service.SellerService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/seller")
 @RequiredArgsConstructor
@@ -57,6 +59,7 @@ public class SellerController {
 
     @PostMapping("/seller-names")
     public Map<Integer, String> getSellerNames(@RequestBody List<Integer> sellerIds) {
+        log.info("getSellerNames: {}", sellerIds);
         return sellerService.getNamesByIds(sellerIds);
     }
 
