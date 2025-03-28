@@ -47,4 +47,12 @@ public interface FundingMapper {
     List<ReviewDto> getReviewList(@Param("sellerId") int sellerId, @Param("page") int page);
 
     List<SellerDetailDto> getSellerDetail(@PathVariable int sellerId);
+
+    int getSellerTotalAmount(@Param("sellerId") int sellerId);
+    int getSellerTotalFundingCount(@Param("sellerId") int sellerId);
+    List<Integer> getSellerTodayOrderCount(@Param("sellerId") int sellerId);
+    List<Funding> getSellerOngoingTopFiveFunding(@Param("sellerId") int sellerId);
+    List<Funding> getSellerOngoingFundingList(@Param("sellerId") int sellerId, @Param("page") int page);
+    List<Funding> getSellerEndFundingList(@Param("sellerId") int sellerId, @Param("page") int page);
+    List<Funding> getSellerTodayOrderTopThreeList(@Param("fundingIdList") List<Integer> fundingIdList);
 }
