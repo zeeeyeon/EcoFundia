@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
 import useAuthStore from "../stores/authStore";
-import LoadingSpinner from "../components/LoadingSpinner";
-import ErrorMessage from "../components/ErrorMessage";
-import Leaf from "../assets/Leaf.svg";
+import LoadingSpinner from "../../../common/components/LoadingSpinner";
+import ErrorMessage from "../../../common/components/ErrorMessage";
+import Leaf from "../../../assets/Leaf.svg";
 import "./login.css";
 
 // 유틸리티 함수들은 유지하지만 현재는 사용하지 않습니다

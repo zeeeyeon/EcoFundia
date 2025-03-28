@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import LoginPage from "./pages/LoginPage";
-import SellerRegistration from "./pages/SellerRegistration";
+import LoginPage from "./features/auth/components/LoginPage";
+import SellerRegistrationPage from "./features/seller/components/SellerRegistrationPage";
 import DashboardPage from "./pages/DashboardPage";
 import PrivateRoute from "./components/PrivateRoute";
 
@@ -15,9 +15,13 @@ function App() {
         <Routes>
           {/* 공개 라우트 */}
           <Route path="/" element={<LoginPage />} />
+          <Route path="/login" element={<LoginPage />} />
 
           {/* 인증 필요 라우트 */}
-          <Route path="/seller-registration" element={<SellerRegistration />} />
+          <Route
+            path="/seller-registration"
+            element={<SellerRegistrationPage />}
+          />
 
           {/* 판매자 전용 라우트 */}
           <Route element={<PrivateRoute requiredRole="SELLER" />}>

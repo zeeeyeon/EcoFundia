@@ -202,46 +202,34 @@
 }
 
 .google-login-wrapper {
-  width: 100%;
-  max-width: 300px;
-  margin: 1.5rem auto;
-  display: flex;
-  justify-content: center;
+  margin-bottom: 1.5rem;
 }
 
 .google-custom-button {
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 0.5rem;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  padding: 10px 16px;
-  background-color: white;
-  color: #757575;
-  border: 1px solid #dadce0;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
-  height: 48px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .google-custom-button:hover {
-  background-color: #f5f5f5;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  background-color: #f8f9fa;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .google-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  margin-right: 10px;
-  background-color: white;
-  border-radius: 50%;
+  font-size: 1.25rem;
+  margin-right: 0.75rem;
   color: #4285f4;
   font-weight: bold;
-  font-size: 16px;
 }

@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import useAuthStore from "../stores/authStore";
-import LoadingSpinner from "../components/LoadingSpinner";
-import Modal from "../components/Modal";
-import ErrorModal from "../components/ErrorModal";
-import Leaf from "../assets/Leaf.svg";
+import useAuthStore from "../../auth/stores/authStore";
+import LoadingSpinner from "../../../common/components/LoadingSpinner";
+import Modal from "../../../common/components/Modal";
+import ErrorModal from "../../../common/components/ErrorModal";
+import Leaf from "../../../assets/Leaf.svg";
 import "./sellerRegistration.css";
 
-const SellerRegistration: React.FC = () => {
+const SellerRegistrationPage: React.FC = () => {
   const navigate = useNavigate();
   const { registerSeller, isLoading: storeLoading, user } = useAuthStore();
   const [formData, setFormData] = useState({
@@ -69,7 +69,7 @@ const SellerRegistration: React.FC = () => {
 
   const handleModalConfirm = () => {
     setShowSuccessModal(false);
-    navigate("/");
+    navigate("/login");
   };
 
   const handleErrorModalClose = () => {
@@ -184,4 +184,4 @@ const SellerRegistration: React.FC = () => {
   );
 };
 
-export default SellerRegistration;
+export default SellerRegistrationPage;

@@ -1,5 +1,5 @@
-import client from "./client";
-import { setTokens, removeTokens } from "../utils/auth";
+import client from "../../../api/client";
+import { setTokens, removeTokens } from "../../../utils/auth";
 
 interface User {
   userId: number;

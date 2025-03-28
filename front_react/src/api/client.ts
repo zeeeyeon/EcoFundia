@@ -1,6 +1,6 @@
 import axios from "axios";
 import { getTokens } from "../utils/auth";
-import useAuthStore from "../stores/authStore";
+import useAuthStore from "../features/auth/stores/authStore";
 
 export const client = axios.create({
   baseURL: "https://j12e206.p.ssafy.io/api",

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { removeTokens, setTokens } from "../utils/auth";
+import { removeTokens, setTokens } from "../../../utils/auth";
 import { googleLogin, registerSeller as apiRegisterSeller } from "../api/auth";
 
 interface User {
