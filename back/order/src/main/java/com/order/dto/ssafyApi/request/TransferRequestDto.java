@@ -30,5 +30,6 @@ public class TransferRequestDto {
                 .withdrawalAccountNo(userAccount)
                 .withdrawalTransactionSummary("{수시입출금} : 출금(이체)")
                 .build();
+
     }
 }

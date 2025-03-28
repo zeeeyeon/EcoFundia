@@ -6,7 +6,9 @@ import com.ssafy.funding.dto.funding.request.FundingCreateSendDto;
 import com.ssafy.funding.dto.funding.request.FundingUpdateRequestDto;
 import com.ssafy.funding.dto.funding.request.FundingUpdateSendDto;
 import com.ssafy.funding.dto.funding.response.FundingResponseDto;
+import com.ssafy.funding.dto.funding.response.FundingWishCountResponseDto;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
+import com.ssafy.funding.dto.funding.response.MyFundingResponseDto;
 import com.ssafy.funding.dto.order.response.IsOngoingResponseDto;
 import com.ssafy.funding.dto.review.response.ReviewResponseDto;
 import com.ssafy.funding.dto.seller.SellerDetailResponseDto;
@@ -29,6 +31,13 @@ public class FundingController {
 
     private final ProductService productService;
     private final OrderService orderService;
+
+    //내가 주문한 펀딩 프로젝트 조회
+    @GetMapping("/my/funding")
+    List<MyFundingResponseDto> getMyFunding(@RequestParam List<Integer> fundingIds){
+        List<MyFundingResponseDto> fundingList = productService.getMyFunding(fundingIds);
+        return fundingList;
+    }
 
     @GetMapping("/{fundingId}")
     public ResponseEntity<?> getFundingId(@PathVariable int fundingId) {
@@ -100,6 +109,16 @@ public class FundingController {
             @RequestParam(name = "keyword") String keyword,
             @RequestParam(name= "page") int page) {
         List<GetFundingResponseDto> fundingList = productService.getSearchFundingList(sort ,keyword, page);
+        return fundingList;
+    }
+
+    // funding 서비스에서 검색페이지에 배스트 펀딩, 마감임박, 오늘의 검색어 중 선택한 색션 펀딩 리스트 데이터 요청
+    @GetMapping("/search/special")
+    List<FundingWishCountResponseDto> getSearchSpecialFunding(
+            @RequestParam(name = "sort") String sort,
+            @RequestParam(name = "topic") String topic,
+            @RequestParam(name= "page") int page) {
+        List<FundingWishCountResponseDto> fundingList = productService.getSearchSpecialFunding(sort ,topic, page);
         return fundingList;
     }
 

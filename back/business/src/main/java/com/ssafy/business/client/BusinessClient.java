@@ -1,6 +1,7 @@
 package com.ssafy.business.client;
 
 
+import com.ssafy.business.dto.responseDTO.FundingWishCountResponseDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,6 +41,13 @@ public interface BusinessClient {
     ResponseEntity<?> getSearchFundingList(
             @RequestParam(name = "sort") String sort,
             @RequestParam(name = "keyword") String keyword,
+            @RequestParam(name= "page") int page);
+
+    // funding 서비스에서 검색페이지에 오늘의 펀딩, 마감임박 선택한 색션 펀딩 리스트 데이터 요청
+    @GetMapping("api/business/search/special")
+    List<FundingWishCountResponseDto> getSearchSpecialFunding(
+            @RequestParam(name = "sort") String sort,
+            @RequestParam(name = "topic") String topic,
             @RequestParam(name= "page") int page);
 
     // 펀딩 상세 페이지
