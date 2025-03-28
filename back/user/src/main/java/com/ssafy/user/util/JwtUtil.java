@@ -70,4 +70,18 @@ public class JwtUtil {
                 .getBody()
                 .getSubject(); // Subject = email
     }
+
+    public int extractUserId(String token) {
+        Claims claims = Jwts.parser()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        // claim으로 저장된 userId를 Integer로 반환
+        return (Integer) claims.get("userId");
+    }
+
+    public long getRefreshTokenExpiration() {
+        return REFRESH_TOKEN_EXPIRATION;
+    }
 }

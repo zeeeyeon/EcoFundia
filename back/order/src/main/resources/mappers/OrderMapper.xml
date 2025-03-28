@@ -17,7 +17,20 @@
 
     <!-- 내 주문 내역 조회    -->
     <select id="getOrders" parameterType="int" resultMap="OrderResultMap">
-        SELECT * FROM order WHERE user_id = #{userId}
+        SELECT * FROM `order` WHERE user_id = #{userId}
+    </select>
+
+    <!-- 내 주문 내역 금액 조회    -->
+    <select id="getMyOrderPrice" parameterType="int" resultType="java.lang.Integer">
+        SELECT COALESCE(SUM(order.total_price), 0)
+        FROM `order` WHERE user_id = #{userId}
+    </select>
+
+    <!-- 내 주문한 order의 funding_id 조회    -->
+    <select id="getMyFundingIds" parameterType="int" resultType="java.lang.Integer">
+        SELECT funding_id
+        FROM `order`
+        WHERE user_id = #{userId}
     </select>
 
     <insert id="createOrder" parameterType="com.order.entity.Order" useGeneratedKeys="true" keyProperty="orderId">
