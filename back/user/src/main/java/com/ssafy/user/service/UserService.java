@@ -32,4 +32,5 @@ public interface UserService {
 
     void logout(int userId);
 
+    List<Integer> getAgeList(List<GetAgeListRequestDto> dtos);
 }
