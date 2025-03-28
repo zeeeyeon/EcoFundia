@@ -1,16 +1,14 @@
 package com.seller.controller;
 
-import com.seller.dto.request.FundingCreateRequestDto;
-import com.seller.dto.request.FundingUpdateRequestDto;
-import com.seller.dto.response.FundingDetailSellerResponseDto;
-import com.seller.dto.response.SellerAccountResponseDto;
+import com.seller.common.response.Response;
+import com.seller.common.response.ResponseCode;
+import com.seller.dto.request.GrantSellerRoleRequestDto;
+import com.seller.dto.response.*;
 import com.seller.service.SellerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -82,5 +80,53 @@ public class SellerController {
     SellerAccountResponseDto getSellerAccount(@RequestParam(name = "sellerId") int sellerId){
         SellerAccountResponseDto sellerAccountResponseDto = sellerService.getSellerAccount(sellerId);
         return sellerAccountResponseDto;
+    }
+
+    @PostMapping("/role")
+    public ResponseEntity<?> grantSellerRole(@RequestHeader("X-User-Id") int userId, @RequestBody GrantSellerRoleRequestDto grantSellerRoleRequestDto) {
+        sellerService.grantSellerRole(userId, grantSellerRoleRequestDto);
+        return new ResponseEntity<>(Response.create(ResponseCode.GRANT_SELLER_ROLE, null), ResponseCode.GRANT_SELLER_ROLE.getHttpStatus());
+    }
+
+    @GetMapping("/total-amount")
+    public ResponseEntity<?> getSellerTotalAmount(@RequestHeader("X-User-Id") int userId) {
+        GetSellerTotalAmountResponseDto dto = sellerService.getSellerTotalAmount(userId);
+        return new ResponseEntity<>(Response.create(ResponseCode.GET_SELLER_TOTAL_AMOUNT, dto), ResponseCode.GET_SELLER_TOTAL_AMOUNT.getHttpStatus());
+    }
+
+    @GetMapping("/total-funding/count")
+    public ResponseEntity<?> getSellerTotalFundingCount(@RequestHeader("X-User-Id") int userId) {
+        GetSellerTotalFundingCountResponseDto dto = sellerService.getSellerTotalFundingCount(userId);
+        return new ResponseEntity<>(Response.create(ResponseCode.GET_SELLER_TOTAL_FUNDING_COUNT, dto), ResponseCode.GET_SELLER_TOTAL_FUNDING_COUNT.getHttpStatus());
+    }
+
+    @GetMapping("/today-order")
+    public ResponseEntity<?> getSellerTodayOrderCount(@RequestHeader("X-User-Id") int userId) {
+        GetSellerTodayOrderCountResponseDto dto = sellerService.getSellerTodayOrderCount(userId);
+        return new ResponseEntity<>(Response.create(ResponseCode.GET_SELLER_TODAY_ORDER_COUNT, dto), ResponseCode.GET_SELLER_TOTAL_FUNDING_COUNT.getHttpStatus());
+    }
+
+    @GetMapping("/ongoing/top")
+    public ResponseEntity<?> getSellerOngoingTopFiveFunding(@RequestHeader("X-User-Id") int userId) {
+        List<GetSellerOngoingTopFiveFundingResponseDto> dto = sellerService.getSellerOngoingTopFiveFunding(userId);
+        return new ResponseEntity<>(Response.create(ResponseCode.GET_SELLER_ONGOING_TOP_FIVE_FUNDING, dto), ResponseCode.GET_SELLER_TOTAL_FUNDING_COUNT.getHttpStatus());
+    }
+
+    @GetMapping("/ongoing/list")
+    public ResponseEntity<?> getSellerOngoingFundingList(@RequestHeader("X-User-Id") int userId, @RequestParam(value = "page", defaultValue = "0") int page) {
+        List<GetSellerOngoingFundingListResponseDto> dto = sellerService.getSellerOngoingFundingList(userId, page);
+        return new ResponseEntity<>(Response.create(ResponseCode.GET_SELLER_ONGOING_FUNDING_LIST, dto), ResponseCode.GET_SELLER_ONGOING_FUNDING_LIST.getHttpStatus());
+    }
+
+    @GetMapping("/end/list")
+    public ResponseEntity<?> getSellerEndFundingList(@RequestHeader("X-User-Id") int userId, @RequestParam(value = "page", defaultValue = "0") int page) {
+        List<GetSellerEndFundingListResponseDto> dto = sellerService.getSellerEndFundingList(userId, page);
+        return new ResponseEntity<>(Response.create(ResponseCode.GET_SELLER_END_FUNDING_LIST, dto), ResponseCode.GET_SELLER_END_FUNDING_LIST.getHttpStatus());
+    }
+
+    @GetMapping("/today-order/list")
+    public ResponseEntity<?> getSellerTodayOrderTopThreeList(@RequestHeader("X-User-Id") int userId) {
+        List<GetSellerTodayOrderTopThreeListResponseDto> dto = sellerService.getSellerTodayOrderTopThreeList(userId);
+        return new ResponseEntity<>(Response.create(ResponseCode.GET_SELLER_TODAY_ORDER_TOP_THREE_LIST, dto), ResponseCode.GET_SELLER_TODAY_ORDER_TOP_THREE_LIST.getHttpStatus());
     }
 }
