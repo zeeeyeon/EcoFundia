@@ -5,7 +5,9 @@ import com.ssafy.funding.dto.funding.request.FundingCreateSendDto;
 import com.ssafy.funding.dto.funding.request.FundingUpdateRequestDto;
 import com.ssafy.funding.dto.funding.request.FundingUpdateSendDto;
 import com.ssafy.funding.dto.funding.response.FundingResponseDto;
+import com.ssafy.funding.dto.funding.response.FundingWishCountResponseDto;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
+import com.ssafy.funding.dto.funding.response.MyFundingResponseDto;
 import com.ssafy.funding.dto.review.response.ReviewResponseDto;
 import com.ssafy.funding.dto.seller.SellerDetailResponseDto;
 import com.ssafy.funding.entity.Funding;
@@ -39,6 +41,9 @@ public interface ProductService {
     // 펀딩 키워드 검색 조회
     List<GetFundingResponseDto> getSearchFundingList(String sort, String keyword, int page);
 
+    // 펀딩 검색페이지 토픽 검색 (오늘의 펀딩 마감임박, 오늘의 검색어)
+    List<FundingWishCountResponseDto> getSearchSpecialFunding(String sort , String topic, int page);
+
     // 펀딩 상세 페이지
     GetFundingResponseDto getFundingDetail(int fundingId);
 
@@ -48,4 +53,6 @@ public interface ProductService {
     // 판매자 상세페이지 판매자 정보 요청 조회
     SellerDetailResponseDto getSellerDetail(int sellerId);
 
+    // 내가 주훔한 펀딩 조회
+    List<MyFundingResponseDto> getMyFunding(List<Integer> fundingIds);
 }

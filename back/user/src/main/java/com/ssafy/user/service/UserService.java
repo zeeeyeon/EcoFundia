@@ -30,4 +30,7 @@ public interface UserService {
 
     OrderResponseDto createPayment(int userId, CreatePaymentRequestDto requestDto);
 
+    void logout(int userId);
+
+    List<Integer> getAgeList(List<GetAgeListRequestDto> dtos);
 }

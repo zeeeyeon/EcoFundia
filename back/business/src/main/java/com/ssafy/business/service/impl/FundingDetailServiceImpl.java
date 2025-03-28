@@ -2,6 +2,7 @@ package com.ssafy.business.service.impl;
 
 import com.ssafy.business.client.FundingClient;
 import com.ssafy.business.client.SellerClient;
+import com.ssafy.business.common.exception.CustomException;
 import com.ssafy.business.dto.ReviewDTO;
 import com.ssafy.business.dto.responseDTO.FundingDetailResponseDTO;
 import com.ssafy.business.dto.FundingDetailSellerDTO;
@@ -12,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-
+import static com.ssafy.business.common.response.ResponseCode.*;
 @Service
 @RequiredArgsConstructor
 public class FundingDetailServiceImpl implements FundingDetailService {
@@ -22,14 +23,22 @@ public class FundingDetailServiceImpl implements FundingDetailService {
 
     // 펀딩 상세 페이지
     public FundingDetailResponseDTO getFundingDetail(int fundingId){
-        FundingResponseDTO fundingInfo = fundingClient.getFundingDetail(fundingId);
+        FundingResponseDTO fundingInfo = fundingClient.getFundingDetail(fundingId); //null은 funding에서 처리
         FundingDetailSellerDTO sellerInfo = sellerClient.getSellerInfo(fundingInfo.getSellerId());
+        if (sellerInfo == null) {
+            throw new CustomException(SELLER_NOT_FOUND);
+        }
         return FundingDetailResponseDTO.from(fundingInfo, sellerInfo);
     }
 
     // 펀딩 리뷰 조회
     public ReviewResponseDTO getFundingReview(int sellerId, int page) {
+
         ReviewResponseDTO reviewList = fundingClient.getFundingReview(sellerId, page);
+
+        if (reviewList == null) {
+            throw new CustomException(REVIEW_NOT_FOUND);
+        }
         return reviewList;
     }
 

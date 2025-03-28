@@ -12,4 +12,8 @@ public interface OrderMapper {
     void createOrder(Order order);
 
     List<Order> getOrders(int userId);
+
+    int getMyOrderPrice(int userId);
+
+    List<Integer> getMyFundingIds(int userId);
 }

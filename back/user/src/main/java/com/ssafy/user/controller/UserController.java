@@ -39,6 +39,12 @@ public class UserController {
         return new ResponseEntity<>(Response.create(REISSUE_SUCCESS, dto), REISSUE_SUCCESS.getHttpStatus());
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestHeader("X-User-Id") int userId) {
+        userService.logout(userId);
+        return new ResponseEntity<>(Response.create(LOGOUT_SUCCESS,null), LOGOUT_SUCCESS.getHttpStatus());
+    }
+
     @GetMapping("/me")
     public ResponseEntity<?> getMyInfo(@RequestHeader("X-User-Id") int userId){
         GetMyInfoResponseDto dto = userService.getMyInfo(userId);
@@ -115,13 +121,18 @@ public class UserController {
         OrderResponseDto dto = userService.createPayment(userId, requestDto);
         return new ResponseEntity<>(Response.create(CREATE_PAYMENT_SUCCESS, dto), CREATE_PAYMENT_SUCCESS.getHttpStatus());
     }
-
-
     @GetMapping("/health")
     public ResponseEntity<?> healthCheck(){
         System.out.println("연결됨!");
         return new ResponseEntity<>(Response.create(SUCCESS, null), SUCCESS.getHttpStatus());
     }
+
+    // 다른 마이크로 서비스와 연결
+    @GetMapping("/seller/age/list")
+    public List<Integer> getAgeList(@RequestBody List<GetAgeListRequestDto> dtos){
+        return userService.getAgeList(dtos);
+    }
+
 
 
 }
