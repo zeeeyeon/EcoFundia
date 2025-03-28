@@ -39,4 +39,24 @@
         where user_id = #{userId}
     </select>
 
+    <select id="selectAgeGroupCounts" parameterType="list" resultType="map">
+        SELECT
+        CASE
+        WHEN age BETWEEN 10 AND 19 THEN 0
+        WHEN age BETWEEN 20 AND 29 THEN 1
+        WHEN age BETWEEN 30 AND 39 THEN 2
+        WHEN age BETWEEN 40 AND 49 THEN 3
+        WHEN age BETWEEN 50 AND 59 THEN 4
+        WHEN age >= 60 THEN 5
+        ELSE -1
+        END AS ageGroup,
+        COUNT(*) AS count
+        FROM user_table
+        WHERE user_id IN
+        <foreach item="dto" collection="list" open="(" separator="," close=")">
+            #{dto.userId}
+        </foreach>
+        GROUP BY ageGroup
+    </select>
+
 </mapper>
