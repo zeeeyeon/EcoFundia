@@ -9,7 +9,6 @@ public record FundingCreateSendDto(
         int price,
         int quantity,
         int targetAmount,
-        LocalDateTime startDate,
         LocalDateTime endDate,
         String category,
         String storyFileUrl,
