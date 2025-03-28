@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/core/services/api_service.dart';
+import 'package:front/features/funding/data/models/funding_detail_model.dart';
 import '../models/funding_model.dart';
 
 final fundingServiceProvider = Provider<FundingService>((ref) {
@@ -85,5 +86,12 @@ class FundingService {
     }
 
     return content.map((e) => FundingModel.fromJson(e)).toList();
+  }
+
+  // 펀딩 상세 조회
+  Future<FundingDetailModel> fetchFundingDetail(int fundingId) async {
+    final response = await api.get('/api/business/detail/$fundingId');
+    final data = response.data['content'];
+    return FundingDetailModel.fromJson(data);
   }
 }

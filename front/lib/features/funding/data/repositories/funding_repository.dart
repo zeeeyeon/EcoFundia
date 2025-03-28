@@ -1,3 +1,5 @@
+import 'package:front/features/funding/data/models/funding_detail_model.dart';
+
 import '../models/funding_model.dart';
 import '../services/funding_service.dart';
 
@@ -28,5 +30,9 @@ class FundingRepository {
     int page = 1,
   }) {
     return service.getSpecialFunding(topic: topic, page: page);
+  }
+
+  Future<FundingDetailModel> getFundingDetail(int fundingId) {
+    return service.fetchFundingDetail(fundingId);
   }
 }

@@ -119,9 +119,13 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
               GoRoute(
                 path: '/funding/detail',
-                builder: (context, state) {
+                name: 'FundingDetail',
+                pageBuilder: (context, state) {
                   final funding = state.extra as FundingModel;
-                  return FundingDetailScreen(funding: funding);
+
+                  return MaterialPage(
+                    child: FundingDetailScreen(fundingId: funding.fundingId),
+                  );
                 },
               ),
             ],
