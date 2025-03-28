@@ -3,8 +3,8 @@ package com.seller.service;
 
 import com.seller.dto.request.FundingCreateRequestDto;
 import com.seller.dto.request.FundingUpdateRequestDto;
-import com.seller.dto.response.FundingDetailSellerResponseDto;
-import com.seller.dto.response.SellerAccountResponseDto;
+import com.seller.dto.request.GrantSellerRoleRequestDto;
+import com.seller.dto.response.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,4 +21,13 @@ public interface SellerService {
     FundingDetailSellerResponseDto sellerInfo(int sellerId);
 
     SellerAccountResponseDto getSellerAccount(int sellerId);
+
+    void grantSellerRole(int userId, GrantSellerRoleRequestDto grantSellerRoleRequestDto);
+    GetSellerTotalAmountResponseDto getSellerTotalAmount(int userId);
+    GetSellerTotalFundingCountResponseDto getSellerTotalFundingCount(int userId);
+    GetSellerTodayOrderCountResponseDto getSellerTodayOrderCount(int userId);
+    List<GetSellerOngoingTopFiveFundingResponseDto> getSellerOngoingTopFiveFunding(int userId);
+    List<GetSellerOngoingFundingListResponseDto> getSellerOngoingFundingList(int userId, int page);
+    List<GetSellerEndFundingListResponseDto> getSellerEndFundingList(int userId, int page);
+    List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThreeList(int userId);
 }
