@@ -1,5 +1,6 @@
 package com.ssafy.funding.client;
 
+import com.ssafy.funding.dto.seller.response.GetSellerTotalAmountResponseDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 

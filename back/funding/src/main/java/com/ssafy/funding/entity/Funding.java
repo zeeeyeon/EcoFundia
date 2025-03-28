@@ -4,6 +4,10 @@ import com.ssafy.funding.common.util.JsonConverter;
 import com.ssafy.funding.dto.funding.request.FundingUpdateRequestDto;
 import com.ssafy.funding.dto.funding.request.FundingUpdateSendDto;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
+import com.ssafy.funding.dto.seller.response.GetSellerEndFundingListResponseDto;
+import com.ssafy.funding.dto.seller.response.GetSellerOngoingFundingListResponseDto;
+import com.ssafy.funding.dto.seller.response.GetSellerOngoingTopFiveFundingResponseDto;
+import com.ssafy.funding.dto.seller.response.GetSellerTodayOrderTopThreeListResponseDto;
 import com.ssafy.funding.entity.enums.Category;
 import com.ssafy.funding.entity.enums.Status;
 import lombok.AllArgsConstructor;
@@ -37,6 +41,10 @@ public class Funding {
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    private int progressPercentage;
+    private String imageUrl;
+    private String remainingTime;
 
     @Builder
     public Funding(int sellerId, String title, String description, String storyFileUrl, String imageUrls, int price, int quantity, int targetAmount, LocalDateTime startDate, LocalDateTime endDate, Category category) {
@@ -100,6 +108,52 @@ public class Funding {
                 .status(status)
                 .category(category)
                 .rate( (int) ((double) currentAmount / targetAmount * 100) )
+                .build();
+    }
+
+    public GetSellerOngoingTopFiveFundingResponseDto toGetSellerOngoingTopFiveFundingResponseDto() {
+        return GetSellerOngoingTopFiveFundingResponseDto
+                .builder()
+                .title(title)
+                .price(price)
+                .progressPercentage(progressPercentage)
+                .build();
+    }
+
+    public GetSellerOngoingFundingListResponseDto toGetSellerOngoingFundingListResponseDto() {
+        return GetSellerOngoingFundingListResponseDto
+                .builder()
+                .fundingId(fundingId)
+                .imageUrl(imageUrl)
+                .title(title)
+                .description(description)
+                .remainingTime(remainingTime)
+                .progressPercentage(progressPercentage)
+                .price(price)
+                .build();
+    }
+
+    public GetSellerEndFundingListResponseDto toGetSellerEndFundingListResponseDto() {
+        return GetSellerEndFundingListResponseDto
+                .builder()
+                .fundingId(fundingId)
+                .imageUrl(imageUrl)
+                .title(title)
+                .description(description)
+                .remainingTime(remainingTime)
+                .progressPercentage(progressPercentage)
+                .price(price)
+                .build();
+    }
+
+    public GetSellerTodayOrderTopThreeListResponseDto toGetSellerTodayOrderTopThreeListResponseDto() {
+        return GetSellerTodayOrderTopThreeListResponseDto
+                .builder()
+                .fundingId(fundingId)
+                .imageUrl(imageUrl)
+                .title(title)
+                .description(description)
+                .currentAmount(currentAmount)
                 .build();
     }
 }

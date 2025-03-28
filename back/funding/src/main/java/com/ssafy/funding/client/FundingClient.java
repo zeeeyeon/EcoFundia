@@ -11,6 +11,7 @@ import com.ssafy.funding.dto.review.request.ReviewUpdateRequestDto;
 import com.ssafy.funding.dto.review.response.ReviewDto;
 import com.ssafy.funding.dto.review.response.ReviewResponseDto;
 import com.ssafy.funding.dto.seller.SellerDetailResponseDto;
+import com.ssafy.funding.dto.seller.response.*;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -108,5 +109,25 @@ public interface FundingClient {
     @DeleteMapping("/api/wishList/{fundingId}")
     ResponseEntity<?> deleteWish(@RequestHeader("X-User-Id") int userId, @PathVariable int fundingId);
 
+    @GetMapping("/api/funding/seller/total-amount/{sellerId}")
+    GetSellerTotalAmountResponseDto getSellerTotalAmount(@PathVariable("sellerId") int sellerId);
+
+    @GetMapping("/api/funding/seller/total-funding/count/{sellerId}")
+    GetSellerTotalFundingCountResponseDto getSellerTotalFundingCount(@PathVariable("sellerId") int sellerId);
+
+    @GetMapping("/api/funding/seller/today-order/{sellerId}")
+    GetSellerTodayOrderCountResponseDto getSellerTodayOrderCount(@PathVariable("sellerId") int sellerId);
+
+    @GetMapping("/api/funding/seller/ongoing/top/{sellerId}")
+    List<GetSellerOngoingTopFiveFundingResponseDto> getSellerOngoingTopFiveFunding(@PathVariable("sellerId") int sellerId);
+
+    @GetMapping("api/funding/seller/ongoing/list/{sellerId}")
+    List<GetSellerOngoingFundingListResponseDto> getSellerOngoingFundingList(@PathVariable("sellerId") int sellerId, @RequestParam(value = "page", defaultValue = "0") int page);
+
+    @GetMapping("api/funding/seller/end/list/{sellerId}")
+    List<GetSellerEndFundingListResponseDto> getSellerEndFundingList(@PathVariable("sellerId") int sellerId, @RequestParam(value = "page", defaultValue = "0") int page);
+
+    @GetMapping("api/funding/seller/today-order/list/{sellerId}")
+    List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThreeList(@PathVariable("sellerId") int sellerId);
 }
 
