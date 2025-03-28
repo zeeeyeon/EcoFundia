@@ -11,7 +11,6 @@ public record FundingUpdateRequestDto(
         int price,
         int quantity,
         int targetAmount,
-        LocalDateTime startDate,
         LocalDateTime endDate,
         String category,
         String status
@@ -24,7 +23,6 @@ public record FundingUpdateRequestDto(
                 price,
                 quantity,
                 targetAmount,
-                startDate,
                 endDate,
                 category,
                 status,
