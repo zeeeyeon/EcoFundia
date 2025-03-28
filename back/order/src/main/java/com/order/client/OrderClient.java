@@ -1,11 +1,14 @@
 package com.order.client;
 
+import com.order.dto.funding.request.GetSellerTodayOrderCountRequestDto;
+import com.order.dto.funding.request.GetSellerTodayOrderTopThreeListRequestDto;
+import com.order.dto.funding.response.GetSellerTodayOrderCountResponseDto;
+import com.order.dto.funding.response.GetSellerTodayOrderTopThreeIdAndMoneyResponseDto;
 import com.order.entity.Order;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @FeignClient(name="order")
 public interface OrderClient {
@@ -24,5 +27,10 @@ public interface OrderClient {
     // 내 펀딩 내역 조회
     @GetMapping("api/order/my")
     Order getOrder(@RequestParam(name = "userId") int userId);
+
+    @PostMapping("api/order/seller/today-order")
+    GetSellerTodayOrderCountResponseDto getSellerTodayOrderCount(@RequestBody GetSellerTodayOrderCountRequestDto getSellerTodayOrderCountRequestDto);
+    @PostMapping("api/order/seller/today-order/list")
+    List<GetSellerTodayOrderTopThreeIdAndMoneyResponseDto> getSellerTodayOrderTopThreeList(@RequestBody GetSellerTodayOrderTopThreeListRequestDto getSellerTodayOrderTopThreeListRequestDto);
 
 }
