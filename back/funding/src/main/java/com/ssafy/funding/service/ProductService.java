@@ -55,4 +55,13 @@ public interface ProductService {
 
     // 내가 주훔한 펀딩 조회
     List<MyFundingResponseDto> getMyFunding(List<Integer> fundingIds);
+
+    // SUCCESS 상태이며 아직 정산 완료되지 않은 펀딩 목록 조회
+    List<Funding> getSuccessFundingsNotSent();
+
+    // 펀딩 ID로 펀딩 정보 조회
+    Funding getFundingById(int fundingId);
+
+    // settlement_completed 플래그 업데이트
+    void updateSettlementCompleted(Long fundingId, Boolean eventSent);
 }

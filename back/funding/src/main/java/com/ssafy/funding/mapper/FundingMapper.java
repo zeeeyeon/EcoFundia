@@ -54,4 +54,10 @@ public interface FundingMapper {
 
     // 내가 주문한 펀딩 조회
     List<Funding> getMyFunding(List<Integer> fundingIds);
+
+    // SUCCESS 상태이고, 아직 settlementCompleted가 false인 펀딩 목록 조회
+    List<Funding> findByStatusAndEventSent(@Param("eventSent") Boolean eventSent);
+
+    // settlement_completed 플래그 업데이트
+    int updateSettlementCompleted(@Param("fundingId") Long fundingId, @Param("eventSent") Boolean eventSent);
 }
