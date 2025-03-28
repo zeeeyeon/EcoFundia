@@ -72,6 +72,9 @@ public class FundingServiceImpl implements FundingService {
         if (page <= 0) {
             page = 1;
         }
+        if ( sort == null || ( !sort.equals("latest") && !sort.equals("oldest") && !sort.equals("popular"))){
+            throw new CustomException(SORT_BAD_REQUEST);
+        }
         // "categories" :  //전체일때는 없이 FASHION, ELECTRONICS, HOUSEHOLD, INTERIOR, FOOD
         if (categories != null) {
             Long categoriesSize = categories.stream().filter(VALID_CATEGORIES::contains).count();
