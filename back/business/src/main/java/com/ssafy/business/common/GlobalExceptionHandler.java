@@ -44,6 +44,7 @@ public class GlobalExceptionHandler {
 //        return ResponseEntity.ok(
 //                Response.create(exception.getResponseCode(), exception.getContent())
 //        );
+
         return new ResponseEntity<>(
                 Response.create(exception.getResponseCode(), exception.getContent()),
                 exception.getResponseCode().getHttpStatus()
