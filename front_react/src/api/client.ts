@@ -1,8 +1,9 @@
 import axios from "axios";
-import { getAuthHeader, getTokens, removeTokens } from "../utils/auth";
+import { getTokens } from "../utils/auth";
+import useAuthStore from "../stores/authStore";
 
-const client = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8080",
+export const client = axios.create({
+  baseURL: "https://j12e206.p.ssafy.io/api",
   headers: {
     "Content-Type": "application/json",
   },
@@ -11,9 +12,12 @@ const client = axios.create({
 // 요청 인터셉터
 client.interceptors.request.use(
   (config) => {
-    const headers = getAuthHeader();
-    if (headers.Authorization) {
-      config.headers.Authorization = headers.Authorization;
+    const tokens = getTokens();
+    if (tokens?.accessToken) {
+      config.headers = {
+        ...config.headers,
+        Authorization: `Bearer ${tokens.accessToken}`,
+      };
     }
     return config;
   },
@@ -32,8 +36,8 @@ client.interceptors.response.use(
 
       const tokens = getTokens();
       if (!tokens?.refreshToken) {
-        removeTokens();
-        window.location.href = "/login";
+        useAuthStore.getState().resetAuthState();
+        window.location.href = "/";
         return Promise.reject(error);
       }
 
@@ -43,13 +47,18 @@ client.interceptors.response.use(
           refreshToken: tokens.refreshToken,
         });
 
-        if (response.data.accessToken) {
-          originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
-          return client(originalRequest);
-        }
-      } catch (refreshError) {
-        removeTokens();
-        window.location.href = "/login";
+        const { accessToken } = response.data as { accessToken: string };
+
+        // 새 토큰 저장
+        const newTokens = { ...tokens, accessToken };
+        sessionStorage.setItem("tokens", JSON.stringify(newTokens));
+
+        // 원래 요청 재시도
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        return client(originalRequest);
+      } catch {
+        useAuthStore.getState().resetAuthState();
+        window.location.href = "/";
       }
     }
 

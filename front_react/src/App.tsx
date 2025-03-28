@@ -1,59 +1,36 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import { ThemeProvider } from './contexts/ThemeContext';
-import DashboardPage from './pages/DashboardPage';
-import SellerRegistration from './pages/SellerRegistration';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { GoogleOAuthProvider } from "@react-oauth/google";
+import LoginPage from "./pages/LoginPage";
+import SellerRegistration from "./pages/SellerRegistration";
+import DashboardPage from "./pages/DashboardPage";
+import PrivateRoute from "./components/PrivateRoute";
 
-interface ProtectedRouteProps {
-  children: React.ReactNode;
-}
+function App() {
+  // Google OAuth 클라이언트 ID
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const location = useLocation();
-  const isAuthenticated = sessionStorage.getItem('accessToken') !== null;
-  const userRole = sessionStorage.getItem('userRole');
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-
-  if (userRole !== 'seller' && location.pathname !== '/register') {
-    return <Navigate to="/register" replace />;
-  }
-
-  return <>{children}</>;
-};
-
-const App: React.FC = () => {
   return (
-    <ThemeProvider>
+    <GoogleOAuthProvider clientId={googleClientId}>
       <Router>
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route
-            path="/register"
-            element={
-              <ProtectedRoute>
-                <RegisterPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
-            }
-          />
+          {/* 공개 라우트 */}
+          <Route path="/" element={<LoginPage />} />
+
+          {/* 인증 필요 라우트 */}
           <Route path="/seller-registration" element={<SellerRegistration />} />
-          <Route path="/" element={<Navigate to="/login" replace />} />
+
+          {/* 판매자 전용 라우트 */}
+          <Route element={<PrivateRoute requiredRole="SELLER" />}>
+            <Route path="/dashboard" element={<DashboardPage />} />
+            {/* 추후 다른 관리자 페이지 추가 예정 */}
+          </Route>
+
+          {/* 404 페이지 */}
+          <Route path="*" element={<div>페이지를 찾을 수 없습니다.</div>} />
         </Routes>
       </Router>
-    </ThemeProvider>
+    </GoogleOAuthProvider>
   );
-};
+}
 
 export default App;

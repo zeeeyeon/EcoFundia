@@ -4,6 +4,11 @@ globs:
 alwaysApply: false
 ---
 ---
+description: 
+globs: 
+alwaysApply: false
+---
+---
 description: react rules
 globs: 
 alwaysApply: false
@@ -114,7 +119,6 @@ src/
 - **React + TypeScript + Vite**
 - **Zustand**: 상태 관리
 - **React Hook Form**: 입력 검증
-- **Tailwind CSS**: 통일된 UI 구성
 - **Chart.js or Recharts**: 대시보드 차트 표현
 
 ---

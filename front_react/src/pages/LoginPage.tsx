@@ -1,29 +1,23 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import useAuthStore from '../stores/authStore';
-import LoadingSpinner from '../components/LoadingSpinner';
-import ErrorMessage from '../components/ErrorMessage';
-import Leaf from '../assets/Leaf.svg';
-import './login.css';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useGoogleLogin } from "@react-oauth/google";
+import useAuthStore from "../stores/authStore";
+import LoadingSpinner from "../components/LoadingSpinner";
+import ErrorMessage from "../components/ErrorMessage";
+import Leaf from "../assets/Leaf.svg";
+import "./login.css";
 
-interface LoginResponse {
-  user: {
-    id: string;
-    email: string;
-    role: string;
-  };
-  accessToken: string;
-  refreshToken: string;
-}
+// 유틸리티 함수들은 유지하지만 현재는 사용하지 않습니다
+// PKCE 방식 대신 Google Identity Services를 사용합니다
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login } = useAuthStore();
+  const { loginWithGoogle, isLoading: storeLoading } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // 에러 메시지 자동 제거
-  React.useEffect(() => {
+  useEffect(() => {
     if (error) {
       const timer = setTimeout(() => {
         setError(null);
@@ -32,53 +26,49 @@ const LoginPage: React.FC = () => {
     }
   }, [error]);
 
-  const handleGoogleLogin = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
+  // 구글 로그인 with 액세스 토큰 직접 획득
+  const googleLogin = useGoogleLogin({
+    onSuccess: async (response: { access_token: string }) => {
+      try {
+        setIsLoading(true);
+        setError(null);
 
-      // 임시로 성공 응답 모의
-      const mockResponse: LoginResponse = {
-        user: {
-          id: '1',
-          email: 'seller@example.com',
-          role: 'seller'
-        },
-        accessToken: 'mock-access-token',
-        refreshToken: 'mock-refresh-token'
-      };
+        // 구글에서 직접 액세스 토큰 획득
+        const accessToken = response.access_token;
+        console.log("구글 액세스 토큰 획득 성공:", accessToken);
 
-      // 실제 구현 시 아래 주석을 해제하고 사용
-      // const { data } = await api.post<LoginResponse>('/user/login', { token: 'your-token' });
+        // 백엔드로 액세스 토큰 전송
+        const loginResponse = await loginWithGoogle(accessToken);
+        console.log("Backend login success:", loginResponse);
 
-      // 토큰을 세션 스토리지에 저장
-      sessionStorage.setItem('accessToken', mockResponse.accessToken);
-      sessionStorage.setItem('refreshToken', mockResponse.refreshToken);
-
-      // 로그인 상태 업데이트
-      login({
-        user: mockResponse.user,
-        accessToken: mockResponse.accessToken,
-        refreshToken: mockResponse.refreshToken,
-      });
-
-      // role에 따른 리다이렉션
-      if (mockResponse.user.role !== 'seller') {
-        navigate('/register');
-      } else {
-        navigate('/dashboard');
+        // role에 따른 리다이렉션
+        if (loginResponse.role === "USER") {
+          navigate("/seller-registration");
+        } else {
+          navigate("/dashboard");
+        }
+      } catch (err) {
+        console.error("Login error:", err);
+        setError(
+          err instanceof Error
+            ? err.message
+            : "로그인에 실패했습니다. 다시 시도해주세요."
+        );
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error: any) {
-      console.error('Login failed:', error);
-      setError(error.response?.data?.message || '로그인에 실패했습니다. 다시 시도해주세요.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    },
+    onError: () => {
+      setError("구글 로그인에 실패했습니다. 다시 시도해주세요.");
+    },
+    scope: "openid profile email",
+  });
+
+  const loading = isLoading || storeLoading;
 
   return (
     <>
-      {isLoading && <LoadingSpinner />}
+      {loading && <LoadingSpinner />}
       {error && <ErrorMessage message={error} />}
       <div className="login-page">
         <div className="login-card loaded">
@@ -96,26 +86,23 @@ const LoginPage: React.FC = () => {
           </div>
 
           <div className="button-container">
-            <button
-              onClick={handleGoogleLogin}
-              disabled={isLoading}
-              className="btn btn-primary w-full google-btn"
-            >
-              <img
-                src="https://developers.google.com/identity/images/g-logo.png"
-                alt="Google"
-                className="google-logo"
-              />
-              구글 계정으로 계속하기
-            </button>
-          </div>
+            <div className="google-login-wrapper">
+              <button
+                onClick={() => googleLogin()}
+                className="google-custom-button"
+              >
+                <span className="google-icon">G</span>
+                구글 로그인
+              </button>
+            </div>
 
-          <div className="info-text">
-            <p>
-              관리자 전용 페이지입니다.
-              <br />
-              판매자 계정으로만 로그인이 가능합니다.
-            </p>
+            <div className="info-text">
+              <p>
+                관리자 전용 페이지입니다.
+                <br />
+                판매자 계정으로만 로그인이 가능합니다.
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -123,4 +110,4 @@ const LoginPage: React.FC = () => {
   );
 };
 
-export default LoginPage; 
+export default LoginPage;
