@@ -17,9 +17,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-// Client 선언부, name 또는 url 사용 가능
-// name or value 둘중 하나는 있어야 오류가 안남남
-//@FeignClient(name = "funding-client", url = "http://localhost:8080")
 @FeignClient(name = "funding")
 public interface FundingClient {
 
@@ -95,7 +92,7 @@ public interface FundingClient {
                                    @PathVariable int reviewId,
                                    @RequestBody ReviewUpdateRequestDto dto);
 
-    @RequestMapping(method = RequestMethod.DELETE, value = "/api/review/{reviewId}")
+    @DeleteMapping("/api/review/{reviewId}")
     ResponseEntity<?> deleteReview(@RequestHeader("X-User-Id") int userId,
                                    @PathVariable int reviewId);
 

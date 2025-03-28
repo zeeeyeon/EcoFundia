@@ -28,7 +28,7 @@ public record FundingCreateSendDto(
                 .quantity(quantity)
                 .targetAmount(targetAmount)
                 .startDate(startDate)
-                .endDate(endDate)
+                .endDate(endDate.withHour(23).withMinute(59).withSecond(59))
                 .category(Category.valueOf(category))
                 .build();
     }
