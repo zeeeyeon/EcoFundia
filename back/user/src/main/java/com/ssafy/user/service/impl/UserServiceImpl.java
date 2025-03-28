@@ -6,22 +6,23 @@ import com.ssafy.user.client.SellerClient;
 import com.ssafy.user.common.response.PageResponse;
 import com.ssafy.user.dto.request.*;
 import com.ssafy.user.dto.response.*;
-import com.ssafy.user.entity.RefreshToken;
 import com.ssafy.user.entity.User;
 import com.ssafy.user.common.exception.CustomException;
 import com.ssafy.user.mapper.UserMapper;
 import com.ssafy.user.service.UserService;
 import com.ssafy.user.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static com.ssafy.user.common.response.ResponseCode.*;
 
@@ -30,6 +31,7 @@ import static com.ssafy.user.common.response.ResponseCode.*;
 public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final JwtUtil jwtUtil;
+    private final RedisTemplate<String, String> redisTemplate;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private static final String GOOGLE_USER_INFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo";
     private final FundingClient fundingClient;
@@ -49,17 +51,18 @@ public class UserServiceImpl implements UserService {
         // role 수정
         String role;
         int userId = user.getUserId();
-        if(sellerClient.checkSeller(userId)){
+        if (sellerClient.checkSeller(userId)) {
             role = "SELLER";
-        }else{
+        } else {
             role = "USER";
         }
         String accessToken = jwtUtil.generateAccessToken(user, role);
         String refreshToken = jwtUtil.generateRefreshToken(user);
 
         String hashedRefreshToken = passwordEncoder.encode(refreshToken);
-
-        userMapper.insertRefreshToken(user.getUserId(), hashedRefreshToken);
+        String key = "refreshToken:" + user.getUserId();
+        // RedisTemplate을 사용하여 refresh token 저장 (초 단위 만료 시간)
+        redisTemplate.opsForValue().set(key, hashedRefreshToken, jwtUtil.getRefreshTokenExpiration(), TimeUnit.SECONDS);
 
         return new LoginResponseDto(accessToken, refreshToken, user, role);
     }
@@ -79,22 +82,21 @@ public class UserServiceImpl implements UserService {
                 .build();
 
         userMapper.insertUser(user);
-
         User nowUser = userMapper.findByEmail(email);
 
         String role;
-        int userId = user.getUserId();
-        if(sellerClient.checkSeller(userId)){
+        int userId = nowUser.getUserId();
+        if (sellerClient.checkSeller(userId)) {
             role = "SELLER";
-        }else{
+        } else {
             role = "USER";
         }
-        String accessToken = jwtUtil.generateAccessToken(user, role);
-        String refreshToken = jwtUtil.generateRefreshToken(user);
+        String accessToken = jwtUtil.generateAccessToken(nowUser, role);
+        String refreshToken = jwtUtil.generateRefreshToken(nowUser);
 
         String hashedRefreshToken = passwordEncoder.encode(refreshToken);
-
-        userMapper.insertRefreshToken(nowUser.getUserId(), hashedRefreshToken);
+        String key = "refreshToken:" + nowUser.getUserId();
+        redisTemplate.opsForValue().set(key, hashedRefreshToken, jwtUtil.getRefreshTokenExpiration(), TimeUnit.SECONDS);
 
         return new SignupResponseDto(accessToken, refreshToken, nowUser, role);
     }
@@ -118,33 +120,31 @@ public class UserServiceImpl implements UserService {
             throw new CustomException(USER_NOT_FOUND);
         }
 
-        List<RefreshToken> storedTokens = userMapper.findRefreshTokensByUserId(user.getUserId());
-        RefreshToken validToken = null;
-        for (RefreshToken token : storedTokens) {
-            if (!token.isExpired() && passwordEncoder.matches(refreshToken, token.getRefreshToken())) {
-                validToken = token;
-                break;
-            }
-        }
-
-        if (validToken == null) {
+        String key = "refreshToken:" + user.getUserId();
+        String storedHashedToken = redisTemplate.opsForValue().get(key);
+        if (storedHashedToken == null || !passwordEncoder.matches(refreshToken, storedHashedToken)) {
             throw new CustomException(INVALID_REFRESH_TOKEN);
         }
 
-        userMapper.deleteRefreshTokenById(validToken.getTokenId());
+        // 기존 refresh token 삭제 (토큰 회전)
+        redisTemplate.delete(key);
 
-        //이거 role 수정해야함
-        String role = "SELLER";
+        // role 수정
+        String role;
+        int userId = user.getUserId();
+        if (sellerClient.checkSeller(userId)) {
+            role = "SELLER";
+        } else {
+            role = "USER";
+        }
         String newAccessToken = jwtUtil.generateAccessToken(user, role);
         String newRefreshToken = jwtUtil.generateRefreshToken(user);
         String newHashedRefreshToken = passwordEncoder.encode(newRefreshToken);
-        LocalDateTime newIssuedAt = LocalDateTime.now();
-        LocalDateTime newExpiresAt = newIssuedAt.plusDays(7);
 
-        // 기존 토큰 삭제 및 새 토큰 DB 업데이트 (토큰 회전)
-        userMapper.insertRefreshToken(user.getUserId(), newHashedRefreshToken);
+        // 새로운 refresh token을 Redis에 저장
+        redisTemplate.opsForValue().set(key, newHashedRefreshToken, jwtUtil.getRefreshTokenExpiration(), TimeUnit.SECONDS);
 
-        return new ReissueResponseDto(newAccessToken,newRefreshToken);
+        return new ReissueResponseDto(newAccessToken, newRefreshToken);
     }
 
     @Override
@@ -158,8 +158,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void updateMyInfo(int userId, UpdateMyInfoRequestDto requestDto) {
-        int count = userMapper.updateMyInfo(userId, requestDto.getNickname(),requestDto.getAccount());
-
+        userMapper.updateMyInfo(userId, requestDto.getNickname(), requestDto.getAccount());
     }
 
     @Override
@@ -170,7 +169,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public GetMyTotalFundingResponseDto getMyFundingTotal(int userId) {
-        return orderClient.getMyTotalFunding(userId);
+        return GetMyTotalFundingResponseDto.builder()
+                .total(orderClient.getMyTotalFunding(userId))
+                .build();
     }
 
     @Override
@@ -204,11 +205,34 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public OrderResponseDto createPayment(int userId, CreatePaymentRequestDto requestDto) {
-
         User user = userMapper.findById(userId);
-
-        return orderClient.createPayment(userId,requestDto.getFundingId(),requestDto.getAmount(),requestDto.getTotalPrice(),user.getSsafyUserKey(),user.getAccount());
+        return orderClient.createPayment(userId, requestDto.getFundingId(), requestDto.getAmount(), requestDto.getTotalPrice(), user.getSsafyUserKey(), user.getAccount());
     }
+
+    @Override
+    public void logout(int userId) {
+        String key = "refreshToken:" + userId;
+        redisTemplate.delete(key);
+    }
+
+    @Override
+    public List<Integer> getAgeList(List<GetAgeListRequestDto> dtos) {
+        // 10대부터 60대까지 총 6개의 연령대 카운트를 0으로 초기화
+        List<Integer> ageGroupCounts = new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, 0));
+
+        // 매퍼에서 결과는 ageGroup(0~5)와 count로 구성된 Map 리스트로 반환됨
+        List<Map<String, Object>> results = userMapper.selectAgeGroupCounts(dtos);
+        for (Map<String, Object> row : results) {
+            int group = (int) row.get("ageGroup");
+            // count를 Long에서 int로 변환
+            int count = ((Long) row.get("count")).intValue();
+            if (group >= 0 && group < 6) {
+                ageGroupCounts.set(group, count);
+            }
+        }
+        return ageGroupCounts;
+    }
+
 
     private Map<String, Object> getGoogleUserInfo(String accessToken) {
         String url = GOOGLE_USER_INFO_URL + "?access_token=" + accessToken;

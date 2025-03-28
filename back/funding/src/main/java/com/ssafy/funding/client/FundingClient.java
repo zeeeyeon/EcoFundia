@@ -3,7 +3,9 @@ package com.ssafy.funding.client;
 import com.ssafy.funding.dto.funding.request.FundingCreateRequestDto;
 import com.ssafy.funding.dto.funding.request.FundingCreateSendDto;
 import com.ssafy.funding.dto.funding.request.FundingUpdateRequestDto;
+import com.ssafy.funding.dto.funding.response.FundingWishCountResponseDto;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
+import com.ssafy.funding.dto.funding.response.MyFundingResponseDto;
 import com.ssafy.funding.dto.order.response.IsOngoingResponseDto;
 import com.ssafy.funding.dto.funding.response.UserWishlistFundingDto;
 import com.ssafy.funding.dto.review.request.ReviewCreateRequestDto;
@@ -35,19 +37,13 @@ public interface FundingClient {
     @DeleteMapping("/api/funding/{fundingId}")
     ResponseEntity<?> deleteFunding(@PathVariable int fundingId);
 
-    @GetMapping("/api/funding")
-    ResponseEntity<Object> getAllfunding();
+    //내가 주문한 펀딩 프로젝트 조회
+    @GetMapping("/api/funding/my")
+    List<MyFundingResponseDto> getMyFunding(@RequestParam List<Integer> fundingIds);
 
     @GetMapping("/api/funding/{fundingId}")
     ResponseEntity<Object> getFunding(@PathVariable int fundingId);
 
-    // 펀딩 페이지 펀딩 리스트 조회
-    @GetMapping("/api/funding/funding-page")
-    List<GetFundingResponseDto>getFundingPageList(
-            @RequestParam(name = "sort") String sort,
-            @RequestParam(name = "categories" ,required = false) List<String> categories,
-            @RequestParam(name = "page") int page
-    );
 
     // funding 서비스에게 top-funding 데이터 요청
     @GetMapping("/api/funding/top-funding")
@@ -61,11 +57,26 @@ public interface FundingClient {
     @GetMapping("api/funding/category")
     List<GetFundingResponseDto> getCategoryFundingList(@RequestParam(name = "category") String category , @RequestParam(name = "sortNum") int sortNum ,@RequestParam(name = "page") int page);
 
+    // 펀딩 페이지 펀딩 리스트 조회
+    @GetMapping("/api/funding/funding-page")
+    List<GetFundingResponseDto>getFundingPageList(
+            @RequestParam(name = "sort") String sort,
+            @RequestParam(name = "categories" ,required = false) List<String> categories,
+            @RequestParam(name = "page") int page
+    );
+
     // funding 서비스에게 키워드 검색으로 펀딩 리스트 데이터 요청
     @GetMapping("api/funding/search")
     List<GetFundingResponseDto> getSearchFundingList(
             @RequestParam(name = "sort") String sort,
             @RequestParam(name = "keyword") String keyword,
+            @RequestParam(name= "page") int page);
+
+    // funding 서비스에서 검색페이지에 오늘의 펀딩, 마감임박 선택한 색션 펀딩 리스트 데이터 요청
+    @GetMapping("api/funding/search/special")
+    List<FundingWishCountResponseDto> getSearchSpecialFunding(
+            @RequestParam(name = "sort") String sort,
+            @RequestParam(name = "topic") String topic,
             @RequestParam(name= "page") int page);
 
     // funding 서비스에게 펀딩 상세 정보 요청
