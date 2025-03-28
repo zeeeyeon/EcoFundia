@@ -5,6 +5,8 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @FeignClient(name="user")
 public interface UserClient {
     @PostMapping("/api/user/login")
@@ -63,4 +65,7 @@ public interface UserClient {
 
     @DeleteMapping("/api/user/wishList/{fundingId}")
     public ResponseEntity<?> deleteWish(@RequestHeader("X-User-Id") int userId, @PathVariable int fundingId);
+
+    @GetMapping("/api/user/seller/age/list")
+    public List<Integer> getAgeList(@RequestBody List<GetAgeListRequestDto> dtos);
 }

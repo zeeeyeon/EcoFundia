@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -212,6 +214,25 @@ public class UserServiceImpl implements UserService {
         String key = "refreshToken:" + userId;
         redisTemplate.delete(key);
     }
+
+    @Override
+    public List<Integer> getAgeList(List<GetAgeListRequestDto> dtos) {
+        // 10대부터 60대까지 총 6개의 연령대 카운트를 0으로 초기화
+        List<Integer> ageGroupCounts = new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, 0));
+
+        // 매퍼에서 결과는 ageGroup(0~5)와 count로 구성된 Map 리스트로 반환됨
+        List<Map<String, Object>> results = userMapper.selectAgeGroupCounts(dtos);
+        for (Map<String, Object> row : results) {
+            int group = (int) row.get("ageGroup");
+            // count를 Long에서 int로 변환
+            int count = ((Long) row.get("count")).intValue();
+            if (group >= 0 && group < 6) {
+                ageGroupCounts.set(group, count);
+            }
+        }
+        return ageGroupCounts;
+    }
+
 
     private Map<String, Object> getGoogleUserInfo(String accessToken) {
         String url = GOOGLE_USER_INFO_URL + "?access_token=" + accessToken;
