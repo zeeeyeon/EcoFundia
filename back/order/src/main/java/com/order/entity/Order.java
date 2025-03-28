@@ -1,5 +1,6 @@
 package com.order.entity;
 
+import com.order.dto.funding.response.GetSellerTodayOrderTopThreeIdAndMoneyResponseDto;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
@@ -19,5 +20,13 @@ public class Order {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    private int totalPriceSumToday;
 
+    public GetSellerTodayOrderTopThreeIdAndMoneyResponseDto toGetSellerTodayOrderTopThreeIdAndMoneyResponseDto() {
+        return GetSellerTodayOrderTopThreeIdAndMoneyResponseDto
+                .builder()
+                .fundingId(fundingId)
+                .totalAmount(totalPriceSumToday)
+                .build();
+    }
 }

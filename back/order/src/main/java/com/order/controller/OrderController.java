@@ -1,6 +1,10 @@
 package com.order.controller;
 
 import com.order.dto.funding.response.FundingResponseDto;
+import com.order.dto.funding.request.GetSellerTodayOrderCountRequestDto;
+import com.order.dto.funding.request.GetSellerTodayOrderTopThreeListRequestDto;
+import com.order.dto.funding.response.GetSellerTodayOrderCountResponseDto;
+import com.order.dto.funding.response.GetSellerTodayOrderTopThreeIdAndMoneyResponseDto;
 import com.order.dto.order.response.OrderResponseDto;
 import com.order.entity.Order;
 import com.order.service.OrderService;
@@ -48,6 +52,17 @@ public class OrderController {
     public int getMyOrderPrice(@RequestHeader("X-User-Id") int userId){
         int price = orderService.getMyOrderPrice(userId);
         return price;
+    }
+
+
+    @PostMapping("/seller/today-order")
+    public GetSellerTodayOrderCountResponseDto getSellerTodayOrderCount(@RequestBody GetSellerTodayOrderCountRequestDto getSellerTodayOrderCountRequestDto) {
+        return orderService.getSellerTodayOrderCount(getSellerTodayOrderCountRequestDto);
+    }
+
+    @PostMapping("/seller/today-order/list")
+    public List<GetSellerTodayOrderTopThreeIdAndMoneyResponseDto> getSellerTodayOrderTopThreeList(@RequestBody GetSellerTodayOrderTopThreeListRequestDto getSellerTodayOrderTopThreeListRequestDto) {
+        return orderService.getSellerTodayOrderTopThreeList(getSellerTodayOrderTopThreeListRequestDto);
     }
 
 }
