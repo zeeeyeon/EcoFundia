@@ -29,8 +29,8 @@ public interface SellerClient {
 //    @GetMapping("api/seller/find/account")
 //    SellerAccountResponseDto getSellerAccount(@RequestParam(name = "sellerId") int sellerId);
 //
-//    @PostMapping("/api/seller/seller-names")
-//    Map<Integer, String> getSellerNames(@RequestBody List<Integer> sellerIds);
+    @PostMapping("/api/seller/seller-names")
+    Map<Integer, String> getSellerNames(@RequestBody List<Integer> sellerIds);
 //
 //    @PostMapping("api/seller/role")
 //    ResponseEntity<?> grantSellerRole(@RequestHeader("X-User-Id") int userId, @RequestBody GrantSellerRoleRequestDto grantSellerRoleRequestDto);
