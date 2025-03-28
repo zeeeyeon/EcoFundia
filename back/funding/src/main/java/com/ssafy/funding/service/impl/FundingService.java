@@ -3,6 +3,7 @@ package com.ssafy.funding.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ssafy.funding.client.OrderClient;
 import com.ssafy.funding.common.exception.CustomException;
 import com.ssafy.funding.common.util.JsonConverter;
 import com.ssafy.funding.dto.funding.request.FundingCreateRequestDto;
@@ -17,6 +18,9 @@ import com.ssafy.funding.dto.review.response.ReviewDto;
 import com.ssafy.funding.dto.review.response.ReviewResponseDto;
 import com.ssafy.funding.dto.seller.SellerDetailDto;
 import com.ssafy.funding.dto.seller.SellerDetailResponseDto;
+import com.ssafy.funding.dto.seller.request.GetSellerTodayOrderCountRequestDto;
+import com.ssafy.funding.dto.seller.request.GetSellerTodayOrderTopThreeListRequestDto;
+import com.ssafy.funding.dto.seller.response.*;
 import com.ssafy.funding.entity.Funding;
 import com.ssafy.funding.entity.FundingWishCount;
 import com.ssafy.funding.entity.enums.Status;
@@ -30,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -40,7 +45,7 @@ import static com.ssafy.funding.common.response.ResponseCode.*;
 @Service
 @RequiredArgsConstructor
 public class FundingService implements ProductService {
-
+    private final OrderClient orderClient;
     private final FundingMapper fundingMapper;
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper objectMapper;
@@ -277,5 +282,84 @@ public class FundingService implements ProductService {
         return fundingList.stream()
                 .map(MyFundingResponseDto::toDto).collect(Collectors.toList());
     }
+    @Override
+    public GetSellerTotalAmountResponseDto getSellerTotalAmount(int sellerId) {
+        int totalAmount = fundingMapper.getSellerTotalAmount(sellerId);
+        return GetSellerTotalAmountResponseDto
+                .builder()
+                .totalAmount(totalAmount)
+                .build();
+    }
 
+    @Override
+    public GetSellerTotalFundingCountResponseDto getSellerTotalFundingCount(int sellerId) {
+        int totalCount = fundingMapper.getSellerTotalFundingCount(sellerId);
+        return GetSellerTotalFundingCountResponseDto
+                .builder()
+                .totalCount(totalCount)
+                .build();
+    }
+
+    @Override
+    public GetSellerTodayOrderCountResponseDto getSellerTodayOrderCount(int sellerId) {
+        List<Integer> fundingIdList = fundingMapper.getSellerTodayOrderCount(sellerId);
+
+        if(fundingIdList.size() == 0) {
+            int todayOrderCount = 0;
+            return GetSellerTodayOrderCountResponseDto
+                    .builder()
+                    .todayOrderCount(todayOrderCount)
+                    .build();
+        }
+
+        int todayOrderCount = orderClient.getSellerTodayOrderCount(
+                GetSellerTodayOrderCountRequestDto
+                        .builder()
+                        .fundingIdList(fundingIdList)
+                        .build()
+        ).getTodayOrderCount();
+
+        return GetSellerTodayOrderCountResponseDto
+                .builder()
+                .todayOrderCount(todayOrderCount)
+                .build();
+    }
+
+    @Override
+    public List<GetSellerOngoingTopFiveFundingResponseDto> getSellerOngoingTopFiveFunding(int sellerId) {
+        List<Funding> fundingList = fundingMapper.getSellerOngoingTopFiveFunding(sellerId);
+        return fundingList.stream().map(Funding::toGetSellerOngoingTopFiveFundingResponseDto).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<GetSellerOngoingFundingListResponseDto> getSellerOngoingFundingList(int sellerId, int page) {
+        List<Funding> fundingList = fundingMapper.getSellerOngoingFundingList(sellerId, page);
+        return fundingList.stream().map(Funding::toGetSellerOngoingFundingListResponseDto).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<GetSellerEndFundingListResponseDto> getSellerEndFundingList(int sellerId, int page) {
+        List<Funding> fundingList = fundingMapper.getSellerEndFundingList(sellerId, page);
+        return fundingList.stream().map(Funding::toGetSellerEndFundingListResponseDto).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThreeList(int sellerId) {
+        List<Integer> fundingIdList = fundingMapper.getSellerTodayOrderCount(sellerId);
+        if (fundingIdList.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<GetSellerTodayOrderTopThreeIdAndMoneyResponseDto> orderList = orderClient.getSellerTodayOrderTopThreeList(GetSellerTodayOrderTopThreeListRequestDto.builder().fundingIdList(fundingIdList).build());
+        List<Integer> fundingIdListTopThree = new ArrayList<>();
+        for(GetSellerTodayOrderTopThreeIdAndMoneyResponseDto dto: orderList) {
+            fundingIdListTopThree.add(dto.getFundingId());
+        }
+        List<GetSellerTodayOrderTopThreeListResponseDto> dto = fundingMapper.getSellerTodayOrderTopThreeList(fundingIdListTopThree).stream().map(
+                Funding::toGetSellerTodayOrderTopThreeListResponseDto
+        ).collect(Collectors.toList());
+        for(int i = 0; i < dto.size(); i++) {
+            dto.get(i).setTodayAmount(orderList.get(i).getTotalAmount());
+        }
+        return dto;
+    }
 }

@@ -21,6 +21,9 @@
         <result column="category" property="category" typeHandler="com.ssafy.funding.entity.typeHandlers.CategoryTypeHandler"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
+        <result column="progress_percentage" property="progressPercentage"/>
+        <result column="image_url" property="imageUrl"/>
+        <result column="remaining_time" property="remainingTime"/>
     </resultMap>
 
     <resultMap id="FundingWishResultMap" type="com.ssafy.funding.entity.FundingWishCount">
@@ -281,6 +284,50 @@
         </foreach>
     </select>
 
+    <select id="getSellerTotalAmount" resultType="integer">
+        CALL get_seller_total_amount(#{sellerId})
+    </select>
+
+    <select id="getSellerTotalFundingCount" resultType="integer">
+        CALL get_seller_ongoing_funding_count(#{sellerId})
+    </select>
+
+    <select id="getSellerTodayOrderCount" resultType="integer">
+        SELECT
+            funding_id
+        FROM
+            funding
+        WHERE
+            seller_id = #{sellerId}
+    </select>
+
+    <select id="getSellerOngoingTopFiveFunding" resultMap="FundingResultMap">
+        CALL get_seller_ongoing_top_funding_list(#{sellerId})
+    </select>
+
+    <select id="getSellerOngoingFundingList" resultMap="FundingResultMap">
+        CALL get_seller_ongoing_funding_list(#{sellerId}, #{page})
+    </select>
+
+    <select id="getSellerEndFundingList" resultMap="FundingResultMap">
+        CALL get_seller_end_funding_list(#{sellerId}, #{page})
+    </select>
+
+    <select id="getSellerTodayOrderTopThreeList" parameterType="list" resultMap="FundingResultMap">
+        SELECT
+            funding_id,
+            JSON_UNQUOTE(JSON_EXTRACT(image_urls, '$[0]')) AS image_url,
+            title,
+            description,
+            current_amount
+        FROM
+            funding
+        where
+            funding_id IN
+        <foreach item="fundingId" collection="fundingIdList" open="(" separator="," close=")">
+            #{fundingId}
+        </foreach>
+    </select>
     <!-- 내가 주문한 펀딩 조회 -->
     <select id="getMyFunding" parameterType="java.util.List" resultMap="FundingResultMap">
         SELECT * FROM funding
