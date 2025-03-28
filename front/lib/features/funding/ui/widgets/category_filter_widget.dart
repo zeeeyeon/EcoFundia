@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../ui/view_model/funding_list_view_model.dart'; // ✅ selectedCategoriesProvider 위치
+import '../../ui/view_model/funding_list_view_model.dart'; // selectedCategoriesProvider 위치
 
 // UI 텍스트 → API 값 매핑
 const categoryMap = {

@@ -36,7 +36,11 @@ class FundingService {
     );
 
     final rawData = response.data;
-    final content = rawData['content'] as List;
+    final content = rawData['content'];
+
+    if (content == null || content is! List) {
+      return []; // content가 null이거나 리스트가 아니면 빈 리스트 반환
+    }
 
     return content.map((e) => FundingModel.fromJson(e)).toList();
   }
@@ -51,7 +55,11 @@ class FundingService {
       },
     );
 
-    final List<dynamic> data = response.data['content'];
+    final data = response.data['content'];
+    if (data == null || data is! List) {
+      return []; // null 방어: 리스트 아님 or null이면 빈 리스트 반환
+    }
+
     return data.map((item) => FundingModel.fromJson(item)).toList();
   }
 
@@ -69,7 +77,13 @@ class FundingService {
       },
     );
 
-    final List<dynamic> data = response.data['content'];
-    return data.map((item) => FundingModel.fromJson(item)).toList();
+    final rawData = response.data;
+    final content = rawData['content'];
+
+    if (content == null || content is! List) {
+      return []; // content가 null이거나 리스트가 아니면 빈 리스트 반환
+    }
+
+    return content.map((e) => FundingModel.fromJson(e)).toList();
   }
 }
