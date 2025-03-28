@@ -5,6 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.order.client.FundingClient;
 import com.order.client.SellerClient;
 import com.order.common.exception.CustomException;
+import com.order.dto.funding.request.GetSellerTodayOrderCountRequestDto;
+import com.order.dto.funding.request.GetSellerTodayOrderTopThreeListRequestDto;
+import com.order.dto.funding.response.GetSellerTodayOrderCountResponseDto;
+import com.order.dto.funding.response.GetSellerTodayOrderTopThreeIdAndMoneyResponseDto;
 import com.order.dto.funding.response.IsOngoingResponseDto;
 import com.order.dto.ssafyApi.request.HeaderDto;
 import com.order.dto.ssafyApi.request.TransferRequestDto;
@@ -22,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.order.common.response.ResponseCode.*;
 
@@ -96,5 +101,22 @@ public class OrderServiceImpl implements OrderService {
     public List<Order> getOrder(int userId){
         List<Order> orders = orderMapper.getOrders(userId);
         return orders;
+    }
+
+    @Override
+    public GetSellerTodayOrderCountResponseDto getSellerTodayOrderCount(GetSellerTodayOrderCountRequestDto getSellerTodayOrderCountRequestDto) {
+        int todayOrderCount = orderMapper.getSellerTodayOrderCount(getSellerTodayOrderCountRequestDto.getFundingIdList());
+        return GetSellerTodayOrderCountResponseDto
+                .builder()
+                .todayOrderCount(todayOrderCount)
+                .build();
+    }
+
+    @Override
+    public List<GetSellerTodayOrderTopThreeIdAndMoneyResponseDto> getSellerTodayOrderTopThreeList(GetSellerTodayOrderTopThreeListRequestDto getSellerTodayOrderTopThreeListRequestDto) {
+        List<GetSellerTodayOrderTopThreeIdAndMoneyResponseDto> orderList = orderMapper
+                .getSellerTodayOrderTopThreeList(getSellerTodayOrderTopThreeListRequestDto.getFundingIdList())
+                .stream().map(Order::toGetSellerTodayOrderTopThreeIdAndMoneyResponseDto).collect(Collectors.toList());
+        return orderList;
     }
 }

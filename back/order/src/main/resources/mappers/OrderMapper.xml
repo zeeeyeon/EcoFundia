@@ -25,5 +25,56 @@
         VALUES (#{userId}, #{fundingId}, #{amount}, #{quantity}, #{totalPrice}, #{createdAt}, #{updatedAt})
     </insert>
 
+    <select id="getSellerTodayOrderCount" parameterType="list" resultType="integer">
+        SELECT
+            count(*)
+        FROM
+            `order`
+        WHERE
+            funding_id IN
+        <foreach item="fundingId" collection="fundingIdList" open="(" separator="," close=")">
+            #{fundingId}
+        </foreach>
+        AND
+            DATE(created_at) = CURDATE();
+    </select>
+
+    <select id="getSellerTodayOrderTopThreeList" parameterType="list" resultType="integer">
+        SELECT
+            funding_id
+        FROM
+            `order`
+        WHERE
+            funding_id IN
+        <foreach item="fundingId" collection="fundingIdList" open="(" separator="," close=")">
+            #{fundingId}
+        </foreach>
+        AND DATE(created_at) = CURDATE()
+        GROUP BY
+            funding_id
+        ORDER BY
+            SUM(total_price) DESC
+        LIMIT 3;
+    </select>
+
+    <select id="getSellerTodayOrderTopThreeAmount" parameterType="list" resultMap="OrderResultMap">
+        SELECT
+            funding_id,
+            sum(total_price) as total_price_sum_today
+        FROM
+            `order`
+        WHERE
+            funding_id IN
+        <foreach item="fundingId" collection="fundingIdList" open="(" separator="," close=")">
+            #{fundingId}
+        </foreach>
+        AND DATE(created_at) = CURDATE()
+        GROUP BY
+            funding_id
+        ORDER BY
+            SUM(total_price) DESC
+        LIMIT 3;
+    </select>
+
 
 </mapper>
