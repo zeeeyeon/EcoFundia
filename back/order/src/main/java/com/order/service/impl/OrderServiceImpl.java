@@ -51,9 +51,8 @@ public class OrderServiceImpl implements OrderService {
         IsOngoingResponseDto isOngoingResponseDto = fundingClient.isOngoing(fundingId);
 
         if (!isOngoingResponseDto.getIsOngoing()){ // 이미 끝난펀딩이면 종료
-            return null;
+            throw new CustomException(FUNDING_NOT_ONGOING);
         }
-
 
         // 3. 계좌 이체 하기
         // 3.1 header 만들기
@@ -78,6 +77,7 @@ public class OrderServiceImpl implements OrderService {
         // 계좌이체 실패 하면 예외 처리
         if (response == null || response.getHeader().getResponseCode() == null || !"H0000".equals(response.getHeader().getResponseCode())){
             throw new CustomException(SSAFY_API_ERROR, response.getHeader().getResponseCode(),response.getHeader().getResponseMessage());
+
         }
 
         // 성공하면 order 테이블에 삽입
