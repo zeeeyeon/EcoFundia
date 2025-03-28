@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../../../core/ui/widgets/custom_app_bar.dart';
 import '../view_model/funding_detail_view_model.dart';
 import '../widgets/funding_detail_card.dart';
