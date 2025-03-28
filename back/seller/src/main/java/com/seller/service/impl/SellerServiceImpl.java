@@ -1,15 +1,9 @@
 package com.seller.service.impl;
 
 import com.seller.client.FundingClient;
-import com.seller.common.exception.CustomException;
 import com.seller.common.util.JsonConverter;
-import com.seller.dto.request.FundingCreateRequestDto;
-import com.seller.dto.request.FundingCreateSendDto;
-import com.seller.dto.request.FundingUpdateRequestDto;
-import com.seller.dto.request.FundingUpdateSendDto;
-import com.seller.dto.response.FundingDetailSellerResponseDto;
-import com.seller.dto.response.FundingResponseDto;
-import com.seller.dto.response.SellerAccountResponseDto;
+import com.seller.dto.request.*;
+import com.seller.dto.response.*;
 import com.seller.entity.Seller;
 import com.seller.mapper.SellerMapper;
 import com.seller.service.SellerService;
@@ -90,6 +84,7 @@ public class SellerServiceImpl implements SellerService {
                 ));
     }
 
+
     // 펀딩 상세페이지 seller 정보 조회
     @Transactional
     public FundingDetailSellerResponseDto sellerInfo(int sellerId) {
@@ -106,5 +101,63 @@ public class SellerServiceImpl implements SellerService {
             return SellerAccountResponseDto.of("0","0");
         }
         return SellerAccountResponseDto.of(seller.getAccount(), seller.getSsafyUserKey());
+    }
+
+    @Override
+    public void grantSellerRole(int userId, GrantSellerRoleRequestDto grantSellerRoleRequestDto) {
+        String name = grantSellerRoleRequestDto.getName();
+        String businessNumber = grantSellerRoleRequestDto.getBusinessNumber();
+        sellerMapper.grantSellerRole(userId, name, businessNumber);
+    }
+
+    @Override
+    public GetSellerTotalAmountResponseDto getSellerTotalAmount(int userId) {
+        int sellerId = sellerMapper.getSellerIdByUserId(userId);
+        return GetSellerTotalAmountResponseDto
+                .builder()
+                .totalAmount(fundingClient.getSellerTotalAmount(sellerId).getTotalAmount())
+                .build();
+    }
+
+    @Override
+    public GetSellerTotalFundingCountResponseDto getSellerTotalFundingCount(int userId) {
+        int sellerId = sellerMapper.getSellerIdByUserId(userId);
+        return GetSellerTotalFundingCountResponseDto
+                .builder()
+                .totalCount(fundingClient.getSellerTotalFundingCountResponseDto(sellerId).getTotalCount())
+                .build();
+    }
+
+    @Override
+    public GetSellerTodayOrderCountResponseDto getSellerTodayOrderCount(int userId) {
+        int sellerId = sellerMapper.getSellerIdByUserId(userId);
+        return GetSellerTodayOrderCountResponseDto
+                .builder()
+                .todayOrderCount(fundingClient.getSellerTodayOrderCount(sellerId).getTodayOrderCount())
+                .build();
+    }
+
+    @Override
+    public List<GetSellerOngoingTopFiveFundingResponseDto> getSellerOngoingTopFiveFunding(int userId) {
+        int sellerId = sellerMapper.getSellerIdByUserId(userId);
+        return fundingClient.getSellerOngoingTopFiveFunding(sellerId);
+    }
+
+    @Override
+    public List<GetSellerOngoingFundingListResponseDto> getSellerOngoingFundingList(int userId, int page) {
+        int sellerId = sellerMapper.getSellerIdByUserId(userId);
+        return fundingClient.getSellerOngoingFundingList(sellerId, page);
+    }
+
+    @Override
+    public List<GetSellerEndFundingListResponseDto> getSellerEndFundingList(int userId, int page) {
+        int sellerId = sellerMapper.getSellerIdByUserId(userId);
+        return fundingClient.getSellerEndFundingList(sellerId, page);
+    }
+
+    @Override
+    public List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThreeList(int userId) {
+        int sellerId = sellerMapper.getSellerIdByUserId(userId);
+        return fundingClient.getSellerTodayOrderTopThreeList(sellerId);
     }
 }
