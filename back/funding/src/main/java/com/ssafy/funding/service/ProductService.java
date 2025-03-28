@@ -8,6 +8,7 @@ import com.ssafy.funding.dto.funding.response.FundingResponseDto;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
 import com.ssafy.funding.dto.review.response.ReviewResponseDto;
 import com.ssafy.funding.dto.seller.SellerDetailResponseDto;
+import com.ssafy.funding.dto.seller.response.*;
 import com.ssafy.funding.entity.Funding;
 import com.ssafy.funding.entity.enums.Status;
 import org.springframework.web.multipart.MultipartFile;
@@ -48,4 +49,12 @@ public interface ProductService {
     // 판매자 상세페이지 판매자 정보 요청 조회
     SellerDetailResponseDto getSellerDetail(int sellerId);
 
+    GetSellerTotalAmountResponseDto getSellerTotalAmount(int sellerId);
+
+    GetSellerTotalFundingCountResponseDto getSellerTotalFundingCount(int sellerId);
+    GetSellerTodayOrderCountResponseDto getSellerTodayOrderCount(int sellerId);
+    List<GetSellerOngoingTopFiveFundingResponseDto> getSellerOngoingTopFiveFunding(int sellerId);
+    List<GetSellerOngoingFundingListResponseDto> getSellerOngoingFundingList(int sellerId, int page);
+    List<GetSellerEndFundingListResponseDto> getSellerEndFundingList(int sellerId, int page);
+    List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThreeList(int sellerId);
 }
