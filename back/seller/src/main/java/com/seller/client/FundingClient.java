@@ -22,13 +22,13 @@ public interface FundingClient {
 //    ResponseEntity<?> getFundingId(@PathVariable int fundingId);
 //
     @PostMapping(value = "/api/funding/{sellerId}")
-    ResponseEntity<?> createFunding(@PathVariable int sellerId, @RequestBody FundingCreateSendDto dto);
+    ResponseEntity<?> createFunding(@PathVariable("sellerId") int sellerId, @RequestBody FundingCreateSendDto dto);
 
     @PutMapping(value = "/api/funding/{fundingId}")
-    ResponseEntity<?> updateFunding(@PathVariable int fundingId, @RequestBody FundingUpdateSendDto dto);
+    ResponseEntity<?> updateFunding(@PathVariable("fundingId") int fundingId, @RequestBody FundingUpdateSendDto dto);
 
     @DeleteMapping("/api/funding/{fundingId}")
-    ResponseEntity<?> deleteFunding(@PathVariable int fundingId);
+    ResponseEntity<?> deleteFunding(@PathVariable("fundingId") int fundingId);
 
     @GetMapping("/api/funding/{fundingId}")
     FundingResponseDto getFundingById(@PathVariable("fundingId") int fundingId);
