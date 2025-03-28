@@ -1,4 +1,4 @@
-import 'package:front/features/auth/domain/models/auth_response.dart';
+import 'package:front/features/auth/data/models/auth_response_model.dart';
 import 'package:front/utils/logger_util.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:front/core/exceptions/auth_exception.dart';
@@ -41,7 +41,8 @@ class AuthService {
         throw AuthException('액세스 토큰을 획득하지 못했습니다.');
       }
 
-      LoggerUtil.i('✅ 액세스 토큰 획득 성공');
+      LoggerUtil.i(
+          '✅ 액세스 토큰 획득 성공: ${accessToken.substring(0, min(10, accessToken.length))}...');
       return accessToken;
     } catch (e) {
       LoggerUtil.e('❌ Google 액세스 토큰 획득 실패', e);
@@ -50,7 +51,7 @@ class AuthService {
   }
 
   /// Google 인증 처리
-  Future<AuthResponse> authenticateWithGoogle(String accessToken) async {
+  Future<AuthResponseModel> authenticateWithGoogle(String accessToken) async {
     try {
       // Dio를 사용하여 API 요청
       final response = await _apiService.post(
@@ -69,11 +70,11 @@ class AuthService {
 
         // status 코드 검증
         final status = data['status'];
-        if (status == null || status['code'] != 'SU') {
+        if (status == null || status['code'] != '201') {
           throw AuthException(status?['message'] ?? '서버 응답이 올바르지 않습니다.');
         }
 
-        return AuthResponse.fromJson(data);
+        return AuthResponseModel.fromJson(data);
       }
 
       throw AuthException('예상치 못한 응답 코드: ${response.statusCode}');
@@ -82,10 +83,8 @@ class AuthService {
 
       if (e.response?.statusCode == 404) {
         // 회원가입이 필요한 경우
-        final data = e.response?.data;
-        final message = data?['status']?['message'] as String? ??
-            '해당 이메일로 가입된 사용자가 없습니다. 회원가입이 필요합니다.';
-        throw AuthException(message, statusCode: 404);
+        LoggerUtil.i('신규 회원: 회원가입이 필요합니다.');
+        throw AuthException('회원가입이 필요합니다.', statusCode: 404, isNewUser: true);
       }
 
       // 기타 오류

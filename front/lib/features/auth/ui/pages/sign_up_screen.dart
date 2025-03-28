@@ -8,9 +8,10 @@ import 'package:front/core/providers/app_state_provider.dart';
 import 'package:front/features/auth/ui/widgets/custom_text_field.dart';
 import 'package:front/features/auth/ui/widgets/gender_selection.dart';
 import 'package:front/utils/sign_up_validator.dart';
-import 'package:front/features/auth/domain/models/auth_result.dart';
+import 'package:front/features/auth/domain/entities/auth_result_entity.dart';
 import 'package:front/features/auth/ui/view_model/sign_up_view_model.dart';
 import 'package:go_router/go_router.dart';
+import 'package:front/core/ui/widgets/custom_button.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
   final String? token;
@@ -48,29 +49,46 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     super.dispose();
   }
 
-  Future<void> _handleSignUp() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+  /// 회원가입 처리
+  Future<void> _handleSignUp(BuildContext context, WidgetRef ref) async {
+    // 키보드 감추기
+    FocusScope.of(context).unfocus();
 
-    try {
-      final result = await ref.read(signUpProvider.notifier).signUp(
-            email: widget.email,
-            nickname: _nicknameController.text,
-            gender: _selectedGender!,
-            age: _ageController.text,
-            token: widget.token,
+    // 입력값 검증
+    if (_formKey.currentState!.validate()) {
+      try {
+        // SignUpViewModel에서 회원가입 실행
+        final result = await ref.read(signUpProvider.notifier).signUp(
+              email: widget.email,
+              nickname: _nicknameController.text.trim(),
+              gender: _selectedGender ?? 'MALE',
+              age: int.parse(_ageController.text.trim()),
+              token: widget.token,
+            );
+
+        if (!context.mounted) return;
+
+        // 결과 처리
+        if (result is AuthSuccessEntity) {
+          // 회원가입 성공 - 완료 화면으로 이동
+          context.goNamed(
+            'signup-complete',
+            extra: {'nickname': _nicknameController.text.trim()},
           );
-
-      if (mounted) {
-        if (result is AuthSuccess) {
-          // 회원가입 성공 시 닉네임과 함께 완료 화면으로 이동
-          context.go('/signup-success',
-              extra: {'nickname': _nicknameController.text});
+        } else if (result is AuthErrorEntity) {
+          // 에러 처리
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(result.message)),
+          );
         }
+      } catch (e) {
+        if (!context.mounted) return;
+
+        // 예외 처리
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('회원가입 처리 중 오류가 발생했습니다.')),
+        );
       }
-    } catch (e) {
-      // 에러 처리는 ViewModel에서 처리되므로 여기서는 추가 처리가 필요 없음
     }
   }
 
@@ -140,28 +158,15 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     keyboardType: TextInputType.number,
                     validator: SignUpValidator.validateAge,
                   ),
-                  const SizedBox(height: 24),
+                  const Spacer(),
 
                   /// 회원가입 버튼
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _handleSignUp,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text(
-                        '가입하기',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
+                  CustomButton(
+                    text: '가입하기',
+                    backgroundColor: AppColors.primary,
+                    onPressed: () => _handleSignUp(context, ref),
                   ),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),

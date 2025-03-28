@@ -25,7 +25,7 @@ class AppTextStyles {
       );
 
   static TextStyle get body1 => GoogleFonts.roboto(
-        fontSize: 16,
+        fontSize: 20,
         fontWeight: FontWeight.w400,
         color: AppColors.darkGrey,
       );
@@ -36,15 +36,15 @@ class AppTextStyles {
         color: AppColors.darkGrey,
       );
 
-  static TextStyle get caption => GoogleFonts.roboto(
-        fontSize: 12,
-        fontWeight: FontWeight.w400,
+  static TextStyle get caption => GoogleFonts.righteous(
+        fontSize: 22,
+        fontWeight: FontWeight.w500,
         color: AppColors.grey,
       );
 
   // 버튼 텍스트 스타일
-  static TextStyle get buttonText => GoogleFonts.roboto(
-        fontSize: 22,
+  static TextStyle get buttonText => GoogleFonts.robotoMono(
+        fontSize: 24,
         fontWeight: FontWeight.w500,
         height: 1.17,
         color: AppColors.grey,
@@ -94,26 +94,61 @@ class AppTextStyles {
         fontWeight: FontWeight.w400,
         color: AppColors.primary,
       );
+
+  // 에러 및 빈 상태 텍스트 스타일
+  static TextStyle get emptyMessage => GoogleFonts.roboto(
+        fontSize: 16,
+        fontWeight: FontWeight.w400,
+        color: AppColors.grey,
+      );
+
+  static TextStyle get body => GoogleFonts.notoSans(
+        fontSize: 16,
+        fontWeight: FontWeight.w400,
+        color: AppColors.black,
+      );
 }
 
 /// 홈/메인 화면 텍스트 스타일
 class HomeTextStyles {
-  static TextStyle get mainTitle => GoogleFonts.righteous(
+  static TextStyle get mainTitle => GoogleFonts.notoSans(
         fontSize: 40,
-        fontWeight: FontWeight.w400,
-        color: AppColors.darkGrey,
+        fontWeight: FontWeight.w700,
+        color: AppColors.black,
       );
 
-  static TextStyle get totalFund => GoogleFonts.righteous(
-        fontSize: 40,
+  static TextStyle get time => GoogleFonts.notoSans(
+        fontSize: 24,
         fontWeight: FontWeight.w400,
+        color: AppColors.grey,
+      );
+
+  static TextStyle get totalFund => GoogleFonts.notoSans(
+        fontSize: 32,
+        fontWeight: FontWeight.w700,
         color: AppColors.primary,
       );
 
   static TextStyle get totalFundLabel => GoogleFonts.righteous(
-        fontSize: 32,
-        fontWeight: FontWeight.w400,
-        color: AppColors.grey,
+        fontSize: 24,
+        fontWeight: FontWeight.w300,
+        color: Colors.grey[400],
+      );
+
+  // 추가된 스타일 - 금액 표시용
+  static TextStyle get fundAmount => const TextStyle(
+        fontSize: 42,
+        fontWeight: FontWeight.w700,
+        height: 1.1,
+        letterSpacing: 0.5,
+        color: AppColors.fundAmount,
+      );
+
+  // 추가된 스타일 - "원" 표시용
+  static TextStyle get fundUnit => const TextStyle(
+        fontSize: 36,
+        fontWeight: FontWeight.normal,
+        color: AppColors.fundAmount,
       );
 
   static TextStyle get topProjectTitle => GoogleFonts.righteous(
@@ -122,18 +157,16 @@ class HomeTextStyles {
         color: AppColors.darkGrey,
       );
 
-  static TextStyle get projectTitle => const TextStyle(
-        fontFamily: 'Space Grotesk',
-        fontSize: 16,
-        fontWeight: FontWeight.w500,
-        color: AppColors.darkGrey,
+  static TextStyle get projectTitle => GoogleFonts.notoSans(
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        color: AppColors.black,
       );
 
-  static TextStyle get projectDescription => const TextStyle(
-        fontFamily: 'Space Grotesk',
+  static TextStyle get projectDescription => GoogleFonts.notoSans(
         fontSize: 14,
-        fontWeight: FontWeight.w500,
-        color: AppColors.darkGrey,
+        fontWeight: FontWeight.w400,
+        color: AppColors.grey,
       );
 
   static TextStyle get projectLabel => const TextStyle(
@@ -141,14 +174,21 @@ class HomeTextStyles {
         color: AppColors.grey,
       );
 
-  static TextStyle get projectPercentage => const TextStyle(
+  static TextStyle get projectPercentage => GoogleFonts.righteous(
         fontSize: 20,
         fontWeight: FontWeight.w500,
         color: AppColors.primary,
       );
 
-  static TextStyle get projectPrice => const TextStyle(
-        fontSize: 15,
+  static TextStyle get projectPrice => GoogleFonts.notoSans(
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+        color: AppColors.primary,
+      );
+
+  static TextStyle get projectTime => GoogleFonts.notoSans(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
         color: AppColors.grey,
       );
 
@@ -260,5 +300,108 @@ class WishlistTextStyles {
   static TextStyle get emptyMessage => TextStyle(
         fontSize: 16,
         color: AppColors.textMuted,
+      );
+}
+
+/// 판매자(메이커) 화면 텍스트 스타일
+class SellerTextStyles {
+  // 판매자 프로필 스타일
+  static TextStyle get sellerName => GoogleFonts.roboto(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+        color: AppColors.darkGrey,
+      );
+
+  static TextStyle get makerType => GoogleFonts.roboto(
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        color: AppColors.grey,
+      );
+
+  static TextStyle get badge => const TextStyle(
+        fontSize: 10,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+      );
+
+  // 판매자 통계 스타일
+  static TextStyle get statTitle => GoogleFonts.roboto(
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        color: AppColors.grey,
+      );
+
+  static TextStyle get statValue => GoogleFonts.roboto(
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
+        color: AppColors.darkGrey,
+      );
+
+  static TextStyle get statDetail => GoogleFonts.roboto(
+        fontSize: 10,
+        color: AppColors.grey,
+      );
+
+  // 탭 스타일
+  static TextStyle get tabSelected => GoogleFonts.roboto(
+        fontSize: 14,
+        fontWeight: FontWeight.bold,
+        color: AppColors.primary,
+      );
+
+  static TextStyle get tabUnselected => GoogleFonts.roboto(
+        fontSize: 14,
+        fontWeight: FontWeight.normal,
+        color: AppColors.grey,
+      );
+
+  // 섹션 헤더 스타일
+  static TextStyle get sectionTitle => GoogleFonts.roboto(
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
+        color: AppColors.darkGrey,
+      );
+
+  // 프로젝트 컨텐츠 스타일
+  static TextStyle get projectTitle => GoogleFonts.roboto(
+        fontSize: 14,
+        fontWeight: FontWeight.bold,
+        color: AppColors.darkGrey,
+      );
+
+  static TextStyle get emptyMessage => GoogleFonts.roboto(
+        fontSize: 14,
+        color: AppColors.grey,
+      );
+
+  // 리뷰 스타일
+  static TextStyle get reviewUserName => GoogleFonts.roboto(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+        color: AppColors.darkGrey,
+      );
+
+  static TextStyle get reviewContent => GoogleFonts.roboto(
+        fontSize: 18,
+        fontWeight: FontWeight.w500,
+        color: AppColors.darkGrey,
+      );
+
+  static TextStyle get reviewProductName => GoogleFonts.roboto(
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
+        color: Colors.grey,
+      );
+
+  static TextStyle get reviewHeader => GoogleFonts.roboto(
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+        color: AppColors.darkGrey,
+      );
+
+  static TextStyle get reviewStats => GoogleFonts.roboto(
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+        color: AppColors.darkGrey,
       );
 }

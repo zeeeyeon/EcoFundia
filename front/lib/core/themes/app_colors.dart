@@ -33,4 +33,11 @@ class AppColors {
   // 텍스트 필드 색상
   static const textFieldColor = extraLightGrey;
   static const textFieldTextColor = Color(0xFF171816);
+
+  static const Color background = Color(0xFFF5F5F5);
+
+  // TOTAL FUND 관련 색상
+  static const Color fundAmount = Color(0xFFACE33B); // 연두색 금액 표시 색상
+  static final Color fundBoxShadow =
+      Colors.grey.withOpacity(0.2); // 금액 표시 박스 그림자 색상
 }

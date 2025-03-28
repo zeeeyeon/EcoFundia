@@ -18,10 +18,10 @@ class GenderSelection extends FormField<String> {
                     Expanded(
                       child: _GenderButton(
                         gender: '남성',
-                        isSelected: field.value == '남성',
+                        isSelected: field.value == 'MALE',
                         onTap: () {
-                          field.didChange('남성');
-                          onChanged('남성');
+                          field.didChange('MALE');
+                          onChanged('MALE');
                         },
                       ),
                     ),
@@ -29,10 +29,10 @@ class GenderSelection extends FormField<String> {
                     Expanded(
                       child: _GenderButton(
                         gender: '여성',
-                        isSelected: field.value == '여성',
+                        isSelected: field.value == 'FEMALE',
                         onTap: () {
-                          field.didChange('여성');
-                          onChanged('여성');
+                          field.didChange('FEMALE');
+                          onChanged('FEMALE');
                         },
                       ),
                     ),

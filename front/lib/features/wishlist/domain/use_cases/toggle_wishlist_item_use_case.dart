@@ -8,6 +8,6 @@ class ToggleWishlistItemUseCase {
 
   /// 유스케이스 실행
   Future<bool> execute(int itemId) async {
-    return _repository.toggleWishlistItem(itemId);
+    return _repository.toggleLike(itemId);
   }
 }
