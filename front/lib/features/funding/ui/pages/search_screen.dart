@@ -78,17 +78,16 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 SearchCategoryChip(
                   label: "⭐ 베스트펀딩",
                   isSelected: _selectedTopic == "best",
-                  onTap: () => setState(() => _selectedTopic = "best"),
+                  onTap: () => setState(() {
+                    _selectedTopic = (_selectedTopic == "best") ? null : "best";
+                  }),
                 ),
                 SearchCategoryChip(
                   label: "⏰ 마감임박",
                   isSelected: _selectedTopic == "soon",
-                  onTap: () => setState(() => _selectedTopic = "soon"),
-                ),
-                SearchCategoryChip(
-                  label: "# 오늘의 검색어",
-                  isSelected: false,
-                  onTap: () {},
+                  onTap: () => setState(() {
+                    _selectedTopic = (_selectedTopic == "soon") ? null : "soon";
+                  }),
                 ),
               ],
             ),
@@ -112,8 +111,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 : resultState.when(
                     loading: () =>
                         const Center(child: CircularProgressIndicator()),
-                    error: (err, _) =>
-                        Center(child: Text("\uAC80\uC0C9 \uC624\uB958: $err")),
+                    error: (err, _) => Center(child: Text("에러 발생: $err")),
                     data: (results) => SearchFundingList(
                       fundingList: results,
                       scrollController: _scrollController,
