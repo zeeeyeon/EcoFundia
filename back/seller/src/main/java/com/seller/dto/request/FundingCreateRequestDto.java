@@ -9,7 +9,6 @@ public record FundingCreateRequestDto(
         int price,
         int quantity,
         int targetAmount,
-        LocalDateTime startDate,
         LocalDateTime endDate,
         String category
 
@@ -22,7 +21,6 @@ public record FundingCreateRequestDto(
                 this.price,
                 this.quantity,
                 this.targetAmount,
-                this.startDate,
                 this.endDate,
                 this.category,
                 storyFileUrl,
