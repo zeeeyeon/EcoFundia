@@ -10,7 +10,7 @@
     </resultMap>
 
     <insert id="createWish">
-        INSERT INTO wishList (user_id, funding_id)
+        INSERT INTO wishlist (user_id, funding_id)
         VALUES (#{userId}, #{fundingId})
     </insert>
 
@@ -36,11 +36,15 @@
     </select>
 
     <delete id="deleteWish">
-        DELETE FROM wishList WHERE user_id = #{userId} AND funding_id = #{fundingId}
+        DELETE FROM wishlist WHERE user_id = #{userId} AND funding_id = #{fundingId}
     </delete>
 
     <select id="existsByUserIdAndFundingId" resultType="boolean">
-        SELECT COUNT(*) > 0 FROM wishList WHERE user_id = #{userId} AND funding_id = #{fundingId}
+        SELECT EXISTS(
+            SELECT 1 FROM wishlist
+            WHERE user_id = #{userId} AND funding_id = #{fundingId}
+        )
     </select>
+
 
 </mapper>
