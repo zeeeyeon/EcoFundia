@@ -275,4 +275,20 @@ public class FundingService implements ProductService {
                 .map(MyFundingResponseDto::toDto).collect(Collectors.toList());
     }
 
+    @Override
+    public List<Funding> getSuccessFundingsNotSent() {
+        // SUCCESS 상태이며 아직 settlementCompleted가 false인 펀딩 조회
+        return fundingMapper.findByStatusAndEventSent(false);
+    }
+
+    @Override
+    public Funding getFundingById(int fundingId) {
+        return fundingMapper.findById(fundingId);
+    }
+
+    @Override
+    public void updateSettlementCompleted(Long fundingId, Boolean eventSent) {
+        fundingMapper.updateSettlementCompleted(fundingId, eventSent);
+    }
+
 }
