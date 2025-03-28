@@ -100,6 +100,9 @@ public class FundingService implements ProductService {
     @Transactional
     public List<GetFundingResponseDto> getTopFundingList(){
         List<Funding> fundingList = fundingMapper.getTopFundingList();
+        if (fundingList == null) {
+            throw new CustomException(FUNDING_NOT_FOUND);
+        }
         return fundingList.stream().map(Funding::toDto).collect(Collectors.toList());
     }
 

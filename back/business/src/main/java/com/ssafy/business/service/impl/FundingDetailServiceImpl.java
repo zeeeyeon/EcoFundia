@@ -23,10 +23,7 @@ public class FundingDetailServiceImpl implements FundingDetailService {
 
     // 펀딩 상세 페이지
     public FundingDetailResponseDTO getFundingDetail(int fundingId){
-        FundingResponseDTO fundingInfo = fundingClient.getFundingDetail(fundingId);
-        if (fundingInfo == null) {
-            throw new CustomException(FUNDING_NOT_FOUND);
-        }
+        FundingResponseDTO fundingInfo = fundingClient.getFundingDetail(fundingId); //null은 funding에서 처리
         FundingDetailSellerDTO sellerInfo = sellerClient.getSellerInfo(fundingInfo.getSellerId());
         if (sellerInfo == null) {
             throw new CustomException(SELLER_NOT_FOUND);
