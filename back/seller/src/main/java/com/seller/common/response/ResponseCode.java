@@ -48,7 +48,18 @@ public enum ResponseCode {
     BAD_REQUEST(400, HttpStatus.BAD_REQUEST, "올바르지 않은 요청입니다."),
     DATABASE_ERROR(500, HttpStatus.INTERNAL_SERVER_ERROR, "데이터베이스 오류가 발생했습니다."),
     BAD_SQL_ERROR(400, HttpStatus.BAD_REQUEST, "SQL 문법 오류가 발생했습니다."),
-    DATA_NOT_FOUND(404, HttpStatus.NOT_FOUND, "조회된 데이터가 없습니다.");
+    DATA_NOT_FOUND(404, HttpStatus.NOT_FOUND, "조회된 데이터가 없습니다."),
+
+    GRANT_SELLER_ROLE(201, HttpStatus.CREATED, "판매자로 변경되었습니다."),
+    GET_SELLER_TOTAL_AMOUNT(successCode(), HttpStatus.OK, "판매자의 총 펀딩액이 조회되었습니다."),
+    GET_SELLER_TOTAL_FUNDING_COUNT(successCode(), HttpStatus.OK, "판매자의 진행중인 펀딩 상품 개수가 조회되었습니다."),
+    GET_SELLER_TODAY_ORDER_COUNT(successCode(), HttpStatus.OK, "판매자의 진행중인 오늘 펀딩 주문 개수가 조회되었습니다."),
+    GET_SELLER_ONGOING_TOP_FIVE_FUNDING(successCode(), HttpStatus.OK, "판매자의 진행중인 TOP5 펀딩 상품이 조회되었습니다."),
+    GET_SELLER_ONGOING_FUNDING_LIST(successCode(), HttpStatus.OK, "판매자의 진행중인 펀딩 상품 리스트가 조회되었습니다."),
+    GET_SELLER_END_FUNDING_LIST(successCode(), HttpStatus.OK, "판매자의 종료된 펀딩 상품 리스트가 조회되었습니다."),
+    GET_SELLER_TODAY_ORDER_TOP_THREE_LIST(successCode(), HttpStatus.OK, "판매자의 오늘의 펀딩 모금액 리스트가 조회되었습니다.");
+
+
 
     private final int code;
     private final HttpStatus httpStatus;
@@ -57,4 +68,6 @@ public enum ResponseCode {
     private static int successCode() {
         return 200;
     }
+
+
 }
