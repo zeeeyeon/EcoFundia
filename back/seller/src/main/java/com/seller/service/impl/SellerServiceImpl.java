@@ -28,17 +28,16 @@ public class SellerServiceImpl implements SellerService {
     private final FundingClient fundingClient;
     private final S3FileService s3FileService;
 
-
     @Override
-    public ResponseEntity<?> createFunding(int sellerId, FundingCreateRequestDto dto,
+    public ResponseEntity<?> createFunding(int userId, FundingCreateRequestDto dto,
                                            MultipartFile storyFile, List<MultipartFile> imageFiles) {
         String storyFileUrl = s3FileService.uploadFile(storyFile, "funding/story");
         List<String> imageUrls = s3FileService.uploadFiles(imageFiles, "funding/images");
 
         String imageUrlsJson = JsonConverter.convertImageUrlsToJson(imageUrls);
-
         FundingCreateSendDto toDto = dto.toDto(storyFileUrl, imageUrlsJson);
 
+        int sellerId = sellerMapper.getSellerIdByUserId(userId);
         return fundingClient.createFunding(sellerId, toDto);
     }
 

@@ -25,13 +25,13 @@ public class SellerController {
 
     private final SellerService sellerService;
 
-    @PostMapping(value = "/funding/{sellerId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> createFunding(
-            @PathVariable int sellerId,
+    @PostMapping(value = "/funding/registration", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> registrationFunding(
+            @RequestHeader("X-User-Id") int userId,
             @RequestPart("dto") FundingCreateRequestDto dto,
             @RequestPart("storyFile") MultipartFile storyFile,
             @RequestPart("imageFiles") List<MultipartFile> imageFiles) {
-        return sellerService.createFunding(sellerId, dto, storyFile, imageFiles);
+        return sellerService.createFunding(userId, dto, storyFile, imageFiles);
     }
 
     @PutMapping(value = "/funding/{fundingId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
