@@ -29,9 +29,6 @@ public interface FundingClient {
 
     @GetMapping("/api/funding/{fundingId}")
     FundingResponseDto getFundingById(@PathVariable("fundingId") int fundingId);
-//
-//    @PostMapping("/api/seller/sellerNames")
-//    Map<Integer, String> getSellerNames(@RequestBody List<Integer> sellerIds);
 
     @GetMapping("/api/funding/seller/total-amount/{sellerId}")
     GetSellerTotalAmountResponseDto getSellerTotalAmount(@PathVariable("sellerId") int sellerId);
