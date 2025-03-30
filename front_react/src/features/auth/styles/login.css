@@ -35,11 +35,9 @@
   width: 5rem;
   height: 5rem;
   transition: all 0.3s ease;
-  background: linear-gradient(
-    135deg,
-    var(--color-primary) 0%,
-    var(--color-secondary-light) 100%
-  );
+  background: linear-gradient(135deg,
+      var(--color-primary) 0%,
+      var(--color-secondary-light) 100%);
   border-radius: 50%;
   box-shadow: 0 0 25px rgba(182, 230, 46, 0.4);
   display: flex;
@@ -97,11 +95,9 @@
 .title {
   font-size: 3.5rem;
   font-weight: bold;
-  background: linear-gradient(
-    to right,
-    var(--color-primary),
-    var(--color-secondary-light)
-  );
+  background: linear-gradient(to right,
+      var(--color-primary),
+      var(--color-secondary-light));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -121,8 +117,11 @@
 }
 
 .button-container {
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   min-height: 48px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 }
 
 .info-text {
@@ -185,6 +184,7 @@
 }
 
 @keyframes bounce {
+
   0%,
   100% {
     transform: translateY(0);
@@ -203,6 +203,8 @@
 
 .google-login-wrapper {
   margin-bottom: 1.5rem;
+  width: 100%;
+  display: block;
 }
 
 .google-custom-button {

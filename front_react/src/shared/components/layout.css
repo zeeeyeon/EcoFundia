@@ -85,8 +85,9 @@
     left: 0;
     bottom: 0;
     background-color: white;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
     transition: var(--sidebar-transition);
+    border-right: 1px solid #e5e7eb;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
     z-index: 999;
     overflow-x: hidden;
 }
@@ -101,7 +102,7 @@
 
 .sidebar-toggle-button {
     position: absolute;
-    top: 10px;
+    top: 15px;
     right: 10px;
     background: none;
     border: none;
@@ -109,6 +110,7 @@
     cursor: pointer;
     padding: 5px;
     border-radius: 4px;
+    margin-bottom: 10px;
 }
 
 .sidebar-toggle-button:hover {
@@ -126,52 +128,112 @@
 }
 
 .sidebar-nav li {
-    margin-bottom: 10px;
+    margin-bottom: 5px;
+    position: relative;
 }
 
 .sidebar-nav li a {
     display: flex;
     align-items: center;
-    padding: 1rem 1.5rem;
-    color: var(--color-text);
+    padding: 12px 15px;
+    color: #333;
     text-decoration: none;
-    transition: background-color 0.2s ease;
-    white-space: nowrap;
+    border-radius: 6px;
+    margin: 15px 10px;
+    position: relative;
+    transition: all 0.2s ease;
 }
 
 .sidebar-nav li a:hover {
-    background-color: #f8fafc;
+    background-color: #f3f4f6;
 }
 
 .sidebar-nav li a.active {
-    background-color: var(--color-primary-light);
-    color: var(--color-primary);
+    background-color: #ebf5ff;
+    color: #2563eb;
+    font-weight: 600;
+    box-shadow: 0 0 0 1px #2563eb;
+}
+
+.sidebar-nav li a.active::before {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: 0;
+    height: 100%;
+    width: 4px;
+    background-color: #2563eb;
+    border-radius: 0 2px 2px 0;
+}
+
+.sidebar-nav .menu-text {
+    margin-left: 10px;
+}
+
+/* 활성화된 메뉴 항목 스타일 */
+.active-menu>a {
     font-weight: 600;
 }
 
-.sidebar-nav li a span {
-    margin-right: 1rem;
-    /* Icon margin */
+/* 서브메뉴 컨테이너 스타일 */
+.submenu-container {
+    padding: 5px 5px 0 15px;
+    margin-top: 5px;
 }
 
-.menu-text {
-    opacity: 1;
-    transition: opacity 0.2s ease;
-}
-
-.dashboard-sidebar.closed .menu-text {
-    opacity: 0;
-    width: 0;
+/* 서브메뉴 스타일 */
+.submenu {
+    background-color: rgba(0, 123, 255, 0.05);
+    border-radius: 6px;
     overflow: hidden;
+    margin-left: 15px !important;
+    margin-top: 5px;
 }
 
+.submenu li {
+    margin: 0 !important;
+}
+
+.submenu li a {
+    padding: 10px;
+    font-size: 0.9rem;
+    margin: 2px 5px;
+    border-radius: 4px;
+}
+
+.submenu li a:hover {
+    background-color: #f0f4f8;
+}
+
+.submenu li a.active {
+    background-color: #ebf5ff;
+    color: #2563eb;
+    box-shadow: 0 0 0 1px #2563eb;
+}
+
+.submenu li a.active::before {
+    left: -5px;
+    height: calc(100% - 6px);
+    top: 3px;
+}
+
+/* 사이드바 닫혔을 때 아이콘 중앙 정렬 */
 .dashboard-sidebar.closed .sidebar-nav li a {
     justify-content: center;
-    padding: 1rem 0;
+    padding: 12px 0;
 }
 
-.dashboard-sidebar.closed .sidebar-nav li a span {
+.dashboard-sidebar.closed .sidebar-toggle-button {
+    right: 15px;
+}
+
+.dashboard-sidebar.closed .menu-icon {
     margin-right: 0;
+}
+
+/* 사이드바 닫혔을 때 서브메뉴 숨김 */
+.dashboard-sidebar.closed .submenu {
+    display: none;
 }
 
 /* Main Content Area */
@@ -188,4 +250,46 @@
 
 .main-content.sidebar-open {
     padding-left: var(--sidebar-width-open);
+}
+
+/* 대시보드 컨텐츠 영역 공통 스타일 */
+.dashboard-content-area {
+    padding: 2rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* 서브메뉴 스타일 추가 */
+.menu-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border-radius: 8px;
+}
+
+.menu-item:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.menu-item.active {
+    background-color: #f0f9ff;
+    color: #0c69d3;
+}
+
+/* 드롭다운 아이콘 스타일 제거 */
+/* .dropdown-icon {
+    margin-left: auto;
+    font-size: 0.8rem;
+} */
+
+/* 메뉴 아이콘 스타일 */
+.menu-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    width: 20px;
+    margin-right: 10px;
 }

@@ -4,6 +4,7 @@ import LoginPage from '../features/auth/LoginPage'; // 경로 수정
 import RegisterPage from '../features/register/RegisterPage'; // 경로 수정 및 이름 변경
 import DashboardPage from '../features/dashboard/DashboardPage'; // 경로 수정
 import ProjectManagementPage from '../features/projectManagement/ProjectManagementPage'; // 경로 수정
+import ProductRegistrationPage from '../features/productRegistration/components/ProductRegistrationPage'; // 경로 수정
 import useAuthStore from '../features/auth/store'; // 경로 수정
 
 // ProtectedRoute 로직
@@ -44,6 +45,15 @@ const AppRouter: React.FC = () => {
                 element={
                     <ProtectedRoute>
                         <ProjectManagementPage />
+                    </ProtectedRoute>
+                }
+            />
+            {/* 상품 등록 페이지 라우트 추가 */}
+            <Route
+                path="/product-registration"
+                element={
+                    <ProtectedRoute>
+                        <ProductRegistrationPage />
                     </ProtectedRoute>
                 }
             />
