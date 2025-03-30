@@ -86,7 +86,7 @@ class SellerInfo {
     return SellerInfo(
       sellerId: json['sellerId'],
       sellerName: json['sellerName'],
-      sellerProfileImageUrl: json['sellerProfileImageUrl'],
+      sellerProfileImageUrl: json['sellerProfileImageUrl'] ?? '',
     );
   }
 }
