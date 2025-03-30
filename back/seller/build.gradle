@@ -43,6 +43,8 @@ dependencies {
 	//mybatis
 	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.4'
 
+	implementation 'org.springframework.kafka:spring-kafka:4.0.0-M1'
+
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	annotationProcessor 'org.projectlombok:lombok'
