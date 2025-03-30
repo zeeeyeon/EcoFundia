@@ -37,6 +37,7 @@ dependencies {
 
 	//eureka-client
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
 	implementation group: 'io.awspring.cloud', name: 'spring-cloud-starter-aws-secrets-manager-config', version: '2.4.4'
 

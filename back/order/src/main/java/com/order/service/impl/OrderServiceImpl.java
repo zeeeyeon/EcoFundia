@@ -7,6 +7,7 @@ import com.order.client.SellerClient;
 import com.order.common.exception.CustomException;
 import com.order.dto.funding.response.FundingResponseDto;
 import com.order.dto.funding.response.IsOngoingResponseDto;
+import com.order.dto.seller.response.TotalAmountResponseDto;
 import com.order.dto.ssafyApi.request.HeaderDto;
 import com.order.dto.ssafyApi.request.TransferRequestDto;
 import com.order.dto.ssafyApi.response.ApiResponseDto;
@@ -108,5 +109,11 @@ public class OrderServiceImpl implements OrderService {
         List<Integer> fundingIds = orderMapper.getMyFundingIds(userId);
         List<FundingResponseDto> fundingList = fundingClient.getMyFunding(fundingIds);
         return fundingList;
+    }
+
+    @Override
+    public TotalAmountResponseDto getOrderInfoByFundingId(int fundingId) {
+        int amount = orderMapper.sumOrderAmountByFundingId(fundingId);
+        return new TotalAmountResponseDto(fundingId,amount);
     }
 }

@@ -2,6 +2,7 @@ package com.order.controller;
 
 import com.order.dto.funding.response.FundingResponseDto;
 import com.order.dto.order.response.OrderResponseDto;
+import com.order.dto.seller.response.TotalAmountResponseDto;
 import com.order.entity.Order;
 import com.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -48,6 +49,11 @@ public class OrderController {
     public int getMyOrderPrice(@RequestHeader("X-User-Id") int userId){
         int price = orderService.getMyOrderPrice(userId);
         return price;
+    }
+
+    @GetMapping("/order-info")
+    public TotalAmountResponseDto getOrderInfoByFundingId(@RequestParam("fundingId") int fundingId) {
+        return orderService.getOrderInfoByFundingId(fundingId);
     }
 
 }

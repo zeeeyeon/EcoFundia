@@ -23,5 +23,5 @@ public interface SellerService {
 
     SellerAccountResponseDto getSellerAccount(int sellerId);
 
-    void processSettlement(int fundingId);
+    void processSettlement(int fundingId, int sellerId);
 }

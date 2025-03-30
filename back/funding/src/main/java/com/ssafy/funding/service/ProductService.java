@@ -63,5 +63,5 @@ public interface ProductService {
     Funding getFundingById(int fundingId);
 
     // settlement_completed 플래그 업데이트
-    void updateSettlementCompleted(Long fundingId, Boolean eventSent);
+    void updateSettlementCompleted(int fundingId, Boolean eventSent);
 }

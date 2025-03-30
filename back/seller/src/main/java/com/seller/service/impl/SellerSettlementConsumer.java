@@ -31,6 +31,6 @@ public class SellerSettlementConsumer {
         log.info("Seller service received funding completed event for fundingId: {}", event.getFundingId());
         // 예약된 정산 시각에 작업 실행 예약
         Date executionTime = Date.from(event.getSettlementTime().atZone(ZoneId.systemDefault()).toInstant());
-        taskScheduler.schedule(() -> sellerSettlementService.processSettlement(event.getFundingId()), executionTime);
+        taskScheduler.schedule(() -> sellerSettlementService.processSettlement(event.getFundingId(), event.getSellerId()), executionTime);
     }
 }
