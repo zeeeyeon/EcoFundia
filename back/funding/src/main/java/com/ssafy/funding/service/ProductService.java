@@ -7,6 +7,7 @@ import com.ssafy.funding.dto.funding.request.FundingUpdateSendDto;
 import com.ssafy.funding.dto.funding.response.FundingResponseDto;
 import com.ssafy.funding.dto.funding.response.FundingWishCountResponseDto;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
+import com.ssafy.funding.dto.funding.response.MyFundingResponseDto;
 import com.ssafy.funding.dto.review.response.ReviewResponseDto;
 import com.ssafy.funding.dto.seller.SellerDetailResponseDto;
 import com.ssafy.funding.entity.Funding;
@@ -52,4 +53,15 @@ public interface ProductService {
     // 판매자 상세페이지 판매자 정보 요청 조회
     SellerDetailResponseDto getSellerDetail(int sellerId);
 
+    // 내가 주훔한 펀딩 조회
+    List<MyFundingResponseDto> getMyFunding(List<Integer> fundingIds);
+
+    // SUCCESS 상태이며 아직 정산 완료되지 않은 펀딩 목록 조회
+    List<Funding> getSuccessFundingsNotSent();
+
+    // 펀딩 ID로 펀딩 정보 조회
+    Funding getFundingById(int fundingId);
+
+    // settlement_completed 플래그 업데이트
+    void updateSettlementCompleted(Long fundingId, Boolean eventSent);
 }
