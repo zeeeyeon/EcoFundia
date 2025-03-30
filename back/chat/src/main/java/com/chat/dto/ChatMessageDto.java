@@ -7,6 +7,7 @@ public class ChatMessageDto {
 
     private String content;
     private String sender;
+    private String channelId;
 
     public ChatMessageDto(String content, String sender) {
         this.content = content;
