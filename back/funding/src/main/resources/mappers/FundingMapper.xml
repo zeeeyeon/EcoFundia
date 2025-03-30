@@ -21,6 +21,7 @@
         <result column="category" property="category" typeHandler="com.ssafy.funding.entity.typeHandlers.CategoryTypeHandler"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
+        <result property="settlementCompleted" column="settlement_completed"/>
     </resultMap>
 
     <resultMap id="FundingWishResultMap" type="com.ssafy.funding.entity.FundingWishCount">
@@ -280,5 +281,27 @@
             #{id}
         </foreach>
     </select>
+
+    <!-- 내가 주문한 펀딩 조회 -->
+    <select id="getMyFunding" parameterType="java.util.List" resultMap="FundingResultMap">
+        SELECT * FROM funding
+        WHERE funding_id IN
+        <foreach item="id" collection="fundingIds" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="findByStatusAndEventSent" resultMap="FundingResultMap">
+        SELECT * FROM funding
+        WHERE status = 'SUCCESS' AND settlement_completed = #{eventSent}
+    </select>
+
+    <!-- settlement_completed 플래그 업데이트 (정산 완료 후 호출) -->
+    <update id="updateSettlementCompleted">
+        UPDATE funding
+        SET settlement_completed = #{eventSent}
+        WHERE funding_id = #{fundingId}
+    </update>
+
 
 </mapper>

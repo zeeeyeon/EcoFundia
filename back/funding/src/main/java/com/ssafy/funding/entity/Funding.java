@@ -31,6 +31,7 @@ public class Funding {
     private int currentAmount;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
+    private boolean settlementCompleted = false;
 
     private Status status;
     private Category category;

@@ -36,7 +36,7 @@ public class OrderController {
         return orderService.getOrder(userId);
     }
 
-    // 내가 주문한 펀딩 아이디 조회
+    // 내가 주문한 펀딩 조회
     @GetMapping("/funding")
     public List<FundingResponseDto> getMyFunding(@RequestHeader("X-User-Id") int userId){
         List<FundingResponseDto> fundingList = orderService.getMyFunding(userId);
