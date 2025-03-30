@@ -36,7 +36,7 @@ public class FundingSettlementPollingService {
         for (Funding funding : fundingList) {
             // 펀딩 종료시간에 정산 지연 시간(예: 2시간)을 더하여 정산 실행 예약 시각 계산
             LocalDateTime settlementTime = funding.getEndDate().plusHours(SETTLEMENT_DELAY_HOURS);
-            FundingCompletedEvent event = new FundingCompletedEvent(funding.getFundingId(), settlementTime);
+            FundingCompletedEvent event = new FundingCompletedEvent(funding.getFundingId(),funding.getSellerId(), settlementTime);
             // Kafka에 FundingCompletedEvent 전송
             fundingEventProducer.sendFundingCompletedEvent(event);
             // settlementCompleted 플래그 업데이트는 정산 완료 후 Seller 서비스에서 자동으로 Funding 서비스의 REST API를 호출하여 처리함

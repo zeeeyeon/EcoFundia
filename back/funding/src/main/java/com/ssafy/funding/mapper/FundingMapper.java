@@ -59,5 +59,5 @@ public interface FundingMapper {
     List<Funding> findByStatusAndEventSent(@Param("eventSent") Boolean eventSent);
 
     // settlement_completed 플래그 업데이트
-    int updateSettlementCompleted(@Param("fundingId") Long fundingId, @Param("eventSent") Boolean eventSent);
+    int updateSettlementCompleted(@Param("fundingId") int fundingId, @Param("eventSent") Boolean eventSent);
 }

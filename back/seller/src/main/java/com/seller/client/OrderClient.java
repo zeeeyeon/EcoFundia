@@ -9,5 +9,5 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface OrderClient {
 
     @GetMapping("/order/order-info")
-    OrderInfoResponseDto getOrderInfoByfundingId(@RequestParam("fundingId") int fundingId);
+    OrderInfoResponseDto getOrderInfoByFundingId(@RequestParam("fundingId") int fundingId);
 }

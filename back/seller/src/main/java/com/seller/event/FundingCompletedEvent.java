@@ -11,5 +11,6 @@ import java.time.LocalDateTime;
 @Builder
 public class FundingCompletedEvent {
     private int fundingId;
+    private int sellerId;
     private LocalDateTime settlementTime;
 }

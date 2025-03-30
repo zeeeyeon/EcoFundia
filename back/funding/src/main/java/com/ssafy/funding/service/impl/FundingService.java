@@ -287,7 +287,7 @@ public class FundingService implements ProductService {
     }
 
     @Override
-    public void updateSettlementCompleted(Long fundingId, Boolean eventSent) {
+    public void updateSettlementCompleted(int fundingId, Boolean eventSent) {
         fundingMapper.updateSettlementCompleted(fundingId, eventSent);
     }
 
