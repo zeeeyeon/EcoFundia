@@ -1,7 +1,9 @@
 package com.seller.service.impl;
 
 import com.seller.client.FundingClient;
+import com.seller.client.OrderClient;
 import com.seller.common.exception.CustomException;
+import com.seller.common.response.ResponseCode;
 import com.seller.common.util.JsonConverter;
 import com.seller.dto.request.FundingCreateRequestDto;
 import com.seller.dto.request.FundingCreateSendDto;
@@ -9,6 +11,7 @@ import com.seller.dto.request.FundingUpdateRequestDto;
 import com.seller.dto.request.FundingUpdateSendDto;
 import com.seller.dto.response.FundingDetailSellerResponseDto;
 import com.seller.dto.response.FundingResponseDto;
+import com.seller.dto.response.OrderInfoResponseDto;
 import com.seller.dto.response.SellerAccountResponseDto;
 import com.seller.entity.Seller;
 import com.seller.mapper.SellerMapper;
@@ -35,6 +38,7 @@ public class SellerServiceImpl implements SellerService {
     private final SellerMapper sellerMapper;
     private final FundingClient fundingClient;
     private final S3FileService s3FileService;
+    private final OrderClient orderClient;
 
 //    @Override
 //    public ResponseEntity<?> getFundingId(int fundingId) {
@@ -113,5 +117,24 @@ public class SellerServiceImpl implements SellerService {
             return SellerAccountResponseDto.of("0","0");
         }
         return SellerAccountResponseDto.of(seller.getAccount(), seller.getSsafyUserKey());
+    }
+
+    @Override
+    @Transactional
+    public void processSettlement(int fundingId) {
+        log.info("Processing settlement for fundingId: {}", fundingId);
+        // Order 서비스에서 주문 총액 정보 조회
+        OrderInfoResponseDto orderInfo = orderClient.getOrderInfoByfundingId(fundingId);
+        if (orderInfo != null) {
+            // 실제 정산 처리 로직 (예: 이체 처리 등) – 여기서는 로그 출력으로 대체
+            log.info("Settlement processed for fundingId: {}, totalAmount: {}",
+                    fundingId, orderInfo.getTotalAmount());
+            // 정산 완료 후 Funding 서비스에 settlementCompleted 플래그 업데이트 요청 (true로 설정)
+            fundingClient.updateSettlementCompleted(fundingId, true);
+        } else {
+            log.error("Order info not found for fundingId: {}", fundingId);
+            // 예외를 발생시켜 트랜잭션을 롤백할 수 있습니다.
+            throw new CustomException(ResponseCode.ORDER_NOT_FOUNT);
+        }
     }
 }
