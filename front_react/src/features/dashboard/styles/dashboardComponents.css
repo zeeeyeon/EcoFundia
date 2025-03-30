@@ -322,10 +322,12 @@
 
 .funding-cards-wrapper {
     display: flex;
-    gap: 15px;
+    gap: 10px;
     flex-grow: 1;
     overflow-y: visible;
     max-height: none;
+    height: calc(100% - 45px);
+    /* 제목 높이 제외 */
 }
 
 /* 개별 펀딩 카드 (FundingItemCard) */
@@ -336,6 +338,10 @@
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     min-height: auto;
     height: 100%;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
 }
 
 .funding-item-card:hover {
@@ -347,68 +353,70 @@
 
 .funding-card-image {
     width: 100%;
-    height: 120px;
-    /* 이미지 높이 고정 (조정 가능) */
+    height: 140px;
+    /* 이미지 높이 증가 120px -> 140px */
     object-fit: cover;
-    /* 이미지 비율 유지하며 채우기 */
     border-radius: 6px 6px 0 0;
-    /* 상단 모서리만 둥글게 */
-    margin-bottom: 10px;
-    /* 이미지 아래 여백 */
+    margin-bottom: 5px;
+    /* 이미지 아래 여백 감소 10px -> 5px */
 }
 
 .funding-card-body {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    padding: 10px 15px 15px 15px;
+    padding: 8px 12px 12px 12px;
+    /* 내부 패딩 감소 */
 }
 
 .funding-card-category {
     font-size: 0.75rem;
     color: #666;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
+    /* 마진 감소 4px -> 2px */
     display: block;
-    /* 이름 위에 표시되도록 */
 }
 
 .funding-card-name {
     font-size: 0.9rem;
-    /* 크기 약간 조정 */
     font-weight: 600;
     color: #333;
-    margin-bottom: 10px;
-    /* 아래 푸터와의 간격 */
+    margin-bottom: 8px;
+    /* 마진 감소 10px -> 8px */
     line-height: 1.3;
 }
 
 .funding-progress-section {
-    margin: 10px 0 15px 0;
-    /* 위아래 여백 조정 */
+    margin: 5px 0 10px 0;
+    /* 마진 감소 10px 0 15px 0 -> 5px 0 10px 0 */
 }
 
 .funding-progress-bar-container {
-    height: 8px;
-    /* 바 높이 약간 증가 */
+    height: 16px;
+    /* 진행 바 높이 증가 12px -> 16px */
     background-color: #e9ecef;
-    border-radius: 4px;
-    /* 각도 조정 */
+    border-radius: 8px;
+    /* 반경 증가 6px -> 8px */
     overflow: hidden;
+    margin: 5px 0;
 }
 
 .funding-progress-bar {
     height: 100%;
     background-color: #B6E62E;
-    border-radius: 4px;
+    border-radius: 8px;
+    /* 반경 증가 6px -> 8px */
     transition: width 0.3s ease;
 }
 
 .funding-progress-section .rate-value {
     display: block;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
+    /* 크기 증가 0.8rem -> 0.9rem */
     font-weight: bold;
     color: #60A5FA;
-    margin-bottom: 5px;
+    margin-bottom: 3px;
+    /* 마진 감소 5px -> 3px */
     text-align: right;
     width: auto;
     flex-shrink: initial;
@@ -421,13 +429,24 @@
 .funding-card-footer {
     display: flex;
     justify-content: flex-end;
-    /* 내용을 오른쪽으로 정렬 */
     align-items: flex-end;
     margin-top: auto;
+    padding-top: 5px;
 }
 
 .funding-card-amount {
     text-align: right;
+}
+
+.funding-total {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 2px;
+}
+
+.funding-change {
+    font-size: 0.9rem;
 }
 
 /* 금액 변화량 강조 색상 */
@@ -442,18 +461,6 @@
     /* 빨간색 계열 (부정) */
     font-weight: 500;
 }
-
-/* 금액 스타일은 기존 .funding-total, .funding-change 등 재활용 가능 */
-.funding-total {
-    /* font-size: 1rem; */
-    /* font-weight: bold; */
-}
-
-.funding-change {
-    /* font-size: 0.85rem; */
-}
-
-/* ... (기존 .funding-change.positive/negative 유지) ... */
 
 /* 진행 중인 상품 목록 (ProductList) */
 /* ... (기존 ProductList 스타일 유지) ... */
@@ -538,17 +545,20 @@
 }
 
 .funding-progress-bar-container {
-    height: 6px;
+    height: 16px;
+    /* 진행 바 높이 증가 12px -> 16px */
     background-color: #e9ecef;
-    border-radius: 3px;
+    border-radius: 8px;
+    /* 반경 증가 6px -> 8px */
     overflow: hidden;
-    margin: 10px 0;
+    margin: 5px 0;
 }
 
 .funding-progress-bar {
     height: 100%;
     background-color: #B6E62E;
-    border-radius: 3px;
+    border-radius: 8px;
+    /* 반경 증가 6px -> 8px */
     transition: width 0.3s ease;
 }
 
@@ -619,6 +629,77 @@
     padding: 20px;
     height: 100%;
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 도넛 차트 커스텀 레전드 스타일 */
+.custom-legend {
+    padding-left: 20px;
+}
+
+.legend-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    margin-right: 8px;
+    border-radius: 2px;
+}
+
+.legend-text {
+    color: #333;
+}
+
+.legend-percentage {
+    margin-left: 20px;
+    font-weight: 600;
+    min-width: 50px;
+    text-align: right;
+}
+
+.recharts-legend-item {
+    display: flex !important;
+    justify-content: space-between !important;
+    width: 150px !important;
+    margin-bottom: 8px !important;
+    align-items: center !important;
+}
+
+.recharts-legend-item-text {
+    display: flex !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    align-items: center !important;
+}
+
+.chart-percent {
+    font-weight: 600;
+    text-align: right;
+    margin-left: 15px;
+}
+
+/* 레전드 동그라미와 텍스트 정렬 */
+.recharts-legend-icon {
+    vertical-align: middle !important;
+}
+
+/* 나의 베스트 상품 래퍼 스타일 */
+.product-list-wrapper {
+    flex: 1;
+    height: calc(100% - 45px);
+    /* 제목 높이 제외 */
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    padding: 20px;
     display: flex;
     flex-direction: column;
 }

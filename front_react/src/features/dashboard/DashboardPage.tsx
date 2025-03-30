@@ -7,6 +7,7 @@ import AgeGroupChart from './components/AgeGroupChart';
 import TodayFundingList from './components/TodayFundingList';
 import ProductList from './components/ProductList';
 import useDashboardStore from './store';
+import { ProductModal } from '../product';
 import './styles/dashboard.css';
 import '../../shared/components/layout.css';
 import './styles/dashboardComponents.css';
@@ -118,14 +119,12 @@ const DashboardPage: React.FC = () => {
 
                 <div className="dashboard-row" style={{ height: '450px' }}>
                     <div className="dashboard-section dashboard-card-60" style={{ height: '100%' }}>
-                        <h3 className="section-title">오늘의 펀딩 모금액 TOP 3</h3>
-                        <div style={{ flex: 1, height: 'calc(100% - 45px)', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)', padding: '20px' }}>
-                            <TodayFundingList data={todayFundingData} />
-                        </div>
+                        <h3 className="section-title">오늘의 펀딩</h3>
+                        <TodayFundingList data={todayFundingData} />
                     </div>
                     <div className="dashboard-section dashboard-card-40" style={{ height: '100%' }}>
                         <h3 className="section-title">나의 베스트 상품 Top 5</h3>
-                        <div style={{ flex: 1, height: 'calc(100% - 45px)', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)', padding: '20px' }}>
+                        <div className="product-list-wrapper">
                             {products && products.length > 0 ? (
                                 <ProductList products={products} />
                             ) : (
@@ -148,6 +147,7 @@ const DashboardPage: React.FC = () => {
                     {renderContent()}
                 </div>
             </main>
+            <ProductModal />
         </div>
     );
 };

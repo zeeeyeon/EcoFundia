@@ -1,0 +1,93 @@
+/* 스피너 컨테이너 스타일 */
+.spinner-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    min-height: 300px;
+    height: 100%;
+    width: 100%;
+}
+
+/* 전체 화면 스피너 스타일 */
+.spinner-container.fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 1000;
+}
+
+/* 스피너 크기 클래스 */
+.spinner-container.small {
+    padding: 10px;
+}
+
+.spinner-container.large {
+    padding: 30px;
+}
+
+/* 스피너 원형 애니메이션 */
+.spinner {
+    border-radius: 50%;
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-top-color: #3498db;
+    animation: spin 1s linear infinite;
+}
+
+/* 스피너 사이즈 */
+.spinner.small {
+    width: 20px;
+    height: 20px;
+    border-width: 2px;
+}
+
+.spinner.medium {
+    width: 40px;
+    height: 40px;
+    border-width: 3px;
+}
+
+.spinner.large {
+    width: 60px;
+    height: 60px;
+    border-width: 4px;
+}
+
+/* 스피너 텍스트 스타일 */
+.spinner-text {
+    margin-top: 10px;
+    color: #555;
+    text-align: center;
+}
+
+.spinner-text.small {
+    font-size: 12px;
+    margin-top: 6px;
+}
+
+.spinner-text.medium {
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+.spinner-text.large {
+    font-size: 16px;
+    margin-top: 14px;
+}
+
+/* 스피닝 애니메이션 정의 */
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}

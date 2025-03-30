@@ -1,5 +1,6 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom'; // 제거
+import { useProductModalStore } from '../../product';
 // import useDashboardStore from '../stores/dashboardStore'; // 제거
 import '../styles/dashboardComponents.css';
 
@@ -22,12 +23,24 @@ const formatCurrency = (amount: number): string => {
 };
 
 const ProductList: React.FC<ProductListProps> = ({ products }) => {
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
+    const { openModal } = useProductModalStore();
     // 상위 5개 데이터만 사용
     const top5Products = products.slice(0, 5);
 
     const handleRowClick = (productId: string) => {
-        navigate(`/products/${productId}`);
+        // 유효한 숫자 값으로 변환 시도
+        const numericId = Number(productId);
+
+        // 유효성 검사 추가
+        if (isNaN(numericId)) {
+            console.error('Invalid product ID:', productId);
+            return;
+        }
+
+        // 유효한 ID로만 모달 열기
+        console.log('Opening modal for product ID:', numericId);
+        openModal(numericId);
     };
 
     // formatDate 함수 제거 (endDate 사용 안 함)

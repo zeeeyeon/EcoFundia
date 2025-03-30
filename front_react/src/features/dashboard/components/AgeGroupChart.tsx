@@ -1,5 +1,6 @@
 import React from 'react';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend, PieLabelRenderProps } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import '../styles/dashboardComponents.css';
 
 interface AgeGroupData {
     name: string;
@@ -9,31 +10,49 @@ interface AgeGroupData {
 
 interface AgeGroupChartProps {
     data: AgeGroupData[];
+    pieProps?: any; // 타입 오류 방지
+    legendProps?: any; // 타입 오류 방지
 }
 
-const RADIAN = Math.PI / 180;
-const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: PieLabelRenderProps) => {
-    if (typeof cx !== 'number' || typeof cy !== 'number' ||
-        typeof midAngle !== 'number' || typeof innerRadius !== 'number' ||
-        typeof outerRadius !== 'number' || typeof percent !== 'number') {
-        return null;
-    }
-
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-    if ((percent * 100) < 5) return null;
-
-    return (
-        <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize="12px">
-            {`${(percent * 100).toFixed(0)}%`}
-        </text>
-    );
-};
-
-const AgeGroupChart: React.FC<AgeGroupChartProps> = ({ data }) => {
+const AgeGroupChart: React.FC<AgeGroupChartProps> = ({ data, pieProps, legendProps }) => {
     const hasData = data && data.length > 0;
+
+    // 디폴트 Pie 속성
+    const defaultPieProps = {
+        cx: "45%",
+        cy: "50%",
+        outerRadius: 110,
+        innerRadius: 60,
+        paddingAngle: 1
+    };
+
+    // 디폴트 Legend 속성
+    const defaultLegendProps = {
+        layout: "vertical",
+        verticalAlign: "middle",
+        align: "right",
+        iconType: "circle",
+    };
+
+    // props와 디폴트 속성 병합
+    const mergedPieProps = { ...defaultPieProps, ...(pieProps || {}) };
+    const mergedLegendProps = { ...defaultLegendProps, ...(legendProps || {}) };
+
+    // 총 합계 계산과 퍼센트 계산
+    const calculatePercentages = (inputData: AgeGroupData[]): AgeGroupData[] => {
+        const total = inputData.reduce((sum, item) => sum + item.value, 0);
+
+        return inputData.map(item => {
+            const percentage = parseFloat(((item.value / total) * 100).toFixed(1));
+            // 이름에 퍼센트 값 추가
+            return {
+                ...item,
+                name: `${item.name} ${percentage}%`
+            };
+        });
+    };
+
+    const dataWithPercentages = hasData ? calculatePercentages(data) : [];
 
     return (
         <div className="card-common age-group-chart-card">
@@ -43,23 +62,42 @@ const AgeGroupChart: React.FC<AgeGroupChartProps> = ({ data }) => {
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <Pie
-                                    data={data}
-                                    cx="50%"
-                                    cy="50%"
+                                    data={dataWithPercentages}
+                                    cx={mergedPieProps.cx}
+                                    cy={mergedPieProps.cy}
                                     labelLine={false}
-                                    label={renderCustomizedLabel}
-                                    outerRadius={110}
-                                    innerRadius={60}
+                                    label={false}
+                                    outerRadius={mergedPieProps.outerRadius}
+                                    innerRadius={mergedPieProps.innerRadius}
                                     fill="#8884d8"
                                     dataKey="value"
-                                    paddingAngle={1}
+                                    paddingAngle={mergedPieProps.paddingAngle}
+                                    nameKey="name"
+                                    isAnimationActive={false}
                                 >
-                                    {data.map((entry, index) => (
+                                    {dataWithPercentages.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={entry.fill || '#cccccc'} />
                                     ))}
                                 </Pie>
-                                <Tooltip formatter={(value: number) => `${value}명`} />
-                                <Legend layout="vertical" verticalAlign="middle" align="right" iconType="circle" />
+                                <Tooltip formatter={(value: number) => `${value}명`} isAnimationActive={false} />
+                                <Legend
+                                    layout={mergedLegendProps.layout}
+                                    verticalAlign={mergedLegendProps.verticalAlign}
+                                    align={mergedLegendProps.align}
+                                    iconType={mergedLegendProps.iconType}
+                                    formatter={(value) => {
+                                        // 퍼센트 부분과 레이블 부분 분리
+                                        const parts = value.split(' ');
+                                        const percent = parts.pop();
+                                        const label = parts.join(' ');
+                                        return (
+                                            <span className="recharts-legend-item-text">
+                                                <span>{label}</span>
+                                                <span className="chart-percent">{percent}</span>
+                                            </span>
+                                        );
+                                    }}
+                                />
                             </PieChart>
                         </ResponsiveContainer>
                     </div>

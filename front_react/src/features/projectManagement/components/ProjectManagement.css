@@ -1,0 +1,323 @@
+/* 프로젝트 관리 페이지 스타일 */
+.project-management-page {
+    padding: 2rem;
+}
+
+.page-title {
+    font-size: 1.8rem;
+    color: #333;
+    margin-bottom: 2rem;
+    font-weight: bold;
+}
+
+/* Project Section Styles */
+.project-section-container {
+    margin-bottom: 40px;
+}
+
+.project-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e5e7eb;
+    /* 구분선 */
+}
+
+.project-section-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    /* 조금 더 굵게 */
+    color: #1f2937;
+    /* 어두운 텍스트 색상 */
+}
+
+/* Project Grid Styles */
+.project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    /* 반응형 그리드 */
+    gap: 30px;
+    /* 카드 간격 증가 */
+}
+
+/* Project Card Styles */
+.project-card {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    /* 카드 그림자 */
+    overflow: hidden;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+}
+
+.project-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    /* 호버 시 그림자 강조 */
+}
+
+.project-card-image {
+    width: 100%;
+    height: 200px;
+    /* 이미지 높이 고정 */
+    object-fit: cover;
+    /* 이미지가 비율 유지하며 채우도록 */
+}
+
+.project-card-content {
+    padding: 20px;
+    flex-grow: 1;
+    /* 내용이 카드 높이를 채우도록 */
+    display: flex;
+    flex-direction: column;
+}
+
+.project-card-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+    /* 제목 색상 */
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.project-card-description {
+    font-size: 14px;
+    color: #6b7280;
+    /* 설명 색상 */
+    margin-bottom: 15px;
+    line-height: 1.5;
+    flex-grow: 1;
+    /* 설명이 남은 공간 차지 */
+}
+
+.project-card-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+
+.project-card-price {
+    font-weight: 600;
+    color: #3b82f6;
+    /* 가격 색상 */
+}
+
+.project-card-remaining-time {
+    color: #ef4444;
+    /* 남은 시간 색상 */
+    font-size: 13px;
+}
+
+/* Progress Bar Styles */
+.project-card-progress-container {
+    background-color: #e5e7eb;
+    /* 프로그레스 바 배경 */
+    border-radius: 5px;
+    height: 8px;
+    /* 프로그레스 바 높이 */
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.project-card-progress-bar {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.8s ease, background-color 0.5s ease;
+    position: relative;
+}
+
+/* 성공한 프로젝트의 진행률 바에 애니메이션 효과 */
+.success-project .project-card-progress-bar {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 0.7;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.7;
+    }
+}
+
+.project-card-progress-percentage {
+    font-size: 13px;
+    font-weight: 500;
+    color: #4b5563;
+    /* 퍼센트 색상 */
+    text-align: right;
+}
+
+/* Pagination Controls Styles */
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pagination-controls button {
+    background-color: #f3f4f6;
+    /* 버튼 배경색 */
+    border: 1px solid #d1d5db;
+    /* 버튼 테두리 */
+    color: #374151;
+    /* 버튼 텍스트 색상 */
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+    display: flex;
+    /* 아이콘 중앙 정렬 */
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.pagination-controls button:hover:not(:disabled) {
+    background-color: #e5e7eb;
+    border-color: #9ca3af;
+}
+
+.pagination-controls button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-controls span {
+    font-size: 14px;
+    color: #4b5563;
+    min-width: 60px;
+    text-align: center;
+    font-weight: 500;
+}
+
+/* Loading and Error States */
+.loading-container,
+.error-container,
+.no-projects-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    /* 최소 높이 설정 */
+    padding: 30px;
+    text-align: center;
+    color: #6b7280;
+    font-size: 16px;
+}
+
+.error-message {
+    color: #ef4444;
+    /* 에러 메시지 색상 */
+    font-weight: 500;
+}
+
+/* 마감된 상품 스타일 */
+.project-card.finished-project {
+    opacity: 0.85;
+    position: relative;
+}
+
+/* 펀딩 성공 상품 스타일 */
+.project-card.success-project {
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+    border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.project-card.success-project:hover {
+    box-shadow: 0 6px 16px rgba(76, 175, 80, 0.3);
+}
+
+/* 펀딩 실패 상품 스타일 */
+.project-card.failed-project {
+    box-shadow: 0 4px 12px rgba(239, 83, 80, 0.2);
+    border: 1px solid rgba(239, 83, 80, 0.3);
+}
+
+.project-card.failed-project:hover {
+    box-shadow: 0 6px 16px rgba(239, 83, 80, 0.3);
+}
+
+.project-card-image-container {
+    position: relative;
+    overflow: hidden;
+}
+
+.finished-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.finished-overlay.success {
+    background-color: rgba(76, 175, 80, 0.6);
+}
+
+.finished-overlay.failed {
+    background-color: rgba(239, 83, 80, 0.6);
+}
+
+.project-card-remaining-time.success {
+    color: #4CAF50;
+    font-weight: 500;
+}
+
+.project-card-remaining-time.failed {
+    color: #EF5350;
+    font-weight: 500;
+}
+
+.project-card-progress-percentage.success {
+    color: #4CAF50;
+    font-weight: 600;
+}
+
+.project-card-progress-percentage.failed {
+    color: #EF5350;
+    font-weight: 600;
+}
+
+/* 성공 실패 뱃지 */
+.project-card.success-project::after,
+.project-card.failed-project::after {
+    content: "";
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    z-index: 10;
+}
+
+.project-card.success-project::after {
+    background-color: #4CAF50;
+    box-shadow: 0 0 8px rgba(76, 175, 80, 0.6);
+}
+
+.project-card.failed-project::after {
+    background-color: #EF5350;
+    box-shadow: 0 0 8px rgba(239, 83, 80, 0.6);
+}

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useProductModalStore } from '../../product';
 
 interface TodayFundingItem {
     id: string;
@@ -27,11 +28,31 @@ const formatChangeAmount = (change: number): string => {
 
 // 개별 펀딩 카드 컴포넌트
 const FundingItemCard: React.FC<{ item: TodayFundingItem }> = ({ item }) => {
+    const { openModal } = useProductModalStore();
     // 진행률 계산 (100% 초과 시 100으로 제한)
     const progress = Math.min(item.fundingRate, 100);
 
+    const handleCardClick = () => {
+        // 유효한 숫자 값으로 변환 시도
+        const numericId = Number(item.id);
+
+        // 유효성 검사 추가
+        if (isNaN(numericId)) {
+            console.error('Invalid item ID:', item.id);
+            return;
+        }
+
+        // 유효한 ID로만 모달 열기
+        console.log('Opening modal for item ID:', numericId);
+        openModal(numericId);
+    };
+
     return (
-        <div className="funding-item-card card-common"> {/* 개별 카드 스타일 */}
+        <div
+            className="funding-item-card card-common"
+            onClick={handleCardClick}
+            style={{ cursor: 'pointer' }}
+        >
             {/* 이미지 표시 */}
             <img src={item.imageUrl} alt={item.productName} className="funding-card-image" />
             <div className="funding-card-body">

@@ -1,11 +1,12 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import './layout.css'; // 이 파일도 shared로 이동 고려
+import './layout.css';
 
 // 아이콘 임포트 (예시 - 실제 아이콘 라이브러리 사용 권장)
 const DashboardIcon = () => <span>📊</span>;
 const ProductsIcon = () => <span>📦</span>;
 const SettingsIcon = () => <span>⚙️</span>;
+const AddProductIcon = () => <span>➕</span>;
 
 interface SidebarProps {
     isOpen: boolean;
@@ -31,11 +32,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
                     </li>
                     <li>
                         <NavLink
-                            to="/products"
+                            to="/project-management"
                             className={({ isActive }) => isActive ? 'active' : ''}
                         >
                             <ProductsIcon />
                             {isOpen && <span className="menu-text">상품 관리</span>}
+                        </NavLink>
+                    </li>
+                    <li>
+                        <NavLink
+                            to="/product-registration"
+                            className={({ isActive }) => isActive ? 'active' : ''}
+                        >
+                            <AddProductIcon />
+                            {isOpen && <span className="menu-text">상품 등록</span>}
                         </NavLink>
                     </li>
                     <li>

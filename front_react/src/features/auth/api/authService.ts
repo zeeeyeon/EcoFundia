@@ -92,9 +92,14 @@ export const registerSeller = async (data: RegisterSellerRequest) => {
 
 export const logout = async () => {
     try {
-        // 로그아웃 API는 현재 필요 없음
-        // await client.post("/auth/logout");
+        // 로그아웃 API 호출
+        await client.post("/user/logout");
+        console.log("로그아웃 성공");
+    } catch (error) {
+        console.error("로그아웃 중 오류 발생:", error);
     } finally {
+        // 토큰 제거 및 로컬 스토리지 정리
         removeTokens();
+        localStorage.removeItem('user');
     }
 }; 

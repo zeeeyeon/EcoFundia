@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import LoginPage from '../features/auth/LoginPage'; // 경로 수정
 import RegisterPage from '../features/register/RegisterPage'; // 경로 수정 및 이름 변경
 import DashboardPage from '../features/dashboard/DashboardPage'; // 경로 수정
+import ProjectManagementPage from '../features/projectManagement/ProjectManagementPage'; // 경로 수정
 import useAuthStore from '../features/auth/store'; // 경로 수정
 
 // ProtectedRoute 로직
@@ -35,6 +36,14 @@ const AppRouter: React.FC = () => {
                 element={
                     <ProtectedRoute>
                         <DashboardPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/project-management"
+                element={
+                    <ProtectedRoute>
+                        <ProjectManagementPage />
                     </ProtectedRoute>
                 }
             />
