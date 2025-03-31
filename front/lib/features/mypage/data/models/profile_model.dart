@@ -20,15 +20,17 @@ class ProfileModel {
   });
 
   factory ProfileModel.fromJson(Map<String, dynamic> json) {
+    final user = json['content']['user']; // ✅ 중첩 구조 대응!
+
     return ProfileModel(
-      userId: json['userId'],
-      email: json['email'],
-      name: json['name'],
-      nickname: json['nickname'],
-      gender: json['gender'],
-      account: json['account'] ?? '',
-      age: json['age'],
-      createdAt: DateTime.parse(json['createdAt']),
+      userId: user['userId'],
+      email: user['email'],
+      name: user['name'],
+      nickname: user['nickname'],
+      gender: user['gender'],
+      account: user['account'] ?? '',
+      age: user['age'],
+      createdAt: DateTime.parse(user['createdAt']),
     );
   }
 

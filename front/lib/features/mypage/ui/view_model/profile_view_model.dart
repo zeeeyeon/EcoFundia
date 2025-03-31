@@ -1,10 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/core/services/api_service.dart';
 import '../../data/models/profile_model.dart';
 import '../../data/repositories/profile_repository.dart';
 import '../../data/services/profile_service.dart';
 
 // 서비스 & 리포지토리 프로바이더 설정
-final profileServiceProvider = Provider((ref) => ProfileService());
+final profileServiceProvider = Provider(
+  (ref) => ProfileService(ref.read(apiServiceProvider)),
+);
 final profileRepositoryProvider = Provider(
   (ref) => ProfileRepository(ref.read(profileServiceProvider)),
 );
