@@ -1,6 +1,5 @@
 package com.chat.dto;
 
-import lombok.Data;
 
 import java.time.LocalDateTime;
 

@@ -42,9 +42,9 @@ public class WebSocketStompBrokerConfig implements WebSocketMessageBrokerConfigu
 
         registry
                 // 클라이언트가 WebSocket에 연결하기 위한 엔드포인트를 "/ws-stomp"로 설정합니다.
-                .addEndpoint("/ws-stomp")
+                .addEndpoint("/chat-room")
                 // 클라이언트의 origin을 명시적으로 지정
-                .setAllowedOrigins("<http://localhost:3000>")
+                .setAllowedOrigins("http://localhost:3000")
                 // WebSocket을 지원하지 않는 브라우저에서도 SockJS를 통해 WebSocket 기능을 사용
                 .withSockJS();
     }
