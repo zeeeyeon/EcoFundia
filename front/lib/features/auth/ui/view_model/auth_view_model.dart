@@ -325,24 +325,42 @@ class AuthViewModel extends StateNotifier<AuthState> {
       _appStateViewModel.setLoading(true);
       final result = await signInWithGoogle();
 
+      LoggerUtil.d('Google 로그인 결과: ${result.runtimeType}');
+
       // 결과 처리
       if (result is AuthSuccessEntity) {
         // 로그인 성공 - 메인 화면으로 이동
+        LoggerUtil.i('로그인 성공: 메인 화면으로 이동합니다.');
         _router.go('/');
       } else if (result is AuthNewUserEntity) {
         // 회원가입 필요 - 회원가입 화면으로 이동
-        final userInfo = await getGoogleLoginInfoForSignUp();
+        LoggerUtil.i('신규 사용자 감지: 회원가입 화면으로 이동합니다. token: ${result.token}');
+
+        final userInfo = await _authRepository.getGoogleUserInfo();
         if (userInfo != null) {
-          _router.pushNamed('signup', extra: {
-            'email': userInfo['email'],
-            'name': userInfo['name'],
-            'token': userInfo['token'],
-          });
+          LoggerUtil.i(
+              '회원가입 이동: email=${userInfo['email']}, name=${userInfo['name']}');
+
+          // Map에 토큰 정보 추가
+          final Map<String, dynamic> signupParams = {
+            'email': userInfo['email'] ?? '',
+            'name': userInfo['name'] ?? '',
+            'token': result.token,
+          };
+
+          // 회원가입 페이지로 이동
+          LoggerUtil.i('회원가입 페이지로 이동합니다: $signupParams');
+          _router.pushNamed('signup', extra: signupParams);
+        } else {
+          LoggerUtil.e('사용자 정보를 가져올 수 없습니다.');
+          _appStateViewModel.setError('사용자 정보를 가져올 수 없습니다. 다시 시도해주세요.');
         }
       } else if (result is AuthErrorEntity) {
         // 에러 발생
-        LoggerUtil.e('로그인 오류: ${result.message}');
+        LoggerUtil.e('로그인 오류: ${result.message} (코드: ${result.statusCode})');
         _appStateViewModel.setError(result.message);
+      } else {
+        LoggerUtil.w('알 수 없는 로그인 결과 타입: ${result.runtimeType}');
       }
     } catch (e) {
       LoggerUtil.e('Google 로그인 실패', e);

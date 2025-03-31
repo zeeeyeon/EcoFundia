@@ -36,6 +36,10 @@ class ApiService {
       connectTimeout: const Duration(seconds: 5),
       receiveTimeout: const Duration(seconds: 3),
       contentType: 'application/json',
+      // 로그인과 관련된 404 응답은 정상적으로 처리하기 위한 설정
+      validateStatus: (status) {
+        return status != null && status < 500;
+      },
     ));
 
     _setupInterceptors();

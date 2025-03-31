@@ -88,7 +88,9 @@ class AuthResponseModel extends Equatable {
     // 회원가입 필요 (404)
     else if (status.code == 404 &&
         status.message == "해당 이메일로 가입된 사용자가 없습니다. 회원가입이 필요합니다.") {
-      // token은 외부에서 주입해야 함
+      // 참고: 여기에서는 token을 모르기 때문에 AuthResultEntity.newUser를 직접 생성할 수 없음
+      // AuthRepositoryImpl에서 토큰을 추가하여 AuthResultEntity.newUser로 변환해야 함
+      print("회원가입이 필요한 응답을 처리 중입니다. 이 에러는 AuthRepositoryImpl에서 처리됨");
       return const AuthResultEntity.error(
         "해당 이메일로 가입된 사용자가 없습니다. 회원가입이 필요합니다.",
         statusCode: 404,

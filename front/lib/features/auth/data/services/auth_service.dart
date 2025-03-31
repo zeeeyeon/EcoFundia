@@ -5,6 +5,9 @@ import 'package:front/core/exceptions/auth_exception.dart';
 import 'package:front/core/services/api_service.dart';
 import 'package:dio/dio.dart';
 
+// 문자열 길이의 최소값 계산 헬퍼 함수
+int min(int a, int b) => a < b ? a : b;
+
 class AuthService {
   final ApiService _apiService;
   final GoogleSignIn _googleSignIn;
@@ -31,10 +34,16 @@ class AuthService {
       }
 
       LoggerUtil.i('👤 Google 계정 선택 완료: ${account.email}');
+      LoggerUtil.i(
+          '📧 Google 계정 정보: id=${account.id}, displayName=${account.displayName}');
 
       // 인증 정보 획득
       final auth = await account.authentication;
       final accessToken = auth.accessToken;
+      final idToken = auth.idToken;
+
+      LoggerUtil.i(
+          '🔑 인증 정보: accessToken 존재=${accessToken != null}, idToken 존재=${idToken != null}');
 
       if (accessToken == null) {
         LoggerUtil.e('⚠️ 액세스 토큰을 획득하지 못했습니다.');
@@ -42,7 +51,7 @@ class AuthService {
       }
 
       LoggerUtil.i(
-          '✅ 액세스 토큰 획득 성공: ${accessToken.substring(0, min(10, accessToken.length))}...');
+          '✅ 액세스 토큰 획득 성공: ${accessToken.substring(0, min(10, accessToken.length))}..., 길이=${accessToken.length}');
       return accessToken;
     } catch (e) {
       LoggerUtil.e('❌ Google 액세스 토큰 획득 실패', e);
@@ -70,8 +79,14 @@ class AuthService {
 
         // status 코드 검증
         final status = data['status'];
-        if (status == null || status['code'] != '201') {
-          throw AuthException(status?['message'] ?? '서버 응답이 올바르지 않습니다.');
+        if (status == null) {
+          throw AuthException('서버 응답에 status 필드가 없습니다.');
+        }
+
+        // 상태 코드가 정수형(int)인지 확인
+        final statusCode = status['code'];
+        if (statusCode != 200 && statusCode != 201) {
+          throw AuthException(status['message'] ?? '서버 응답이 올바르지 않습니다.');
         }
 
         return AuthResponseModel.fromJson(data);
@@ -85,6 +100,22 @@ class AuthService {
         // 회원가입이 필요한 경우
         LoggerUtil.i('신규 회원: 회원가입이 필요합니다.');
         throw AuthException('회원가입이 필요합니다.', statusCode: 404, isNewUser: true);
+      }
+
+      // 서버 측 오류 (500)
+      if (e.response?.statusCode == 500) {
+        String errorMessage = '서버 내부 오류가 발생했습니다.';
+        try {
+          if (e.response?.data != null) {
+            if (e.response!.data['content'] != null) {
+              errorMessage = '서버 오류: ${e.response!.data['content']}';
+            } else if (e.response!.data['status']?['message'] != null) {
+              errorMessage = e.response!.data['status']['message'];
+            }
+          }
+        } catch (_) {}
+        LoggerUtil.e('서버 500 에러: $errorMessage');
+        throw AuthException(errorMessage, statusCode: 500);
       }
 
       // 기타 오류
