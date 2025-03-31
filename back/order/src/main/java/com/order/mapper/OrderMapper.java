@@ -18,5 +18,5 @@ public interface OrderMapper {
 
     List<Integer> getMyFundingIds(int userId);
 
-    Integer sumOrderAmountByFundingId(@Param("fundingId") int fundingId);
+    int sumOrderAmountByFundingId(@Param("fundingId") int fundingId);
 }

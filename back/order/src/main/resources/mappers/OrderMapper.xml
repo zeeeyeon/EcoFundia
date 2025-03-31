@@ -38,8 +38,8 @@
         VALUES (#{userId}, #{fundingId}, #{amount}, #{quantity}, #{totalPrice}, #{createdAt}, #{updatedAt})
     </insert>
 
-    <select id="sumOrderAmountByFundingId" resultType="java.lang.Integer">
-        SELECT COALESCE(SUM(order_amount), 0)
+    <select id="sumOrderAmountByFundingId" resultType="int">
+        SELECT COALESCE(SUM(total_price), 0)
         FROM orders
         WHERE funding_id = #{fundingId}
     </select>

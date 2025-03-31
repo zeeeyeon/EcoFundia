@@ -24,10 +24,10 @@ public class TransferRequestDto {
 
         return TransferRequestDto.builder()
                 .Header(header)
-                .depositAccountNo(adminAccount)
+                .depositAccountNo(userAccount)
                 .depositTransactionSummary("{수시입출금} : 입금(이체)")
                 .transactionBalance(price)
-                .withdrawalAccountNo(userAccount)
+                .withdrawalAccountNo(adminAccount)
                 .withdrawalTransactionSummary("{수시입출금} : 출금(이체)")
                 .build();
     }

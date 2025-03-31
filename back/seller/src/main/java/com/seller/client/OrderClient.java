@@ -8,6 +8,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(name = "order")
 public interface OrderClient {
 
-    @GetMapping("/order/order-info")
+    @GetMapping("/api/order/order-info")
     OrderInfoResponseDto getOrderInfoByFundingId(@RequestParam("fundingId") int fundingId);
 }
