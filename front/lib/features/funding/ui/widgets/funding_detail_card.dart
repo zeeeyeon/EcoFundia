@@ -4,15 +4,22 @@ import '../../data/models/funding_detail_model.dart';
 import '../../../../core/themes/app_text_styles.dart';
 import '../../../../core/themes/app_colors.dart';
 
-class FundingDetailCard extends StatelessWidget {
+class FundingDetailCard extends StatefulWidget {
   final FundingDetailModel detail;
 
   const FundingDetailCard({super.key, required this.detail});
 
   @override
+  State<FundingDetailCard> createState() => _FundingDetailCardState();
+}
+
+class _FundingDetailCardState extends State<FundingDetailCard> {
+  bool _showFullStory = false;
+
+  @override
   Widget build(BuildContext context) {
-    final funding = detail.fundingInfo;
-    final seller = detail.sellerInfo;
+    final funding = widget.detail.fundingInfo;
+    final seller = widget.detail.sellerInfo;
     final screenSize = MediaQuery.of(context).size;
 
     return CustomScrollView(
@@ -173,23 +180,68 @@ class FundingDetailCard extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.network(
-              storyFileUrl,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (_, error, __) {
-                debugPrint('❌ 이미지 로딩 실패: $error');
-                return const Center(child: Text('이미지를 불러올 수 없습니다.'));
+          AnimatedCrossFade(
+            firstChild: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(
+                storyFileUrl,
+                width: double.infinity,
+                height: 300,
+                fit: BoxFit.cover,
+                errorBuilder: (_, error, __) {
+                  debugPrint('❌ 이미지 로딩 실패: $error');
+                  return const Center(child: Text('이미지를 불러올 수 없습니다.'));
+                },
+                loadingBuilder: (_, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return const SizedBox(
+                    height: 300,
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                },
+              ),
+            ),
+            secondChild: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(
+                storyFileUrl,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
+            ),
+            crossFadeState: _showFullStory
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 300),
+          ),
+          const SizedBox(height: 12),
+          Center(
+            child: OutlinedButton.icon(
+              onPressed: () {
+                setState(() {
+                  _showFullStory = !_showFullStory;
+                });
               },
-              loadingBuilder: (_, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return const SizedBox(
-                  height: 300,
-                  child: Center(child: CircularProgressIndicator()),
-                );
-              },
+              icon: Icon(
+                _showFullStory ? Icons.expand_less : Icons.expand_more,
+                size: 18,
+                color: Colors.black87,
+              ),
+              label: Text(
+                _showFullStory ? '접기' : '상품 정보 더보기',
+                style: const TextStyle(
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Colors.black87),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              ),
             ),
           ),
         ],
@@ -200,13 +252,6 @@ class FundingDetailCard extends StatelessWidget {
         style: TextStyle(color: Colors.redAccent),
       );
     }
-  }
-
-  String _formatCurrency(int amount) {
-    return amount.toString().replaceAllMapped(
-          RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-          (match) => '${match[1]},',
-        );
   }
 
   Widget _buildSellerSection(SellerInfo seller) {
@@ -220,13 +265,8 @@ class FundingDetailCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "판매자",
-            style: AppTextStyles.caption.copyWith(fontSize: 18),
-          ),
+          Text("판매자", style: AppTextStyles.caption.copyWith(fontSize: 18)),
           const SizedBox(height: 4),
-
-          // 이름 + 버튼 같은 줄
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -242,7 +282,7 @@ class FundingDetailCard extends StatelessWidget {
               ),
               ElevatedButton(
                 onPressed: () {
-                  // 상세 페이지 이동 로직
+                  // TODO: 상세 페이지 이동
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
@@ -263,5 +303,12 @@ class FundingDetailCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _formatCurrency(int amount) {
+    return amount.toString().replaceAllMapped(
+          RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+          (match) => '${match[1]},',
+        );
   }
 }
