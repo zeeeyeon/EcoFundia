@@ -2,15 +2,14 @@ package com.chat.dto;
 
 import lombok.Data;
 
-@Data
-public class ChatMessageDto {
+import java.time.LocalDateTime;
 
-    private String content;
-    private String sender;
-    private String channelId;
+public record ChatMessageDto(
+    int fundingId,
+    int senderId,
+    String nickname,
+    String content,
+    String status, // ex: SENT, DELIVERED
+    LocalDateTime createdAt
+) {}
 
-    public ChatMessageDto(String content, String sender) {
-        this.content = content;
-        this.sender = sender;
-    }
-}
