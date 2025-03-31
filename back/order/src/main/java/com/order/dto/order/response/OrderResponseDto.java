@@ -23,6 +23,8 @@ public class OrderResponseDto {
     private int totalPrice;
     private LocalDateTime createdAt;
 
+//    private int totalPriceSumToday;
+
     private int totalPriceSumToday;
 
     public static OrderResponseDto toDto(Order order) {
