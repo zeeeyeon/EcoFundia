@@ -5,15 +5,16 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Builder
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-public class GetSellerTodayOrderTopThreeListResponseDto {
+@AllArgsConstructor
+public class GetSellerFundingDetailResponseDto {
     private int fundingId;
-    private String imageUrl;
     private String title;
     private String description;
-    private int currentAmount;
-    private int todayAmount;
+    private String imageUrl;
+    private int progressPercentage;
 }
