@@ -29,5 +29,10 @@ public interface SellerService {
     List<GetSellerOngoingTopFiveFundingResponseDto> getSellerOngoingTopFiveFunding(int userId);
     List<GetSellerOngoingFundingListResponseDto> getSellerOngoingFundingList(int userId, int page);
     List<GetSellerEndFundingListResponseDto> getSellerEndFundingList(int userId, int page);
-    List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThreeList(int userId);
+    GetSellerFundingDetailResponseDto getSellerFundingDetail(int fundingId);
+    List<GetSellerFundingDetailOrderListResponseDto> getSellerFundingDetailOrderList(int fundingId, int page);
+    List<GetSellerMonthAmountStatisticsResponseDto> getSellerMonthAmountStatistics(int userId);
+    List<GetSellerFundingDetailStatisticsResponseDto> getSellerFundingDetailStatistics(int fundingId);
+    List<GetSellerBrandStatisticsResponseDto> getSellerBrandStatistics(int userId);
+    List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderListTopThree(int userId);
 }
