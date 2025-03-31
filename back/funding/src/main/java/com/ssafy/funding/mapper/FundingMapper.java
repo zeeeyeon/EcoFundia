@@ -62,4 +62,7 @@ public interface FundingMapper {
 
     // 내가 주문한 펀딩 조회
     List<Funding> getMyFunding(List<Integer> fundingIds);
+    Funding getSellerFundingDetail(@Param("fundingId") int fundingId);
+    List<Funding> getSellerMonthAmountStatistics(@Param("sellerId") int sellerId);
+
 }
