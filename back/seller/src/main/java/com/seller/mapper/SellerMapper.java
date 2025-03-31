@@ -16,4 +16,6 @@ public interface SellerMapper {
 
     //판매자 조회
     Seller getSeller(int sellerId);
+
+    Seller getSellerInfo(int sellerId);
 }

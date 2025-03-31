@@ -127,6 +127,7 @@ public class SellerServiceImpl implements SellerService {
         log.info("Processing settlement for fundingId: {}", fundingId);
         // Order 서비스 호출: 주문 총액 정보 조회
         OrderInfoResponseDto orderInfo = orderClient.getOrderInfoByFundingId(fundingId);
+        System.out.println("총 오더금액 = " + orderInfo.getTotalAmount() + orderInfo.getFundingId());
         if (orderInfo != null) {
             int totalAmount = orderInfo.getTotalAmount();
             ApiResponseDto response = settlementApiService.transferSettlement(totalAmount, sellerId);

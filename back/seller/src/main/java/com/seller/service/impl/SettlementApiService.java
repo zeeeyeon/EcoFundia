@@ -1,5 +1,7 @@
 package com.seller.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seller.dto.ssafyApi.request.HeaderDto;
 import com.seller.dto.ssafyApi.request.TransferRequestDto;
 import com.seller.dto.ssafyApi.response.ApiResponseDto;
@@ -43,7 +45,7 @@ public class SettlementApiService {
         // Header 생성
         HeaderDto headerDto = new HeaderDto().buildHeaderDto("updateDemandDepositAccountTransfer", userKey, apiKey);
         // SellerMapper를 통해 판매자 계좌 조회
-        Seller seller = sellerMapper.getSeller(sellerId);
+        Seller seller = sellerMapper.getSellerInfo(sellerId);
         String sellerAccount = seller != null ? seller.getAccount() : null;
         return TransferRequestDto.builder()
                 .Header(headerDto)
@@ -62,6 +64,15 @@ public class SettlementApiService {
      */
     public ApiResponseDto transferSettlement(int amount, int sellerId) {
         TransferRequestDto request = buildSettlementTransferRequest(amount, sellerId);
+        // 요청 JSON을 로그로 출력
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonPayload = mapper.writeValueAsString(request);
+            System.out.println("📦 전송 JSON: " + jsonPayload);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
         String url = "https://finopenapi.ssafy.io/ssafy/api/v1/edu/demandDeposit/updateDemandDepositAccountTransfer";
 
         ApiResponseDto response = webClient.post()
@@ -72,7 +83,8 @@ public class SettlementApiService {
                 .bodyToMono(ApiResponseDto.class)
                 .block();
 
-        System.out.println("Settlement API response: " + response);
+        System.out.println("📦 최종 리턴될 response: " + response);
         return response;
     }
+
 }
