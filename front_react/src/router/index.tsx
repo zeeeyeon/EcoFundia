@@ -1,71 +1,88 @@
-import React from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import LoginPage from '../features/auth/LoginPage'; // 경로 수정
-import RegisterPage from '../features/register/RegisterPage'; // 경로 수정 및 이름 변경
-import DashboardPage from '../features/dashboard/DashboardPage'; // 경로 수정
-import ProjectManagementPage from '../features/projectManagement/ProjectManagementPage'; // 경로 수정
-import ProductRegistrationPage from '../features/productRegistration/components/ProductRegistrationPage'; // 경로 수정
-import useAuthStore from '../features/auth/store'; // 경로 수정
+import React from "react";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import LoginPage from "../features/auth/LoginPage"; // 경로 수정
+import RegisterPage from "../features/register/RegisterPage"; // 경로 수정 및 이름 변경
+import DashboardPage from "../features/dashboard/DashboardPage"; // 경로 수정
+import ProjectManagementPage from "../features/projectManagement/ProjectManagementPage"; // 경로 수정
+import ProductRegistrationPage from "../features/productRegistration/ProductRegistrationPage"; // 경로 수정
+import FundingReportsPage from "../features/fundingReports/pages/FundingReportsPage"; // 정산내역 페이지 추가
+import useAuthStore from "../features/auth/stores/store"; // 경로 수정
 
 // ProtectedRoute 로직
 interface ProtectedRouteProps {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-    const { isAuthenticated } = useAuthStore();
-    const location = useLocation();
+  const { isAuthenticated } = useAuthStore();
+  const location = useLocation();
 
-    if (!isAuthenticated) {
-        // 로그인 페이지로 리다이렉트 시 이전 경로 저장
-        return <Navigate to="/login" state={{ from: location }} replace />;
-    }
+  if (!isAuthenticated) {
+    // 로그인 페이지로 리다이렉트 시 이전 경로 저장
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
 
-    return <>{children}</>;
+  return <>{children}</>;
 };
 
 // 라우터 컴포넌트
 const AppRouter: React.FC = () => {
-    const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
 
-    return (
-        <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} /> {/* 컴포넌트 이름 변경 */}
-            <Route
-                path="/dashboard"
-                element={
-                    <ProtectedRoute>
-                        <DashboardPage />
-                    </ProtectedRoute>
-                }
-            />
-            <Route
-                path="/project-management"
-                element={
-                    <ProtectedRoute>
-                        <ProjectManagementPage />
-                    </ProtectedRoute>
-                }
-            />
-            {/* 상품 등록 페이지 라우트 추가 */}
-            <Route
-                path="/product-registration"
-                element={
-                    <ProtectedRoute>
-                        <ProductRegistrationPage />
-                    </ProtectedRoute>
-                }
-            />
-            {/* 루트 경로 처리: 인증 상태에 따라 리다이렉트 */}
-            <Route
-                path="/"
-                element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />}
-            />
-            {/* 필요한 경우 404 페이지 라우트 추가 */}
-            {/* <Route path="*" element={<NotFoundPage />} /> */}
-        </Routes>
-    );
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />{" "}
+      {/* 컴포넌트 이름 변경 */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/project-management"
+        element={
+          <ProtectedRoute>
+            <ProjectManagementPage />
+          </ProtectedRoute>
+        }
+      />
+      {/* 상품 등록 페이지 라우트 추가 */}
+      <Route
+        path="/product-registration"
+        element={
+          <ProtectedRoute>
+            <ProductRegistrationPage />
+          </ProtectedRoute>
+        }
+      />
+      {/* 정산내역 페이지 라우트 추가 */}
+      <Route
+        path="/funding-reports"
+        element={
+          <ProtectedRoute>
+            <FundingReportsPage />
+          </ProtectedRoute>
+        }
+      />
+      {/* 루트 경로 처리: 인증 상태에 따라 리다이렉트 */}
+      <Route
+        path="/"
+        element={
+          isAuthenticated ? (
+            <Navigate to="/dashboard" replace />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      {/* 필요한 경우 404 페이지 라우트 추가 */}
+      {/* <Route path="*" element={<NotFoundPage />} /> */}
+    </Routes>
+  );
 };
 
-export default AppRouter; 
+export default AppRouter;

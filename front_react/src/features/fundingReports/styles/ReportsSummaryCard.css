@@ -1,0 +1,136 @@
+.reports-summary-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 3.5rem;
+  width: 100%;
+  max-width: 100%;
+}
+
+.summary-item {
+  background-color: white;
+  border-radius: 25px;
+  padding: 2rem;
+  flex: 1;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  min-height: 140px;
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s ease;
+}
+
+.summary-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+}
+
+.icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1.5rem;
+}
+
+.icon-bg {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.total-icon .icon-bg {
+  background-color: #e7edff;
+}
+
+.settlement-icon .icon-bg {
+  background-color: #fff5d9;
+}
+
+/* 아이콘 폰트 대체 */
+.icon-chart:before {
+  content: "";
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-color: #396aff;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 19h16v2H4zm4-12h3v10H8zm6 4h3v6h-3z'/%3E%3C/svg%3E")
+    center/contain no-repeat;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 19h16v2H4zm4-12h3v10H8zm6 4h3v6h-3z'/%3E%3C/svg%3E")
+    center/contain no-repeat;
+}
+
+.icon-wallet:before {
+  content: "";
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-color: #ffbb38;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M18 10a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v1.5c0 .276-.224.5-.5.5h-11a.5.5 0 0 0-.5.5v3c0 .276.224.5.5.5h11c.276 0 .5.224.5.5zm-8.5 1.5H17a.5.5 0 1 0 0-1h-7.5a.5.5 0 1 0 0 1z'/%3E%3C/svg%3E")
+    center/contain no-repeat;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M18 10a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v1.5c0 .276-.224.5-.5.5h-11a.5.5 0 0 0-.5.5v3c0 .276.224.5.5.5h11c.276 0 .5.224.5.5zm-8.5 1.5H17a.5.5 0 1 0 0-1h-7.5a.5.5 0 1 0 0 1z'/%3E%3C/svg%3E")
+    center/contain no-repeat;
+}
+
+.summary-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.summary-item h3 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  color: #718ebf;
+  font-weight: 500;
+}
+
+.amount {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #232323;
+}
+
+.total-amount {
+  color: #232323;
+}
+
+.settlement-amount {
+  color: #232323;
+}
+
+/* 스켈레톤 로딩 애니메이션 */
+.summary-item.skeleton {
+  background-color: #f3f4f6;
+  animation: pulse 1.5s infinite ease-in-out;
+  border-radius: 25px;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .reports-summary-card {
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .summary-item {
+    padding: 1.5rem;
+    min-height: 120px;
+  }
+
+  .amount {
+    font-size: 1.5rem;
+  }
+}

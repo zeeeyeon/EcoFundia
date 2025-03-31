@@ -1,134 +1,162 @@
-import React from 'react';
-import { Project } from '../services/projectManagementService';
-import useProductModalStore from '../../product/store'; // 모달 스토어 import
-import './ProjectManagement.css'; // Import shared styles
+import React from "react";
+import { Project } from "../services/projectManagementService";
+import useProductModalStore from "../../product/store"; // 모달 스토어 import
+import "../styles/ProjectManagement.css"; // Import shared styles
 
 interface ProjectCardProps {
-    project: Project;
+  project: Project;
 }
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
-    const openModal = useProductModalStore((state) => state.openModal);
+  const openModal = useProductModalStore((state) => state.openModal);
 
-    // 가격 포맷팅 (예: 15000 -> 15,000원)
-    const formattedPrice = project.price.toLocaleString('ko-KR');
+  // 가격 포맷팅 (예: 15000 -> 15,000원)
+  const formattedPrice = project.price.toLocaleString("ko-KR");
 
-    // 상품이 마감되었는지 확인
-    const isFinished = !project.remainingTime || project.remainingTime.startsWith('-');
+  // 상품이 마감되었는지 확인
+  const isFinished =
+    !project.remainingTime || project.remainingTime.startsWith("-");
 
-    // 마감된 상품 중 펀딩 성공 여부 (100% 이상인 경우 성공)
-    const isSuccess = isFinished && project.progressPercentage >= 100;
-    const isFailed = isFinished && project.progressPercentage < 100;
+  // 마감된 상품 중 펀딩 성공 여부 (100% 이상인 경우 성공)
+  const isSuccess = isFinished && project.progressPercentage >= 100;
+  const isFailed = isFinished && project.progressPercentage < 100;
 
-    // 진행률 바 스타일 계산
-    const progressStyle = {
-        width: `${Math.min(project.progressPercentage, 100)}%`, // 최대 100%까지만 표시
-        background: getProgressColor(project.progressPercentage, isFinished, isSuccess),
-    };
+  // 진행률 바 스타일 계산
+  const progressStyle = {
+    width: `${Math.min(project.progressPercentage, 100)}%`, // 최대 100%까지만 표시
+    background: getProgressColor(
+      project.progressPercentage,
+      isFinished,
+      isSuccess
+    ),
+  };
 
-    // 진행률에 따른 색상 결정 (마감 상태도 고려)
-    function getProgressColor(percentage: number, finished: boolean, success: boolean): string {
-        if (finished) {
-            if (success) {
-                // 마감된 성공 상품: 그라데이션 초록색
-                return 'linear-gradient(90deg, #4CAF50, #8BC34A)';
-            }
-            // 마감된 실패 상품: 회색
-            return '#9E9E9E';
-        }
-
-        // 진행 중인 상품
-        if (percentage >= 100) return '#4CAF50';  // 100% 이상: 초록색
-        if (percentage >= 70) return '#8BC34A';   // 70% 이상: 연한 초록색
-        if (percentage >= 40) return '#2196F3';   // 40% 이상: 파란색
-        return '#FFC107';                         // 40% 미만: 노란색
+  // 진행률에 따른 색상 결정 (마감 상태도 고려)
+  function getProgressColor(
+    percentage: number,
+    finished: boolean,
+    success: boolean
+  ): string {
+    if (finished) {
+      if (success) {
+        // 마감된 성공 상품: 그라데이션 초록색
+        return "linear-gradient(90deg, #4CAF50, #8BC34A)";
+      }
+      // 마감된 실패 상품: 회색
+      return "#9E9E9E";
     }
 
-    // 남은 시간 표시 처리 (음수인 경우 '마감'으로 표시)
-    const getRemainingTimeDisplay = (remainingTime: string | null): string => {
-        if (!remainingTime) return '마감';
-        // 만약 남은 시간이 음수로 표현된 경우 (예: -1h-5m)
-        if (remainingTime.startsWith('-')) return '마감';
-        return `남은 시간: ${remainingTime}`;
-    };
+    // 진행 중인 상품
+    if (percentage >= 100) return "#4CAF50"; // 100% 이상: 초록색
+    if (percentage >= 70) return "#8BC34A"; // 70% 이상: 연한 초록색
+    if (percentage >= 40) return "#2196F3"; // 40% 이상: 파란색
+    return "#FFC107"; // 40% 미만: 노란색
+  }
 
-    // 이미지 URL 처리 함수 (S3 이미지 로딩 이슈 대응)
-    const getImageUrl = (url: string | null): string => {
-        if (!url) return '/placeholder-image.png';
+  // 남은 시간 표시 처리 (음수인 경우 '마감'으로 표시)
+  const getRemainingTimeDisplay = (remainingTime: string | null): string => {
+    if (!remainingTime) return "마감";
+    // 만약 남은 시간이 음수로 표현된 경우 (예: -1h-5m)
+    if (remainingTime.startsWith("-")) return "마감";
+    return `남은 시간: ${remainingTime}`;
+  };
 
-        // S3 이미지 URL인 경우
-        if (url.includes('s3.ap-northeast-2.amazonaws.com')) {
-            // 방법 1: CSP 문제를 해결했다면 원본 URL 사용
-            return url;
+  // 이미지 URL 처리 함수 (S3 이미지 로딩 이슈 대응)
+  const getImageUrl = (url: string | null): string => {
+    if (!url) return "/placeholder-image.png";
 
-            // 방법 2: 프록시 API를 통해 이미지 제공 (백엔드에 해당 API가 있는 경우)
-            // const imageId = url.split('/').pop(); // URL에서 이미지 ID 추출
-            // return `/api/images/proxy?url=${encodeURIComponent(url)}`;
+    // S3 이미지 URL인 경우
+    if (url.includes("s3.ap-northeast-2.amazonaws.com")) {
+      // 방법 1: CSP 문제를 해결했다면 원본 URL 사용
+      return url;
 
-            // 방법 3: 로컬 캐시된 이미지 사용 (미리 다운로드 받은 경우)
-            // const imageName = url.split('/').pop();
-            // return `/assets/images/${imageName}`;
-        }
+      // 방법 2: 프록시 API를 통해 이미지 제공 (백엔드에 해당 API가 있는 경우)
+      // const imageId = url.split('/').pop(); // URL에서 이미지 ID 추출
+      // return `/api/images/proxy?url=${encodeURIComponent(url)}`;
 
-        return url || '/placeholder-image.png';
-    };
+      // 방법 3: 로컬 캐시된 이미지 사용 (미리 다운로드 받은 경우)
+      // const imageName = url.split('/').pop();
+      // return `/assets/images/${imageName}`;
+    }
 
-    const handleCardClick = () => {
-        openModal(project.fundingId);
-    };
+    return url || "/placeholder-image.png";
+  };
 
-    // 펀딩 상태 텍스트
-    const getFundingStatusText = () => {
-        if (!isFinished) return null;
+  const handleCardClick = () => {
+    openModal(project.fundingId);
+  };
 
-        if (isSuccess) {
-            const overPercentage = project.progressPercentage - 100;
-            if (overPercentage > 0) {
-                return `펀딩 성공 (목표 +${overPercentage.toFixed(0)}%)`;
-            }
-            return '펀딩 성공 (100%)';
-        } else {
-            return `펀딩 실패 (${project.progressPercentage.toFixed(0)}%)`;
-        }
-    };
+  // 펀딩 상태 텍스트
+  const getFundingStatusText = () => {
+    if (!isFinished) return null;
 
-    // 카드 클래스 - 마감된 상품에 추가 클래스 적용
-    const cardClassName = `project-card ${isFinished ? 'finished-project' : ''} ${isSuccess ? 'success-project' : ''} ${isFailed ? 'failed-project' : ''}`;
+    if (isSuccess) {
+      const overPercentage = project.progressPercentage - 100;
+      if (overPercentage > 0) {
+        return `펀딩 성공 (목표 +${overPercentage.toFixed(0)}%)`;
+      }
+      return "펀딩 성공 (100%)";
+    } else {
+      return `펀딩 실패 (${project.progressPercentage.toFixed(0)}%)`;
+    }
+  };
 
-    return (
-        <div
-            className={cardClassName}
-            onClick={handleCardClick}
-            role="button"
-            tabIndex={0}
-            aria-label={`상품 ${project.title} 상세 보기`}
-        >
-            <div className="project-card-image-container">
-                <img src={getImageUrl(project.imageUrl)} alt={project.title} className="project-card-image" />
-                {isFinished && (
-                    <div className={`finished-overlay ${isSuccess ? 'success' : 'failed'}`}>
-                        {getFundingStatusText()}
-                    </div>
-                )}
-            </div>
-            <div className="project-card-content">
-                <h3 className="project-card-title">{project.title}</h3>
-                <p className="project-card-description">{project.description}</p>
-                <div className="project-card-info">
-                    <span className="project-card-price">{formattedPrice}원</span>
-                    <span className={`project-card-remaining-time ${isFinished ? (isSuccess ? 'success' : 'failed') : ''}`}>
-                        {getRemainingTimeDisplay(project.remainingTime)}
-                    </span>
-                </div>
-                <div className="project-card-progress-container">
-                    <div className="project-card-progress-bar" style={progressStyle}></div>
-                </div>
-                <span className={`project-card-progress-percentage ${isSuccess ? 'success' : ''} ${isFailed ? 'failed' : ''}`}>
-                    {project.progressPercentage}%
-                </span>
-            </div>
+  // 카드 클래스 - 마감된 상품에 추가 클래스 적용
+  const cardClassName = `project-card ${isFinished ? "finished-project" : ""} ${
+    isSuccess ? "success-project" : ""
+  } ${isFailed ? "failed-project" : ""}`;
+
+  return (
+    <div
+      className={cardClassName}
+      onClick={handleCardClick}
+      role="button"
+      tabIndex={0}
+      aria-label={`상품 ${project.title} 상세 보기`}
+    >
+      <div className="project-card-image-container">
+        <img
+          src={getImageUrl(project.imageUrl)}
+          alt={project.title}
+          className="project-card-image"
+        />
+        {isFinished && (
+          <div
+            className={`finished-overlay ${isSuccess ? "success" : "failed"}`}
+          >
+            {getFundingStatusText()}
+          </div>
+        )}
+      </div>
+      <div className="project-card-content">
+        <h3 className="project-card-title">{project.title}</h3>
+        <p className="project-card-description">{project.description}</p>
+        <div className="project-card-info">
+          <span className="project-card-price">{formattedPrice}원</span>
+          <span
+            className={`project-card-remaining-time ${
+              isFinished ? (isSuccess ? "success" : "failed") : ""
+            }`}
+          >
+            {getRemainingTimeDisplay(project.remainingTime)}
+          </span>
         </div>
-    );
+        <div className="project-card-progress-container">
+          <div
+            className="project-card-progress-bar"
+            style={progressStyle}
+          ></div>
+        </div>
+        <span
+          className={`project-card-progress-percentage ${
+            isSuccess ? "success" : ""
+          } ${isFailed ? "failed" : ""}`}
+        >
+          {project.progressPercentage}%
+        </span>
+      </div>
+    </div>
+  );
 };
 
-export default ProjectCard; 
+export default ProjectCard;

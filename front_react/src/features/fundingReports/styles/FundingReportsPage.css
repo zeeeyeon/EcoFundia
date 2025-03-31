@@ -1,0 +1,68 @@
+.funding-reports-page {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f9fafb;
+}
+
+.main-content {
+  flex: 1;
+  padding: 3rem 4rem;
+  padding-bottom: 5rem;
+  transition: margin-left 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content.with-sidebar {
+  margin-left: 250px;
+}
+
+.page-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #343c6a;
+  margin-bottom: 3.5rem;
+}
+
+.error-message {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 2.5rem;
+  border-left: 4px solid #ef4444;
+}
+
+/* 테이블 제목 스타일 */
+.reports-table-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #343c6a;
+  margin-bottom: 1.5rem;
+  margin-top: 1rem;
+}
+
+/* 여백 조정을 위한 컨테이너 스타일 */
+.reports-content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 2rem;
+    padding-bottom: 3.5rem;
+  }
+
+  .main-content.with-sidebar {
+    margin-left: 0;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+}
