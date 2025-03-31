@@ -23,9 +23,8 @@ class FundingDetailCard extends StatelessWidget {
           backgroundColor: Colors.white,
           flexibleSpace: FlexibleSpaceBar(
             background: CachedNetworkImage(
-              imageUrl: funding.imageUrls.isNotEmpty
-                  ? funding.imageUrls.first
-                  : 'https://via.placeholder.com/300x200?text=No+Image',
+              imageUrl:
+                  funding.imageUrls.isNotEmpty ? funding.imageUrls.first : '',
               fit: BoxFit.cover,
               placeholder: (_, __) =>
                   const Center(child: CircularProgressIndicator()),
@@ -47,23 +46,7 @@ class FundingDetailCard extends StatelessWidget {
                 const SizedBox(height: 20),
                 _buildFundingProgressSection(funding),
                 const Divider(height: 32),
-                Text("판매자", style: AppTextStyles.caption),
-                const SizedBox(height: 4),
-                Text(
-                  seller.sellerName,
-                  style:
-                      AppTextStyles.body1.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const Divider(height: 32),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("가격: ${_formatCurrency(funding.price)}원",
-                        style: AppTextStyles.body1),
-                    Text("남은 수량: ${funding.quantity}",
-                        style: AppTextStyles.body1),
-                  ],
-                ),
+                _buildSellerSection(seller),
                 const Divider(height: 32),
                 Text("상세 설명", style: AppTextStyles.heading3),
                 const SizedBox(height: 12),
@@ -116,9 +99,13 @@ class FundingDetailCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(30),
               ),
               child: Text(
-                "${funding.rate.toStringAsFixed(1)}%",
+                funding.rate % 1 == 0
+                    ? "${funding.rate.toInt()}%"
+                    : "${funding.rate.toStringAsFixed(1)}%",
                 style: const TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.bold),
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             const SizedBox(width: 12),
@@ -220,5 +207,60 @@ class FundingDetailCard extends StatelessWidget {
           RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
           (match) => '${match[1]},',
         );
+  }
+
+  Widget _buildSellerSection(SellerInfo seller) {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      margin: const EdgeInsets.only(top: 8),
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.primary),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(width: 16),
+          // 이름
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("판매자",
+                    style: AppTextStyles.caption.copyWith(fontSize: 18)),
+                const SizedBox(height: 4),
+                Text(
+                  seller.sellerName,
+                  style: AppTextStyles.body1.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+
+          // 판매자 상세 정보 버튼
+          ElevatedButton(
+            onPressed: () {
+              // 상세 페이지 이동 로직
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: const Text(
+              "판매자 상세 정보",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
