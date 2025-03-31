@@ -122,9 +122,40 @@ public class SellerController {
         return new ResponseEntity<>(Response.create(ResponseCode.GET_SELLER_END_FUNDING_LIST, dto), ResponseCode.GET_SELLER_END_FUNDING_LIST.getHttpStatus());
     }
 
+    @GetMapping("/funding/detail/{fundingId}")
+    public ResponseEntity<?> getSellerFundingDetail(@PathVariable("fundingId") int fundingId) {
+        GetSellerFundingDetailResponseDto dto = sellerService.getSellerFundingDetail(fundingId);
+        return new ResponseEntity<>(Response.create(ResponseCode.GET_SELLER_FUNDING_DETAIL, dto), ResponseCode.GET_SELLER_FUNDING_DETAIL.getHttpStatus());
+    }
+
+    @GetMapping("/funding/detail/order/{fundingId}")
+    public ResponseEntity<?> getSellerFundingDetailOrderList(@PathVariable("fundingId") int fundingId, @RequestParam(value = "page", defaultValue = "0") int page) {
+        List<GetSellerFundingDetailOrderListResponseDto> dto = sellerService.getSellerFundingDetailOrderList(fundingId, page);
+        return new ResponseEntity<>(Response.create(ResponseCode.GET_SELLER_FUNDING_DETAIL_ORDER_LIST, dto), ResponseCode.GET_SELLER_FUNDING_DETAIL_ORDER_LIST.getHttpStatus());
+    }
+
+    @GetMapping("/month-amount-statistics")
+    public ResponseEntity<?> getSellerMonthAmountStatistics(@RequestHeader("X-User-Id") int userId) {
+        List<GetSellerMonthAmountStatisticsResponseDto> dto = sellerService.getSellerMonthAmountStatistics(userId);
+        return new ResponseEntity<>(Response.create(ResponseCode.GET_SELLER_MONTH_AMOUNT_STATISTICS, dto), ResponseCode.GET_SELLER_MONTH_AMOUNT_STATISTICS.getHttpStatus());
+    }
+
+    @GetMapping("/funding/detail/statistics/{fundingId}")
+    public ResponseEntity<?> getSellerFundingDetailStatistics(@PathVariable("fundingId") int fundingId) {
+        List<GetSellerFundingDetailStatisticsResponseDto> dto = sellerService.getSellerFundingDetailStatistics(fundingId);
+        return new ResponseEntity<>(Response.create(ResponseCode.GET_SELLER_FUNDING_DETAIL_STATISTICS, dto), ResponseCode.GET_SELLER_FUNDING_DETAIL_STATISTICS.getHttpStatus());
+    }
+
+    @GetMapping("/brand-statistics")
+    public ResponseEntity<?> getSellerBrandStatistics(@RequestHeader("X-User-Id") int userId) {
+        List<GetSellerBrandStatisticsResponseDto> dto = sellerService.getSellerBrandStatistics(userId);
+        return new ResponseEntity<>(Response.create(ResponseCode.GET_SELLER_BRAND_STATISTICS, dto), ResponseCode.GET_SELLER_BRAND_STATISTICS.getHttpStatus());
+    }
+
     @GetMapping("/today-order/list")
-    public ResponseEntity<?> getSellerTodayOrderTopThreeList(@RequestHeader("X-User-Id") int userId) {
-        List<GetSellerTodayOrderTopThreeListResponseDto> dto = sellerService.getSellerTodayOrderTopThreeList(userId);
+    public ResponseEntity<?> getSellerTodayOrderListTopThree(@RequestHeader("X-User-Id") int userId) {
+        List<GetSellerTodayOrderTopThreeListResponseDto> dto = sellerService.getSellerTodayOrderListTopThree(userId);
         return new ResponseEntity<>(Response.create(ResponseCode.GET_SELLER_TODAY_ORDER_TOP_THREE_LIST, dto), ResponseCode.GET_SELLER_TODAY_ORDER_TOP_THREE_LIST.getHttpStatus());
     }
+
 }
