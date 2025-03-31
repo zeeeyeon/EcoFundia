@@ -8,11 +8,13 @@ import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 interface ProjectSectionProps {
   title: string;
   projectType: "ongoing" | "finished";
+  onDeleteProject?: (projectId: number) => void;
 }
 
 const ProjectSection: React.FC<ProjectSectionProps> = ({
   title,
   projectType,
+  onDeleteProject,
 }) => {
   const {
     projects,
@@ -75,7 +77,13 @@ const ProjectSection: React.FC<ProjectSectionProps> = ({
       {!isLoading && !error && projects.length > 0 && (
         <div className="project-grid">
           {projects.map((project) => (
-            <ProjectCard key={project.fundingId} project={project} />
+            <ProjectCard
+              key={project.fundingId}
+              project={project}
+              onDeleteProject={
+                projectType === "ongoing" ? onDeleteProject : undefined
+              }
+            />
           ))}
         </div>
       )}

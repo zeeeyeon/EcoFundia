@@ -17,6 +17,7 @@
     "@types/antd": "^0.12.32",
     "@types/axios": "^0.9.36",
     "@types/react-router-dom": "^5.3.3",
+    "@types/react-toastify": "^4.0.2",
     "antd": "^5.24.5",
     "axios": "^1.8.4",
     "jwt-decode": "^4.0.0",
@@ -25,6 +26,7 @@
     "react-hook-form": "^7.55.0",
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.4.0",
+    "react-toastify": "^11.0.5",
     "recharts": "^2.15.1",
     "zod": "^3.24.2",
     "zustand": "^5.0.3"

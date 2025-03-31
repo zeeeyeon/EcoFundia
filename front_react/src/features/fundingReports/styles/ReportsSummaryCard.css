@@ -32,8 +32,8 @@
 }
 
 .icon-bg {
-  width: 60px;
-  height: 60px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -52,8 +52,8 @@
 .icon-chart:before {
   content: "";
   display: inline-block;
-  width: 24px;
-  height: 24px;
+  width: 50px;
+  height: 50px;
   background-color: #396aff;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 19h16v2H4zm4-12h3v10H8zm6 4h3v6h-3z'/%3E%3C/svg%3E")
     center/contain no-repeat;
@@ -64,8 +64,9 @@
 .icon-wallet:before {
   content: "";
   display: inline-block;
-  width: 24px;
-  height: 24px;
+  width: 50px;
+  height: 50px;
+  margin-top: 10px;
   background-color: #ffbb38;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M18 10a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v1.5c0 .276-.224.5-.5.5h-11a.5.5 0 0 0-.5.5v3c0 .276.224.5.5.5h11c.276 0 .5.224.5.5zm-8.5 1.5H17a.5.5 0 1 0 0-1h-7.5a.5.5 0 1 0 0 1z'/%3E%3C/svg%3E")
     center/contain no-repeat;
@@ -128,6 +129,17 @@
   .summary-item {
     padding: 1.5rem;
     min-height: 120px;
+  }
+
+  .icon-bg {
+    width: 70px;
+    height: 70px;
+  }
+
+  .icon-chart:before,
+  .icon-wallet:before {
+    width: 32px;
+    height: 32px;
   }
 
   .amount {

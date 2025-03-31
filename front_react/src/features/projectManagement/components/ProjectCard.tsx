@@ -1,13 +1,23 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Project } from "../services/projectManagementService";
 import useProductModalStore from "../../product/store"; // 모달 스토어 import
 import "../styles/ProjectManagement.css"; // Import shared styles
+import DeleteConfirmModal from "./DeleteConfirmModal"; // 삭제 확인 모달 컴포넌트 import
 
 interface ProjectCardProps {
   project: Project;
+  onDeleteProject?: (projectId: number) => void; // 삭제 함수 prop 추가
 }
 
-const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
+const ProjectCard: React.FC<ProjectCardProps> = ({
+  project,
+  onDeleteProject,
+}) => {
+  // 메뉴 표시 상태
+  const [showMenu, setShowMenu] = useState(false);
+  // 삭제 확인 모달 상태
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const openModal = useProductModalStore((state) => state.openModal);
 
   // 가격 포맷팅 (예: 15000 -> 15,000원)
@@ -20,6 +30,46 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
   // 마감된 상품 중 펀딩 성공 여부 (100% 이상인 경우 성공)
   const isSuccess = isFinished && project.progressPercentage >= 100;
   const isFailed = isFinished && project.progressPercentage < 100;
+
+  // 외부 클릭 감지하여 메뉴 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // 메뉴 토글 함수
+  const toggleMenu = (e: React.MouseEvent) => {
+    e.stopPropagation(); // 카드 클릭 이벤트 전파 방지
+    setShowMenu(!showMenu);
+  };
+
+  // 삭제 클릭 핸들러
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowDeleteModal(true);
+    setShowMenu(false);
+  };
+
+  // 삭제 확인 핸들러
+  const confirmDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDeleteProject?.(project.fundingId);
+    setShowDeleteModal(false);
+  };
+
+  // 삭제 취소 핸들러
+  const cancelDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowDeleteModal(false);
+  };
 
   // 진행률 바 스타일 계산
   const progressStyle = {
@@ -107,55 +157,90 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
   } ${isFailed ? "failed-project" : ""}`;
 
   return (
-    <div
-      className={cardClassName}
-      onClick={handleCardClick}
-      role="button"
-      tabIndex={0}
-      aria-label={`상품 ${project.title} 상세 보기`}
-    >
-      <div className="project-card-image-container">
-        <img
-          src={getImageUrl(project.imageUrl)}
-          alt={project.title}
-          className="project-card-image"
-        />
-        {isFinished && (
-          <div
-            className={`finished-overlay ${isSuccess ? "success" : "failed"}`}
-          >
-            {getFundingStatusText()}
+    <>
+      <div
+        className={cardClassName}
+        onClick={handleCardClick}
+        role="button"
+        tabIndex={0}
+        aria-label={`상품 ${project.title} 상세 보기`}
+      >
+        <div className="project-card-image-container">
+          <img
+            src={getImageUrl(project.imageUrl)}
+            alt={project.title}
+            className="project-card-image"
+          />
+          {isFinished && (
+            <div
+              className={`finished-overlay ${isSuccess ? "success" : "failed"}`}
+            >
+              {getFundingStatusText()}
+            </div>
+          )}
+        </div>
+
+        {/* 더보기 메뉴 버튼 (진행 중인 프로젝트에만 표시) */}
+        {!isFinished && (
+          <div className="project-card-menu" ref={menuRef}>
+            <button
+              className="more-button"
+              onClick={toggleMenu}
+              aria-label="프로젝트 관리 메뉴"
+            >
+              <span className="more-icon">⋮</span>
+            </button>
+
+            {showMenu && (
+              <div className="project-menu-dropdown">
+                <button
+                  onClick={handleDeleteClick}
+                  className="menu-item delete"
+                >
+                  프로젝트 삭제
+                </button>
+              </div>
+            )}
           </div>
         )}
-      </div>
-      <div className="project-card-content">
-        <h3 className="project-card-title">{project.title}</h3>
-        <p className="project-card-description">{project.description}</p>
-        <div className="project-card-info">
-          <span className="project-card-price">{formattedPrice}원</span>
+
+        <div className="project-card-content">
+          <h3 className="project-card-title">{project.title}</h3>
+          <p className="project-card-description">{project.description}</p>
+          <div className="project-card-info">
+            <span className="project-card-price">{formattedPrice}원</span>
+            <span
+              className={`project-card-remaining-time ${
+                isFinished ? (isSuccess ? "success" : "failed") : ""
+              }`}
+            >
+              {getRemainingTimeDisplay(project.remainingTime)}
+            </span>
+          </div>
+          <div className="project-card-progress-container">
+            <div
+              className="project-card-progress-bar"
+              style={progressStyle}
+            ></div>
+          </div>
           <span
-            className={`project-card-remaining-time ${
-              isFinished ? (isSuccess ? "success" : "failed") : ""
-            }`}
+            className={`project-card-progress-percentage ${
+              isSuccess ? "success" : ""
+            } ${isFailed ? "failed" : ""}`}
           >
-            {getRemainingTimeDisplay(project.remainingTime)}
+            {project.progressPercentage}%
           </span>
         </div>
-        <div className="project-card-progress-container">
-          <div
-            className="project-card-progress-bar"
-            style={progressStyle}
-          ></div>
-        </div>
-        <span
-          className={`project-card-progress-percentage ${
-            isSuccess ? "success" : ""
-          } ${isFailed ? "failed" : ""}`}
-        >
-          {project.progressPercentage}%
-        </span>
       </div>
-    </div>
+
+      {/* 분리된 삭제 확인 모달 컴포넌트 사용 */}
+      <DeleteConfirmModal
+        title="프로젝트 삭제"
+        isOpen={showDeleteModal}
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+      />
+    </>
   );
 };
 
