@@ -211,53 +211,54 @@ class FundingDetailCard extends StatelessWidget {
 
   Widget _buildSellerSection(SellerInfo seller) {
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       margin: const EdgeInsets.only(top: 8),
       decoration: BoxDecoration(
         border: Border.all(color: AppColors.primary),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(width: 16),
-          // 이름
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("판매자",
-                    style: AppTextStyles.caption.copyWith(fontSize: 18)),
-                const SizedBox(height: 4),
-                Text(
+          Text(
+            "판매자",
+            style: AppTextStyles.caption.copyWith(fontSize: 18),
+          ),
+          const SizedBox(height: 4),
+
+          // 이름 + 버튼 같은 줄
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
                   seller.sellerName,
                   style: AppTextStyles.body1.copyWith(
                     color: AppColors.primary,
                     fontWeight: FontWeight.w800,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 8),
-              ],
-            ),
-          ),
-
-          // 판매자 상세 정보 버튼
-          ElevatedButton(
-            onPressed: () {
-              // 상세 페이지 이동 로직
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
               ),
-            ),
-            child: const Text(
-              "판매자 상세 정보",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-            ),
+              ElevatedButton(
+                onPressed: () {
+                  // 상세 페이지 이동 로직
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: const Text(
+                  "판매자 상세 정보",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                ),
+              ),
+            ],
           ),
         ],
       ),
