@@ -34,12 +34,14 @@ class ProfileNotifier extends StateNotifier<AsyncValue<ProfileModel>> {
   }
 
   /// 닉네임과 계좌를 함께 수정
-  Future<void> updateProfile(
-      {required String nickname, required String account}) async {
+  Future<void> updateProfile({
+    required String nickname,
+    required String account,
+  }) async {
     try {
       await _repository.updateProfile(nickname: nickname, account: account);
 
-      // 상태 업데이트
+      // 상태 업데이트 (View 반영)
       state = state.whenData((profile) => profile.copyWith(
             nickname: nickname,
             account: account,

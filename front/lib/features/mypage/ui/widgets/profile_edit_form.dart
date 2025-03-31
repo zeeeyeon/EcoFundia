@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/features/mypage/ui/view_model/profile_view_model.dart';
+import 'package:go_router/go_router.dart';
 
 class ProfileEditForm extends ConsumerStatefulWidget {
   const ProfileEditForm({super.key});
@@ -90,6 +91,7 @@ class _ProfileEditFormState extends ConsumerState<ProfileEditForm> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('프로필이 저장되었습니다')),
                     );
+                    context.go('/mypage'); // 마이페이지 경로로 이동
                   }
                 },
                 child: const Text("저장"),
