@@ -128,11 +128,14 @@ public class UserController {
     }
 
     // 다른 마이크로 서비스와 연결
-    @GetMapping("/seller/age/list")
+    @PostMapping("/seller/age/list")
     public List<Integer> getAgeList(@RequestBody List<GetAgeListRequestDto> dtos){
         return userService.getAgeList(dtos);
     }
 
-
+    @PostMapping("/seller/funding/detail/order")
+    public List<GetSellerFundingDetailOrderUserInfoListResponseDto> getSellerFundingDetailOrderList(@RequestBody GetSellerFundingDetailOrderListRequestDto getSellerFundingDetailOrderListRequestDto) {
+        return userService.getSellerFundingDetailOrderList(getSellerFundingDetailOrderListRequestDto);
+    }
 
 }
