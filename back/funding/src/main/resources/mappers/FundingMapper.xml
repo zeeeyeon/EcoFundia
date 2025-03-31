@@ -24,6 +24,8 @@
         <result column="progress_percentage" property="progressPercentage"/>
         <result column="image_url" property="imageUrl"/>
         <result column="remaining_time" property="remainingTime"/>
+        <result column="month" property="month"/>
+        <result column="total_amount" property="totalAmount"/>
     </resultMap>
 
     <resultMap id="ReviewResultMap" type="com.ssafy.funding.dto.review.response.ReviewDto">
@@ -265,5 +267,13 @@
         <foreach item="fundingId" collection="fundingIdList" open="(" separator="," close=")">
             #{fundingId}
         </foreach>
+    </select>
+
+    <select id="getSellerFundingDetail" resultMap="FundingResultMap">
+        CALL get_seller_funding_detail(#{fundingId})
+    </select>
+
+    <select id="getSellerMonthAmountStatistics" resultMap="FundingResultMap">
+
     </select>
 </mapper>
