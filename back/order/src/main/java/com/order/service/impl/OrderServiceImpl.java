@@ -11,6 +11,7 @@ import com.order.dto.funding.request.GetSellerTodayOrderTopThreeListRequestDto;
 import com.order.dto.funding.response.GetSellerTodayOrderCountResponseDto;
 import com.order.dto.funding.response.GetSellerTodayOrderTopThreeIdAndMoneyResponseDto;
 import com.order.dto.funding.response.IsOngoingResponseDto;
+import com.order.dto.order.response.OrderResponseDto;
 import com.order.dto.ssafyApi.request.HeaderDto;
 import com.order.dto.ssafyApi.request.TransferRequestDto;
 import com.order.dto.ssafyApi.response.ApiResponseDto;
