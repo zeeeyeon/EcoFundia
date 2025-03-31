@@ -32,7 +32,7 @@ class FundingService {
     }
 
     final response = await api.get(
-      '/api/business/funding-page',
+      '/business/funding-page',
       queryParameters: queryParams,
     );
 
@@ -48,7 +48,7 @@ class FundingService {
 
   Future<List<FundingModel>> searchFunding(String query, {int page = 1}) async {
     final response = await api.get(
-      '/api/business/search',
+      '/business/search',
       queryParameters: {
         'sort': 'latest',
         'page': 1,
@@ -70,7 +70,7 @@ class FundingService {
     int page = 1,
   }) async {
     final response = await api.get(
-      '/api/business/search/special',
+      '/business/search/special',
       queryParameters: {
         'topic': topic,
         'sort': sort,
@@ -90,7 +90,7 @@ class FundingService {
 
   // 펀딩 상세 조회
   Future<FundingDetailModel> fetchFundingDetail(int fundingId) async {
-    final response = await api.get('/api/business/detail/$fundingId');
+    final response = await api.get('/business/detail/$fundingId');
     final data = response.data['content'];
     return FundingDetailModel.fromJson(data);
   }

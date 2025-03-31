@@ -1,5 +1,3 @@
-// lib/features/mypage/data/services/my_funding_service.dart
-
 import '../models/my_funding_model.dart';
 
 class MyFundingService {

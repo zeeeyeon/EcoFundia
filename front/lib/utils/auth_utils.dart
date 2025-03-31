@@ -58,8 +58,8 @@ class AuthUtils {
   /// 로그인이 필요한 경로인지 확인
   static bool isAuthRequiredPath(String path) {
     const authRequiredPaths = {
-      // '/mypage': true,
-      // '/wishlist': true, // 위시리스트 권한 체크 해제
+      '/mypage': true,
+      '/wishlist': true, // 위시리스트 권한 체크 해제
     };
     return authRequiredPaths[path] ?? false;
   }
