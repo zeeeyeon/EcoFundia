@@ -4,37 +4,28 @@ import '../../data/models/funding_detail_model.dart';
 import '../../../../core/themes/app_text_styles.dart';
 import '../../../../core/themes/app_colors.dart';
 
-class FundingDetailCard extends StatefulWidget {
+class FundingDetailCard extends StatelessWidget {
   final FundingDetailModel detail;
 
   const FundingDetailCard({super.key, required this.detail});
 
   @override
-  State<FundingDetailCard> createState() => _FundingDetailCardState();
-}
-
-class _FundingDetailCardState extends State<FundingDetailCard> {
-  bool _showFullStory = false;
-
-  @override
   Widget build(BuildContext context) {
-    final funding = widget.detail.fundingInfo;
-    final seller = widget.detail.sellerInfo;
+    final funding = detail.fundingInfo;
+    final seller = detail.sellerInfo;
+    final screenSize = MediaQuery.of(context).size;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 🔹 대표 이미지
-          ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: CachedNetworkImage(
+    return CustomScrollView(
+      slivers: [
+        SliverAppBar(
+          expandedHeight: screenSize.height * 0.4,
+          pinned: true,
+          backgroundColor: Colors.white,
+          flexibleSpace: FlexibleSpaceBar(
+            background: CachedNetworkImage(
               imageUrl: funding.imageUrls.isNotEmpty
                   ? funding.imageUrls.first
                   : 'https://via.placeholder.com/300x200?text=No+Image',
-              height: 220,
-              width: double.infinity,
               fit: BoxFit.cover,
               placeholder: (_, __) =>
                   const Center(child: CircularProgressIndicator()),
@@ -43,75 +34,79 @@ class _FundingDetailCardState extends State<FundingDetailCard> {
               ),
             ),
           ),
-          const SizedBox(height: 24),
-
-          // 🔹 제목 + D-Day
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(funding.title, style: AppTextStyles.heading3),
-              ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
+        ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildTitleAndDday(funding),
+                const SizedBox(height: 12),
+                Text(funding.description, style: AppTextStyles.body2),
+                const SizedBox(height: 20),
+                _buildFundingProgressSection(funding),
+                const Divider(height: 32),
+                Text("판매자", style: AppTextStyles.caption),
+                const SizedBox(height: 4),
+                Text(
+                  seller.sellerName,
+                  style:
+                      AppTextStyles.body1.copyWith(fontWeight: FontWeight.bold),
                 ),
-                child: Text(
-                  _buildRemainingDaysText(funding.endDate),
-                  style: AppTextStyles.body2.copyWith(color: AppColors.primary),
+                const Divider(height: 32),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("가격: ${_formatCurrency(funding.price)}원",
+                        style: AppTextStyles.body1),
+                    Text("남은 수량: ${funding.quantity}",
+                        style: AppTextStyles.body1),
+                  ],
                 ),
-              ),
-            ],
+                const Divider(height: 32),
+                Text("상세 설명", style: AppTextStyles.heading3),
+                const SizedBox(height: 12),
+                _buildStorySection(funding.storyFileUrl),
+              ],
+            ),
           ),
-          const SizedBox(height: 12),
-
-          // 🔹 설명
-          Text(funding.description, style: AppTextStyles.body1),
-          const SizedBox(height: 20),
-
-          // 🔹 펀딩 진행률 + 금액 + 버튼 (리팩토링)
-          _buildFundingProgressSection(funding),
-          const Divider(height: 32),
-
-          // 🔹 판매자
-          Text("판매자", style: AppTextStyles.caption),
-          const SizedBox(height: 4),
-          Text(
-            seller.sellerName,
-            style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const Divider(height: 32),
-
-          // 🔹 가격 및 수량
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text("가격: ${_formatCurrency(funding.price)}원",
-                  style: AppTextStyles.body1),
-              Text("남은 수량: ${funding.quantity}", style: AppTextStyles.body1),
-            ],
-          ),
-          const Divider(height: 32),
-
-          // 🔹 상세 설명
-          Text("상세 설명", style: AppTextStyles.heading3),
-          const SizedBox(height: 12),
-          _buildStorySection(funding.storyFileUrl),
-        ],
-      ),
+        )
+      ],
     );
   }
 
-  Widget _buildFundingProgressSection(funding) {
+  Widget _buildTitleAndDday(FundingInfo funding) {
+    final diff = funding.endDate.difference(DateTime.now()).inDays;
+    final dDayText = diff < 0 ? "마감" : (diff == 0 ? "D-Day" : "D-$diff");
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Text(funding.title, style: AppTextStyles.heading3),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            dDayText,
+            style: AppTextStyles.body2.copyWith(color: AppColors.primary),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFundingProgressSection(FundingInfo funding) {
     final dDay = funding.endDate.difference(DateTime.now()).inDays;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 🔸 진행률 + 남은 시간
         Row(
           children: [
             Container(
@@ -119,32 +114,21 @@ class _FundingDetailCardState extends State<FundingDetailCard> {
               decoration: BoxDecoration(
                 color: AppColors.primary,
                 borderRadius: BorderRadius.circular(30),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
-                    blurRadius: 6,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
               ),
               child: Text(
                 "${funding.rate.toStringAsFixed(1)}%",
                 style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
+                    color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ),
             const SizedBox(width: 12),
             Text(
-              "남은시간: ${dDay > 0 ? "$dDay일 남음" : "마감"}",
-              style: AppTextStyles.body1.copyWith(color: Colors.grey[800]),
+              dDay < 0 ? "마감" : "남은시간: $dDay일 남음",
+              style: AppTextStyles.body2.copyWith(color: Colors.grey[800]),
             ),
           ],
         ),
         const SizedBox(height: 12),
-
-        // 🔸 진행률 바
         ClipRRect(
           borderRadius: BorderRadius.circular(20),
           child: LinearProgressIndicator(
@@ -155,12 +139,9 @@ class _FundingDetailCardState extends State<FundingDetailCard> {
           ),
         ),
         const SizedBox(height: 24),
-
-        // 🔸 펀딩 금액 + 버튼
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // 금액
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -176,12 +157,8 @@ class _FundingDetailCardState extends State<FundingDetailCard> {
                 ),
               ],
             ),
-
-            // 펀딩하기 버튼
             ElevatedButton(
-              onPressed: () {
-                // TODO: 펀딩 로직
-              },
+              onPressed: () {},
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
@@ -190,13 +167,9 @@ class _FundingDetailCardState extends State<FundingDetailCard> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
-                elevation: 4,
-                shadowColor: AppColors.primary.withOpacity(0.3),
               ),
-              child: const Text(
-                '펀딩하기',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
+              child: const Text('펀딩하기',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -217,7 +190,6 @@ class _FundingDetailCardState extends State<FundingDetailCard> {
             borderRadius: BorderRadius.circular(12),
             child: Image.network(
               storyFileUrl,
-              height: _showFullStory ? null : 300,
               width: double.infinity,
               fit: BoxFit.cover,
               errorBuilder: (_, error, __) {
@@ -233,24 +205,6 @@ class _FundingDetailCardState extends State<FundingDetailCard> {
               },
             ),
           ),
-          const SizedBox(height: 12),
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton(
-              onPressed: () {
-                setState(() {
-                  _showFullStory = !_showFullStory;
-                });
-              },
-              child: Text(
-                _showFullStory ? '닫기' : '더 보기',
-                style: const TextStyle(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          )
         ],
       );
     } else {
@@ -261,20 +215,10 @@ class _FundingDetailCardState extends State<FundingDetailCard> {
     }
   }
 
-  String _buildRemainingDaysText(DateTime endDate) {
-    final today = DateTime.now();
-    final diff = endDate.difference(today).inDays;
-    if (diff > 0) {
-      return "D-$diff";
-    } else if (diff == 0) {
-      return "D-Day";
-    } else {
-      return "종료됨";
-    }
-  }
-
   String _formatCurrency(int amount) {
     return amount.toString().replaceAllMapped(
-        RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (match) => '${match[1]},');
+          RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+          (match) => '${match[1]},',
+        );
   }
 }
