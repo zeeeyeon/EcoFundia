@@ -33,4 +33,6 @@ public interface UserService {
     void logout(int userId);
 
     List<Integer> getAgeList(List<GetAgeListRequestDto> dtos);
+
+    List<GetSellerFundingDetailOrderUserInfoListResponseDto> getSellerFundingDetailOrderList(GetSellerFundingDetailOrderListRequestDto getSellerFundingDetailOrderListRequestDto);
 }
