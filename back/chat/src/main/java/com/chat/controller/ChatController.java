@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -18,14 +17,14 @@ public class ChatController {
     private final SimpMessagingTemplate template;
     private final ChatMessageRepository chatMessageRepository;
 
-    //  엔드 포인트로 데이터와 함께 호출하면 "sub/message" 를 수신하는 사용자에게 메세지를 전달합니다.
+    //  엔드 포인트로 데이터와 함께 호출하면 "sub/chat/{fundingId}" 를 수신하는 사용자에게 메세지를 전달합니다.
     @MessageMapping("/chat/{fundingId}")
     public ChatMessageDto send2(@DestinationVariable(value = "fundingId") int fundingId, ChatMessageDto chatMessageDto){
 
         // MongoDB에 저장
-        ChatMessageDocument document = ChatMessageDocument.toDto(chatMessageDto);
+//        ChatMessageDocument document = ChatMessageDocument.toDto(chatMessageDto);
 
-        chatMessageRepository.save(document);
+//        chatMessageRepository.save(document);
 
         template.convertAndSend("/sub/chat/" + fundingId , chatMessageDto);
         return chatMessageDto;
