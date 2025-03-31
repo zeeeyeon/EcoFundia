@@ -11,6 +11,6 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class GetSellerTodayOrderTopThreeListRequestDto {
-    private List<Integer> fundingIdList;
+public class GetSellerFundingDetailOrderListRequestDto {
+    private List<Integer> userIdList;
 }

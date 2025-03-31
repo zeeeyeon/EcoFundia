@@ -1,16 +1,15 @@
-package com.order.dto.funding.request;
+package com.order.dto.seller.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Builder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class GetSellerTodayOrderTopThreeListRequestDto {
-    private List<Integer> fundingIdList;
+public class GetSellerMonthAmountStatisticsResponseDto {
+    private String month;
+    private int totalAmount;
 }
