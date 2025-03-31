@@ -129,5 +129,8 @@ public interface FundingClient {
 
     @GetMapping("api/funding/seller/today-order/list/{sellerId}")
     List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThreeList(@PathVariable("sellerId") int sellerId);
+
+    @GetMapping("api/funding/seller/funding/detail/{fundingId}")
+    GetSellerFundingDetailResponseDto getSellerFundingDetail(@PathVariable("fundingId") int fundingId);
 }
 
