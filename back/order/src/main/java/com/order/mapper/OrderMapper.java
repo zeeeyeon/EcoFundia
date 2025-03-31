@@ -20,4 +20,9 @@ public interface OrderMapper {
 
     int getSellerTodayOrderCount(@Param("fundingIdList") List<Integer> fundingIdList);
     List<Order> getSellerTodayOrderTopThreeList(@Param("fundingIdList") List<Integer> fundingIdList);
+    List<Order> getSellerTodayOrderTopThreeAmount(@Param("fundingIdList") List<Integer> fundingIdList);
+    List<Order> getSellerFundingDetailOrderList(@Param("fundingId") int fundingId, @Param("page") int page);
+    List<Order> getSellerMonthAmountStatistics(@Param("fundingIdList") List<Integer> fundingIdList);
+    List<Integer> getSellerFundingDetailStatistics(@Param("fundingId") int fundingId);
+    List<Integer> getSellerBrandStatistics(@Param("fundingIdList") List<Integer> fundingIdList);
 }
