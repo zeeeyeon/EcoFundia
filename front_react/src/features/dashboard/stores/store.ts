@@ -5,6 +5,8 @@ import {
   getTotalFundingAmount,
   getOngoingFundingCount,
   getTodayOrderCount,
+  getChartDataAmount,
+  getChartDataOrder,
 } from "../services/dashboardService";
 import { getTokens } from "../../../shared/utils/auth";
 
@@ -57,109 +59,29 @@ interface DashboardState {
   fetchDashboardData: () => Promise<void>;
 }
 
-// 더미 데이터 생성 함수
-const generateDummyData = () => {
-  // 월별 펀딩 금액 (차트용 더미 데이터)
-  const mockFundingData = [
-    { name: "1월", value: 10000000 },
-    { name: "2월", value: 15000000 },
-    { name: "3월", value: 12000000 },
-    { name: "4월", value: 20000000 },
-  ];
+// 연령대별 색상 맵핑
+const AGE_GROUP_COLORS = {
+  10: "#8884d8", // 10대 - 보라색
+  20: "#82ca9d", // 20대 - 녹색
+  30: "#ffc658", // 30대 - 노란색
+  40: "#ff8042", // 40대 - 주황색
+  50: "#00C49F", // 50대 - 청록색
+  60: "#FFBB28", // 60대 - 황금색
+  other: "#cccccc", // 기타 - 회색
+};
 
-  // 연령대별 통계 (차트용 더미 데이터)
-  const mockAgeGroupData: AgeGroupData[] = [
-    { name: "10대", value: 15, fill: "#8884d8" },
-    { name: "20대", value: 35, fill: "#82ca9d" },
-    { name: "30대", value: 25, fill: "#ffc658" },
-    { name: "40대", value: 15, fill: "#ff8042" },
-    { name: "50대", value: 8, fill: "#00C49F" },
-    { name: "기타", value: 2, fill: "#FFBB28" },
-  ];
-
-  // 오늘의 펀딩 모금액 목 데이터
-  const mockTodayFundingData: TodayFundingItem[] = [
-    {
-      id: "tf1",
-      productName: "오가닉 대나무 칫솔 세트",
-      imageUrl: "/test1.png",
-      category: "생필품",
-      totalAmount: 1250000,
-      changeAmount: 55000,
-      fundingRate: 85,
-    },
-    {
-      id: "tf2",
-      productName: "비건 단백질 바 (초코맛)",
-      imageUrl: "/test2.png",
-      category: "푸드",
-      totalAmount: 880000,
-      changeAmount: -10000,
-      fundingRate: 60,
-    },
-    {
-      id: "tf3",
-      productName: "스마트 재활용 분리수거함",
-      imageUrl: "/test3.png",
-      category: "테크",
-      totalAmount: 2100000,
-      changeAmount: 120000,
-      fundingRate: 110,
-    },
-  ];
-
-  // 진행 중인 제품 Top 5
-  const mockProducts: Product[] = [
-    {
-      id: "1",
-      rank: 1,
-      name: "친환경 텀블러",
-      totalFundingAmount: 7300000,
-      fundingRate: 73,
-    },
-    {
-      id: "2",
-      rank: 2,
-      name: "대나무 칫솔 세트",
-      totalFundingAmount: 5500000,
-      fundingRate: 55,
-    },
-    {
-      id: "3",
-      rank: 3,
-      name: "업사이클링 백팩",
-      totalFundingAmount: 9200000,
-      fundingRate: 92,
-    },
-    {
-      id: "4",
-      rank: 4,
-      name: "고체 치약 (민트향)",
-      totalFundingAmount: 3100000,
-      fundingRate: 152,
-    },
-    {
-      id: "5",
-      rank: 5,
-      name: "천연 수세미 세트",
-      totalFundingAmount: 1800000,
-      fundingRate: 35,
-    },
-  ];
-
-  // 대시보드 통계
-  const mockStats: DashboardStats = {
-    totalFunding: 123456789,
-    ongoingProducts: 5,
-    todayOrders: 8,
-  };
-
+// 테스트용 최소한의 더미 데이터만 제공
+const generateBasicDummyData = () => {
   return {
-    mockFundingData,
-    mockAgeGroupData,
-    mockTodayFundingData,
-    mockProducts,
-    mockStats,
+    mockFundingData: [{ name: "1월", value: 0 }],
+    mockAgeGroupData: [{ name: "데이터 없음", value: 0, fill: "#cccccc" }],
+    mockTodayFundingData: [],
+    mockProducts: [],
+    mockStats: {
+      totalFunding: 0,
+      ongoingProducts: 0,
+      todayOrders: 0,
+    },
   };
 };
 
@@ -178,32 +100,24 @@ const dashboardStoreCreator: StateCreator<DashboardState> = (set) => ({
     // 토큰 확인
     const tokens = getTokens();
     if (!tokens) {
-      const {
-        mockFundingData,
-        mockAgeGroupData,
-        mockTodayFundingData,
-        mockProducts,
-        mockStats,
-      } = generateDummyData();
+      const basicDummyData = generateBasicDummyData();
 
       set({
-        stats: mockStats,
-        fundingData: mockFundingData,
-        ageGroupData: mockAgeGroupData,
-        todayFundingData: mockTodayFundingData,
-        products: mockProducts,
+        stats: basicDummyData.mockStats,
+        fundingData: basicDummyData.mockFundingData,
+        ageGroupData: basicDummyData.mockAgeGroupData,
+        todayFundingData: basicDummyData.mockTodayFundingData,
+        products: basicDummyData.mockProducts,
         isLoading: false,
-        error: "토큰이 없습니다. 개발 모드에서 테스트 데이터를 사용합니다.",
+        error: "토큰이 없습니다. 로그인이 필요합니다.",
       });
       return;
     }
 
-    // API 호출을 개별적으로 처리하여 실패하더라도 다른 API 요청에 영향을 주지 않음
     try {
-      // 차트 데이터 - 현재는 API가 없어 더미 데이터 사용
-      const { mockFundingData, mockAgeGroupData } = generateDummyData();
-
-      // 모든 API 호출을 개별적으로 처리
+      // API 호출을 병렬로 처리
+      const chartDataAmount = await getChartDataAmount(); // 월별 펀딩금액 데이터
+      const chartDataOrder = await getChartDataOrder(); // 연령대별 통계 데이터
       const topProductsData = await getTopProducts();
       const todayFundingsData = await getTodayFundings();
       const totalFunding = await getTotalFundingAmount();
@@ -217,9 +131,48 @@ const dashboardStoreCreator: StateCreator<DashboardState> = (set) => ({
         todayOrders,
       };
 
-      // TOP5 제품 데이터 변환 - 데이터가 없으면 더미 데이터 사용
-      let products: Product[];
-      if (topProductsData.length > 0) {
+      // 연령대별 통계 데이터 변환 - API 응답 형식에 맞게 처리
+      let ageGroupData: AgeGroupData[];
+      if (chartDataOrder?.length > 0) {
+        ageGroupData = chartDataOrder.map((item) => ({
+          name: `${item.generation}대`,
+          value: item.ratio,
+          fill:
+            AGE_GROUP_COLORS[
+              item.generation as keyof typeof AGE_GROUP_COLORS
+            ] || AGE_GROUP_COLORS.other,
+        }));
+      } else {
+        console.warn("연령대별 통계 데이터가 없습니다.");
+        ageGroupData = [{ name: "데이터 없음", value: 0, fill: "#cccccc" }];
+      }
+
+      // 월별 펀딩 금액 데이터 변환 - API 응답 형식에 맞게 처리
+      let fundingData: ChartData[];
+      if (chartDataAmount?.length > 0) {
+        fundingData = chartDataAmount.map((item) => {
+          // "YYYY-MM" 형식에서 월만 추출하여 "M월" 형식으로 변환
+          const month = parseInt(item.month.split("-")[1], 10);
+          return {
+            name: `${month}월`,
+            value: item.totalAmount,
+          };
+        });
+
+        // 월별 순서로 정렬
+        fundingData.sort((a, b) => {
+          const monthA = parseInt(a.name.replace("월", ""), 10);
+          const monthB = parseInt(b.name.replace("월", ""), 10);
+          return monthA - monthB;
+        });
+      } else {
+        console.warn("월별 펀딩 금액 데이터가 없습니다.");
+        fundingData = [{ name: "데이터 없음", value: 0 }];
+      }
+
+      // TOP5 제품 데이터 변환
+      let products: Product[] = [];
+      if (topProductsData?.length > 0) {
         products = topProductsData.map((item, index) => ({
           id: item.fundingId ? item.fundingId.toString() : `product-${index}`,
           rank: index + 1,
@@ -227,14 +180,11 @@ const dashboardStoreCreator: StateCreator<DashboardState> = (set) => ({
           totalFundingAmount: item.price || 0,
           fundingRate: item.progressPercentage || 0,
         }));
-      } else {
-        console.warn("상위 제품 데이터가 없습니다. 더미 데이터를 사용합니다.");
-        products = generateDummyData().mockProducts;
       }
 
-      // 오늘의 펀딩 데이터 변환 - 데이터가 없으면 더미 데이터 사용
-      let todayFundingData: TodayFundingItem[];
-      if (todayFundingsData.length > 0) {
+      // 오늘의 펀딩 데이터 변환
+      let todayFundingData: TodayFundingItem[] = [];
+      if (todayFundingsData?.length > 0) {
         todayFundingData = todayFundingsData.map((item, index) => ({
           id: item.fundingId ? item.fundingId.toString() : `funding-${index}`,
           productName: item.title || "제품명 없음",
@@ -248,48 +198,28 @@ const dashboardStoreCreator: StateCreator<DashboardState> = (set) => ({
               100 || 0
           ),
         }));
-      } else {
-        console.warn(
-          "오늘의 펀딩 데이터가 없습니다. 더미 데이터를 사용합니다."
-        );
-        todayFundingData = generateDummyData().mockTodayFundingData;
       }
 
+      // 최종 상태 업데이트
       set({
         stats,
-        fundingData: mockFundingData,
-        ageGroupData: mockAgeGroupData,
+        fundingData,
+        ageGroupData,
         todayFundingData,
         products,
         isLoading: false,
         error: null,
       });
     } catch (error) {
-      console.error("대시보드 데이터 조회 중 오류가 발생했습니다:", error);
-
-      // 모든 API 실패 시 더미 데이터 사용
-      const {
-        mockFundingData,
-        mockAgeGroupData,
-        mockTodayFundingData,
-        mockProducts,
-        mockStats,
-      } = generateDummyData();
-
+      console.error("대시보드 데이터 조회 오류:", error);
       set({
-        stats: mockStats,
-        fundingData: mockFundingData,
-        ageGroupData: mockAgeGroupData,
-        todayFundingData: mockTodayFundingData,
-        products: mockProducts,
         isLoading: false,
-        error:
-          "데이터를 불러오는데 실패했습니다. 개발 모드에서 테스트 데이터를 사용합니다.",
+        error: "데이터를 불러오는 중 오류가 발생했습니다.",
       });
     }
   },
 });
 
-const useDashboardStore = create(dashboardStoreCreator);
+const useDashboardStore = create<DashboardState>(dashboardStoreCreator);
 
 export default useDashboardStore;

@@ -24,15 +24,6 @@
   margin-bottom: 3.5rem;
 }
 
-.error-message {
-  background-color: #fee2e2;
-  color: #b91c1c;
-  padding: 1rem;
-  border-radius: 6px;
-  margin-bottom: 2.5rem;
-  border-left: 4px solid #ef4444;
-}
-
 /* 테이블 제목 스타일 */
 .reports-table-title {
   font-size: 1.25rem;

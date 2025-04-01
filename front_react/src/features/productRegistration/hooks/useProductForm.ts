@@ -112,11 +112,20 @@ export const useProductForm = () => {
     storyFile: File | null;
     imageFiles: File[] | null;
   } => {
-    // 날짜 형식 변환 (YYYY-MM-DD -> ISO 형식)
-    const convertToISODate = (dateStr: string) => {
+    // 날짜 형식 변환 (YYYY-MM-DD -> API 명세서 형식)
+    const convertToApiDateFormat = (
+      dateStr: string,
+      isEndDate: boolean = false
+    ): string => {
       if (!dateStr) return "";
-      const date = new Date(dateStr);
-      return date.toISOString();
+
+      // 날짜 부분만 사용 (시간 부분은 명세서에 맞게 설정)
+      const dateOnly = dateStr.split("T")[0];
+
+      // 끝 날짜는 23:59:59로, 시작 날짜는 00:00:00으로 설정
+      const timeStr = isEndDate ? "T23:59:59" : "T00:00:00";
+
+      return `${dateOnly}${timeStr}`;
     };
 
     const dto: ProductRegistrationDto = {
@@ -124,8 +133,8 @@ export const useProductForm = () => {
       description: data.description,
       price: Number(data.price),
       targetAmount: Number(data.targetAmount),
-      startDate: new Date().toISOString(), // 현재 시간으로 설정
-      endDate: convertToISODate(data.endDate),
+      startDate: convertToApiDateFormat(new Date().toISOString()), // 현재 날짜로 시작
+      endDate: convertToApiDateFormat(data.endDate, true), // 종료일은 23:59:59로 설정
       category: data.category,
     };
 

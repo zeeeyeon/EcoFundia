@@ -48,11 +48,8 @@ export const registerProduct = async (
 ): Promise<ProductRegistrationResponse> => {
   const formData = new FormData();
 
-  // dto 객체를 JSON 문자열로 변환하여 추가
-  formData.append(
-    "dto",
-    new Blob([JSON.stringify(dto)], { type: "application/json" })
-  );
+  // dto 객체를 JSON 문자열로 변환하여 추가 (명세서와 일치하도록 수정)
+  formData.append("dto", JSON.stringify(dto));
 
   // 상세 스토리 파일 추가 (존재하는 경우)
   if (storyFile) {

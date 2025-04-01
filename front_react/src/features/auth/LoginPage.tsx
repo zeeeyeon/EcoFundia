@@ -4,6 +4,8 @@ import { useGoogleLogin } from "@react-oauth/google";
 import useAuthStore from "./stores/store"; // 경로 수정
 import ErrorMessage from "../../shared/components/ErrorMessage"; // 경로 수정
 import Leaf from "../../assets/Leaf.svg"; // 경로 수정
+import GoogleIcon from "../../assets/google.png"; // 구글 아이콘 이미지 추가
+import { LoadingSpinner } from "../../shared"; // 로딩 스피너 추가
 import "./styles/login.css"; // 경로 수정
 
 // 유틸리티 함수들은 유지하지만 현재는 사용하지 않습니다
@@ -67,7 +69,11 @@ const LoginPage: React.FC = () => {
 
   return (
     <>
-      {/* loading && <LoadingSpinner /> */} {/* LoadingSpinner 제거 */}
+      {loading && (
+        <div className="loading-overlay">
+          <LoadingSpinner message="로그인 중..." />
+        </div>
+      )}
       {error && <ErrorMessage message={error} />}
       <div className="login-page">
         <div className="login-card loaded">
@@ -92,10 +98,16 @@ const LoginPage: React.FC = () => {
                 disabled={loading} // 로딩 중 버튼 비활성화
               >
                 {loading ? (
-                  <span className="button-loading-spinner"></span> // 간단한 로딩 스피너 추가 (CSS 필요)
+                  <span className="btn-loading-wrapper">
+                    <LoadingSpinner />
+                  </span>
                 ) : (
                   <>
-                    <span className="google-icon">G</span>
+                    <img
+                      src={GoogleIcon}
+                      alt="Google"
+                      className="google-icon"
+                    />
                     구글 로그인
                   </>
                 )}

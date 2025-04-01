@@ -86,6 +86,9 @@ const useFundingReportsStore = create<FundingReportsState>((set) => ({
     }
   },
 
+  // 에러 상태 초기화 함수
+  resetError: () => set({ error: null }),
+
   // 스토어 초기화 함수
   resetStore: () =>
     set({

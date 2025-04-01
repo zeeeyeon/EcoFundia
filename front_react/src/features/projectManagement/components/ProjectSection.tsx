@@ -1,9 +1,11 @@
 import React from "react";
-import ProjectCard from "./ProjectCard";
-import useProjectList from "../hooks/useProjectList";
-import LoadingSpinner from "../../../shared/components/LoadingSpinner";
 import "../styles/ProjectManagement.css";
+import ProjectCard from "./ProjectCard";
+import "../../../shared/styles/common.css";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import useProjectList from "../hooks/useProjectList";
+import { Project } from "../services/projectManagementService";
+import { LoadingSpinner } from "../../../shared";
 
 interface ProjectSectionProps {
   title: string;
@@ -23,7 +25,13 @@ const ProjectSection: React.FC<ProjectSectionProps> = ({
     error,
     handlePageChange,
     hasNextPage,
+    refreshProjects,
   } = useProjectList(projectType);
+
+  // 에러 초기화 함수
+  const resetError = () => {
+    refreshProjects();
+  };
 
   // 프로젝트 타입에 따른 한글 문구 처리
   const getKoreanTypeText = () => {
@@ -37,18 +45,22 @@ const ProjectSection: React.FC<ProjectSectionProps> = ({
     <div className="project-section-container">
       <div className="project-section-header">
         <h2 className="project-section-title">{title}</h2>
+
+        {/* 페이지네이션 */}
         <div className="pagination-controls">
           <button
             onClick={() => handlePageChange(displayPageNumber - 1)}
-            disabled={currentPage <= 0 || isLoading}
+            disabled={currentPage === 0}
+            className="page-button"
             aria-label="이전 페이지"
           >
             <FaChevronLeft />
           </button>
-          <span>{displayPageNumber} 페이지</span>
+          <span className="page-indicator">페이지 {displayPageNumber}</span>
           <button
             onClick={() => handlePageChange(displayPageNumber + 1)}
-            disabled={!hasNextPage || isLoading}
+            disabled={!hasNextPage}
+            className="page-button"
             aria-label="다음 페이지"
           >
             <FaChevronRight />
@@ -63,8 +75,14 @@ const ProjectSection: React.FC<ProjectSectionProps> = ({
       )}
 
       {error && (
-        <div className="error-container">
-          <p className="error-message">오류: {error}</p>
+        <div className="global-error-container">
+          <div className="global-error-message">
+            <h3>프로젝트 오류</h3>
+            <p>{error}</p>
+            <button className="global-error-close" onClick={resetError}>
+              확인
+            </button>
+          </div>
         </div>
       )}
 
@@ -76,7 +94,7 @@ const ProjectSection: React.FC<ProjectSectionProps> = ({
 
       {!isLoading && !error && projects.length > 0 && (
         <div className="project-grid">
-          {projects.map((project) => (
+          {projects.map((project: Project) => (
             <ProjectCard
               key={project.fundingId}
               project={project}

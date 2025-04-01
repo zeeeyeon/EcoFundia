@@ -24,9 +24,32 @@ export const getFundingReports = async (
       `${API_PATHS.REPORTS_LIST}?page=${page}&size=5`
     );
     return response.data.content;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("정산내역 목록 조회 중 오류 발생:", error);
-    throw new Error("정산내역을 불러오는데 실패했습니다.");
+
+    // 에러 객체가 response 프로퍼티를 가지는지 확인 (Axios 에러의 특징)
+    if (
+      error &&
+      typeof error === "object" &&
+      "response" in error &&
+      error.response &&
+      typeof error.response === "object" &&
+      "status" in error.response
+    ) {
+      const status = error.response.status as number;
+
+      if (status === 401 || status === 403) {
+        throw new Error("인증 정보가 유효하지 않습니다. 다시 로그인해주세요.");
+      } else if (status === 404) {
+        throw new Error("정산내역 정보를 찾을 수 없습니다.");
+      } else if (status >= 500) {
+        throw new Error("서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+      }
+    }
+
+    throw new Error(
+      "정산내역을 불러오는데 실패했습니다. 네트워크 연결을 확인해주세요."
+    );
   }
 };
 
@@ -39,9 +62,32 @@ export const getReportsSummary = async (): Promise<FundingReportSummary> => {
       API_PATHS.REPORTS_SUMMARY
     );
     return response.data.content;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("정산내역 요약 정보 조회 중 오류 발생:", error);
-    throw new Error("정산내역 요약 정보를 불러오는데 실패했습니다.");
+
+    // 에러 객체가 response 프로퍼티를 가지는지 확인 (Axios 에러의 특징)
+    if (
+      error &&
+      typeof error === "object" &&
+      "response" in error &&
+      error.response &&
+      typeof error.response === "object" &&
+      "status" in error.response
+    ) {
+      const status = error.response.status as number;
+
+      if (status === 401 || status === 403) {
+        throw new Error("인증 정보가 유효하지 않습니다. 다시 로그인해주세요.");
+      } else if (status === 404) {
+        throw new Error("정산내역 요약 정보를 찾을 수 없습니다.");
+      } else if (status >= 500) {
+        throw new Error("서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+      }
+    }
+
+    throw new Error(
+      "정산내역 요약 정보를 불러오는데 실패했습니다. 네트워크 연결을 확인해주세요."
+    );
   }
 };
 

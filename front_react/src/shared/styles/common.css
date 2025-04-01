@@ -1,0 +1,139 @@
+/* 공통 에러 메시지 스타일 */
+.global-error-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 20px;
+}
+
+.global-error-message {
+  background-color: white;
+  border-radius: 8px;
+  padding: 30px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 4px 20px rgba(231, 76, 60, 0.3);
+  text-align: center;
+  animation: errorFadeIn 0.3s ease-in-out;
+}
+
+.global-error-message h3 {
+  color: #e74c3c;
+  font-size: 22px;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.global-error-message p {
+  color: #555;
+  font-size: 16px;
+  line-height: 1.6;
+  margin-bottom: 25px;
+}
+
+.global-error-close {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.global-error-close:hover {
+  background-color: #c0392b;
+}
+
+/* 컴포넌트 내부 에러 메시지 스타일 */
+.component-error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  border-radius: 8px;
+  background-color: #fff3f3;
+  border: 1px solid #ffcccc;
+  margin: 20px auto;
+  height: 150px;
+}
+
+.component-error p {
+  color: #e74c3c;
+  font-size: 16px;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* 로딩 스피너 스타일 */
+.spinner-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  width: 100%;
+}
+
+/* 애니메이션 */
+@keyframes errorFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 데이터 없음 메시지 */
+.no-data-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  font-size: 16px;
+  color: #666;
+  text-align: center;
+  padding: 20px;
+}
+
+/* 테이블 데이터 없음 스타일 */
+.transactions-table td.no-data-message {
+  height: 150px;
+  vertical-align: middle;
+  font-size: 16px;
+  text-align: center;
+  /* 중앙 정렬 강화를 위한 추가 속성 */
+  display: table-cell;
+  width: 100%;
+}
+
+/* 테이블 데이터 없음 행 스타일 */
+.no-data-row {
+  width: 100%;
+  background-color: transparent !important;
+}
+
+.no-data-row td {
+  text-align: center;
+}
+
+/* 중앙 정렬을 위한 공통 클래스 */
+.center-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}

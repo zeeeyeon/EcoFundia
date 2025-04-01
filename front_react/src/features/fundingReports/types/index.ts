@@ -47,5 +47,6 @@ export interface FundingReportsState {
   isLoading: boolean;
   error: string | null;
   fetchReports: (page: number) => Promise<void>;
+  resetError: () => void;
   resetStore: () => void;
 }

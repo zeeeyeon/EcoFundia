@@ -1,44 +1,65 @@
-import React from "react";
-import { getDummyTransactions, Transaction } from "../services/productService";
+import React, { useState, useEffect } from "react";
+import "../styles/recentTransactions.css";
+import "../../../shared/styles/common.css";
+import { OrderItem, getProductOrders } from "../services/productService";
 import { FaUser } from "react-icons/fa";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { LoadingSpinner } from "../../../shared";
 
-const ITEMS_PER_PAGE = 5; // 페이지당 항목 수
+interface RecentTransactionsProps {
+  fundingId: number;
+}
 
-// 더미 데이터를 미리 가져오기
-const dummyTransactions = getDummyTransactions();
-
-const RecentTransactions: React.FC = () => {
+const RecentTransactions: React.FC<RecentTransactionsProps> = ({
+  fundingId,
+}) => {
   // 페이지 상태 관리
-  const [currentPage, setCurrentPage] = React.useState(1);
-  const [allTransactions] = React.useState<Transaction[]>(dummyTransactions);
+  const [currentPage, setCurrentPage] = useState(0); // API 페이지는 0부터 시작
+  const [orders, setOrders] = useState<OrderItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
 
-  // 페이지 계산
-  const totalItems = allTransactions.length;
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const transactionsToShow = allTransactions.slice(startIndex, endIndex);
+  // 에러 초기화 함수 추가
+  const resetError = () => {
+    setError(null);
+  };
 
-  // 현재 페이지가 마지막 데이터셋을 포함하는지 여부
-  const isLastDataSet = endIndex >= totalItems;
+  // 데이터 로딩
+  useEffect(() => {
+    if (!fundingId) return;
+
+    const fetchOrders = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const data = await getProductOrders(fundingId, currentPage);
+        setOrders(data);
+
+        // 데이터가 비어있거나 5개 미만이면 더 이상 데이터가 없는 것으로 판단
+        setHasMore(data.length >= 5);
+      } catch (err) {
+        console.error("Error fetching orders:", err);
+        setError("결제 내역을 불러오는데 실패했습니다.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [fundingId, currentPage]);
 
   const handlePrevPage = () => {
-    if (currentPage > 1) {
+    if (currentPage > 0) {
       setCurrentPage((prev) => prev - 1);
     }
   };
 
   const handleNextPage = () => {
-    if (!isLastDataSet) {
+    if (hasMore) {
       setCurrentPage((prev) => prev + 1);
     }
-  };
-
-  // 금액 포맷팅 함수 (단위 포함)
-  const formatAmount = (amount: number): string => {
-    // 원화를 달러로 변환한 금액 (약 1/1300 환율 적용)
-    const dollarAmount = amount / 1300;
-    return `$${dollarAmount.toFixed(2)}`;
   };
 
   // 날짜 포맷팅 함수
@@ -63,77 +84,109 @@ const RecentTransactions: React.FC = () => {
     } ${date.getDate()}, ${date.getFullYear()}`;
   };
 
+  // 금액 포맷팅 함수
+  const formatAmount = (amount: number): string => {
+    return new Intl.NumberFormat("ko-KR", {
+      style: "currency",
+      currency: "KRW",
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
   return (
     <div className="recent-transactions-section">
       <div className="section-title-wrapper">
         <h3 className="section-title">최근 결제 내역</h3>
-        {totalItems > 0 && (
+        {orders.length > 0 && !loading && !error && (
           <div className="pagination-controls">
-            <button onClick={handlePrevPage} disabled={currentPage === 1}>
+            <button onClick={handlePrevPage} disabled={currentPage === 0}>
               <FiChevronLeft />
             </button>
-            <button onClick={handleNextPage} disabled={isLastDataSet}>
+            <button onClick={handleNextPage} disabled={!hasMore}>
               <FiChevronRight />
             </button>
           </div>
         )}
       </div>
 
-      <div className="table-container">
-        <table className="transactions-table">
-          <thead>
-            <tr>
-              <th>유저 닉네임</th>
-              <th>날짜</th>
-              <th>수량</th>
-              <th className="amount-header">펀딩금액</th>
-            </tr>
-          </thead>
+      {loading && (
+        <div className="spinner-wrapper">
+          <LoadingSpinner message="결제 내역을 불러오는 중..." />
+        </div>
+      )}
 
-          <tbody>
-            {transactionsToShow.map((transaction) => (
-              <tr key={transaction.id}>
-                <td>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        backgroundColor:
-                          transaction.id % 2 === 0 ? "#E6F1FD" : "#EDEEFC",
-                        width: "32px",
-                        height: "32px",
-                        borderRadius: "50%",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <FaUser size={14} color="#000" />
-                    </div>
-                    {transaction.nickname}
-                  </div>
-                </td>
-                <td>{formatDate(transaction.date)}</td>
-                <td>{transaction.quantity}</td>
-                <td className="amount">{formatAmount(transaction.amount)}</td>
-              </tr>
-            ))}
-            {/* 데이터가 없을 때 메시지 */}
-            {transactionsToShow.length === 0 && totalItems === 0 && (
+      {error && (
+        <div className="global-error-container">
+          <div className="global-error-message">
+            <h3>결제 내역 오류</h3>
+            <p>{error}</p>
+            <button className="global-error-close" onClick={resetError}>
+              확인
+            </button>
+          </div>
+        </div>
+      )}
+
+      {!loading && !error && (
+        <div className="table-container">
+          <table className="transactions-table">
+            <thead>
               <tr>
-                <td colSpan={4} className="no-data-message">
-                  결제 내역이 없습니다.
-                </td>
+                <th>유저 닉네임</th>
+                <th>날짜</th>
+                <th>수량</th>
+                <th className="amount-header">펀딩금액</th>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+
+            <tbody>
+              {orders.length > 0 ? (
+                orders.map((order) => (
+                  <tr key={order.orderId}>
+                    <td>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                      >
+                        <div
+                          style={{
+                            backgroundColor: "#E6F1FD",
+                            width: "32px",
+                            height: "32px",
+                            borderRadius: "50%",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <FaUser size={14} color="#000" />
+                        </div>
+                        {order.nickname}
+                      </div>
+                    </td>
+                    <td>{formatDate(order.createdAt)}</td>
+                    <td>{order.quantity}</td>
+                    <td className="amount">{formatAmount(order.totalPrice)}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr className="no-data-row">
+                  <td
+                    colSpan={4}
+                    className="no-data-message"
+                    style={{ textAlign: "center", padding: "50px 0" }}
+                  >
+                    결제 내역이 없습니다.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };

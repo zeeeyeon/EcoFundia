@@ -8,6 +8,7 @@ import {
 } from "../hooks/useProductForm";
 import { registerProduct } from "../services/productRegistrationApi";
 import "./ProductRegistrationForm.css";
+import "../../../shared/styles/common.css";
 
 const ProductRegistrationForm: React.FC = () => {
   const {
@@ -490,6 +491,11 @@ const ProductRegistrationForm: React.FC = () => {
     }
   };
 
+  // 에러 초기화 함수
+  const resetError = () => {
+    setError(null);
+  };
+
   return (
     <div className="prod-form-wrapper">
       <form
@@ -731,7 +737,6 @@ const ProductRegistrationForm: React.FC = () => {
               </div>
             </div>
           </div>
-          {error && <p className="prod-error-msg prod-form-error">{error}</p>}
         </div>
         {isLoading && <LoadingSpinner />}
       </form>
@@ -750,6 +755,19 @@ const ProductRegistrationForm: React.FC = () => {
           {isLoading ? "등록 중... 파일 업로드 중입니다" : "상품 등록"}
         </button>
       </div>
+
+      {/* 글로벌 에러 메시지 */}
+      {error && (
+        <div className="global-error-container">
+          <div className="global-error-message">
+            <h3>상품 등록 오류</h3>
+            <p>{error}</p>
+            <button className="global-error-close" onClick={resetError}>
+              확인
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

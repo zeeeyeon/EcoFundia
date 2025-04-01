@@ -1,17 +1,50 @@
 import axios from "axios";
-import { getTokens } from "../utils/auth"; // 경로 수정
+import { getTokens } from "../../shared/utils/auth";
 import useAuthStore from "../../features/auth/stores/store"; // 경로 수정
 
-export const client = axios.create({
-  baseURL: "https://j12e206.p.ssafy.io/api",
+// API 기본 URL 설정
+const BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "https://j12e206.p.ssafy.io/api";
+
+// Axios 인스턴스 생성
+const client = axios.create({
+  baseURL: BASE_URL,
+  timeout: 10000,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// 요청 인터셉터
+// 응답 인터셉터 추가 - 디버깅 목적
+client.interceptors.response.use(
+  (response) => {
+    // 응답 로깅
+    console.log(
+      `API 응답 [${response.config.method?.toUpperCase()}] ${
+        response.config.url
+      }:`,
+      {
+        status: response.status,
+        data: response.data,
+      }
+    );
+    return response;
+  },
+  (error) => {
+    console.error("API 에러:", {
+      url: error.config?.url,
+      method: error.config?.method,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
+    return Promise.reject(error);
+  }
+);
+
+// 요청 인터셉터 - 토큰 추가
 client.interceptors.request.use(
   (config) => {
+    // 원래 코드처럼 getTokens를 사용하여 토큰 관리 유지
     const tokens = getTokens();
     if (tokens?.accessToken) {
       config.headers = {
@@ -19,9 +52,19 @@ client.interceptors.request.use(
         Authorization: `Bearer ${tokens.accessToken}`,
       };
     }
+
+    // 요청 로깅
+    console.log(`API 요청 [${config.method?.toUpperCase()}] ${config.url}:`, {
+      params: config.params,
+      data: config.data,
+    });
+
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    console.error("API 요청 에러:", error);
+    return Promise.reject(error);
+  }
 );
 
 // 응답 인터셉터

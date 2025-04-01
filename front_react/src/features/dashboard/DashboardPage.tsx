@@ -18,7 +18,8 @@ import useDashboardStore from "./stores/store";
 import { ProductModal } from "../product";
 import "./styles/dashboard.css";
 import "../../shared/components/layout.css";
-import "./styles/dashboardComponents.css";
+import "./styles/DashboardLayout.css";
+import "../../shared/styles/common.css";
 import { FaCoins, FaBoxOpen, FaClipboardList } from "react-icons/fa";
 
 const DashboardPage: React.FC = () => {
@@ -38,6 +39,33 @@ const DashboardPage: React.FC = () => {
     fetchDashboardData();
   }, [fetchDashboardData]);
 
+  // 디버깅용 로그 추가
+  useEffect(() => {
+    console.log("Dashboard Data State:", {
+      stats,
+      fundingData,
+      ageGroupData,
+      todayFundingData,
+      products,
+      isLoading,
+      error,
+    });
+  }, [
+    stats,
+    fundingData,
+    ageGroupData,
+    todayFundingData,
+    products,
+    isLoading,
+    error,
+  ]);
+
+  // 에러 초기화 함수 수정
+  const resetError = () => {
+    // 로컬 처리: 스토어의 fetchDashboardData 함수를 다시 호출하여 상태 재설정
+    fetchDashboardData();
+  };
+
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
@@ -53,10 +81,20 @@ const DashboardPage: React.FC = () => {
 
   const renderContent = () => {
     if (isLoading) {
-      return <div>로딩 중...</div>;
+      return <div className="loading-container">로딩 중...</div>;
     }
     if (error) {
-      return <div className="error-message">데이터 로드 실패: {error}</div>;
+      return (
+        <div className="global-error-container">
+          <div className="global-error-message">
+            <h3>대시보드 오류</h3>
+            <p>{error}</p>
+            <button className="global-error-close" onClick={resetError}>
+              확인
+            </button>
+          </div>
+        </div>
+      );
     }
     if (!stats) {
       return (
@@ -65,6 +103,19 @@ const DashboardPage: React.FC = () => {
         </div>
       );
     }
+
+    // 디버깅용 데이터 검증
+    const hasFundingData = fundingData && fundingData.length > 0;
+    const hasAgeGroupData = ageGroupData && ageGroupData.length > 0;
+
+    console.log("Chart Data Check:", {
+      hasFundingData,
+      hasAgeGroupData,
+      fundingDataLength: fundingData.length,
+      ageGroupDataLength: ageGroupData.length,
+      fundingDataSample: hasFundingData ? fundingData[0] : null,
+      ageGroupDataSample: hasAgeGroupData ? ageGroupData[0] : null,
+    });
 
     return (
       <>
@@ -92,54 +143,85 @@ const DashboardPage: React.FC = () => {
         <div className="dashboard-row" style={{ height: "380px" }}>
           <div className="dashboard-section dashboard-card-50">
             <h3 className="section-title">월별 펀딩 금액</h3>
-            <div className="card-common chart-card-content-wrapper">
-              {fundingData && fundingData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart
-                    data={fundingData}
-                    margin={{ top: 10, right: 60, left: 80, bottom: 20 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis
-                      dataKey="name"
-                      tickLine={false}
-                      axisLine={false}
-                      tickMargin={15}
-                      dy={5}
-                      padding={{ left: 30, right: 30 }}
-                    />
-                    <YAxis
-                      tickLine={false}
-                      axisLine={false}
-                      tickFormatter={formatYAxis}
-                      width={60}
-                    />
-                    <Tooltip
-                      formatter={(value: number) =>
-                        `${value.toLocaleString()}원`
-                      }
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="value"
-                      stroke="#8BC34A"
-                      strokeWidth={3}
-                      dot={{ r: 4 }}
-                      activeDot={{ r: 6 }}
-                      name="펀딩 금액"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="no-data-message">
-                  월별 펀딩 데이터가 없습니다.
-                </div>
-              )}
+            <div
+              className="chart-wrapper"
+              style={{ height: "calc(100% - 40px)" }}
+            >
+              <div
+                className="card-common"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  height: "100%",
+                  width: "100%",
+                  position: "relative",
+                  overflow: "hidden",
+                }}
+              >
+                {hasFundingData ? (
+                  <div className="monthly-chart-container">
+                    <ResponsiveContainer
+                      width="100%"
+                      height="100%"
+                      minHeight={250}
+                    >
+                      <LineChart
+                        data={fundingData}
+                        margin={{ top: 15, right: 30, left: 30, bottom: 15 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                        <XAxis
+                          dataKey="name"
+                          tickLine={false}
+                          axisLine={false}
+                          tickMargin={15}
+                          dy={5}
+                          padding={{ left: 30, right: 30 }}
+                        />
+                        <YAxis
+                          tickLine={false}
+                          axisLine={false}
+                          tickFormatter={formatYAxis}
+                          width={40}
+                        />
+                        <Tooltip
+                          formatter={(value: number) =>
+                            `${value.toLocaleString()}원`
+                          }
+                          isAnimationActive={false}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="value"
+                          stroke="#8BC34A"
+                          strokeWidth={3}
+                          dot={{ r: 4 }}
+                          activeDot={{ r: 6 }}
+                          name="펀딩 금액"
+                          isAnimationActive={false}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="no-data-message">
+                    월별 펀딩 데이터가 없습니다.
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           <div className="dashboard-section dashboard-card-50">
             <h3 className="section-title">연령대별 통계</h3>
-            <AgeGroupChart data={ageGroupData} />
+            <div
+              className="chart-wrapper"
+              style={{ height: "calc(100% - 40px)" }}
+            >
+              <div className="monthly-chart-container">
+                <AgeGroupChart data={ageGroupData} />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -149,21 +231,31 @@ const DashboardPage: React.FC = () => {
             style={{ height: "100%" }}
           >
             <h3 className="section-title">오늘의 펀딩</h3>
-            <TodayFundingList data={todayFundingData} />
+            <div
+              className="chart-wrapper"
+              style={{ height: "calc(100% - 40px)" }}
+            >
+              <TodayFundingList data={todayFundingData} />
+            </div>
           </div>
           <div
             className="dashboard-section dashboard-card-40"
             style={{ height: "100%" }}
           >
             <h3 className="section-title">나의 베스트 상품 Top 5</h3>
-            <div className="product-list-wrapper">
-              {products && products.length > 0 ? (
-                <ProductList products={products} />
-              ) : (
-                <div className="no-data-message">
-                  진행 중인 제품이 없습니다.
-                </div>
-              )}
+            <div
+              className="chart-wrapper"
+              style={{ height: "calc(100% - 40px)" }}
+            >
+              <div className="product-list-wrapper">
+                {products && products.length > 0 ? (
+                  <ProductList products={products} />
+                ) : (
+                  <div className="no-data-message">
+                    진행 중인 제품이 없습니다.
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
