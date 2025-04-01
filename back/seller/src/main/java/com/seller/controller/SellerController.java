@@ -153,8 +153,8 @@ public class SellerController {
     }
 
     @GetMapping("/today-order/list")
-    public ResponseEntity<?> getSellerTodayOrderListTopThree(@RequestHeader("X-User-Id") int userId) {
-        List<GetSellerTodayOrderTopThreeListResponseDto> dto = sellerService.getSellerTodayOrderListTopThree(userId);
+    public ResponseEntity<?> getSellerTodayOrderTopThree(@RequestHeader("X-User-Id") int userId) {
+        List<GetSellerTodayOrderTopThreeListResponseDto> dto = sellerService.getSellerTodayOrderTopThree(userId);
         return new ResponseEntity<>(Response.create(ResponseCode.GET_SELLER_TODAY_ORDER_TOP_THREE_LIST, dto), ResponseCode.GET_SELLER_TODAY_ORDER_TOP_THREE_LIST.getHttpStatus());
     }
 
