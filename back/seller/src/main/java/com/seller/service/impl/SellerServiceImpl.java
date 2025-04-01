@@ -184,9 +184,8 @@ public class SellerServiceImpl implements SellerService {
     }
 
     @Override
-    public List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderListTopThree(int userId) {
+    public List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThree(int userId) {
         int sellerId = sellerMapper.getSellerIdByUserId(userId);
-        return fundingClient.getSellerTodayOrderTopThreeList(sellerId);
+        return fundingClient.getSellerTodayOrderTopThree(sellerId);
     }
-
 }

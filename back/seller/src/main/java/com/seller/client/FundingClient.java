@@ -59,4 +59,7 @@ public interface FundingClient {
 
     @GetMapping("api/funding/seller/brand-statistics/{sellerId}")
     List<GetSellerBrandStatisticsResponseDto> getSellerBrandStatistics(@PathVariable("sellerId") int sellerId);
+
+    @GetMapping("api/funding/seller/today-order/list/{sellerId}")
+    List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThree(@PathVariable("sellerId") int sellerId);
 }
