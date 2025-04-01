@@ -123,22 +123,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<GetSellerTodayOrderTopThreeIdAndMoneyResponseDto> getSellerTodayOrderTopThreeList(GetSellerTodayOrderTopThreeListRequestDto getSellerTodayOrderTopThreeListRequestDto) {
-        System.out.println("서비스 호출됨");
-        System.out.println(getSellerTodayOrderTopThreeListRequestDto.getFundingIdList());
-        List<Order> orderTopThreeList = orderMapper.getSellerTodayOrderTopThreeList(getSellerTodayOrderTopThreeListRequestDto.getFundingIdList());
-        System.out.println("쿼리 결과: " + orderMapper.getSellerTodayOrderTopThreeList(getSellerTodayOrderTopThreeListRequestDto.getFundingIdList()));
-        List<GetSellerTodayOrderTopThreeIdAndMoneyResponseDto> orderList = orderTopThreeList.stream()
-                .map(Order::toGetSellerTodayOrderTopThreeIdAndMoneyResponseDto)
-                .collect(Collectors.toList());
-        if(orderList.isEmpty()) {
-            return new ArrayList<>();
-        }
-        System.out.println("결과 DTO: " + orderList);
-        return orderList;
-    }
-
-    @Override
     public List<GetSellerFundingDetailOrderListResponseDto> getSellerFundingDetailOrderList(int fundingId, int page) {
 
         List<Order> orderList = orderMapper.getSellerFundingDetailOrderList(fundingId, page);
@@ -207,6 +191,13 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<Integer> getSellerBrandStatistics(List<Integer> userIdList) {
         return orderMapper.getSellerBrandStatistics(userIdList);
+    }
+
+    @Override
+    public List<GetSellerTodayOrderTopThreeIdAndMoneyResponseDto> getSellerTodayOrderTopThree(List<Integer> fundingIdList) {
+        List<Order> orderList = orderMapper.getSellerTodayOrderTopThree(fundingIdList);
+        List<GetSellerTodayOrderTopThreeIdAndMoneyResponseDto> result = orderList.stream().map(Order::toGetSellerTodayOrderTopThreeIdAndMoneyResponseDto).collect(Collectors.toList());
+        return result;
     }
 
 

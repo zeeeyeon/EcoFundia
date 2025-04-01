@@ -68,44 +68,6 @@
             DATE(created_at) = CURDATE();
     </select>
 
-    <select id="getSellerTodayOrderTopThreeList" parameterType="list" resultMap="OrderEntityResultMap">
-        SELECT
-            funding_id,
-            sum(total_price) AS total_price_sum_today
-        FROM
-            `order`
-        WHERE
-            funding_id IN
-        <foreach item="fundingId" collection="fundingIdList" open="(" separator="," close=")">
-            #{fundingId}
-        </foreach>
-        AND DATE(created_at) = CURDATE()
-        GROUP BY
-            funding_id
-        ORDER BY
-            SUM(total_price) DESC
-        LIMIT 3;
-    </select>
-
-    <select id="getSellerTodayOrderTopThreeAmount" parameterType="list" resultMap="OrderResultMap">
-        SELECT
-            funding_id,
-            sum(total_price) AS total_price_sum_today
-        FROM
-            `order`
-        WHERE
-            funding_id IN
-        <foreach item="fundingId" collection="fundingIdList" open="(" separator="," close=")">
-            #{fundingId}
-        </foreach>
-        AND DATE(created_at) = CURDATE()
-        GROUP BY
-            funding_id
-        ORDER BY
-            SUM(total_price) DESC
-        LIMIT 3;
-    </select>
-
     <select id="getSellerFundingDetailOrderList" resultMap="OrderEntityResultMap">
         CALL get_seller_funding_detail_order_list(#{fundingId}, #{page})
     </select>
@@ -143,5 +105,25 @@
         <foreach item="fundingId" collection="fundingIdList" open="(" separator="," close=")">
             #{fundingId}
         </foreach>
+    </select>
+
+    <select id="getSellerTodayOrderTopThree" parameterType="list" resultMap="OrderEntityResultMap">
+        SELECT
+            funding_id,
+            sum(total_price) AS total_price_sum_today
+        FROM
+            `order`
+        WHERE
+            funding_id IN
+        <foreach item="fundingId" collection="fundingIdList" open="(" separator="," close=")">
+            #{fundingId}
+        </foreach>
+        AND DATE(created_at) = CURDATE()
+        GROUP BY
+            funding_id
+        ORDER BY
+            SUM(total_price) DESC
+        LIMIT 3;
+
     </select>
 </mapper>

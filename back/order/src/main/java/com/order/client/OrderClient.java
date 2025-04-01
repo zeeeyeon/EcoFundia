@@ -53,7 +53,5 @@ public interface OrderClient {
 
     @PostMapping("api/order/seller/today-order")
     GetSellerTodayOrderCountResponseDto getSellerTodayOrderCount(@RequestBody GetSellerTodayOrderCountRequestDto getSellerTodayOrderCountRequestDto);
-    @PostMapping("api/order/seller/today-order/list")
-    List<GetSellerTodayOrderTopThreeIdAndMoneyResponseDto> getSellerTodayOrderTopThreeList(@RequestBody GetSellerTodayOrderTopThreeListRequestDto getSellerTodayOrderTopThreeListRequestDto);
 
 }
