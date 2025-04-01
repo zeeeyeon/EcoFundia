@@ -130,6 +130,14 @@ final routerProvider = Provider<GoRouter>((ref) {
                   );
                 },
               ),
+              GoRoute(
+                path: '/seller/:sellerId', // sellerId를 파라미터로 받음
+                name: 'sellerDetail',
+                builder: (context, state) {
+                  final sellerId = int.parse(state.pathParameters['sellerId']!);
+                  return SellerDetailScreen(sellerId: sellerId);
+                },
+              ),
             ],
           ),
           StatefulShellBranch(

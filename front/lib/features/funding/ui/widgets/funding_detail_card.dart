@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:go_router/go_router.dart';
 import '../../data/models/funding_detail_model.dart';
 import '../../../../core/themes/app_text_styles.dart';
 import '../../../../core/themes/app_colors.dart';
@@ -55,7 +56,8 @@ class _FundingDetailCardState extends State<FundingDetailCard> {
                 const Divider(height: 32),
                 _buildSellerSection(seller),
                 const Divider(height: 32),
-                Text("상세 설명", style: AppTextStyles.heading3),
+                Text("상세 설명",
+                    style: AppTextStyles.caption.copyWith(fontSize: 18)),
                 const SizedBox(height: 12),
                 _buildStorySection(funding.storyFileUrl),
               ],
@@ -282,7 +284,8 @@ class _FundingDetailCardState extends State<FundingDetailCard> {
               ),
               ElevatedButton(
                 onPressed: () {
-                  // TODO: 상세 페이지 이동
+                  context.push('/seller/${widget.detail.fundingInfo.sellerId}');
+                  // sellerId를 경로에 포함
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
