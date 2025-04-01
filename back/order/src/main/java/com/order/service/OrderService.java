@@ -19,9 +19,9 @@ public interface OrderService {
 
     List<FundingResponseDto> getMyFunding(int userId);
     GetSellerTodayOrderCountResponseDto getSellerTodayOrderCount(GetSellerTodayOrderCountRequestDto getSellerTodayOrderCountRequestDto);
-    List<GetSellerTodayOrderTopThreeIdAndMoneyResponseDto> getSellerTodayOrderTopThreeList(GetSellerTodayOrderTopThreeListRequestDto getSellerTodayOrderTopThreeListRequestDto);
     List<GetSellerFundingDetailOrderListResponseDto> getSellerFundingDetailOrderList(int fundingId, int page);
     List<GetSellerMonthAmountStatisticsResponseDto> getSellerMonthAmountStatistics(List<Integer> fundingIdList);
     List<GetSellerFundingDetailStatisticsResponseDto> getSellerFundingDetailStatistics(int fundingId);
     List<Integer> getSellerBrandStatistics(List<Integer> userIdList);
+    List<GetSellerTodayOrderTopThreeIdAndMoneyResponseDto> getSellerTodayOrderTopThree(List<Integer> fundingIdList);
 }

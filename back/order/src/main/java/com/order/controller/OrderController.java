@@ -59,12 +59,6 @@ public class OrderController {
         return orderService.getSellerTodayOrderCount(getSellerTodayOrderCountRequestDto);
     }
 
-    @PostMapping("/seller/today-order/list")
-    public List<GetSellerTodayOrderTopThreeIdAndMoneyResponseDto> getSellerTodayOrderTopThreeList(@RequestBody GetSellerTodayOrderTopThreeListRequestDto getSellerTodayOrderTopThreeListRequestDto) {
-        System.out.println("getSellerTodayOrderTopThreeList 호출");
-        return orderService.getSellerTodayOrderTopThreeList(getSellerTodayOrderTopThreeListRequestDto);
-    }
-
     @GetMapping("/seller/funding/detail/order/{fundingId}")
     public List<GetSellerFundingDetailOrderListResponseDto> getSellerFundingDetailOrderList(@PathVariable("fundingId") int fundingId, @RequestParam(value = "page", defaultValue = "0") int page) {
         return orderService.getSellerFundingDetailOrderList(fundingId, page);
@@ -83,6 +77,11 @@ public class OrderController {
     @PostMapping("/seller/brand-statistics")
     public List<Integer> getSellerBrandStatistics(@RequestBody List<Integer> fundingIdList) {
         return orderService.getSellerBrandStatistics(fundingIdList);
+    }
+
+    @PostMapping("/seller/today-order/list")
+    public List<GetSellerTodayOrderTopThreeIdAndMoneyResponseDto> getSellerTodayOrderTopThree(@RequestBody List<Integer> fundingIdList) {
+        return orderService.getSellerTodayOrderTopThree(fundingIdList);
     }
 
 }
