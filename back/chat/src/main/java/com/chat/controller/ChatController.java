@@ -4,11 +4,13 @@ import com.chat.dto.ChatMessageDocument;
 import com.chat.dto.ChatMessageDto;
 import com.chat.repository.ChatMessageRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 public class ChatController {
@@ -21,10 +23,11 @@ public class ChatController {
     @MessageMapping("/chat/{fundingId}")
     public ChatMessageDto send2(@DestinationVariable(value = "fundingId") int fundingId, ChatMessageDto chatMessageDto){
 
-        // MongoDB에 저장
-//        ChatMessageDocument document = ChatMessageDocument.toDto(chatMessageDto);
+        log.info("MessageDto: {}", chatMessageDto);
 
-//        chatMessageRepository.save(document);
+        // MongoDB에 저장
+        //ChatMessageDocument document = ChatMessageDocument.toDto(chatMessageDto);
+        //chatMessageRepository.save(document);
 
         template.convertAndSend("/sub/chat/" + fundingId , chatMessageDto);
         return chatMessageDto;
