@@ -7,16 +7,15 @@ import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
 import com.ssafy.funding.dto.seller.response.*;
 import com.ssafy.funding.entity.enums.Category;
 import com.ssafy.funding.entity.enums.Status;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
 @Getter
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Funding {
