@@ -38,6 +38,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.crypto.spec.PSource;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -348,33 +349,6 @@ public class FundingService implements ProductService {
     }
 
     @Override
-    public List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThreeList(int sellerId) {
-        List<Integer> fundingIdList = fundingMapper.getSellerTodayOrderCount(sellerId);
-        System.out.println("fundingIdList: " + fundingIdList);
-
-
-        GetSellerTodayOrderTopThreeListRequestDto requestDto =
-                GetSellerTodayOrderTopThreeListRequestDto.builder()
-                        .fundingIdList(fundingIdList)
-                        .build();
-        System.out.println("requestDto: " + requestDto);
-        List<GetSellerTodayOrderTopThreeIdAndMoneyResponseDto> orderList = orderClient.getSellerTodayOrderTopThreeList(requestDto);
-
-        List<Integer> fundingIdListTopThree = new ArrayList<>();
-
-        for(GetSellerTodayOrderTopThreeIdAndMoneyResponseDto dto: orderList) {
-            fundingIdListTopThree.add(dto.getFundingId());
-        }
-        List<GetSellerTodayOrderTopThreeListResponseDto> dto = fundingMapper.getSellerTodayOrderTopThreeList(fundingIdListTopThree).stream().map(
-                Funding::toGetSellerTodayOrderTopThreeListResponseDto
-        ).collect(Collectors.toList());
-        for(int i = 0; i < dto.size(); i++) {
-            dto.get(i).setTodayAmount(orderList.get(i).getTotalAmount());
-        }
-        return dto;
-    }
-
-    @Override
     public GetSellerFundingDetailResponseDto getSellerFundingDetail(int fundingId) {
         return fundingMapper.getSellerFundingDetail(fundingId).toGetSellerFundingDetailResponseDto();
     }
@@ -413,6 +387,22 @@ public class FundingService implements ProductService {
             result.add(new GetSellerBrandStatisticsResponseDto((i + 1) * 10, Math.round(percentage * 10) / 10.0));
         }
 
+        return result;
+    }
+
+    @Override
+    public List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThree(int sellerId) {
+        List<Integer> fundingIdListRequestDto = fundingMapper.getSellerTodayOrderCount(sellerId);
+        List<GetSellerTodayOrderTopThreeIdAndMoneyResponseDto> orderList = orderClient.getSellerTodayOrderTopThree(fundingIdListRequestDto);
+        if(orderList.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<Integer> fundingIdList = orderList.stream().map(GetSellerTodayOrderTopThreeIdAndMoneyResponseDto::getFundingId).collect(Collectors.toList());
+        List<Funding> fundingList = fundingMapper.getSellerTodayOrderTopThree(fundingIdList);
+        List<GetSellerTodayOrderTopThreeListResponseDto> result = fundingList.stream().map(Funding::toGetSellerTodayOrderTopThreeListResponseDto).collect(Collectors.toList());
+        for(int i = 0; i < orderList.size(); i++) {
+            result.get(i).setTodayAmount(orderList.get(i).getTotalAmount());
+        }
         return result;
     }
 }
