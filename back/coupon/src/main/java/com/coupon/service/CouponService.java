@@ -25,11 +25,11 @@ public class CouponService {
     private final CouponRepository couponRepository;
     private final CouponIssuedRepository couponIssuedRepository;
 
-    @Transactional
+    @Transactional(timeout = 5)
     public void issueCoupon(int userId) {
         // 1. 해당 코드의 쿠폰이 존재하는지 확인 (코드는 해당 날짜)
         int couponCode = generateTodayCode();
-        Coupon coupon = couponRepository.findByCouponCode(couponCode)
+        Coupon coupon = couponRepository.findByCouponCodeWithLock(couponCode)
                 .orElseThrow(() -> {
                     log.warn("쿠폰 코드 [{}] 존재하지 않음", couponCode);
                     return new CustomException(COUPON_NOT_FOUND);
