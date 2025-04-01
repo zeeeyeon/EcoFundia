@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -19,6 +21,7 @@ import static com.coupon.common.response.ResponseCode.COUPON_EXPIRED;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Coupon {
+    private static final Logger log = LoggerFactory.getLogger(Coupon.class);
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int couponId;
@@ -54,6 +57,9 @@ public class Coupon {
     }
 
     public void validateIssuable() {
-        if (!isValid()) throw new CustomException(COUPON_EXPIRED);
+        if (!isValid()) {
+            log.warn("쿠폰 [{}] 기간 만료 (start: {}, end: {})", couponCode, startDate, endDate);
+            throw new CustomException(COUPON_EXPIRED);
+        }
     }
 }
