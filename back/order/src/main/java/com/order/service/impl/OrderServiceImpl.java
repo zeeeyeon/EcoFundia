@@ -33,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -208,7 +209,11 @@ public class OrderServiceImpl implements OrderService {
 
     public List<FundingResponseDto> getMyFunding(int userId){
         List<Integer> fundingIds = orderMapper.getMyFundingIds(userId);
+        if (fundingIds.isEmpty()) {
+            return Collections.emptyList();
+        }
         List<FundingResponseDto> fundingList = fundingClient.getMyFunding(fundingIds);
         return fundingList;
     }
 }
+
