@@ -44,4 +44,19 @@
         FROM seller WHERE seller_id = #{sellerId}
     </select>
 
+    <insert id="grantSellerRole">
+        INSERT INTO seller VALUES (0, #{userId}, #{name}, null, null, null, #{businessNumber})
+    </insert>
+
+    <select id="getSellerIdByUserId" resultType="integer">
+        SELECT
+            seller_id
+        from
+            seller
+        where
+            user_id = #{userId}
+    </select>
+
+
+
 </mapper>

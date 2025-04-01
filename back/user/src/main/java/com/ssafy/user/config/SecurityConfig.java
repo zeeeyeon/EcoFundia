@@ -29,7 +29,9 @@ public class SecurityConfig {
                                 "/api/user/login",
                                 "/api/user/signup",
                                 "/api/user/reissue",
-                                "/api/user/health"
+                                "/api/user/health",
+                                "/api/user/seller/funding/detail/order",
+                                "/api/user/seller/age/list"
                         ).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()
