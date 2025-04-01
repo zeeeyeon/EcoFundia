@@ -1,6 +1,7 @@
 package com.seller.service.impl;
 
 import com.seller.client.FundingClient;
+import com.seller.client.OrderClient;
 import com.seller.common.util.JsonConverter;
 import com.seller.dto.request.*;
 import com.seller.dto.response.*;
@@ -27,6 +28,7 @@ public class SellerServiceImpl implements SellerService {
     private final SellerMapper sellerMapper;
     private final FundingClient fundingClient;
     private final S3FileService s3FileService;
+    private final OrderClient orderClient;
 
     @Override
     public ResponseEntity<?> createFunding(int userId, FundingCreateRequestDto dto,
@@ -155,8 +157,35 @@ public class SellerServiceImpl implements SellerService {
     }
 
     @Override
-    public List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThreeList(int userId) {
+    public GetSellerFundingDetailResponseDto getSellerFundingDetail(int fundingId) {
+        return fundingClient.getSellerFundingDetail(fundingId);
+    }
+
+    @Override
+    public List<GetSellerFundingDetailOrderListResponseDto> getSellerFundingDetailOrderList(int fundingId, int page) {
+        return orderClient.getSellerFundingDetailOrderList(fundingId, page);
+    }
+
+    @Override
+    public List<GetSellerMonthAmountStatisticsResponseDto> getSellerMonthAmountStatistics(int userId) {
         int sellerId = sellerMapper.getSellerIdByUserId(userId);
-        return fundingClient.getSellerTodayOrderTopThreeList(sellerId);
+        return fundingClient.getSellerMonthAmountStatistics(sellerId);
+    }
+
+    @Override
+    public List<GetSellerFundingDetailStatisticsResponseDto> getSellerFundingDetailStatistics(int fundingId) {
+        return orderClient.getSellerFundingDetailStatistics(fundingId);
+    }
+
+    @Override
+    public List<GetSellerBrandStatisticsResponseDto> getSellerBrandStatistics(int userId) {
+        int sellerId = sellerMapper.getSellerIdByUserId(userId);
+        return fundingClient.getSellerBrandStatistics(sellerId);
+    }
+
+    @Override
+    public List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThree(int userId) {
+        int sellerId = sellerMapper.getSellerIdByUserId(userId);
+        return fundingClient.getSellerTodayOrderTopThree(sellerId);
     }
 }

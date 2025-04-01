@@ -19,5 +19,9 @@ public interface OrderMapper {
     List<Integer> getMyFundingIds(int userId);
 
     int getSellerTodayOrderCount(@Param("fundingIdList") List<Integer> fundingIdList);
-    List<Order> getSellerTodayOrderTopThreeList(@Param("fundingIdList") List<Integer> fundingIdList);
+    List<Order> getSellerFundingDetailOrderList(@Param("fundingId") int fundingId, @Param("page") int page);
+    List<Order> getSellerMonthAmountStatistics(@Param("fundingIdList") List<Integer> fundingIdList);
+    List<Integer> getSellerFundingDetailStatistics(@Param("fundingId") int fundingId);
+    List<Integer> getSellerBrandStatistics(@Param("fundingIdList") List<Integer> fundingIdList);
+    List<Order> getSellerTodayOrderTopThree(@Param("fundingIdList") List<Integer> fundingIdList);
 }

@@ -12,4 +12,6 @@ public interface SellerClient {
 
     @PostMapping("/api/seller/seller-names")
     Map<Integer, String> getSellerNames(@RequestBody List<Integer> sellerIds);
+
+
 }
