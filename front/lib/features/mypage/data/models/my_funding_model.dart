@@ -24,26 +24,17 @@ class MyFundingModel {
   });
 
   factory MyFundingModel.fromJson(Map<String, dynamic> json) {
-    final imageListString = json['imageUrl'] as String;
-    final decodedImageList = imageListString
-        .replaceAll('[', '')
-        .replaceAll(']', '')
-        .replaceAll('"', '')
-        .split(',')
-        .map((e) => e.trim())
-        .toList();
-
     return MyFundingModel(
       fundingId: json['fundingId'],
       title: json['title'],
       description: json['description'],
-      imageUrls: decodedImageList,
+      imageUrls: List<String>.from(json['imageUrl']), // ✅ 바로 List로 파싱
       endDate: DateTime.parse(json['endDate']),
       currentAmount: json['currentAmount'],
       category: json['category'],
       status: json['status'],
       rate: json['rate'],
-      totalPrice: json['totalPrice'],
+      totalPrice: json['totalPrice'] ?? 0, // ✅ 혹시 없을 수도 있으니 기본값 설정
     );
   }
 }

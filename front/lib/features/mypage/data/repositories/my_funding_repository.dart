@@ -6,7 +6,10 @@ class MyFundingRepository {
 
   MyFundingRepository(this._service);
 
-  Future<List<MyFundingModel>> getMyFundings() async {
-    return await _service.fetchMyFundings();
+  Future<List<MyFundingModel>> getMyFundings({
+    int page = 0,
+    int size = 10,
+  }) async {
+    return await _service.fetchMyFundings(page: page, size: size);
   }
 }
