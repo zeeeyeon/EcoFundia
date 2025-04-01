@@ -138,7 +138,7 @@ public interface FundingClient {
     @GetMapping("api/funding/seller/end/list/{sellerId}")
     List<GetSellerEndFundingListResponseDto> getSellerEndFundingList(@PathVariable("sellerId") int sellerId, @RequestParam(value = "page", defaultValue = "0") int page);
 
-    @GetMapping("api/funding/seller/today-order/list/{sellerId}")
-    List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThreeList(@PathVariable("sellerId") int sellerId);
+    @GetMapping("api/funding/seller/funding/detail/{fundingId}")
+    GetSellerFundingDetailResponseDto getSellerFundingDetail(@PathVariable("fundingId") int fundingId);
 }
 

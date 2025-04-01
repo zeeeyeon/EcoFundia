@@ -3,9 +3,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.order.mapper.OrderMapper">
-
-
-    <resultMap id="OrderResultMap" type="com.order.dto.order.response.OrderResponseDto">
+    <resultMap id="OrderEntityResultMap" type="com.order.entity.Order">
         <id column="order_id" property="orderId"/>
         <result column="user_id" property="userId"/>
         <result column="funding_id" property="fundingId"/>
@@ -13,6 +11,24 @@
         <result column="quantity" property="quantity"/>
         <result column="total_price" property="totalPrice"/>
         <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="total_price_sum_today" property="totalPriceSumToday"/>
+        <result column="month" property="month"/>
+        <result column="total_amount" property="totalAmount"/>
+    </resultMap>
+
+
+    <resultMap id="OrderResultMap" type="com.order.dto.order.response.OrderResponseDto">
+
+        <id column="order_id" property="orderId"/>
+        <result column="user_id" property="userId"/>
+        <result column="funding_id" property="fundingId"/>
+        <result column="amount" property="amount"/>
+        <result column="quantity" property="quantity"/>
+        <result column="total_price" property="totalPrice"/>
+        <result column="created_at" property="createdAt"/>
+<!--        <result column="total_price_sum_today" property="totalPriceSumToday"/>-->
+        <result column="total_price_sum_today" property="totalPriceSumToday"/>
     </resultMap>
 
     <!-- 내 주문 내역 조회    -->
@@ -52,28 +68,49 @@
             DATE(created_at) = CURDATE();
     </select>
 
-    <select id="getSellerTodayOrderTopThreeList" parameterType="list" resultType="integer">
+    <select id="getSellerFundingDetailOrderList" resultMap="OrderEntityResultMap">
+        CALL get_seller_funding_detail_order_list(#{fundingId}, #{page})
+    </select>
+
+    <select id="getSellerMonthAmountStatistics" resultMap="OrderEntityResultMap">
         SELECT
-            funding_id
-        FROM
-            `order`
-        WHERE
-            funding_id IN
+            DATE_FORMAT(created_at, '%Y-%m') AS month,
+            SUM(total_price) AS total_amount
+        FROM `order`
+        WHERE funding_id IN
         <foreach item="fundingId" collection="fundingIdList" open="(" separator="," close=")">
             #{fundingId}
         </foreach>
-        AND DATE(created_at) = CURDATE()
         GROUP BY
-            funding_id
+            month
         ORDER BY
-            SUM(total_price) DESC
-        LIMIT 3;
+            month
     </select>
 
-    <select id="getSellerTodayOrderTopThreeAmount" parameterType="list" resultMap="OrderResultMap">
+    <select id="getSellerFundingDetailStatistics" resultType="java.lang.Integer">
+        SELECT
+            user_id
+        FROM
+            `order`
+        where
+            funding_id = #{fundingId}
+    </select>
+
+    <select id="getSellerBrandStatistics" resultType="java.lang.Integer">
+        SELECT
+            DISTINCT user_id
+        FROM
+            `order`
+        WHERE funding_id IN
+        <foreach item="fundingId" collection="fundingIdList" open="(" separator="," close=")">
+            #{fundingId}
+        </foreach>
+    </select>
+
+    <select id="getSellerTodayOrderTopThree" parameterType="list" resultMap="OrderEntityResultMap">
         SELECT
             funding_id,
-            sum(total_price) as total_price_sum_today
+            sum(total_price) AS total_price_sum_today
         FROM
             `order`
         WHERE
@@ -87,7 +124,6 @@
         ORDER BY
             SUM(total_price) DESC
         LIMIT 3;
+
     </select>
-
-
 </mapper>

@@ -187,9 +187,33 @@ public class FundingController {
         return getSellerEndFundingListResponseDto;
     }
 
+    @GetMapping("/seller/funding/detail/{fundingId}")
+    GetSellerFundingDetailResponseDto getSellerFundingDetail(@PathVariable("fundingId") int fundingId) {
+        GetSellerFundingDetailResponseDto getSellerFundingDetailResponseDto = productService.getSellerFundingDetail(fundingId);
+        return getSellerFundingDetailResponseDto;
+    }
+
+    @GetMapping("/seller/month-amount-statistics/{sellerId}")
+    List<GetSellerMonthAmountStatisticsResponseDto> getSellerMonthAmountStatistics(@PathVariable("sellerId") int sellerId) {
+        List<GetSellerMonthAmountStatisticsResponseDto> getSellerMonthAmountStatisticsResponseDto = productService.getSellerMonthAmountStatistics(sellerId);
+        return getSellerMonthAmountStatisticsResponseDto;
+    }
+
+    @GetMapping("/seller/funding/detail/statistics/{fundingId}")
+    List<GetSellerFundingDetailStatisticsResponseDto> getSellerFundingDetailStatistics(@PathVariable("fundingId") int fundingId) {
+        List<GetSellerFundingDetailStatisticsResponseDto> getSellerFundingDetailStatisticsResponseDto = productService.getSellerFundingDetailStatistics(fundingId);
+        return getSellerFundingDetailStatisticsResponseDto;
+    }
+
+    @GetMapping("/seller/brand-statistics/{sellerId}")
+    List<GetSellerBrandStatisticsResponseDto> getSellerBrandStatistics(@PathVariable("sellerId") int sellerId) {
+        List<GetSellerBrandStatisticsResponseDto> getSellerBrandStatisticsResponseDto = productService.getSellerBrandStatistics(sellerId);
+        return getSellerBrandStatisticsResponseDto;
+    }
+
     @GetMapping("/seller/today-order/list/{sellerId}")
-    List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThreeList(@PathVariable("sellerId") int sellerId) {
-        List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThreeListResponseDto = productService.getSellerTodayOrderTopThreeList(sellerId);
+    List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThree(@PathVariable("sellerId") int sellerId) {
+        List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThreeListResponseDto = productService.getSellerTodayOrderTopThree(sellerId);
         return getSellerTodayOrderTopThreeListResponseDto;
     }
 }
