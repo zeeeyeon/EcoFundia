@@ -168,12 +168,6 @@ public class FundingController {
         return getSellerEndFundingListResponseDto;
     }
 
-    @GetMapping("/seller/today-order/list/{sellerId}")
-    List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThreeList(@PathVariable("sellerId") int sellerId) {
-        List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThreeListResponseDto = productService.getSellerTodayOrderTopThreeList(sellerId);
-        return getSellerTodayOrderTopThreeListResponseDto;
-    }
-
     @GetMapping("/seller/funding/detail/{fundingId}")
     GetSellerFundingDetailResponseDto getSellerFundingDetail(@PathVariable("fundingId") int fundingId) {
         GetSellerFundingDetailResponseDto getSellerFundingDetailResponseDto = productService.getSellerFundingDetail(fundingId);
@@ -198,4 +192,9 @@ public class FundingController {
         return getSellerBrandStatisticsResponseDto;
     }
 
+    @GetMapping("/seller/today-order/list/{sellerId}")
+    List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThree(@PathVariable("sellerId") int sellerId) {
+        List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThreeListResponseDto = productService.getSellerTodayOrderTopThree(sellerId);
+        return getSellerTodayOrderTopThreeListResponseDto;
+    }
 }

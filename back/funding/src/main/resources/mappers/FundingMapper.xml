@@ -253,7 +253,11 @@
         CALL get_seller_end_funding_list(#{sellerId}, #{page})
     </select>
 
-    <select id="getSellerTodayOrderTopThreeList" parameterType="list" resultMap="FundingResultMap">
+    <select id="getSellerFundingDetail" resultMap="FundingResultMap">
+        CALL get_seller_funding_detail(#{fundingId})
+    </select>
+
+    <select id="getSellerTodayOrderTopThree" parameterType="list" resultMap="FundingResultMap">
         SELECT
             funding_id,
             JSON_UNQUOTE(JSON_EXTRACT(image_urls, '$[0]')) AS image_url,
@@ -263,17 +267,11 @@
         FROM
             funding
         where
-            funding_id IN
+        funding_id IN
         <foreach item="fundingId" collection="fundingIdList" open="(" separator="," close=")">
             #{fundingId}
         </foreach>
-    </select>
-
-    <select id="getSellerFundingDetail" resultMap="FundingResultMap">
-        CALL get_seller_funding_detail(#{fundingId})
-    </select>
-
-    <select id="getSellerMonthAmountStatistics" resultMap="FundingResultMap">
 
     </select>
+
 </mapper>

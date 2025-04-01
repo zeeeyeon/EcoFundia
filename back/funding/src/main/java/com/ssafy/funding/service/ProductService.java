@@ -56,9 +56,9 @@ public interface ProductService {
     List<GetSellerOngoingTopFiveFundingResponseDto> getSellerOngoingTopFiveFunding(int sellerId);
     List<GetSellerOngoingFundingListResponseDto> getSellerOngoingFundingList(int sellerId, int page);
     List<GetSellerEndFundingListResponseDto> getSellerEndFundingList(int sellerId, int page);
-    List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThreeList(int sellerId);
     GetSellerFundingDetailResponseDto getSellerFundingDetail(int fundingId);
     List<GetSellerMonthAmountStatisticsResponseDto> getSellerMonthAmountStatistics(int sellerId);
     List<GetSellerFundingDetailStatisticsResponseDto> getSellerFundingDetailStatistics(int fundingId);
     List<GetSellerBrandStatisticsResponseDto> getSellerBrandStatistics(int sellerId);
+    List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThree(int sellerId);
 }

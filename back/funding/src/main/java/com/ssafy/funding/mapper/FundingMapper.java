@@ -54,8 +54,6 @@ public interface FundingMapper {
     List<Funding> getSellerOngoingTopFiveFunding(@Param("sellerId") int sellerId);
     List<Funding> getSellerOngoingFundingList(@Param("sellerId") int sellerId, @Param("page") int page);
     List<Funding> getSellerEndFundingList(@Param("sellerId") int sellerId, @Param("page") int page);
-    List<Funding> getSellerTodayOrderTopThreeList(@Param("fundingIdList") List<Integer> fundingIdList);
     Funding getSellerFundingDetail(@Param("fundingId") int fundingId);
-    List<Funding> getSellerMonthAmountStatistics(@Param("sellerId") int sellerId);
-
+    List<Funding> getSellerTodayOrderTopThree(@Param("fundingIdList") List<Integer> fundingIdList);
 }
