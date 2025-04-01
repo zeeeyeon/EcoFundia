@@ -11,4 +11,5 @@ public class Seller {
     private String account;
     private String ssafyUserKey;
     private String name;
+    private String businessNumber;
 }

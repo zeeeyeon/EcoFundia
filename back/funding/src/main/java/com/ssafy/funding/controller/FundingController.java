@@ -12,6 +12,7 @@ import com.ssafy.funding.dto.funding.response.MyFundingResponseDto;
 import com.ssafy.funding.dto.order.response.IsOngoingResponseDto;
 import com.ssafy.funding.dto.review.response.ReviewResponseDto;
 import com.ssafy.funding.dto.seller.SellerDetailResponseDto;
+import com.ssafy.funding.dto.seller.response.*;
 import com.ssafy.funding.service.OrderService;
 import com.ssafy.funding.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -148,5 +149,71 @@ public class FundingController {
     IsOngoingResponseDto isOngoing(@PathVariable int fundingId) {
         IsOngoingResponseDto isOngoingResponseDto = orderService.isOngoing(fundingId);
         return isOngoingResponseDto;
+    }
+
+    @GetMapping("/seller/total-amount/{sellerId}")
+    GetSellerTotalAmountResponseDto getSellerTotalAmount(@PathVariable("sellerId") int sellerId) {
+        GetSellerTotalAmountResponseDto getSellerTotalAmountResponseDto = productService.getSellerTotalAmount(sellerId);
+        return getSellerTotalAmountResponseDto;
+    }
+
+    @GetMapping("/seller/total-funding/count/{sellerId}")
+    GetSellerTotalFundingCountResponseDto getSellerTotalFundingCount(@PathVariable("sellerId") int sellerId) {
+        GetSellerTotalFundingCountResponseDto getSellerTotalFundingCountResponseDto = productService.getSellerTotalFundingCount(sellerId);
+        return getSellerTotalFundingCountResponseDto;
+    }
+
+    @GetMapping("/seller/today-order/{sellerId}")
+    GetSellerTodayOrderCountResponseDto getSellerTodayOrderCount(@PathVariable("sellerId") int sellerId) {
+        GetSellerTodayOrderCountResponseDto getSellerTodayOrderCountResponseDto = productService.getSellerTodayOrderCount(sellerId);
+        return getSellerTodayOrderCountResponseDto;
+    }
+
+    @GetMapping("/seller/ongoing/top/{sellerId}")
+    List<GetSellerOngoingTopFiveFundingResponseDto> getSellerOngoingTopFiveFunding(@PathVariable("sellerId") int sellerId) {
+        List<GetSellerOngoingTopFiveFundingResponseDto> getSellerOngoingTopFiveFundingResponseDto = productService.getSellerOngoingTopFiveFunding(sellerId);
+        return getSellerOngoingTopFiveFundingResponseDto;
+    }
+
+    @GetMapping("/seller/ongoing/list/{sellerId}")
+    List<GetSellerOngoingFundingListResponseDto> getSellerOngoingFundingList(@PathVariable("sellerId") int sellerId, @RequestParam(value = "page", defaultValue = "0") int page) {
+        List<GetSellerOngoingFundingListResponseDto> getSellerOngoingFundingListResponseDto = productService.getSellerOngoingFundingList(sellerId, page);
+        return getSellerOngoingFundingListResponseDto;
+    }
+
+    @GetMapping("/seller/end/list/{sellerId}")
+    List<GetSellerEndFundingListResponseDto> getSellerEndFundingList(@PathVariable("sellerId") int sellerId, @RequestParam(value = "page", defaultValue = "0") int page) {
+        List<GetSellerEndFundingListResponseDto> getSellerEndFundingListResponseDto = productService.getSellerEndFundingList(sellerId, page);
+        return getSellerEndFundingListResponseDto;
+    }
+
+    @GetMapping("/seller/funding/detail/{fundingId}")
+    GetSellerFundingDetailResponseDto getSellerFundingDetail(@PathVariable("fundingId") int fundingId) {
+        GetSellerFundingDetailResponseDto getSellerFundingDetailResponseDto = productService.getSellerFundingDetail(fundingId);
+        return getSellerFundingDetailResponseDto;
+    }
+
+    @GetMapping("/seller/month-amount-statistics/{sellerId}")
+    List<GetSellerMonthAmountStatisticsResponseDto> getSellerMonthAmountStatistics(@PathVariable("sellerId") int sellerId) {
+        List<GetSellerMonthAmountStatisticsResponseDto> getSellerMonthAmountStatisticsResponseDto = productService.getSellerMonthAmountStatistics(sellerId);
+        return getSellerMonthAmountStatisticsResponseDto;
+    }
+
+    @GetMapping("/seller/funding/detail/statistics/{fundingId}")
+    List<GetSellerFundingDetailStatisticsResponseDto> getSellerFundingDetailStatistics(@PathVariable("fundingId") int fundingId) {
+        List<GetSellerFundingDetailStatisticsResponseDto> getSellerFundingDetailStatisticsResponseDto = productService.getSellerFundingDetailStatistics(fundingId);
+        return getSellerFundingDetailStatisticsResponseDto;
+    }
+
+    @GetMapping("/seller/brand-statistics/{sellerId}")
+    List<GetSellerBrandStatisticsResponseDto> getSellerBrandStatistics(@PathVariable("sellerId") int sellerId) {
+        List<GetSellerBrandStatisticsResponseDto> getSellerBrandStatisticsResponseDto = productService.getSellerBrandStatistics(sellerId);
+        return getSellerBrandStatisticsResponseDto;
+    }
+
+    @GetMapping("/seller/today-order/list/{sellerId}")
+    List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThree(@PathVariable("sellerId") int sellerId) {
+        List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThreeListResponseDto = productService.getSellerTodayOrderTopThree(sellerId);
+        return getSellerTodayOrderTopThreeListResponseDto;
     }
 }

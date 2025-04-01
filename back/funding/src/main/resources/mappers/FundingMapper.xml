@@ -21,6 +21,11 @@
         <result column="category" property="category" typeHandler="com.ssafy.funding.entity.typeHandlers.CategoryTypeHandler"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
+        <result column="progress_percentage" property="progressPercentage"/>
+        <result column="image_url" property="imageUrl"/>
+        <result column="remaining_time" property="remainingTime"/>
+        <result column="month" property="month"/>
+        <result column="total_amount" property="totalAmount"/>
     </resultMap>
 
     <resultMap id="FundingWishResultMap" type="com.ssafy.funding.entity.FundingWishCount">
@@ -229,48 +234,6 @@
         LIMIT #{limit} OFFSET #{offset}
     </select>
 
-    <!-- 베스트, 마감임박 펀딩 조회 -->
-    <select id="getSpecialFundingList" resultMap="FundingWishResultMap">
-        SELECT *
-        FROM (
-        SELECT f.*, COUNT(w.wishlist_id) AS wish_count
-        FROM funding f
-        LEFT JOIN wishlist w ON f.funding_id = w.funding_id
-        WHERE f.status = 'ONGOING'
-        <if test="topic == 'soon'">
-            AND TIMESTAMPDIFF(MINUTE, NOW(), f.end_date) BETWEEN 0 AND 60
-        </if>
-        GROUP BY f.funding_id
-        <if test="topic == 'best'">
-            ORDER BY wish_count DESC
-        </if>
-        ) AS ranked_funding
-        <choose>
-            <when test="sort == 'latest'">
-                ORDER BY start_date DESC
-            </when>
-            <when test="sort == 'oldest'">
-                ORDER BY start_date ASC
-            </when>
-            <when test="sort == 'popular'">
-                ORDER BY current_amount DESC
-            </when>
-            <otherwise> <!-- sort == 'none' -->
-                <choose>
-                    <when test="topic == 'soon'">
-                        ORDER BY end_date ASC
-                    </when>
-                    <when test="topic == 'best'">
-                        ORDER BY wish_count DESC
-                    </when>
-                    <otherwise>
-                        ORDER BY start_date DESC <!-- fallback -->
-                    </otherwise>
-                </choose>
-            </otherwise>
-        </choose>
-        LIMIT #{limit} OFFSET #{offset}
-    </select>
     <select id="findFundingsByIds" resultType="com.ssafy.funding.entity.Funding">
         SELECT funding_id, title, current_amount, target_amount,
         start_date, end_date, seller_id
@@ -279,6 +242,56 @@
         <foreach collection="fundingIds" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
+    </select>
+
+    <select id="getSellerTotalAmount" resultType="integer">
+        CALL get_seller_total_amount(#{sellerId})
+    </select>
+
+    <select id="getSellerTotalFundingCount" resultType="integer">
+        CALL get_seller_ongoing_funding_count(#{sellerId})
+    </select>
+
+    <select id="getSellerTodayOrderCount" resultType="integer">
+        SELECT
+            funding_id
+        FROM
+            funding
+        WHERE
+            seller_id = #{sellerId}
+    </select>
+
+    <select id="getSellerOngoingTopFiveFunding" resultMap="FundingResultMap">
+        CALL get_seller_ongoing_top_funding_list(#{sellerId})
+    </select>
+
+    <select id="getSellerOngoingFundingList" resultMap="FundingResultMap">
+        CALL get_seller_ongoing_funding_list(#{sellerId}, #{page})
+    </select>
+
+    <select id="getSellerEndFundingList" resultMap="FundingResultMap">
+        CALL get_seller_end_funding_list(#{sellerId}, #{page})
+    </select>
+
+    <select id="getSellerFundingDetail" resultMap="FundingResultMap">
+        CALL get_seller_funding_detail(#{fundingId})
+    </select>
+
+    <select id="getSellerTodayOrderTopThree" parameterType="list" resultMap="FundingResultMap">
+        SELECT
+            funding_id,
+            JSON_UNQUOTE(JSON_EXTRACT(image_urls, '$[0]')) AS image_url,
+            title,
+            description,
+            current_amount
+        FROM
+            funding
+        where
+        funding_id IN
+        <foreach item="fundingId" collection="fundingIdList" open="(" separator="," close=")">
+            #{fundingId}
+        </foreach>
+
     </select>
 
     <!-- 내가 주문한 펀딩 조회 -->

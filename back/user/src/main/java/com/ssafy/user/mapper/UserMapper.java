@@ -24,4 +24,6 @@ public interface UserMapper {
     String findNicknameById(@Param("userId") int userId);
 
     List<Map<String, Object>> selectAgeGroupCounts(@Param("list") List<GetAgeListRequestDto> dtos);
+
+    List<User> getSellerFundingDetailOrderList(@Param("userIdList") List<Integer> userIdList);
 }
