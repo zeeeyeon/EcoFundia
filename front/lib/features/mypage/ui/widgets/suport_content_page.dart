@@ -18,6 +18,7 @@ class SupportContentPage extends StatelessWidget {
     return Scaffold(
       appBar: CustomAppBar(
         title: title,
+        showBackButton: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),

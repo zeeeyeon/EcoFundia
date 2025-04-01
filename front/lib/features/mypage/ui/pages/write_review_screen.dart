@@ -34,6 +34,7 @@ class _WriteReviewScreenState extends ConsumerState<WriteReviewScreen> {
     return Scaffold(
       appBar: const CustomAppBar(
         title: '리뷰 작성',
+        showBackButton: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),

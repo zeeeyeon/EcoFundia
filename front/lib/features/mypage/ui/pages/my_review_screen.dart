@@ -11,7 +11,10 @@ class MyReviewScreen extends ConsumerWidget {
     final reviewState = ref.watch(myReviewViewModelProvider);
 
     return Scaffold(
-      appBar: const CustomAppBar(title: '내 리뷰'),
+      appBar: const CustomAppBar(
+        title: '내 리뷰',
+        showBackButton: true,
+      ),
       body: reviewState.when(
         data: (reviews) {
           if (reviews.isEmpty) {

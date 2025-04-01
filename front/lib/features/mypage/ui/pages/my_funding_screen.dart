@@ -36,7 +36,10 @@ class _MyFundingScreenState extends ConsumerState<MyFundingScreen>
     final myFundingsState = ref.watch(myFundingViewModelProvider);
 
     return Scaffold(
-      appBar: const CustomAppBar(title: 'My Funding'),
+      appBar: const CustomAppBar(
+        title: 'My Funding',
+        showBackButton: true,
+      ),
       body: Column(
         children: [
           MyFundingTabBar(tabController: _tabController),
