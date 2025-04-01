@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/features/funding/ui/pages/search_screen.dart';
+import 'package:front/features/funding/ui/view_model/funding_list_view_model.dart';
 import 'package:front/features/mypage/ui/pages/coupon_screen.dart';
 import 'package:front/features/mypage/ui/pages/my_review_screen.dart';
 import 'package:front/features/mypage/ui/pages/profile_edit_screen.dart';
@@ -8,6 +9,7 @@ import 'package:front/features/mypage/ui/pages/support/faq_screen.dart';
 import 'package:front/features/mypage/ui/pages/support/guide_screen.dart';
 import 'package:front/features/mypage/ui/pages/support/notice_screen.dart';
 import 'package:front/features/mypage/ui/pages/support/policy_screen.dart';
+import 'package:front/features/mypage/ui/view_model/profile_view_model.dart';
 import 'package:go_router/go_router.dart';
 import 'package:front/features/auth/ui/pages/login_screen.dart';
 import 'package:front/features/auth/ui/pages/sign_up_screen.dart';
@@ -232,32 +234,24 @@ class ScaffoldWithNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: navigationShell,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: navigationShell.currentIndex,
-        onDestinationSelected: (index) {
-          navigationShell.goBranch(index);
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.store),
-            label: '펀딩',
+    return Consumer(
+      builder: (context, ref, child) {
+        return Scaffold(
+          body: navigationShell,
+          bottomNavigationBar: NavigationBar(
+            selectedIndex: navigationShell.currentIndex,
+            onDestinationSelected: (index) {
+              navigationShell.goBranch(index, initialLocation: true);
+            },
+            destinations: const [
+              NavigationDestination(icon: Icon(Icons.store), label: '펀딩'),
+              NavigationDestination(icon: Icon(Icons.home), label: '홈'),
+              NavigationDestination(icon: Icon(Icons.favorite), label: '찜'),
+              NavigationDestination(icon: Icon(Icons.person), label: '마이페이지'),
+            ],
           ),
-          NavigationDestination(
-            icon: Icon(Icons.home),
-            label: '홈',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.favorite),
-            label: '찜',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person),
-            label: '마이페이지',
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
