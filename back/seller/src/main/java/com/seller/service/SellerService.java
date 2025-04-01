@@ -34,5 +34,5 @@ public interface SellerService {
     List<GetSellerMonthAmountStatisticsResponseDto> getSellerMonthAmountStatistics(int userId);
     List<GetSellerFundingDetailStatisticsResponseDto> getSellerFundingDetailStatistics(int fundingId);
     List<GetSellerBrandStatisticsResponseDto> getSellerBrandStatistics(int userId);
-    List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderListTopThree(int userId);
+    List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThree(int userId);
 }
