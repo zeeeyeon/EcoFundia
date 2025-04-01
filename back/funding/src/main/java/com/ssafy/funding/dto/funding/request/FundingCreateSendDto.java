@@ -2,7 +2,6 @@ package com.ssafy.funding.dto.funding.request;
 
 import com.ssafy.funding.entity.Funding;
 import com.ssafy.funding.entity.enums.Category;
-
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
