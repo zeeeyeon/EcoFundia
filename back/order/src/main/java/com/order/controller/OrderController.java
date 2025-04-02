@@ -5,6 +5,7 @@ import com.order.dto.funding.request.GetSellerTodayOrderCountRequestDto;
 import com.order.dto.funding.request.GetSellerTodayOrderTopThreeListRequestDto;
 import com.order.dto.order.response.OrderResponseDto;
 import com.order.dto.seller.response.GetSellerMonthAmountStatisticsResponseDto;
+import com.order.dto.seller.response.TotalAmountResponseDto;
 import com.order.entity.Order;
 import com.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -82,6 +83,11 @@ public class OrderController {
     @PostMapping("/seller/today-order/list")
     public List<GetSellerTodayOrderTopThreeIdAndMoneyResponseDto> getSellerTodayOrderTopThree(@RequestBody List<Integer> fundingIdList) {
         return orderService.getSellerTodayOrderTopThree(fundingIdList);
+    }
+
+    @GetMapping("/order-info")
+    public TotalAmountResponseDto getOrderInfoByFundingId(@RequestParam("fundingId") int fundingId) {
+        return orderService.getOrderInfoByFundingId(fundingId);
     }
 
 }

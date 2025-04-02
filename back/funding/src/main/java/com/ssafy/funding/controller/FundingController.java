@@ -216,4 +216,10 @@ public class FundingController {
         List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThreeListResponseDto = productService.getSellerTodayOrderTopThree(sellerId);
         return getSellerTodayOrderTopThreeListResponseDto;
     }
+
+    // 정산 완료 후 Funding 서비스의 settlementCompleted 플래그를 업데이트 (true로 변경)
+    @PostMapping("/update-event-sent")
+    public void updateSettlementCompleted(@RequestParam int fundingId, @RequestParam Boolean eventSent) {
+        productService.updateSettlementCompleted(fundingId, eventSent);
+    }
 }
