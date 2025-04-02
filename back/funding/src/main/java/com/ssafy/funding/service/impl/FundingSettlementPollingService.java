@@ -22,7 +22,7 @@ import java.util.List;
 public class FundingSettlementPollingService {
 
     // 정산 지연 시간
-    private static final int SETTLEMENT_DELAY_HOURS = 0;
+    private static final int SETTLEMENT_DELAY_HOURS = 10;
 
     private final ProductService fundingService;
 
