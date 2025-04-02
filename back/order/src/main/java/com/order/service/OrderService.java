@@ -5,6 +5,7 @@ import com.order.dto.funding.request.GetSellerTodayOrderTopThreeListRequestDto;
 import com.order.dto.funding.response.*;
 import com.order.dto.order.response.OrderResponseDto;
 import com.order.dto.seller.response.GetSellerMonthAmountStatisticsResponseDto;
+import com.order.dto.seller.response.TotalAmountResponseDto;
 import com.order.entity.Order;
 
 import java.util.List;
@@ -24,4 +25,6 @@ public interface OrderService {
     List<GetSellerFundingDetailStatisticsResponseDto> getSellerFundingDetailStatistics(int fundingId);
     List<Integer> getSellerBrandStatistics(List<Integer> userIdList);
     List<GetSellerTodayOrderTopThreeIdAndMoneyResponseDto> getSellerTodayOrderTopThree(List<Integer> fundingIdList);
+
+    TotalAmountResponseDto getOrderInfoByFundingId(int fundingId);
 }

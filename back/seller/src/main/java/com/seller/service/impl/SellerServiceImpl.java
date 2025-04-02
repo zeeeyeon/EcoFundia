@@ -2,9 +2,21 @@ package com.seller.service.impl;
 
 import com.seller.client.FundingClient;
 import com.seller.client.OrderClient;
+import com.seller.client.OrderClient;
+import com.seller.common.exception.CustomException;
+import com.seller.common.response.ResponseCode;
 import com.seller.common.util.JsonConverter;
 import com.seller.dto.request.*;
 import com.seller.dto.response.*;
+import com.seller.dto.request.FundingCreateRequestDto;
+import com.seller.dto.request.FundingCreateSendDto;
+import com.seller.dto.request.FundingUpdateRequestDto;
+import com.seller.dto.request.FundingUpdateSendDto;
+import com.seller.dto.response.FundingDetailSellerResponseDto;
+import com.seller.dto.response.FundingResponseDto;
+import com.seller.dto.response.OrderInfoResponseDto;
+import com.seller.dto.response.SellerAccountResponseDto;
+import com.seller.dto.ssafyApi.response.ApiResponseDto;
 import com.seller.entity.Seller;
 import com.seller.mapper.SellerMapper;
 import com.seller.service.SellerService;
@@ -29,12 +41,14 @@ public class SellerServiceImpl implements SellerService {
     private final FundingClient fundingClient;
     private final S3FileService s3FileService;
     private final OrderClient orderClient;
+    private final SettlementApiService settlementApiService;
 
     @Override
     public ResponseEntity<?> createFunding(int userId, FundingCreateRequestDto dto,
                                            MultipartFile storyFile, List<MultipartFile> imageFiles) {
         String storyFileUrl = s3FileService.uploadFile(storyFile, "funding/story");
         List<String> imageUrls = s3FileService.uploadFiles(imageFiles, "funding/images");
+
 
         String imageUrlsJson = JsonConverter.convertImageUrlsToJson(imageUrls);
         FundingCreateSendDto toDto = dto.toDto(storyFileUrl, imageUrlsJson);
@@ -187,5 +201,30 @@ public class SellerServiceImpl implements SellerService {
     public List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThree(int userId) {
         int sellerId = sellerMapper.getSellerIdByUserId(userId);
         return fundingClient.getSellerTodayOrderTopThree(sellerId);
+    }
+
+    @Override
+    @Transactional
+    public void processSettlement(int fundingId, int sellerId) {
+        log.info("Processing settlement for fundingId: {}", fundingId);
+        // Order 서비스 호출: 주문 총액 정보 조회
+        OrderInfoResponseDto orderInfo = orderClient.getOrderInfoByFundingId(fundingId);
+        System.out.println("총 오더금액 = " + orderInfo.getTotalAmount() + orderInfo.getFundingId());
+        if (orderInfo != null) {
+            int totalAmount = orderInfo.getTotalAmount();
+            ApiResponseDto response = settlementApiService.transferSettlement(totalAmount, sellerId);
+            if (response == null || response.getHeader() == null ||
+                    response.getHeader().getResponseCode() == null ||
+                    !"H0000".equals(response.getHeader().getResponseCode())) {
+                log.error("Settlement transfer failed for fundingId: {}", fundingId);
+                throw new RuntimeException("Settlement transfer failed for fundingId: " + fundingId);
+            }
+            log.info("Settlement transfer succeeded for fundingId: {}, totalAmount: {}", fundingId, totalAmount);
+            // 정산 이체 성공 시 Funding 서비스에 settlementCompleted 플래그 업데이트 요청
+            fundingClient.updateSettlementCompleted(fundingId, true);
+        } else {
+            log.error("Order info not found for fundingId: {}", fundingId);
+            throw new RuntimeException("Order info not found for fundingId: " + fundingId);
+        }
     }
 }
