@@ -22,7 +22,7 @@ public interface OrderClient {
     @PostMapping("/api/order/funding")
     OrderResponseDto createPayment(@RequestHeader("X-User-Id") int userId,
                                    @RequestParam(name="fundingId") int fundingId,
-                                   @RequestParam(name="amount") int amount,
+                                   @RequestParam(name="quantity") int quantity,
                                    @RequestParam(name="totalPrice") int totalPrice,
                                    @RequestParam(name="userKey") String userKey,
                                    @RequestParam(name="userAccount") String userAccount);
