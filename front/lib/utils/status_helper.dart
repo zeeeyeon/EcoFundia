@@ -5,7 +5,7 @@ String getStatusLabel(FundingStatus status) {
     case FundingStatus.ongoing:
       return '진행중';
     case FundingStatus.success:
-      return '성공';
+      return '종료됨';
     case FundingStatus.fail:
       return '실패';
   }

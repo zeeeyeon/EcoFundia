@@ -10,6 +10,3 @@ class MyReviewRepository {
     return await _service.fetchMyReviews();
   }
 }
-
-// 💡 지금은 단순히 Service를 감싸지만,
-// 추후에는 캐싱, 오류 처리, API 리트라이, 복수 source 병합 등 확장 가능!

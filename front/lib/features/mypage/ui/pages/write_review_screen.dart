@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/ui/widgets/custom_app_bar.dart';
 import '../../data/models/write_review_request.dart';
 import '../view_model/write_review_view_model.dart';
+import '../view_model/my_review_view_model.dart';
 import '../widgets/write_review_widgets.dart';
 
 class WriteReviewScreen extends ConsumerStatefulWidget {
@@ -28,6 +29,47 @@ class _WriteReviewScreenState extends ConsumerState<WriteReviewScreen> {
   int _selectedRating = 5;
 
   @override
+  void dispose() {
+    _controller.dispose();
+    ref.invalidate(writeReviewViewModelProvider); // 상태 초기화
+    super.dispose();
+  }
+
+  Future<void> _validateAndSubmit() async {
+    final content = _controller.text.trim();
+    final rating = _selectedRating;
+
+    if (content.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('리뷰 내용을 입력해주세요.')),
+      );
+      return;
+    }
+
+    final request = WriteReviewRequest(
+      fundingId: widget.fundingId,
+      rating: rating,
+      content: content,
+    );
+
+    await ref.read(writeReviewViewModelProvider.notifier).submitReview(request);
+    final result = ref.read(writeReviewViewModelProvider);
+
+    if (result is AsyncData && result.value == true) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('리뷰가 저장되었습니다!')),
+      );
+      ref.invalidate(myReviewProvider); // 리뷰 목록 새로고침
+      Navigator.pop(context);
+    } else if (result is AsyncError) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('리뷰 등록에 실패했습니다.')),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final reviewState = ref.watch(writeReviewViewModelProvider);
 
@@ -43,6 +85,7 @@ class _WriteReviewScreenState extends ConsumerState<WriteReviewScreen> {
           children: [
             const Text('이 상품 어떠셨나요 ?', style: TextStyle(fontSize: 16)),
             const SizedBox(height: 12),
+            const SizedBox(height: 16),
             ReviewProductCard(
               title: widget.title,
               description: widget.description,
@@ -60,40 +103,7 @@ class _WriteReviewScreenState extends ConsumerState<WriteReviewScreen> {
             ReviewInputField(controller: _controller),
             const Spacer(),
             ReviewActionButtons(
-              onSubmit: () async {
-                final content = _controller.text.trim();
-                final rating = _selectedRating;
-
-                if (content.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('리뷰 내용을 입력해주세요.')),
-                  );
-                  return;
-                }
-
-                final request = WriteReviewRequest(
-                  fundingId: widget.fundingId,
-                  rating: rating,
-                  content: content,
-                );
-
-                await ref
-                    .read(writeReviewViewModelProvider.notifier)
-                    .submitReview(request);
-
-                final result = ref.read(writeReviewViewModelProvider);
-                if (result is AsyncData && result.value == true) {
-                  if (!mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('리뷰가 저장되었습니다!')),
-                  );
-                  Navigator.pop(context);
-                } else if (result is AsyncError) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('리뷰 등록에 실패했습니다.')),
-                  );
-                }
-              },
+              onSubmit: _validateAndSubmit,
               onCancel: () => Navigator.pop(context),
             ),
           ],

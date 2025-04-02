@@ -6,7 +6,7 @@ class WriteReviewRepository {
 
   WriteReviewRepository(this._service);
 
-  Future<bool> submitReview(WriteReviewRequest request) async {
-    return await _service.submitReview(request);
+  Future<void> submitReview(WriteReviewRequest request) async {
+    await _service.submitReview(request);
   }
 }

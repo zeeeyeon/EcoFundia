@@ -8,7 +8,7 @@ class MyReviewScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final reviewState = ref.watch(myReviewViewModelProvider);
+    final reviewState = ref.watch(myReviewProvider);
 
     return Scaffold(
       appBar: const CustomAppBar(
