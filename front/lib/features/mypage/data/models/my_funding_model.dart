@@ -1,3 +1,5 @@
+import 'package:front/utils/funding_status.dart';
+
 class MyFundingModel {
   final int fundingId;
   final String title;
@@ -6,7 +8,7 @@ class MyFundingModel {
   final DateTime endDate;
   final int currentAmount;
   final String category;
-  final String status;
+  final FundingStatus status;
   final int rate;
   final int totalPrice;
 
@@ -28,13 +30,13 @@ class MyFundingModel {
       fundingId: json['fundingId'],
       title: json['title'],
       description: json['description'],
-      imageUrls: List<String>.from(json['imageUrl']), // ✅ 바로 List로 파싱
+      imageUrls: List<String>.from(json['imageUrl']), // 바로 List로 파싱
       endDate: DateTime.parse(json['endDate']),
       currentAmount: json['currentAmount'],
       category: json['category'],
-      status: json['status'],
+      status: parseFundingStatus(json['status']),
       rate: json['rate'],
-      totalPrice: json['totalPrice'] ?? 0, // ✅ 혹시 없을 수도 있으니 기본값 설정
+      totalPrice: json['totalPrice'] ?? 0, // 혹시 없을 수도 있으니 기본값 설정
     );
   }
 }

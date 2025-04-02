@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:front/utils/funding_status.dart';
 import 'package:go_router/go_router.dart';
 import 'package:front/core/themes/app_colors.dart';
 import 'package:front/features/mypage/data/models/my_funding_model.dart';
@@ -127,7 +128,7 @@ class MyFundingCard extends StatelessWidget {
                 ),
 
                 // 리뷰 작성 UI (status == SUCCESS)
-                if (funding.status == 'SUCCESS') ...[
+                if (funding.status == FundingStatus.success) ...[
                   const SizedBox(height: 16),
                   const Divider(height: 1, color: Color(0xFFE0E0E0)),
                   const SizedBox(height: 12),

@@ -1,10 +1,12 @@
-String getStatusLabel(String status) {
+import 'package:front/utils/funding_status.dart';
+
+String getStatusLabel(FundingStatus status) {
   switch (status) {
-    case 'ONGOING':
+    case FundingStatus.ongoing:
       return '진행중';
-    case 'SUCCESS':
-      return '종료';
-    default:
-      return '기타';
+    case FundingStatus.success:
+      return '성공';
+    case FundingStatus.fail:
+      return '실패';
   }
 }

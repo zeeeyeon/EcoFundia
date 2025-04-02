@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/core/ui/widgets/custom_app_bar.dart';
+import 'package:front/utils/funding_status.dart';
 import '../view_model/my_funding_view_model.dart';
 import '../widgets/my_funding_card.dart';
 import '../widgets/my_funding_tab_bar.dart';
@@ -47,10 +48,11 @@ class _MyFundingScreenState extends ConsumerState<MyFundingScreen>
             child: myFundingsState.when(
               data: (fundings) {
                 final isOngoingTab = _tabController.index == 0;
+
                 final filteredFundings = fundings.where((f) {
                   return isOngoingTab
-                      ? f.status == 'ONGOING'
-                      : f.status == 'SUCCESS';
+                      ? isOngoing(f.status)
+                      : isSuccess(f.status);
                 }).toList();
 
                 return ListView.builder(
