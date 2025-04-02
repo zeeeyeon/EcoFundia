@@ -59,4 +59,9 @@
 
 
 
+    <select id="getSellerInfo" resultType="com.seller.entity.Seller">
+        SELECT *
+        FROM seller WHERE seller_id = #{sellerId}
+    </select>
+
 </mapper>
