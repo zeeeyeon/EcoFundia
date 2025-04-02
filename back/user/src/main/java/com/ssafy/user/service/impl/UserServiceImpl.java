@@ -255,7 +255,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void postCoupon(int userId) {
-
+        couponClient.postCoupon(userId);
     }
 
 
