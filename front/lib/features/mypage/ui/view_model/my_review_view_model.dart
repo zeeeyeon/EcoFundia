@@ -32,4 +32,13 @@ class MyReviewViewModel extends StateNotifier<AsyncValue<List<MyReviewModel>>> {
       state = AsyncValue.error(e, st);
     }
   }
+
+  Future<void> deleteReview(int reviewId) async {
+    try {
+      await _repository.deleteReview(reviewId);
+      await fetchReviews(); // 삭제 후 리스트 갱신
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
 }

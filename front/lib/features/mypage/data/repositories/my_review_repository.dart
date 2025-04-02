@@ -9,4 +9,8 @@ class MyReviewRepository {
   Future<List<MyReviewModel>> getMyReviews() async {
     return await _service.fetchMyReviews();
   }
+
+  Future<void> deleteReview(int reviewId) async {
+    await _service.deleteReview(reviewId);
+  }
 }

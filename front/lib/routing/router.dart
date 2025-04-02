@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/features/funding/ui/pages/search_screen.dart';
 import 'package:front/features/funding/ui/view_model/funding_list_view_model.dart';
 import 'package:front/features/mypage/ui/pages/coupon_screen.dart';
+import 'package:front/features/mypage/ui/pages/edit_review_screen.dart';
 import 'package:front/features/mypage/ui/pages/my_review_screen.dart';
 import 'package:front/features/mypage/ui/pages/profile_edit_screen.dart';
 import 'package:front/features/mypage/ui/pages/support/faq_screen.dart';
@@ -189,6 +190,22 @@ final routerProvider = Provider<GoRouter>((ref) {
 
                   return WriteReviewScreen(
                     fundingId: id,
+                    title: extra?['title'] ?? '',
+                    description: extra?['description'] ?? '',
+                    totalPrice: extra?['totalPrice'] ?? 0,
+                  );
+                },
+              ),
+              GoRoute(
+                path: '/review/edit/:id',
+                builder: (context, state) {
+                  final id = int.parse(state.pathParameters['id']!);
+                  final extra = state.extra as Map<String, dynamic>?;
+
+                  return EditReviewScreen(
+                    reviewId: id,
+                    initialRating: extra?['rating'] ?? 5,
+                    initialContent: extra?['content'] ?? '',
                     title: extra?['title'] ?? '',
                     description: extra?['description'] ?? '',
                     totalPrice: extra?['totalPrice'] ?? 0,

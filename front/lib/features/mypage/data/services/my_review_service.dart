@@ -8,9 +8,11 @@ class MyReviewService {
 
   Future<List<MyReviewModel>> fetchMyReviews() async {
     final response = await _apiService.get('/user/review');
-
     final List<dynamic> dataList = response.data['content']['content'];
-
     return dataList.map((json) => MyReviewModel.fromJson(json)).toList();
+  }
+
+  Future<void> deleteReview(int reviewId) async {
+    await _apiService.delete('/user/review/$reviewId');
   }
 }
