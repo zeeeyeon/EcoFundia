@@ -36,6 +36,6 @@ public interface FundingClient {
 //    @PostMapping("/api/seller/sellerNames")
 //    Map<Integer, String> getSellerNames(@RequestBody List<Integer> sellerIds);
 
-    @PostMapping("/funding/update-event-sent")
+    @PostMapping("/api/funding/update-event-sent")
     void updateSettlementCompleted(@RequestParam("fundingId") int fundingId, @RequestParam("eventSent") Boolean eventSent);
 }

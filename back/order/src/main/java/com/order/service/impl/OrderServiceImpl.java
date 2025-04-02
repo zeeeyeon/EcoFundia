@@ -113,8 +113,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public TotalAmountResponseDto getOrderInfoByFundingId(int fundingId) {
+        System.out.println("왔다" + fundingId + " ");
         int amount = orderMapper.sumOrderAmountByFundingId(fundingId);
-        System.out.println(fundingId + " " + amount);
+
         return new TotalAmountResponseDto(fundingId,amount);
     }
 }
