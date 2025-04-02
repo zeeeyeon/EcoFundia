@@ -38,9 +38,9 @@
         VALUES (#{userId}, #{fundingId}, #{amount}, #{quantity}, #{totalPrice}, #{createdAt}, #{updatedAt})
     </insert>
 
-    <select id="sumOrderAmountByFundingId" resultType="int">
+    <select id="sumOrderAmountByFundingId" resultType="Integer">
         SELECT COALESCE(SUM(total_price), 0)
-        FROM orders
+        FROM `order`
         WHERE funding_id = #{fundingId}
     </select>
 
