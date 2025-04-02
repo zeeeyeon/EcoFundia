@@ -77,4 +77,7 @@ public interface ProductService {
 
     // settlement_completed 플래그 업데이트
     void updateSettlementCompleted(int fundingId, Boolean eventSent);
+
+    List<GetCompletedFundingsResponseDto> getCompletedFundings(int sellerId);
+
 }

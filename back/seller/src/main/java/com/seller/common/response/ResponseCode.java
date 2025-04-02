@@ -14,6 +14,7 @@ public enum ResponseCode {
     UPDATE_FUNDING(successCode(), HttpStatus.OK, "펀딩이 성공적으로 변경되었습니다."),
     DELETE_FUNDING(successCode(), HttpStatus.OK, "펀딩이 성공적으로 삭제되었습니다."),
     GET_FUNDING_STATUS(successCode(), HttpStatus.OK, "펀딩상태가 성공적으로 조회되었습니다."),
+    GET_Completed_FUNDING(successCode(), HttpStatus.OK, "정산내역이 성공적으로 조회되었습니다."),
 
     FUNDING_NOT_FOUND(404, HttpStatus.NOT_FOUND, "해당 ID의 펀딩이 존재하지 않습니다"),
     ORDER_NOT_FOUNT(404, HttpStatus.NOT_FOUND,"해당 ID의 오더가 존재하지 않습니다."),

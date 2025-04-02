@@ -1,5 +1,6 @@
 package com.seller.controller;
 
+import com.seller.common.response.PageResponse;
 import com.seller.common.response.Response;
 import com.seller.common.response.ResponseCode;
 import com.seller.dto.request.FundingCreateRequestDto;
@@ -158,4 +159,13 @@ public class SellerController {
         return new ResponseEntity<>(Response.create(ResponseCode.GET_SELLER_TODAY_ORDER_TOP_THREE_LIST, dto), ResponseCode.GET_SELLER_TODAY_ORDER_TOP_THREE_LIST.getHttpStatus());
     }
 
+    @GetMapping("/settlements/completed-fundings")
+    public ResponseEntity<?> getCompletedFundings(
+            @RequestHeader("X-User-Id") int userId,
+            @RequestParam(name = "page",defaultValue = "0") int page,
+            @RequestParam(name = "size",defaultValue = "5") int size){
+        PageResponse<GetCompletedFundingsResponseDto> dto = sellerService.getCompletedFundings(userId,page,size);
+
+        return new ResponseEntity<>(Response.create(ResponseCode.GET_Completed_FUNDING, dto), ResponseCode.GET_Completed_FUNDING.getHttpStatus());
+    }
 }

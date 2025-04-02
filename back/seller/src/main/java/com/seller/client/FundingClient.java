@@ -68,4 +68,7 @@ public interface FundingClient {
 
     @PostMapping("/api/funding/update-event-sent")
     void updateSettlementCompleted(@RequestParam("fundingId") int fundingId, @RequestParam("eventSent") Boolean eventSent);
+
+    @GetMapping("/api/funding/seller/completed-funding/{sellerId}")
+    List<GetCompletedFundingsAtFundingResponseDto> getCompletedFundings(@PathVariable("sellerId") int sellerId);
 }
