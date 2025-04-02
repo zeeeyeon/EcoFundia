@@ -222,4 +222,9 @@ public class FundingController {
     public void updateSettlementCompleted(@RequestParam int fundingId, @RequestParam Boolean eventSent) {
         productService.updateSettlementCompleted(fundingId, eventSent);
     }
+
+    @GetMapping("/seller/completed-funding/{sellerId}")
+    List<GetCompletedFundingsResponseDto> getCompletedFundings(@PathVariable("sellerId") int sellerId){
+        return productService.getCompletedFundings(sellerId);
+    }
 }

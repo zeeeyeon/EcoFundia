@@ -132,4 +132,16 @@
         LIMIT 3;
 
     </select>
+
+    <select id="getTotalOrderCount" parameterType="java.util.List" resultType="java.lang.Integer">
+        SELECT COUNT(*) AS totalOrderCount
+        FROM `order`
+        WHERE funding_id IN
+        <foreach collection="list" item="fundingId" open="(" separator="," close=")">
+            #{fundingId}
+        </foreach>
+        GROUP BY funding_id
+        ORDER BY funding_id
+    </select>
+
 </mapper>
