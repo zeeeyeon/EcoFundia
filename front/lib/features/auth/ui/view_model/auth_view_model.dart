@@ -327,12 +327,17 @@ class AuthViewModel extends StateNotifier<AuthState> {
 
       // 결과 처리
       if (result is AuthSuccessEntity) {
-        // 로그인 성공 - 메인 화면으로 이동
+        // 로그인 성공 - 앱 상태 업데이트 후 메인 화면으로 이동
+        _appStateViewModel.setLoggedIn(true);
+
+        // 딜레이를 추가하여 상태 업데이트 후 네비게이션
+        await Future.delayed(const Duration(milliseconds: 50));
         _router.go('/');
       } else if (result is AuthNewUserEntity) {
         // 회원가입 필요 - 회원가입 화면으로 이동
         final userInfo = await getGoogleLoginInfoForSignUp();
         if (userInfo != null) {
+          await Future.delayed(const Duration(milliseconds: 50));
           _router.pushNamed('signup', extra: {
             'email': userInfo['email'],
             'name': userInfo['name'],

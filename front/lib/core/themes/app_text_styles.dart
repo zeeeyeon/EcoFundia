@@ -24,6 +24,12 @@ class AppTextStyles {
         color: AppColors.darkGrey,
       );
 
+  static TextStyle get heading4 => GoogleFonts.righteous(
+        fontSize: 18,
+        fontWeight: FontWeight.w400,
+        color: AppColors.darkGrey,
+      );
+
   static TextStyle get body1 => GoogleFonts.roboto(
         fontSize: 20,
         fontWeight: FontWeight.w400,

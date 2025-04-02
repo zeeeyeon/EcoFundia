@@ -16,12 +16,14 @@ class ProjectRepositoryImpl implements ProjectRepository {
   }
 
   @override
-  Future<void> toggleProjectLike(String projectId) async {
-    await _projectService.toggleProjectLike(projectId);
+  Future<void> toggleProjectLike(int projectId,
+      {bool? isCurrentlyLiked}) async {
+    await _projectService.toggleProjectLike(projectId,
+        isCurrentlyLiked: isCurrentlyLiked);
   }
 
   @override
-  Future<ProjectEntity> getProjectById(String projectId) async {
+  Future<ProjectEntity> getProjectById(int projectId) async {
     final dto = await _projectService.getProjectById(projectId);
     return ProjectEntity.fromDTO(dto);
   }

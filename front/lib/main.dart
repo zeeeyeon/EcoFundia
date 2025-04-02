@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/features/wishlist/data/services/wishlist_api_service.dart';
 import 'package:front/routing/router.dart';
 import 'package:front/core/constants/app_strings.dart';
 import 'package:front/core/themes/app_colors.dart';
@@ -48,8 +49,8 @@ void main() async {
     ProviderScope(
       overrides: [
         apiServiceProvider.overrideWithValue(apiService),
-        wishlistRepositoryProvider.overrideWith(
-            (ref) => WishlistRepositoryImpl(apiService: apiService)),
+        wishlistRepositoryProvider.overrideWith((ref) => WishlistRepositoryImpl(
+            wishlistService: WishlistApiService(apiService.dio))),
         // 판매자 Repository Provider 등록
         sellerRepositoryProvider
             .overrideWith((ref) => SellerRepositoryImpl(apiService)),

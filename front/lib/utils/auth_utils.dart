@@ -6,6 +6,9 @@ import '../utils/logger_util.dart';
 import 'package:go_router/go_router.dart';
 
 class AuthUtils {
+  // 모달 표시 상태를 추적하는 정적 변수
+  static bool _isModalShowing = false;
+
   /// 권한 체크 후 필요시 모달 표시
   static Future<bool> checkAuthAndShowModal(
     BuildContext context,
@@ -21,11 +24,17 @@ class AuthUtils {
 
       if (!isAuthenticated) {
         LoggerUtil.d('권한 체크: 인증 필요 (${feature.name})');
-        if (showModal && context.mounted) {
+
+        // 모달이 이미 표시 중이면 중복 표시 방지
+        if (showModal && context.mounted && !_isModalShowing) {
+          _isModalShowing = true;
           await showDialog(
             context: context,
             builder: (context) => const LoginRequiredModal(),
-          );
+          ).then((_) {
+            // 모달이 닫히면 상태 업데이트
+            _isModalShowing = false;
+          });
         }
         return false;
       }

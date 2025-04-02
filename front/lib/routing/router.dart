@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/features/funding/ui/pages/search_screen.dart';
-import 'package:front/features/funding/ui/view_model/funding_list_view_model.dart';
 import 'package:front/features/mypage/ui/pages/coupon_screen.dart';
 import 'package:front/features/mypage/ui/pages/edit_review_screen.dart';
 import 'package:front/features/mypage/ui/pages/my_review_screen.dart';
@@ -10,7 +9,6 @@ import 'package:front/features/mypage/ui/pages/support/faq_screen.dart';
 import 'package:front/features/mypage/ui/pages/support/guide_screen.dart';
 import 'package:front/features/mypage/ui/pages/support/notice_screen.dart';
 import 'package:front/features/mypage/ui/pages/support/policy_screen.dart';
-import 'package:front/features/mypage/ui/view_model/profile_view_model.dart';
 import 'package:go_router/go_router.dart';
 import 'package:front/features/auth/ui/pages/login_screen.dart';
 import 'package:front/features/auth/ui/pages/sign_up_screen.dart';
@@ -23,6 +21,7 @@ import 'package:front/features/mypage/ui/pages/mypage_screen.dart';
 import 'package:front/features/mypage/ui/pages/my_funding_screen.dart';
 import 'package:front/features/mypage/ui/pages/write_review_screen.dart';
 import 'package:front/features/wishlist/ui/pages/wishlist_screen.dart';
+import 'package:front/features/wishlist/ui/view_model/wishlist_view_model.dart';
 import 'package:front/features/auth/ui/pages/signup_complete_screen.dart';
 import 'package:front/shared/seller/ui/pages/seller_detail_screen.dart';
 import 'package:front/features/home/ui/pages/project_detail_screen.dart';
@@ -30,6 +29,10 @@ import 'package:front/shared/payment/ui/pages/payment_page.dart';
 import 'package:front/shared/payment/ui/pages/payment_complete_page.dart';
 import 'package:front/utils/auth_utils.dart';
 import 'package:front/features/home/domain/entities/project_entity.dart';
+import 'package:front/features/funding/ui/view_model/funding_list_view_model.dart';
+import 'package:front/features/home/ui/view_model/project_view_model.dart';
+import 'package:front/features/mypage/ui/view_model/profile_view_model.dart';
+import 'package:front/features/mypage/ui/view_model/total_funding_provider.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -110,6 +113,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
         branches: [
           StatefulShellBranch(
+            navigatorKey: GlobalKey<NavigatorState>(debugLabel: 'funding_tab'),
             routes: [
               GoRoute(
                 path: '/funding',
@@ -142,6 +146,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
           StatefulShellBranch(
+            navigatorKey: GlobalKey<NavigatorState>(debugLabel: 'home_tab'),
             routes: [
               GoRoute(
                 path: '/',
@@ -155,6 +160,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
           StatefulShellBranch(
+            navigatorKey: GlobalKey<NavigatorState>(debugLabel: 'wishlist_tab'),
             routes: [
               GoRoute(
                 path: '/wishlist',
@@ -168,6 +174,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
           StatefulShellBranch(
+            navigatorKey: GlobalKey<NavigatorState>(debugLabel: 'mypage_tab'),
             routes: [
               GoRoute(
                 path: '/mypage',
@@ -249,7 +256,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   );
 });
 
-class ScaffoldWithNavBar extends StatelessWidget {
+class ScaffoldWithNavBar extends StatefulWidget {
   const ScaffoldWithNavBar({
     required this.navigationShell,
     Key? key,
@@ -258,15 +265,87 @@ class ScaffoldWithNavBar extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
 
   @override
+  State<ScaffoldWithNavBar> createState() => _ScaffoldWithNavBarState();
+}
+
+class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
+  int _previousIndex = 0;
+
+  // 각 탭 별 키 생성
+  final List<GlobalKey<NavigatorState>> _navigatorKeys = [
+    GlobalKey<NavigatorState>(debugLabel: 'funding'),
+    GlobalKey<NavigatorState>(debugLabel: 'home'),
+    GlobalKey<NavigatorState>(debugLabel: 'wishlist'),
+    GlobalKey<NavigatorState>(debugLabel: 'mypage'),
+  ];
+
+  @override
   Widget build(BuildContext context) {
+    // 현재 탭 인덱스 확인
+    final currentIndex = widget.navigationShell.currentIndex;
+    _previousIndex = currentIndex;
+
     return Consumer(
       builder: (context, ref, child) {
         return Scaffold(
-          body: navigationShell,
+          key: ValueKey('main_scaffold_$currentIndex'),
+          body: widget.navigationShell,
           bottomNavigationBar: NavigationBar(
-            selectedIndex: navigationShell.currentIndex,
+            selectedIndex: currentIndex,
             onDestinationSelected: (index) {
-              navigationShell.goBranch(index, initialLocation: true);
+              // 같은 탭을 다시 클릭한 경우
+              if (index == currentIndex) {
+                // 현재 탭의 페이지를 다시 로드
+                widget.navigationShell.goBranch(
+                  index,
+                  initialLocation: true, // 초기 위치로 다시 이동
+                );
+              } else {
+                // 다른 탭으로 이동
+                widget.navigationShell.goBranch(index, initialLocation: true);
+              }
+
+              // ViewModel 리로드: 선택된 탭에 따라 데이터를 다시 불러옵니다
+              // 이 부분을 탭 이동 후에 항상 실행하도록 변경
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                final currentPath = GoRouterState.of(context).uri.path;
+
+                switch (index) {
+                  case 0: // 펀딩 탭
+                    // 현재 경로가 펀딩 탭이면 데이터 로드
+                    if (currentPath == '/funding') {
+                      ref.read(fundingListProvider.notifier).fetchFundingList(
+                            page: 1,
+                            sort: ref.read(sortOptionProvider),
+                            categories: ref.read(selectedCategoriesProvider),
+                          );
+                    }
+                    break;
+                  case 1: // 홈 탭
+                    // 현재 경로가 홈 탭이면 데이터 로드
+                    if (currentPath == '/') {
+                      ref
+                          .read(projectViewModelProvider.notifier)
+                          .loadProjects();
+                    }
+                    break;
+                  case 2: // 찜 탭
+                    // 현재 경로가 찜 탭이면 데이터 로드
+                    if (currentPath == '/wishlist') {
+                      ref
+                          .read(wishlistViewModelProvider.notifier)
+                          .loadWishlistItems();
+                    }
+                    break;
+                  case 3: // 마이페이지 탭
+                    // 현재 경로가 마이페이지 탭이면 데이터 로드
+                    if (currentPath == '/mypage') {
+                      ref.refresh(profileProvider); // 마이페이지 프로필 정보 갱신
+                      ref.refresh(totalFundingAmountProvider); // 펀딩 금액 정보 갱신
+                    }
+                    break;
+                }
+              });
             },
             destinations: const [
               NavigationDestination(icon: Icon(Icons.store), label: '펀딩'),

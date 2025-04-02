@@ -43,7 +43,11 @@ class LoginRequiredModal extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.of(context).pop();
-                      context.go('/login');
+                      Future.delayed(const Duration(milliseconds: 100), () {
+                        if (context.mounted) {
+                          context.go('/login');
+                        }
+                      });
                     },
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),

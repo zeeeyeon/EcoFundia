@@ -74,19 +74,19 @@ class FundingInfo {
 class SellerInfo {
   final int sellerId;
   final String sellerName;
-  final String sellerProfileImageUrl;
+  final String? sellerProfileImageUrl;
 
   SellerInfo({
     required this.sellerId,
     required this.sellerName,
-    required this.sellerProfileImageUrl,
+    this.sellerProfileImageUrl,
   });
 
   factory SellerInfo.fromJson(Map<String, dynamic> json) {
     return SellerInfo(
       sellerId: json['sellerId'],
       sellerName: json['sellerName'],
-      sellerProfileImageUrl: json['sellerProfileImageUrl'] ?? '',
+      sellerProfileImageUrl: json['sellerProfileImageUrl'],
     );
   }
 }

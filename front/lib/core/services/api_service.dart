@@ -204,3 +204,9 @@ class ApiService {
 
 // 문자열 길이의 최소값 계산 헬퍼 함수
 int min(int a, int b) => a < b ? a : b;
+
+// 1. 이미지 URL을 백엔드 프록시를 통해 가져오도록 변환하는 함수 추가
+String getProxiedImageUrl(String originalUrl) {
+  // CORS 오류는 모바일에서는 발생하지 않으므로, 원본 URL을 그대로 반환
+  return originalUrl;
+}

@@ -47,7 +47,8 @@ class _SplashPageState extends State<SplashPage> {
     // 4️⃣ 5초 후 홈 화면으로 이동
     _timers.add(Timer(const Duration(seconds: 5), () {
       if (mounted) {
-        context.go('/'); // ✅ 홈 화면으로 이동
+        // 네비게이션 처리는 별도 메서드로 분리
+        _navigateToHome();
       }
     }));
   }
@@ -104,5 +105,16 @@ class _SplashPageState extends State<SplashPage> {
         ),
       ),
     );
+  }
+
+  // 홈 화면 이동 메서드
+  void _navigateToHome() {
+    // Global Key 충돌을 방지하기 위해 별도 비동기 메서드로 처리
+    Future.delayed(Duration.zero, () {
+      if (mounted) {
+        // GoRouter 사용하여 홈으로 이동
+        context.go('/');
+      }
+    });
   }
 }

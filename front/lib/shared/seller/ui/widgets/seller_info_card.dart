@@ -43,7 +43,17 @@ class SellerInfoCard extends StatelessWidget {
         // 프로필 이미지
         CircleAvatar(
           radius: 28,
-          backgroundImage: AssetImage(seller.profileImageUrl),
+          backgroundColor: AppColors.primary.withOpacity(0.1),
+          backgroundImage: seller.profileImageUrl != null
+              ? AssetImage(seller.profileImageUrl!)
+              : const AssetImage('assets/images/apple.png'),
+          child: seller.profileImageUrl == null
+              ? const Icon(
+                  Icons.store,
+                  size: 30,
+                  color: AppColors.primary,
+                )
+              : null,
         ),
         const SizedBox(width: 12),
 
