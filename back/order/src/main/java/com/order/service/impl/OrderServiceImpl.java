@@ -224,5 +224,11 @@ public class OrderServiceImpl implements OrderService {
 
         return new TotalAmountResponseDto(fundingId,amount);
     }
+
+    @Override
+    public List<Integer> getTotalOrderCount(List<Integer> fundingIds) {
+        return orderMapper.getTotalOrderCount(fundingIds);
+
+    }
 }
 

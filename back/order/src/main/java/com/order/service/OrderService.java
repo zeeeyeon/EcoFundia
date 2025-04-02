@@ -27,4 +27,7 @@ public interface OrderService {
     List<GetSellerTodayOrderTopThreeIdAndMoneyResponseDto> getSellerTodayOrderTopThree(List<Integer> fundingIdList);
 
     TotalAmountResponseDto getOrderInfoByFundingId(int fundingId);
+
+    List<Integer> getTotalOrderCount(List<Integer> fundingIds);
+
 }

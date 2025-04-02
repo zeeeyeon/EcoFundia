@@ -4,6 +4,7 @@ import com.seller.client.FundingClient;
 import com.seller.client.OrderClient;
 import com.seller.client.OrderClient;
 import com.seller.common.exception.CustomException;
+import com.seller.common.response.PageResponse;
 import com.seller.common.response.ResponseCode;
 import com.seller.common.util.JsonConverter;
 import com.seller.dto.request.*;
@@ -27,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -226,5 +228,44 @@ public class SellerServiceImpl implements SellerService {
             log.error("Order info not found for fundingId: {}", fundingId);
             throw new RuntimeException("Order info not found for fundingId: " + fundingId);
         }
+    }
+
+    @Override
+    public PageResponse<GetCompletedFundingsResponseDto> getCompletedFundings(int userId, int page, int size) {
+        System.out.println("나는" + userId);
+        int sellerId = sellerMapper.getSellerIdByUserId(userId);
+        List<GetCompletedFundingsAtFundingResponseDto> list = fundingClient.getCompletedFundings(sellerId);
+        if(list.isEmpty()){
+            throw new CustomException(ResponseCode.FUNDING_NOT_FOUND);
+        }
+        System.out.println(list);
+        List<Integer> fundingIds = new ArrayList<>();
+        for(GetCompletedFundingsAtFundingResponseDto i : list){
+            fundingIds.add(i.getFundingId());
+        }
+
+        List<Integer> orders = orderClient.getTotalOrderCount(fundingIds);
+        List<GetCompletedFundingsResponseDto> dtos = new ArrayList<>();
+        for(int i = 0; i < fundingIds.size(); i++){
+            GetCompletedFundingsResponseDto dto = GetCompletedFundingsResponseDto.builder()
+                    .title(list.get(i).getTitle())
+                    .endDate(list.get(i).getEndDate())
+                    .totalAmount(list.get(i).getTotalAmount())
+                    .progressPercentage(list.get(i).getProgressPercentage())
+                    .totalOrderCount(orders.get(i))
+                    .build();
+            dtos.add(dto);
+        }
+
+        return paginate(dtos, page, size);
+    }
+
+    private <T> PageResponse<T> paginate(List<T> list, int page, int size) {
+        int total = list.size();
+        int start = Math.min(page * size, total);
+        int end = Math.min(start + size, total);
+        List<T> content = list.subList(start, end);
+        int totalPages = (int) Math.ceil((double) total / size);
+        return new PageResponse<>(content, page, size, total, totalPages);
     }
 }
