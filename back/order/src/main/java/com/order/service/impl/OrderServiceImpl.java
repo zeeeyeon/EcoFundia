@@ -172,6 +172,15 @@ public class OrderServiceImpl implements OrderService {
     public List<GetSellerFundingDetailStatisticsResponseDto> getSellerFundingDetailStatistics(int fundingId) {
         List<GetSellerFundingDetailStatisticsResponseDto> result = new ArrayList<>();
         List<Integer> userIdList = orderMapper.getSellerFundingDetailStatistics(fundingId);
+        if(userIdList.isEmpty()) {
+            result.add(new GetSellerFundingDetailStatisticsResponseDto(10, 0.0));
+            result.add(new GetSellerFundingDetailStatisticsResponseDto(20, 0.0));
+            result.add(new GetSellerFundingDetailStatisticsResponseDto(30, 0.0));
+            result.add(new GetSellerFundingDetailStatisticsResponseDto(40, 0.0));
+            result.add(new GetSellerFundingDetailStatisticsResponseDto(50, 0.0));
+            result.add(new GetSellerFundingDetailStatisticsResponseDto(60, 0.0));
+            return result;
+        }
         List<GetAgeListRequestDto> ageListRequestDtoList = userIdList.stream()
                 .map(userIdTarget -> new GetAgeListRequestDto(userIdTarget))
                 .collect(Collectors.toList());
