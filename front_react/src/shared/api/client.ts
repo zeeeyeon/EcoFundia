@@ -9,9 +9,9 @@ const BASE_URL =
 // Axios 인스턴스 생성
 const client = axios.create({
   baseURL: BASE_URL,
-  timeout: 10000,
+  timeout: 5000,
   headers: {
-    "Content-Type": "application/json",
+    "Content-Type": undefined,
   },
 });
 

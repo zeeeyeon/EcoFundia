@@ -111,17 +111,20 @@ const TodayFundingList: React.FC<TodayFundingListProps> = ({ data }) => {
   const hasData = top3Data && top3Data.length > 0;
 
   return (
-    // 감싸는 컨테이너 제거하고 카드 래퍼만 유지
-    hasData ? (
-      // 카드들을 가로로 배치하기 위한 div
-      <div className="funding-cards-wrapper" style={{ height: "100%" }}>
-        {top3Data.map((item) => (
-          <FundingItemCard key={item.id} item={item} />
-        ))}
-      </div>
-    ) : (
-      <div className="no-data-message">오늘 펀딩된 내역이 없습니다.</div>
-    )
+    <div className="today-funding-container" style={{ height: "100%" }}>
+      {hasData ? (
+        // 카드들을 가로로 배치하기 위한 div
+        <div className="funding-cards-wrapper">
+          {top3Data.map((item) => (
+            <FundingItemCard key={item.id} item={item} />
+          ))}
+        </div>
+      ) : (
+        <div className="no-data-message" style={{ height: "100%" }}>
+          오늘 펀딩된 내역이 없습니다.
+        </div>
+      )}
+    </div>
   );
 };
 
