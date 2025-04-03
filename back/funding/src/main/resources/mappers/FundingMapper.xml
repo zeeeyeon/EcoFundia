@@ -59,7 +59,7 @@
         <result column="title" property="title"/>
     </resultMap>
 
-    <resultMap id="SellerFundingResultMap" type="com.ssafy.funding.dto.seller.SellerDetailDto">
+    <resultMap id="SellerFundingResultMap" type="com.ssafy.funding.entity.SellerDetail">
         <id column="funding_id" property="fundingId"/>
         <result column="title" property="title"/>
         <result column="description" property="description"/>
@@ -167,12 +167,14 @@
 
     <select id="getSellerDetail" resultMap="SellerFundingResultMap">
         SELECT
+            f.funding_id,
             f.title,
             f.description,
             f.image_urls,
             f.price,
             f.quantity,
             f.target_amount,
+            f.current_amount,
             f.end_date,
             f.status,
             -- review 개수
