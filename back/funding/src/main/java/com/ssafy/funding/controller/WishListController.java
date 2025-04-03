@@ -44,9 +44,7 @@ public class WishListController {
     }
 
     @GetMapping("/funding-ids")
-    public ResponseEntity<?> getWishListFundingIds(@RequestHeader("X-User-Id") int userId) {
-        List<Integer> wishlist = wishListService.getWishListFundingIds(userId);
-        log.info("getWishListFundingIds {}", wishlist);
-        return new ResponseEntity<>(Response.create(GET_WISHLIST, wishlist), GET_WISHLIST.getHttpStatus());
+    public List<Integer> getWishListFundingIds(@RequestHeader("X-User-Id") int userId) {
+        return wishListService.getWishListFundingIds(userId);
     }
 }
