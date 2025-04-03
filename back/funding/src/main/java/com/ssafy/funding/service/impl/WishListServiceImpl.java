@@ -51,6 +51,11 @@ public class WishListServiceImpl implements WishListService {
         wishListMapper.deleteWish(userId, fundingId);
     }
 
+    @Override
+    public List<Integer> getUserWishlist(int userId) {
+        return wishListMapper.findFundingIdsByUserId(userId);
+    }
+
     private List<UserWishlistFundingDto> getWishlist(int userId, Function<List<Funding>, List<Funding>> filter) {
         List<Integer> fundingIds = wishListMapper.findFundingIdsByUserId(userId);
         List<Funding> fundings = fundingMapper.findFundingsByIds(fundingIds);
