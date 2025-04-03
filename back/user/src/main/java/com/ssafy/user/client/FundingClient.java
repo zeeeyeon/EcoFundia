@@ -36,4 +36,7 @@ public interface FundingClient {
 
     @GetMapping("/api/wishList/done")
     List<WishListResponseDto> getDoneMyWishList(@RequestHeader("X-User-Id") int userId);
+
+    @GetMapping("/api/wishList/funding-ids")
+    List<Integer> getWishListFundingIds(@RequestHeader("X-User-Id") int userId);
 }

@@ -41,6 +41,11 @@ public class WishListServiceImpl implements WishListService {
         return paginate(all, page, size);
     }
 
+    @Override
+    public List<Integer> getWishListFundingIds(int userId) {
+        return fundingClient.getWishListFundingIds(userId);
+    }
+
     private PageResponse<WishListResponseDto> paginate(List<WishListResponseDto> list, int page, int size) {
         int total = list.size();
         int start = Math.min(page * size, total);
