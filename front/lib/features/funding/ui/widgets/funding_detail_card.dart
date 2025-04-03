@@ -56,7 +56,7 @@ class _FundingDetailCardState extends State<FundingDetailCard> {
                 const SizedBox(height: 10),
                 _buildSellerSection(seller),
                 const SizedBox(height: 16),
-                _buildChatButton(funding.fundingId),
+                _buildChatButton(funding.fundingId, funding.title),
                 const Divider(height: 32),
                 Text("상세 설명",
                     style: AppTextStyles.caption.copyWith(fontSize: 18)),
@@ -318,12 +318,15 @@ class _FundingDetailCardState extends State<FundingDetailCard> {
     );
   }
 
-  Widget _buildChatButton(int fundingId) {
+  Widget _buildChatButton(int fundingId, String fundingTitle) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
         onPressed: () {
-          context.push('/chat/room/$fundingId'); // 채팅방으로 이동
+          context.go(
+            '/chat/room/$fundingId',
+            extra: {'title': fundingTitle}, // ✅ extra로 title 전달
+          );
         },
         icon: const Icon(Icons.chat_bubble_outline),
         label: const Text(

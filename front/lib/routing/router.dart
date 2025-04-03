@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/features/chat/ui/pages/chat_room_screen.dart';
 import 'package:front/features/chat/ui/pages/chat_screen.dart';
 import 'package:front/features/funding/ui/pages/search_screen.dart';
 import 'package:front/features/funding/ui/view_model/funding_list_view_model.dart';
@@ -176,6 +177,20 @@ final routerProvider = Provider<GoRouter>((ref) {
                   return const NoTransitionPage(
                     key: ValueKey('chat'),
                     child: ChatScreen(),
+                  );
+                },
+              ),
+              GoRoute(
+                path: '/chat/room/:fundingId',
+                name: 'chatRoom',
+                builder: (context, state) {
+                  final fundingId =
+                      int.parse(state.pathParameters['fundingId']!);
+                  final extra = state.extra as Map<String, dynamic>?;
+
+                  return ChatRoomScreen(
+                    fundingId: fundingId,
+                    fundingTitle: extra?['title'] ?? '펀딩',
                   );
                 },
               ),
