@@ -24,7 +24,6 @@ public interface FundingClient {
     void deleteMyReview(@RequestHeader("X-User-Id") int userId, @PathVariable("reviewId") int reviewId);
 
 
-
     @PostMapping("/api/wishList/{fundingId}")
     void createWish(@RequestHeader("X-User-Id") int userId, @PathVariable("fundingId") int fundingId);
 
