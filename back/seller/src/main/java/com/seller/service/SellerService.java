@@ -40,5 +40,5 @@ public interface SellerService {
     void processSettlement(int fundingId, int sellerId);
 
     PageResponse<GetCompletedFundingsResponseDto> getCompletedFundings(int userId, int page, int size);
-
+    GetExpectedSettlementsResponseDto getExpectedSettlements(int userId);
 }

@@ -71,4 +71,7 @@ public interface FundingClient {
 
     @GetMapping("/api/funding/seller/completed-funding/{sellerId}")
     List<GetCompletedFundingsAtFundingResponseDto> getCompletedFundings(@PathVariable("sellerId") int sellerId);
+
+    @GetMapping("/api/funding/seller/settlements/expected-fundings/{sellerId}")
+    GetExpectedSettlementsResponseDto getExpectedSettlements(@PathVariable("sellerId") int sellerId);
 }
