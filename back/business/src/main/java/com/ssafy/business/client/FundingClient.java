@@ -42,6 +42,9 @@ public interface FundingClient {
             @RequestParam(name = "keyword") String keyword,
             @RequestParam(name= "page") int page);
 
+    @GetMapping("api/funding/suggest")
+    List<String> getSuggestions(@RequestParam("prefix") String prefix);
+
     // funding 서비스에서 검색페이지에 오늘의 펀딩, 마감임박 선택한 색션 펀딩 리스트 데이터 요청
     @GetMapping("api/funding/search/special")
     List<FundingWishCountResponseDto> getSearchSpecialFunding(
