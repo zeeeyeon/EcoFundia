@@ -33,18 +33,30 @@ class ApiService {
   ApiService._internal() {
     _dio = Dio(BaseOptions(
       baseUrl: _baseUrl,
-      connectTimeout: const Duration(seconds: 5),
-      receiveTimeout: const Duration(seconds: 3),
+      connectTimeout: const Duration(seconds: 15),
+      receiveTimeout: const Duration(seconds: 10),
       contentType: 'application/json',
+      headers: {
+        'Accept': 'application/json',
+      },
+      responseType: ResponseType.json,
+      validateStatus: (status) {
+        return true;
+      },
     ));
 
     _setupInterceptors();
+
+    LoggerUtil.i('📱 API 서비스 초기화 완료 - 기본 URL: $_baseUrl');
   }
 
   void _setupInterceptors() {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
+          final startTime = DateTime.now();
+          LoggerUtil.d('🔄 API 요청 시작: ${options.method} ${options.path}');
+
           // Skip token for login and signup
           if (options.path == apiEndpoints.login ||
               options.path == apiEndpoints.signup ||
@@ -52,14 +64,70 @@ class ApiService {
             return handler.next(options);
           }
 
-          final token = await StorageService.getToken();
-          if (token != null) {
-            options.headers['Authorization'] = 'Bearer $token';
+          try {
+            final token = await StorageService.getToken();
+            if (token != null) {
+              options.headers['Authorization'] = 'Bearer $token';
+              LoggerUtil.d('🔑 인증 토큰 설정 완료');
+            } else {
+              LoggerUtil.w('⚠️ 인증 토큰 없음: ${options.path}');
+            }
+          } catch (e) {
+            LoggerUtil.e('토큰 설정 중 오류', e);
           }
 
+          options.extra['startTime'] = startTime;
           return handler.next(options);
         },
+        onResponse: (response, handler) {
+          final startTime =
+              response.requestOptions.extra['startTime'] as DateTime?;
+          final endTime = DateTime.now();
+          final duration =
+              startTime != null ? endTime.difference(startTime) : null;
+
+          // HTTP 상태 코드 색상 결정
+          final status = response.statusCode ?? 0;
+          String statusSymbol = '✅';
+          if (status >= 400) statusSymbol = '⚠️';
+          if (status >= 500) statusSymbol = '❌';
+
+          LoggerUtil.d(
+              '$statusSymbol API 응답 (${duration?.inMilliseconds ?? 0}ms): '
+              '${response.requestOptions.method} ${response.requestOptions.path} '
+              '- 상태: $status');
+
+          // 응답 데이터 구조 체크
+          if (response.data != null) {
+            if (response.data is Map && response.data.containsKey('content')) {
+              LoggerUtil.d('✓ 응답 데이터 구조 정상');
+            } else {
+              LoggerUtil.w('⚠️ 응답 데이터 구조 비정상: ${response.data.runtimeType}');
+            }
+          }
+
+          return handler.next(response);
+        },
         onError: (error, handler) async {
+          final startTime =
+              error.requestOptions.extra['startTime'] as DateTime?;
+          final endTime = DateTime.now();
+          final duration =
+              startTime != null ? endTime.difference(startTime) : null;
+
+          LoggerUtil.e('❌ API 오류 (${duration?.inMilliseconds ?? 0}ms): '
+              '${error.requestOptions.method} ${error.requestOptions.path}'
+              '- 메시지: ${error.message}');
+
+          // 네트워크 연결 문제 디버깅
+          if (error.type == DioExceptionType.connectionTimeout ||
+              error.type == DioExceptionType.receiveTimeout ||
+              error.type == DioExceptionType.sendTimeout) {
+            LoggerUtil.e('⏱️ 네트워크 타임아웃: ${error.type}');
+          } else if (error.type == DioExceptionType.connectionError) {
+            LoggerUtil.e('🌐 네트워크 연결 오류: ${error.message}');
+          }
+
           // 로그인, 회원가입, 토큰 갱신 요청에서는 토큰 갱신을 시도하지 않음
           if (error.requestOptions.path == apiEndpoints.login ||
               error.requestOptions.path == apiEndpoints.signup ||
@@ -71,8 +139,10 @@ class ApiService {
 
           if (error.response?.statusCode == 401) {
             try {
+              LoggerUtil.i('🔄 토큰 갱신 시도');
               final refreshToken = await StorageService.getRefreshToken();
               if (refreshToken == null) {
+                LoggerUtil.w('⚠️ 리프레시 토큰 없음');
                 throw DioException(
                     requestOptions: error.requestOptions,
                     error: '리프레시 토큰이 없습니다.');
@@ -93,17 +163,20 @@ class ApiService {
                 // 새 토큰 저장
                 await StorageService.saveToken(newAccessToken);
                 await StorageService.saveRefreshToken(newRefreshToken);
+                LoggerUtil.i('✅ 토큰 갱신 성공');
 
                 // 실패한 요청 재시도
                 error.requestOptions.headers['Authorization'] =
                     'Bearer $newAccessToken';
+                LoggerUtil.i('🔄 실패한 요청 재시도: ${error.requestOptions.path}');
                 final retryResponse = await _dio.fetch(error.requestOptions);
                 return handler.resolve(retryResponse);
               }
             } catch (e) {
-              LoggerUtil.e('토큰 갱신 실패', e);
+              LoggerUtil.e('❌ 토큰 갱신 실패', e);
               // 토큰 갱신 실패 시 로그아웃 처리
               await StorageService.clearAll();
+              LoggerUtil.i('👋 로그아웃 처리 (인증 실패)');
             }
           }
           return handler.next(error);
@@ -111,16 +184,20 @@ class ApiService {
       ),
     );
 
-    // 로깅 인터셉터
-    _dio.interceptors.add(LogInterceptor(
-      request: true,
-      requestHeader: true,
-      requestBody: true,
-      responseHeader: true,
-      responseBody: true,
-      error: true,
-      logPrint: (object) => LoggerUtil.d('API 요청/응답: $object'),
-    ));
+    // 로깅 인터셉터 (옵션 - 디버깅 목적)
+    if (true) {
+      // 개발 환경에서만 활성화
+      _dio.interceptors.add(LogInterceptor(
+        request: true,
+        requestHeader: true,
+        requestBody: true,
+        responseHeader: true,
+        responseBody: true,
+        error: true,
+        logPrint: (object) => LoggerUtil.d(
+            '🔍 ${object.toString().length > 1000 ? '${object.toString().substring(0, 1000)}...(잘림)' : object}'),
+      ));
+    }
   }
 
   /// GET 요청
@@ -129,14 +206,25 @@ class ApiService {
       Options? options,
       CancelToken? cancelToken}) async {
     try {
-      return await _dio.get(
+      LoggerUtil.d('🔄 GET 요청: $path, 파라미터: $queryParameters');
+
+      final response = await _dio.get(
         path,
         queryParameters: queryParameters,
         options: options,
         cancelToken: cancelToken,
       );
+
+      // 응답 분석 및 로깅
+      if (response.statusCode == 200) {
+        LoggerUtil.d('✅ GET 응답 성공 ($path): ${response.statusCode}');
+      } else {
+        LoggerUtil.w('⚠️ GET 응답 비정상 ($path): ${response.statusCode}');
+      }
+
+      return response;
     } catch (e) {
-      LoggerUtil.e('GET 요청 실패: $path', e);
+      LoggerUtil.e('❌ GET 요청 실패: $path', e);
       rethrow;
     }
   }
@@ -200,13 +288,110 @@ class ApiService {
       rethrow;
     }
   }
+
+  /// 로그아웃 처리
+  Future<bool> logout() async {
+    try {
+      LoggerUtil.i('🔄 서버에 로그아웃 요청 시작');
+      // 서버에 로그아웃 요청 전송
+      await post(
+        apiEndpoints.logout,
+        options: Options(headers: {'X-Skip-Token-Refresh': 'true'}),
+      );
+
+      // 로컬 스토리지에서 토큰 및 사용자 정보 삭제
+      await StorageService.clearAll();
+      LoggerUtil.i('✅ 로그아웃 성공');
+      return true;
+    } catch (e) {
+      LoggerUtil.e('❌ 로그아웃 실패', e);
+      // 서버 요청 실패해도 로컬 스토리지는 비움
+      await StorageService.clearAll();
+      return false;
+    }
+  }
+
+  /// 네트워크 연결 테스트
+  Future<bool> testConnection() async {
+    try {
+      LoggerUtil.i('🔄 네트워크 연결 테스트 시작');
+      final response = await _dio.get(
+        apiEndpoints.test,
+        options: Options(
+          headers: {'X-Skip-Token-Refresh': 'true'},
+          sendTimeout: const Duration(seconds: 5),
+          receiveTimeout: const Duration(seconds: 5),
+        ),
+      );
+
+      final isSuccess = response.statusCode == 200;
+      LoggerUtil.i(isSuccess
+          ? '✅ 네트워크 연결 테스트 성공'
+          : '⚠️ 네트워크 연결 테스트 실패: ${response.statusCode}');
+      return isSuccess;
+    } catch (e) {
+      LoggerUtil.e('❌ 네트워크 연결 테스트 실패', e);
+      return false;
+    }
+  }
 }
 
 // 문자열 길이의 최소값 계산 헬퍼 함수
 int min(int a, int b) => a < b ? a : b;
 
 // 1. 이미지 URL을 백엔드 프록시를 통해 가져오도록 변환하는 함수 추가
-String getProxiedImageUrl(String originalUrl) {
-  // CORS 오류는 모바일에서는 발생하지 않으므로, 원본 URL을 그대로 반환
-  return originalUrl;
+String getProxiedImageUrl(String originalUrl, {int? maxWidth, int? maxHeight}) {
+  if (originalUrl.isEmpty) {
+    return '';
+  }
+
+  try {
+    // 이미 프록시된 URL인 경우
+    if (originalUrl.startsWith('http://') ||
+        originalUrl.startsWith('https://')) {
+      // URL에 크기 제한 매개변수 추가 (CDN 또는 이미지 서버에서 지원하는 경우)
+      final Uri uri = Uri.parse(originalUrl);
+
+      // 이미 크기 제한 매개변수가 있는지 확인
+      final Map<String, String> queryParams =
+          Map<String, String>.from(uri.queryParameters);
+
+      // 최대 크기 파라미터 추가
+      if (maxWidth != null && !queryParams.containsKey('width')) {
+        queryParams['width'] = maxWidth.toString();
+      }
+
+      if (maxHeight != null && !queryParams.containsKey('height')) {
+        queryParams['height'] = maxHeight.toString();
+      }
+
+      // 안전한 WebGL 제한을 위한 기본값 설정 (명시적으로 지정되지 않은 경우)
+      if (maxWidth == null && maxHeight == null) {
+        // 이미지 서버에서 지원하는 경우에만 적용
+        // queryParams['max_dimension'] = '2048';
+      }
+
+      // 새 URI 생성
+      final newUri = uri.replace(queryParameters: queryParams);
+
+      LoggerUtil.d('이미지 URL 처리됨: $newUri');
+      return newUri.toString();
+    }
+
+    // 상대 URL인 경우 (서버 호스트 주소로 변환 필요)
+    // 예시: /images/photo.jpg -> https://api.example.com/images/photo.jpg
+    if (originalUrl.startsWith('/')) {
+      const baseUrl = 'https://api.simple.com'; // 실제 API 기본 URL로 교체 필요
+      final fullUrl = '$baseUrl$originalUrl';
+
+      LoggerUtil.d('상대 URL을 절대 URL로 변환: $fullUrl');
+      return fullUrl;
+    }
+
+    // 그 외의 경우 (데이터 URL 등) 원본 반환
+    return originalUrl;
+  } catch (e) {
+    LoggerUtil.e('이미지 URL 처리 중 오류 발생: $e');
+    return originalUrl;
+  }
 }

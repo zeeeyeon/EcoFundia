@@ -8,8 +8,8 @@ import 'package:front/core/services/storage_service.dart';
 import 'package:front/utils/logger_util.dart';
 import 'package:front/core/services/api_service.dart';
 import 'package:front/features/wishlist/data/repositories/wishlist_repository_impl.dart';
-import 'package:front/features/wishlist/ui/view_model/wishlist_view_model.dart';
-import 'package:front/shared/seller/data/repositories/seller_repository_impl.dart';
+import 'package:front/shared/seller/data/repositories/seller_repository_impl.dart'
+    as repo_impl;
 import 'package:front/shared/seller/ui/view_model/seller_view_model.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
@@ -53,7 +53,7 @@ void main() async {
             wishlistService: WishlistApiService(apiService.dio))),
         // 판매자 Repository Provider 등록
         sellerRepositoryProvider
-            .overrideWith((ref) => SellerRepositoryImpl(apiService)),
+            .overrideWith((ref) => repo_impl.SellerRepositoryImpl(apiService)),
       ],
       child: const MyApp(),
     ),

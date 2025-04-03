@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/features/funding/ui/pages/search_screen.dart';
@@ -21,16 +22,19 @@ import 'package:front/features/mypage/ui/pages/mypage_screen.dart';
 import 'package:front/features/mypage/ui/pages/my_funding_screen.dart';
 import 'package:front/features/mypage/ui/pages/write_review_screen.dart';
 import 'package:front/features/wishlist/ui/pages/wishlist_screen.dart';
-import 'package:front/features/wishlist/ui/view_model/wishlist_view_model.dart';
 import 'package:front/features/auth/ui/pages/signup_complete_screen.dart';
 import 'package:front/shared/seller/ui/pages/seller_detail_screen.dart';
 import 'package:front/features/home/ui/pages/project_detail_screen.dart';
 import 'package:front/shared/payment/ui/pages/payment_page.dart';
 import 'package:front/shared/payment/ui/pages/payment_complete_page.dart';
 import 'package:front/utils/auth_utils.dart';
-import 'package:front/features/home/domain/entities/project_entity.dart';
+import 'package:front/utils/logger_util.dart';
+
+// 필요한 ViewModel Provider들을 import
 import 'package:front/features/funding/ui/view_model/funding_list_view_model.dart';
 import 'package:front/features/home/ui/view_model/project_view_model.dart';
+import 'package:front/features/home/ui/view_model/home_view_model.dart';
+import 'package:front/features/wishlist/ui/view_model/wishlist_view_model.dart';
 import 'package:front/features/mypage/ui/view_model/profile_view_model.dart';
 import 'package:front/features/mypage/ui/view_model/total_funding_provider.dart';
 
@@ -76,9 +80,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/project/:id',
         builder: (context, state) {
           final projectId = int.parse(state.pathParameters['id'] ?? '1');
-          final project = (state.extra as Map<String, dynamic>?)?['project']
-              as ProjectEntity?;
-          return ProjectDetailScreen(projectId: projectId, project: project);
+          return ProjectDetailScreen(projectId: projectId);
         },
       ),
       // 판매자 상세 페이지
@@ -269,82 +271,42 @@ class ScaffoldWithNavBar extends StatefulWidget {
 }
 
 class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
-  int _previousIndex = 0;
+  // Debounce를 위한 Timer 변수 추가
+  Timer? _debounce;
 
-  // 각 탭 별 키 생성
-  final List<GlobalKey<NavigatorState>> _navigatorKeys = [
-    GlobalKey<NavigatorState>(debugLabel: 'funding'),
-    GlobalKey<NavigatorState>(debugLabel: 'home'),
-    GlobalKey<NavigatorState>(debugLabel: 'wishlist'),
-    GlobalKey<NavigatorState>(debugLabel: 'mypage'),
-  ];
+  @override
+  void dispose() {
+    _debounce?.cancel(); // 위젯 dispose 시 타이머 취소
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     // 현재 탭 인덱스 확인
     final currentIndex = widget.navigationShell.currentIndex;
-    _previousIndex = currentIndex;
 
     return Consumer(
       builder: (context, ref, child) {
         return Scaffold(
-          key: ValueKey('main_scaffold_$currentIndex'),
+          // 매번 새 키를 생성하지 않고 정적인 키 사용
+          key: const ValueKey('main_scaffold'),
           body: widget.navigationShell,
           bottomNavigationBar: NavigationBar(
             selectedIndex: currentIndex,
             onDestinationSelected: (index) {
-              // 같은 탭을 다시 클릭한 경우
-              if (index == currentIndex) {
-                // 현재 탭의 페이지를 다시 로드
+              // 디바운싱: 짧은 시간 내 중복 탭 방지
+              if (_debounce?.isActive ?? false) _debounce!.cancel();
+              _debounce = Timer(const Duration(milliseconds: 200), () {
+                final previousIndex = currentIndex; // 이전 인덱스 저장
+
+                // 다른 탭으로 이동하거나 같은 탭을 다시 눌렀을 때
                 widget.navigationShell.goBranch(
                   index,
-                  initialLocation: true, // 초기 위치로 다시 이동
+                  initialLocation: index == previousIndex, // 같은 탭이면 초기 위치로
                 );
-              } else {
-                // 다른 탭으로 이동
-                widget.navigationShell.goBranch(index, initialLocation: true);
-              }
 
-              // ViewModel 리로드: 선택된 탭에 따라 데이터를 다시 불러옵니다
-              // 이 부분을 탭 이동 후에 항상 실행하도록 변경
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                final currentPath = GoRouterState.of(context).uri.path;
-
-                switch (index) {
-                  case 0: // 펀딩 탭
-                    // 현재 경로가 펀딩 탭이면 데이터 로드
-                    if (currentPath == '/funding') {
-                      ref.read(fundingListProvider.notifier).fetchFundingList(
-                            page: 1,
-                            sort: ref.read(sortOptionProvider),
-                            categories: ref.read(selectedCategoriesProvider),
-                          );
-                    }
-                    break;
-                  case 1: // 홈 탭
-                    // 현재 경로가 홈 탭이면 데이터 로드
-                    if (currentPath == '/') {
-                      ref
-                          .read(projectViewModelProvider.notifier)
-                          .loadProjects();
-                    }
-                    break;
-                  case 2: // 찜 탭
-                    // 현재 경로가 찜 탭이면 데이터 로드
-                    if (currentPath == '/wishlist') {
-                      ref
-                          .read(wishlistViewModelProvider.notifier)
-                          .loadWishlistItems();
-                    }
-                    break;
-                  case 3: // 마이페이지 탭
-                    // 현재 경로가 마이페이지 탭이면 데이터 로드
-                    if (currentPath == '/mypage') {
-                      ref.refresh(profileProvider); // 마이페이지 프로필 정보 갱신
-                      ref.refresh(totalFundingAmountProvider); // 펀딩 금액 정보 갱신
-                    }
-                    break;
-                }
+                // 선택된 탭에 따라 해당 ViewModel 데이터 새로고침
+                _refreshTabData(ref, index);
               });
             },
             destinations: const [
@@ -357,5 +319,41 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
         );
       },
     );
+  }
+
+  // 탭 데이터 새로고침 로직
+  void _refreshTabData(WidgetRef ref, int tabIndex) {
+    try {
+      switch (tabIndex) {
+        case 0: // 펀딩 탭
+          // FundingListViewModel의 첫 페이지를 다시 로드
+          ref.read(fundingListProvider.notifier).fetchFundingList(
+                page: 1, // 첫 페이지부터 다시 로드
+                sort: ref.read(sortOptionProvider), // 현재 정렬 유지
+                categories: ref.read(selectedCategoriesProvider), // 현재 카테고리 유지
+              );
+          break;
+
+        case 1: // 홈 탭
+          ref.read(projectViewModelProvider.notifier).loadProjects();
+          ref
+              .read(homeViewModelProvider.notifier)
+              .fetchTotalFund(); // TotalFundDisplay 데이터 갱신
+          break;
+
+        case 2: // 찜 탭
+          ref.read(wishlistViewModelProvider.notifier).loadWishlistItems();
+          break;
+
+        case 3: // 마이페이지 탭
+          // 현재 Provider 상태에 따라 refresh 또는 invalidate 사용
+          ref.invalidate(profileProvider); // Provider를 무효화하여 다음 접근 시 새로고침
+          ref.invalidate(totalFundingAmountProvider); // 총 펀딩 금액 갱신
+          break;
+      }
+      LoggerUtil.d('🔄 탭 $tabIndex 선택됨 - 관련 데이터 새로고침 요청');
+    } catch (e) {
+      LoggerUtil.e('❌ 탭 데이터 새로고침 오류', e);
+    }
   }
 }

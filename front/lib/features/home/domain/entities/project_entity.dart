@@ -106,7 +106,13 @@ class ProjectEntity extends Equatable {
       isLiked: json['isLiked'] as bool? ?? false,
       sellerName: json['sellerName'] as String? ?? '판매자 정보 없음',
       sellerProfileImageUrl: json['sellerProfileImageUrl'] as String?,
-      storyFileUrl: json['storyFileUrl'] as String?,
+      storyFileUrl: json['storyFileUrl'] != null
+          ? getProxiedImageUrl(
+              json['storyFileUrl'] as String,
+              maxWidth: 1024,
+              maxHeight: 2048,
+            )
+          : null,
       sellerImageUrl: json['sellerImageUrl'] as String?,
       sellerDescription: json['sellerDescription'] as String?,
       location: json['location'] as String?,
@@ -126,6 +132,23 @@ class ProjectEntity extends Equatable {
       mainImageUrl = processedImageUrls[0];
     }
 
+    // storyFileUrl 처리 로직 추가
+    String? processedStoryFileUrl;
+    if (dto.storyFileUrl != null && dto.storyFileUrl!.isNotEmpty) {
+      try {
+        // storyFileUrl은 보통 큰 이미지이므로 WebGL 제한을 고려하여 크기 제한 적용
+        processedStoryFileUrl = getProxiedImageUrl(
+          dto.storyFileUrl!,
+          maxWidth: 1024, // WebGL에서 안전한 크기
+          maxHeight: 2048, // WebGL에서 안전한 크기
+        );
+        print('스토리 이미지 URL 처리됨: $processedStoryFileUrl');
+      } catch (e) {
+        print('스토리 이미지 URL 처리 중 오류: $e');
+        processedStoryFileUrl = null;
+      }
+    }
+
     return ProjectEntity(
       id: dto.fundingId,
       sellerId: dto.sellerId,
@@ -142,7 +165,7 @@ class ProjectEntity extends Equatable {
       isLiked: dto.isLiked,
       sellerName: dto.sellerName,
       sellerProfileImageUrl: dto.sellerProfileImageUrl,
-      storyFileUrl: dto.storyFileUrl,
+      storyFileUrl: processedStoryFileUrl,
       sellerImageUrl: dto.sellerImageUrl,
       sellerDescription: dto.sellerDescription,
       location: dto.location,

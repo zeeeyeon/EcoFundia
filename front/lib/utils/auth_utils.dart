@@ -28,13 +28,18 @@ class AuthUtils {
         // 모달이 이미 표시 중이면 중복 표시 방지
         if (showModal && context.mounted && !_isModalShowing) {
           _isModalShowing = true;
-          await showDialog(
-            context: context,
-            builder: (context) => const LoginRequiredModal(),
-          ).then((_) {
-            // 모달이 닫히면 상태 업데이트
+          try {
+            // 각 표시마다 고유한 키 생성
+            final uniqueKey = UniqueKey();
+            await showDialog(
+              context: context,
+              barrierDismissible: true, // 바깥 영역 터치로 닫기 가능
+              builder: (context) => LoginRequiredModal(key: uniqueKey),
+            );
+          } finally {
+            // 모달이 닫히면 상태 업데이트, finally로 예외 발생해도 항상 실행되게 함
             _isModalShowing = false;
-          });
+          }
         }
         return false;
       }
@@ -42,6 +47,8 @@ class AuthUtils {
       return true;
     } catch (e) {
       LoggerUtil.e('권한 체크 실패', e);
+      // 오류 발생해도 모달 표시 상태 초기화
+      _isModalShowing = false;
       return false;
     }
   }
@@ -68,8 +75,27 @@ class AuthUtils {
   static bool isAuthRequiredPath(String path) {
     const authRequiredPaths = {
       '/mypage': true,
-      '/wishlist': true, // 위시리스트 권한 체크 해제
+      '/wishlist': true,
+      '/profile-edit': true,
+      '/my-funding': true,
+      '/my-reviews': true,
+      '/coupons': true,
+      '/review': true, // /review/... 로 시작하는 모든 경로
+      '/payment': true, // /payment/... 로 시작하는 모든 경로
     };
-    return authRequiredPaths[path] ?? false;
+
+    // 정확한 경로 매칭 먼저 시도
+    if (authRequiredPaths.containsKey(path)) {
+      return authRequiredPaths[path]!;
+    }
+
+    // 부분 경로 매칭 (e.g., /review/123 -> /review로 매칭)
+    for (final requiredPath in authRequiredPaths.keys) {
+      if (path.startsWith(requiredPath) && requiredPath != '/') {
+        return authRequiredPaths[requiredPath]!;
+      }
+    }
+
+    return false;
   }
 }

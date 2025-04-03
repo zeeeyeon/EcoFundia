@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:front/core/themes/app_colors.dart';
 import 'package:front/core/themes/app_text_styles.dart';
 import 'package:go_router/go_router.dart';
+import 'package:front/utils/logger_util.dart';
 
 class LoginRequiredModal extends StatelessWidget {
   const LoginRequiredModal({Key? key}) : super(key: key);
@@ -42,10 +43,15 @@ class LoginRequiredModal extends StatelessWidget {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
+                      LoggerUtil.d('로그인 모달: 로그인 페이지로 이동');
                       Navigator.of(context).pop();
                       Future.delayed(const Duration(milliseconds: 100), () {
-                        if (context.mounted) {
-                          context.go('/login');
+                        try {
+                          if (context.mounted) {
+                            context.go('/login');
+                          }
+                        } catch (e) {
+                          LoggerUtil.e('로그인 페이지 이동 실패', e);
                         }
                       });
                     },
@@ -65,7 +71,10 @@ class LoginRequiredModal extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () {
+                      LoggerUtil.d('로그인 모달: 취소됨');
+                      Navigator.of(context).pop();
+                    },
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(

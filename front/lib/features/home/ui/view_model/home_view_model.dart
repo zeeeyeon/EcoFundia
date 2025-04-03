@@ -75,7 +75,6 @@ class HomeViewModel extends StateNotifier<HomeState> {
 
     try {
       state = state.copyWith(isLoading: true);
-      _logger.d('Fetching total fund...');
 
       final totalFund = await _projectRepository.getTotalFund();
       _logger.d('Total fund fetched successfully: $totalFund');

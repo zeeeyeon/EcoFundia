@@ -30,6 +30,7 @@ class _WishlistScreenState extends ConsumerState<WishlistScreen>
   bool _isActiveLoadingMore = false;
   bool _isEndedLoadingMore = false;
   bool _isPageVisible = true;
+  DateTime? _lastWishlistLoadTime; // 마지막 위시리스트 로드 시간 추적
 
   @override
   bool get wantKeepAlive => false; // 화면 상태 유지하지 않음
@@ -104,6 +105,15 @@ class _WishlistScreenState extends ConsumerState<WishlistScreen>
 
   /// 위시리스트 데이터 로드
   void _loadWishlistData() {
+    // 중복 호출 방지 로직 (3초 이내 중복 호출 무시)
+    final now = DateTime.now();
+    if (_lastWishlistLoadTime != null &&
+        now.difference(_lastWishlistLoadTime!).inSeconds < 3) {
+      LoggerUtil.d('🚫 위시리스트 로드 취소: 최근 3초 이내에 이미 요청됨');
+      return;
+    }
+    _lastWishlistLoadTime = now;
+
     LoggerUtil.i('🔄 위시리스트 데이터 새로 로드');
     ref.read(wishlistViewModelProvider.notifier).loadWishlistItems();
   }
@@ -156,7 +166,9 @@ class _WishlistScreenState extends ConsumerState<WishlistScreen>
 
   /// 좋아요 토글
   void _toggleLike(int itemId) {
-    ref.read(wishlistViewModelProvider.notifier).toggleWishlistItem(itemId);
+    ref
+        .read(wishlistViewModelProvider.notifier)
+        .toggleWishlistItem(itemId, context: context);
   }
 
   @override

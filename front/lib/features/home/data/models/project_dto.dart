@@ -6,7 +6,7 @@ class ProjectDTO extends Equatable {
   final int sellerId;
   final String title;
   final String description;
-  final String storyFileUrl;
+  final String? storyFileUrl;
   final List<String> imageUrls;
   final int price;
   final int quantity;
@@ -30,7 +30,7 @@ class ProjectDTO extends Equatable {
     required this.sellerId,
     required this.title,
     required this.description,
-    required this.storyFileUrl,
+    this.storyFileUrl,
     required this.imageUrls,
     required this.price,
     required this.quantity,
@@ -83,7 +83,7 @@ class ProjectDTO extends Equatable {
       sellerId: json['sellerId'] as int,
       title: json['title'] as String,
       description: json['description'] as String,
-      storyFileUrl: json['storyFileUrl'] as String,
+      storyFileUrl: json['storyFileUrl'] as String?,
       imageUrls:
           (json['imageUrls'] as List<dynamic>).map((e) => e as String).toList(),
       price: json['price'] as int,

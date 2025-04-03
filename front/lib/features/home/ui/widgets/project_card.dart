@@ -96,8 +96,7 @@ class _ProjectCardState extends State<ProjectCard> {
 
         return GestureDetector(
           onTap: () {
-            context.push('/project/${widget.project.id}',
-                extra: {'project': widget.project});
+            context.push('/project/${widget.project.id}');
           },
           child: Container(
             width: cardWidth,

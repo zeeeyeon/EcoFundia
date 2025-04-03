@@ -18,6 +18,7 @@ class ApiEndpoints {
   final String login = '/user/login'; // Google 로그인 전용
   final String signup = '/user/signup';
   final String reissue = '/user/reissue';
+  final String logout = '/user/logout'; // 로그아웃 엔드포인트 추가
   final String funding = '/funding';
   final String wishlist = '/wishlist';
   final String mypage = '/mypage';

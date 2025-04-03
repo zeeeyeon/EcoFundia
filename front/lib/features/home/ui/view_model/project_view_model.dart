@@ -3,6 +3,7 @@ import 'package:front/features/home/data/repositories/project_repository_impl.da
 import 'package:front/features/home/domain/repositories/project_repository.dart';
 import 'package:front/features/home/domain/entities/project_entity.dart';
 import 'package:logger/logger.dart';
+import 'package:front/utils/logger_util.dart';
 
 // 프로젝트 상태 정의
 class ProjectState {
@@ -33,6 +34,7 @@ class ProjectState {
 class ProjectViewModel extends StateNotifier<ProjectState> {
   final ProjectRepository _projectRepository;
   final Logger _logger;
+  DateTime? _lastLoadTime; // 마지막 데이터 로드 시간 추적
 
   ProjectViewModel(this._projectRepository)
       : _logger = Logger(),
@@ -40,7 +42,22 @@ class ProjectViewModel extends StateNotifier<ProjectState> {
 
   // 프로젝트 목록 로드
   Future<void> loadProjects() async {
+    // 중복 호출 방지 로직 (3초 이내 중복 호출 무시)
+    final now = DateTime.now();
+    if (_lastLoadTime != null && now.difference(_lastLoadTime!).inSeconds < 3) {
+      LoggerUtil.d('🚫 프로젝트 로드 취소: 최근 3초 이내에 이미 요청됨');
+      return;
+    }
+    _lastLoadTime = now;
+
     try {
+      // 이미 로딩 중이면 중복 요청 방지
+      if (state.isLoading) {
+        LoggerUtil.d('🚫 프로젝트 로드 취소: 이미 로딩 중');
+        return;
+      }
+
+      LoggerUtil.i('🔄 프로젝트 로드 시작');
       state = state.copyWith(isLoading: true, error: null);
       final projects = await _projectRepository.getProjects();
 
@@ -51,9 +68,9 @@ class ProjectViewModel extends StateNotifier<ProjectState> {
         projects: projects,
         isLoading: false,
       );
-      _logger.d('프로젝트 로드 완료: ${projects.length}개');
+      LoggerUtil.d('✅ 프로젝트 로드 완료: ${projects.length}개');
     } catch (e) {
-      _logger.e('Error loading projects', error: e);
+      LoggerUtil.e('❌ 프로젝트 로드 실패', e);
       state = state.copyWith(
         isLoading: false,
         error: '프로젝트를 불러오는데 실패했습니다.',

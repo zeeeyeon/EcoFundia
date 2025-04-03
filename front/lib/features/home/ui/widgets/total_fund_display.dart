@@ -10,7 +10,8 @@ import 'package:logger/logger.dart';
 
 /// 총 펀드 금액을 표시하는 위젯
 class TotalFundDisplay extends ConsumerStatefulWidget {
-  const TotalFundDisplay({Key? key}) : super(key: key);
+  // 기본 생성자를 수정하여 명시적으로 key를 생성하도록 합니다
+  const TotalFundDisplay({super.key});
 
   @override
   ConsumerState<TotalFundDisplay> createState() => _TotalFundDisplayState();
@@ -18,7 +19,7 @@ class TotalFundDisplay extends ConsumerStatefulWidget {
 
 class _TotalFundDisplayState extends ConsumerState<TotalFundDisplay>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _animationController;
+  late AnimationController _animationController;
   final Logger _logger = Logger();
   int _currentAmount = 0;
   int _previousAmount = 0;
@@ -26,10 +27,25 @@ class _TotalFundDisplayState extends ConsumerState<TotalFundDisplay>
 
   // didChangeDependencies 동작 여부를 추적하는 플래그
   bool _isFirstLoad = true;
+  bool _isControllerInitialized = false;
 
   @override
   void initState() {
     super.initState();
+
+    // 애니메이션 컨트롤러 초기화를 delayed로 실행
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      _initAnimationController();
+    });
+
+    // TotalFundDisplay 위젯에서는 fetchTotalFund 직접 호출 제거
+    // HomeViewModel에서 이미 호출하고 있음
+  }
+
+  void _initAnimationController() {
+    if (_isControllerInitialized) return;
 
     // 애니메이션 컨트롤러 초기화
     _animationController = AnimationController(
@@ -45,8 +61,7 @@ class _TotalFundDisplayState extends ConsumerState<TotalFundDisplay>
       }
     });
 
-    // TotalFundDisplay 위젯에서는 fetchTotalFund 직접 호출 제거
-    // HomeViewModel에서 이미 호출하고 있음
+    _isControllerInitialized = true;
   }
 
   @override
@@ -66,7 +81,10 @@ class _TotalFundDisplayState extends ConsumerState<TotalFundDisplay>
 
   @override
   void dispose() {
-    _animationController.dispose();
+    if (_isControllerInitialized) {
+      _animationController.stop();
+      _animationController.dispose();
+    }
     super.dispose();
   }
 
@@ -163,8 +181,15 @@ class _TotalFundDisplayState extends ConsumerState<TotalFundDisplay>
     _logger.d('TotalFundDisplay build: isLoading=${homeState.isLoading}, '
         'error=${homeState.error}, totalFund=${homeState.totalFund}');
 
+    // 애니메이션 컨트롤러가 초기화되지 않았다면 초기화
+    if (!_isControllerInitialized) {
+      _initAnimationController();
+    }
+
     // 금액이 변경되었을 때만 애니메이션 실행
-    if (homeState.totalFund != _currentAmount && !homeState.isLoading) {
+    if (_isControllerInitialized &&
+        homeState.totalFund != _currentAmount &&
+        !homeState.isLoading) {
       _previousAmount = _currentAmount;
       _currentAmount = homeState.totalFund;
 
