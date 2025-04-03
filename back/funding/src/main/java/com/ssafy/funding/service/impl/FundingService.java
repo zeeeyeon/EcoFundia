@@ -31,6 +31,7 @@ import com.ssafy.funding.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -56,6 +57,7 @@ public class FundingService implements ProductService {
     private final UserClient userClient;
 
     private static final int PAGE_SIZE = 5;
+    private static final String TOTAL_FUND_KEY = "total_fund";
 
     @Override
     public FundingResponseDto getFunding(int fundingId) {
@@ -102,7 +104,10 @@ public class FundingService implements ProductService {
     // 현재까지 펀딩 금액 조회
     @Transactional
     public Long getTotalFund(){
+        String cachedFund = redisTemplate.opsForValue().get(TOTAL_FUND_KEY);
+        if(cachedFund != null) return Long.parseLong(cachedFund);
         Long totalFund = fundingMapper.getTotalFund();
+        redisTemplate.opsForValue().set(TOTAL_FUND_KEY, totalFund.toString(), Duration.ofMinutes(10));
         return totalFund;
     }
 
