@@ -1,5 +1,6 @@
 package com.chat.dto;
 
+import com.chat.entity.Sender;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,23 +22,22 @@ public class ChatMessageDocument {
     private String status;
     private LocalDateTime createdAt;
 
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class Sender {
-        private int userId;
-        private String nickname;
-    }
 
-    public static ChatMessageDocument toDto(ChatMessageDto chatMessageDto) {
-        Sender sender = new Sender(chatMessageDto.senderId(), chatMessageDto.nickname());
+
+    public static ChatMessageDocument fromDto(ChatMessageDto chatMessageDto) {
 
         return ChatMessageDocument.builder()
-                .fundingId(chatMessageDto.fundingId())
-                .sender(sender)
-                .content(chatMessageDto.content())
-                .status(chatMessageDto.status())
-                .createdAt(chatMessageDto.createdAt())
+                .fundingId(chatMessageDto.getFundingId())
+                .sender(chatMessageDto.getSender())
+                .content(chatMessageDto.getContent())
+                .status(chatMessageDto.getStatus())
+                .createdAt(chatMessageDto.getCreatedAt())
                 .build();
     }
+
+    public ChatMessageDto toDto() {
+        return new ChatMessageDto(fundingId, sender, content, status, createdAt);
+    }
+
+
 }
