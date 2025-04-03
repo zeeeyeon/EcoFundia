@@ -168,4 +168,10 @@ public class SellerController {
 
         return new ResponseEntity<>(Response.create(ResponseCode.GET_Completed_FUNDING, dto), ResponseCode.GET_Completed_FUNDING.getHttpStatus());
     }
+
+    @GetMapping("/settlements/expected-fundings")
+    public ResponseEntity<?> getExpectedSettlements(@RequestHeader("X-User-Id") int userId) {
+        GetExpectedSettlementsResponseDto dto = sellerService.getExpectedSettlements(userId);
+        return new ResponseEntity<>(Response.create(ResponseCode.GET_EXPECTED_SETTLEMENTS, dto), ResponseCode.GET_EXPECTED_SETTLEMENTS.getHttpStatus());
+    }
 }

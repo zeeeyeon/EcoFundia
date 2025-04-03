@@ -64,7 +64,8 @@ public enum ResponseCode {
     GET_SELLER_FUNDING_DETAIL_ORDER_LIST(successCode(), HttpStatus.OK, "해당 펀딩 상품에 대한 사용자의 주문 리스트가 조회되었습니다."),
     GET_SELLER_MONTH_AMOUNT_STATISTICS(successCode(), HttpStatus.OK, "판매자의 월별 모금액 통계 현황이 조회되었습니다."),
     GET_SELLER_FUNDING_DETAIL_STATISTICS(successCode(), HttpStatus.OK, "해당 펀딩 상품에 대한 연령대별 통계가 조회되었습니다."),
-    GET_SELLER_BRAND_STATISTICS(successCode(), HttpStatus.OK, "해당 판매자 브랜드의 연령별 통계가 조회되었습니다.");
+    GET_SELLER_BRAND_STATISTICS(successCode(), HttpStatus.OK, "해당 판매자 브랜드의 연령별 통계가 조회되었습니다."),
+    GET_EXPECTED_SETTLEMENTS(successCode(), HttpStatus.OK, "해당 판매자의 예정 정산 금액이 조회되었습니다.");
 
     private final int code;
     private final HttpStatus httpStatus;
