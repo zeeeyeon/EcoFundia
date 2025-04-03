@@ -15,6 +15,7 @@ import com.ssafy.funding.dto.seller.SellerDetailResponseDto;
 import com.ssafy.funding.dto.seller.response.*;
 import com.ssafy.funding.service.OrderService;
 import com.ssafy.funding.service.ProductService;
+import jakarta.ws.rs.Path;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -222,4 +223,9 @@ public class FundingController {
     public void updateSettlementCompleted(@RequestParam int fundingId, @RequestParam Boolean eventSent) {
         productService.updateSettlementCompleted(fundingId, eventSent);
     }
+
+    @GetMapping("/seller/settlements/expected-fundings/{sellerId}")
+    public GetExpectedSettlementsResponseDto getExpectedSettlements(@PathVariable("sellerId") int sellerId) {
+        return productService.getExpectedSettlements(sellerId);
+    } 
 }
