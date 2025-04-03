@@ -260,6 +260,12 @@ public class SellerServiceImpl implements SellerService {
         return paginate(dtos, page, size);
     }
 
+    @Override
+    public GetExpectedSettlementsResponseDto getExpectedSettlements(int userId) {
+        int sellerId = sellerMapper.getSellerIdByUserId(userId);
+        return fundingClient.getExpectedSettlements(sellerId);
+    }
+
     private <T> PageResponse<T> paginate(List<T> list, int page, int size) {
         int total = list.size();
         int start = Math.min(page * size, total);
