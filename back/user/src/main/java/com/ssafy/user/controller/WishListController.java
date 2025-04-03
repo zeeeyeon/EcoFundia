@@ -50,4 +50,10 @@ public class WishListController {
         wishListService.deleteWish(userId, fundingId);
         return new ResponseEntity<>(Response.create(DELETE_WISHLIST, null), DELETE_WISHLIST.getHttpStatus());
     }
+
+    @GetMapping("/funding-ids")
+    public ResponseEntity<?> getWishListFundingIds(@RequestHeader("X-User-Id") int userId) {
+        wishListService.getWishListFundingIds(userId);
+        return new ResponseEntity<>(Response.create(GET_WISHLIST, null), GET_WISHLIST.getHttpStatus());
+    }
 }
