@@ -359,6 +359,15 @@ public class FundingService implements ProductService {
     }
 
     @Override
+    public GetExpectedSettlementsResponseDto getExpectedSettlements(int sellerId) {
+        GetExpectedSettlementsResponseDto result = GetExpectedSettlementsResponseDto
+                .builder()
+                .expectedAmount(fundingMapper.getExpectedSettlements(sellerId))
+                .build();
+        return result;
+    }
+
+    @Override
     public List<GetSellerEndFundingListResponseDto> getSellerEndFundingList(int sellerId, int page) {
         List<Funding> fundingList = fundingMapper.getSellerEndFundingList(sellerId, page);
         return fundingList.stream().map(Funding::toGetSellerEndFundingListResponseDto).collect(Collectors.toList());

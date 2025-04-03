@@ -70,4 +70,5 @@ public interface FundingMapper {
 
     // settlement_completed 플래그 업데이트
     int updateSettlementCompleted(@Param("fundingId") int fundingId, @Param("eventSent") Boolean eventSent);
+    int getExpectedSettlements(@Param("sellerId") int sellerId);
 }
