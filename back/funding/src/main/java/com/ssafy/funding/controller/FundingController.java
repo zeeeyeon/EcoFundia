@@ -224,8 +224,13 @@ public class FundingController {
         productService.updateSettlementCompleted(fundingId, eventSent);
     }
 
+    @GetMapping("/seller/completed-funding/{sellerId}")
+    List<GetCompletedFundingsResponseDto> getCompletedFundings(@PathVariable("sellerId") int sellerId){
+        return productService.getCompletedFundings(sellerId);
+    }
+
     @GetMapping("/seller/settlements/expected-fundings/{sellerId}")
     public GetExpectedSettlementsResponseDto getExpectedSettlements(@PathVariable("sellerId") int sellerId) {
         return productService.getExpectedSettlements(sellerId);
-    } 
+    }
 }
