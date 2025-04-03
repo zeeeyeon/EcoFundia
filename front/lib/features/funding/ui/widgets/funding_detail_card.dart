@@ -53,8 +53,10 @@ class _FundingDetailCardState extends State<FundingDetailCard> {
                 Text(funding.description, style: AppTextStyles.body2),
                 const SizedBox(height: 20),
                 _buildFundingProgressSection(funding),
-                const Divider(height: 32),
+                const SizedBox(height: 10),
                 _buildSellerSection(seller),
+                const SizedBox(height: 16),
+                _buildChatButton(funding.fundingId),
                 const Divider(height: 32),
                 Text("상세 설명",
                     style: AppTextStyles.caption.copyWith(fontSize: 18)),
@@ -135,6 +137,8 @@ class _FundingDetailCardState extends State<FundingDetailCard> {
           ),
         ),
         const SizedBox(height: 24),
+
+        // 💰 금액 + 펀딩하기 버튼
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -154,7 +158,9 @@ class _FundingDetailCardState extends State<FundingDetailCard> {
               ],
             ),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                // TODO: 펀딩하기 동작
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
@@ -164,11 +170,15 @@ class _FundingDetailCardState extends State<FundingDetailCard> {
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),
-              child: const Text('펀딩하기',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              child: const Text(
+                '펀딩하기',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         ),
+
+        const SizedBox(height: 12),
       ],
     );
   }
@@ -304,6 +314,31 @@ class _FundingDetailCardState extends State<FundingDetailCard> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildChatButton(int fundingId) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: () {
+          context.push('/chat/room/$fundingId'); // 채팅방으로 이동
+        },
+        icon: const Icon(Icons.chat_bubble_outline),
+        label: const Text(
+          '채팅하기',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: AppColors.primary,
+          side: const BorderSide(color: AppColors.primary),
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
       ),
     );
   }
