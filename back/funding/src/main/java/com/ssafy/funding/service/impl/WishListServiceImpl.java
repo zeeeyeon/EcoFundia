@@ -52,7 +52,7 @@ public class WishListServiceImpl implements WishListService {
     }
 
     @Override
-    public List<Integer> getUserWishlist(int userId) {
+    public List<Integer> getWishListFundingIds(int userId) {
         return wishListMapper.findFundingIdsByUserId(userId);
     }
 
