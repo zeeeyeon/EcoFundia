@@ -4,22 +4,18 @@ import com.ssafy.funding.common.util.JsonConverter;
 import com.ssafy.funding.dto.funding.request.FundingUpdateRequestDto;
 import com.ssafy.funding.dto.funding.request.FundingUpdateSendDto;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
-import com.ssafy.funding.dto.seller.response.GetSellerEndFundingListResponseDto;
-import com.ssafy.funding.dto.seller.response.GetSellerOngoingFundingListResponseDto;
-import com.ssafy.funding.dto.seller.response.GetSellerOngoingTopFiveFundingResponseDto;
-import com.ssafy.funding.dto.seller.response.GetSellerTodayOrderTopThreeListResponseDto;
+import com.ssafy.funding.dto.seller.response.*;
 import com.ssafy.funding.entity.enums.Category;
 import com.ssafy.funding.entity.enums.Status;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
 @Getter
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Funding {
@@ -45,6 +41,9 @@ public class Funding {
     private int progressPercentage;
     private String imageUrl;
     private String remainingTime;
+
+    private int month;
+    private int totalAmount;
 
     @Builder
     public Funding(int sellerId, String title, String description, String storyFileUrl, String imageUrls, int price, int quantity, int targetAmount, LocalDateTime startDate, LocalDateTime endDate, Category category) {
@@ -154,6 +153,17 @@ public class Funding {
                 .title(title)
                 .description(description)
                 .currentAmount(currentAmount)
+                .build();
+    }
+
+    public GetSellerFundingDetailResponseDto toGetSellerFundingDetailResponseDto() {
+        return GetSellerFundingDetailResponseDto
+                .builder()
+                .fundingId(fundingId)
+                .title(title)
+                .description(description)
+                .imageUrl(imageUrl)
+                .progressPercentage(progressPercentage)
                 .build();
     }
 }
