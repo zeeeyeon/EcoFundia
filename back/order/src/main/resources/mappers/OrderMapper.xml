@@ -71,6 +71,12 @@
     <select id="getSellerFundingDetailOrderList" resultMap="OrderEntityResultMap">
         CALL get_seller_funding_detail_order_list(#{fundingId}, #{page})
     </select>
+    <select id="sumOrderAmountByFundingId" resultType="Integer">
+        SELECT COALESCE(SUM(total_price), 0)
+        FROM `order`
+        WHERE funding_id = #{fundingId}
+    </select>
+
 
     <select id="getSellerMonthAmountStatistics" resultMap="OrderEntityResultMap">
         SELECT

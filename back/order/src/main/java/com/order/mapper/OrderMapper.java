@@ -24,4 +24,6 @@ public interface OrderMapper {
     List<Integer> getSellerFundingDetailStatistics(@Param("fundingId") int fundingId);
     List<Integer> getSellerBrandStatistics(@Param("fundingIdList") List<Integer> fundingIdList);
     List<Order> getSellerTodayOrderTopThree(@Param("fundingIdList") List<Integer> fundingIdList);
+
+    int sumOrderAmountByFundingId(@Param("fundingId") int fundingId);
 }

@@ -35,4 +35,6 @@ public interface SellerService {
     List<GetSellerFundingDetailStatisticsResponseDto> getSellerFundingDetailStatistics(int fundingId);
     List<GetSellerBrandStatisticsResponseDto> getSellerBrandStatistics(int userId);
     List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThree(int userId);
+
+    void processSettlement(int fundingId, int sellerId);
 }

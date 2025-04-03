@@ -343,6 +343,31 @@ public class FundingService implements ProductService {
     }
 
     @Override
+    public List<Funding> getSuccessFundingsNotSent() {
+        // SUCCESS 상태이며 아직 settlementCompleted가 false인 펀딩 조회
+        return fundingMapper.findByStatusAndEventSent(false);
+    }
+
+    @Override
+    public Funding getFundingById(int fundingId) {
+        return fundingMapper.findById(fundingId);
+    }
+
+    @Override
+    public void updateSettlementCompleted(int fundingId, Boolean eventSent) {
+        fundingMapper.updateSettlementCompleted(fundingId, eventSent);
+    }
+
+    @Override
+    public GetExpectedSettlementsResponseDto getExpectedSettlements(int sellerId) {
+        GetExpectedSettlementsResponseDto result = GetExpectedSettlementsResponseDto
+                .builder()
+                .expectedAmount(fundingMapper.getExpectedSettlements(sellerId))
+                .build();
+        return result;
+    }
+
+    @Override
     public List<GetSellerEndFundingListResponseDto> getSellerEndFundingList(int sellerId, int page) {
         List<Funding> fundingList = fundingMapper.getSellerEndFundingList(sellerId, page);
         return fundingList.stream().map(Funding::toGetSellerEndFundingListResponseDto).collect(Collectors.toList());
