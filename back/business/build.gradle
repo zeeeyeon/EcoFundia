@@ -36,6 +36,8 @@ dependencies {
 
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
+	implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch:3.4.4'
+
 	compileOnly 'org.projectlombok:lombok'
 	//runtimeOnly 'com.mysql:mysql-connector-j'
 	annotationProcessor 'org.projectlombok:lombok'
