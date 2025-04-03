@@ -9,6 +9,6 @@ import lombok.*;
 @Builder
 public class CreatePaymentRequestDto {
     private int fundingId;
-    private int amount;
+    private int quantity;
     private int totalPrice;
 }

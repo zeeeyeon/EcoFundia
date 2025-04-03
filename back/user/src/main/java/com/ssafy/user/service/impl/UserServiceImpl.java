@@ -209,7 +209,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public OrderResponseDto createPayment(int userId, CreatePaymentRequestDto requestDto) {
         User user = userMapper.findById(userId);
-        return orderClient.createPayment(userId, requestDto.getFundingId(), requestDto.getAmount(), requestDto.getTotalPrice(), user.getSsafyUserKey(), user.getAccount());
+        return orderClient.createPayment(userId, requestDto.getFundingId(), requestDto.getQuantity(), requestDto.getTotalPrice(), user.getSsafyUserKey(), user.getAccount());
     }
 
     @Override
