@@ -16,6 +16,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 import static com.coupon.common.response.ResponseCode.*;
+import static com.coupon.common.util.CouponUtil.generateTodayCode;
 
 @Slf4j
 @Service
@@ -25,7 +26,7 @@ public class CouponService {
     private final CouponRepository couponRepository;
     private final CouponIssuedRepository couponIssuedRepository;
 
-    @Transactional(timeout = 5)
+    @Transactional
     public void issueCoupon(int userId) {
         // 1. 해당 코드의 쿠폰이 존재하는지 확인 (코드는 해당 날짜)
         int couponCode = generateTodayCode();
@@ -52,10 +53,5 @@ public class CouponService {
         }
         CouponIssued issued = CouponIssuedDto.toEntity(coupon, userId);
         couponIssuedRepository.save(issued);
-    }
-
-    private int generateTodayCode() {
-        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
-        return Integer.parseInt(today.format(DateTimeFormatter.ofPattern("yyMMdd")));
     }
 }
