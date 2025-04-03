@@ -1,5 +1,6 @@
 package com.ssafy.user.entity;
 
+import com.ssafy.user.dto.response.GetSellerFundingDetailOrderUserInfoListResponseDto;
 import lombok.*;
 import org.springframework.stereotype.Service;
 
@@ -20,4 +21,13 @@ public class User {
     private String ssafyUserKey;
     private int age;
     private LocalDateTime createdAt;
+
+    public GetSellerFundingDetailOrderUserInfoListResponseDto toGetSellerFundingDetailOrderUserInfoListResponseDto() {
+        return GetSellerFundingDetailOrderUserInfoListResponseDto
+                .builder()
+                .userId(userId)
+                .name(name)
+                .nickname(nickname)
+                .build();
+    }
 }
