@@ -10,6 +10,7 @@ import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
 import com.ssafy.funding.dto.funding.response.MyFundingResponseDto;
 import com.ssafy.funding.dto.review.response.ReviewResponseDto;
 import com.ssafy.funding.dto.seller.SellerDetailResponseDto;
+import com.ssafy.funding.dto.seller.response.*;
 import com.ssafy.funding.entity.Funding;
 import com.ssafy.funding.entity.enums.Status;
 import org.springframework.web.multipart.MultipartFile;
@@ -55,4 +56,29 @@ public interface ProductService {
 
     // 내가 주훔한 펀딩 조회
     List<MyFundingResponseDto> getMyFunding(List<Integer> fundingIds);
+    GetSellerTotalAmountResponseDto getSellerTotalAmount(int sellerId);
+
+    GetSellerTotalFundingCountResponseDto getSellerTotalFundingCount(int sellerId);
+    GetSellerTodayOrderCountResponseDto getSellerTodayOrderCount(int sellerId);
+    List<GetSellerOngoingTopFiveFundingResponseDto> getSellerOngoingTopFiveFunding(int sellerId);
+    List<GetSellerOngoingFundingListResponseDto> getSellerOngoingFundingList(int sellerId, int page);
+    List<GetSellerEndFundingListResponseDto> getSellerEndFundingList(int sellerId, int page);
+    GetSellerFundingDetailResponseDto getSellerFundingDetail(int fundingId);
+    List<GetSellerMonthAmountStatisticsResponseDto> getSellerMonthAmountStatistics(int sellerId);
+    List<GetSellerFundingDetailStatisticsResponseDto> getSellerFundingDetailStatistics(int fundingId);
+    List<GetSellerBrandStatisticsResponseDto> getSellerBrandStatistics(int sellerId);
+    List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThree(int sellerId);
+
+    // SUCCESS 상태이며 아직 정산 완료되지 않은 펀딩 목록 조회
+    List<Funding> getSuccessFundingsNotSent();
+
+    // 펀딩 ID로 펀딩 정보 조회
+    Funding getFundingById(int fundingId);
+
+    // settlement_completed 플래그 업데이트
+    void updateSettlementCompleted(int fundingId, Boolean eventSent);
+
+    List<GetCompletedFundingsResponseDto> getCompletedFundings(int sellerId);
+
+    GetExpectedSettlementsResponseDto getExpectedSettlements(int sellerId);
 }

@@ -1,7 +1,11 @@
 package com.order.controller;
 
-import com.order.dto.funding.response.FundingResponseDto;
+import com.order.dto.funding.response.*;
+import com.order.dto.funding.request.GetSellerTodayOrderCountRequestDto;
+import com.order.dto.funding.request.GetSellerTodayOrderTopThreeListRequestDto;
 import com.order.dto.order.response.OrderResponseDto;
+import com.order.dto.seller.response.GetSellerMonthAmountStatisticsResponseDto;
+import com.order.dto.seller.response.TotalAmountResponseDto;
 import com.order.entity.Order;
 import com.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -50,4 +54,44 @@ public class OrderController {
         return price;
     }
 
+
+    @PostMapping("/seller/today-order")
+    public GetSellerTodayOrderCountResponseDto getSellerTodayOrderCount(@RequestBody GetSellerTodayOrderCountRequestDto getSellerTodayOrderCountRequestDto) {
+        return orderService.getSellerTodayOrderCount(getSellerTodayOrderCountRequestDto);
+    }
+
+    @GetMapping("/seller/funding/detail/order/{fundingId}")
+    public List<GetSellerFundingDetailOrderListResponseDto> getSellerFundingDetailOrderList(@PathVariable("fundingId") int fundingId, @RequestParam(value = "page", defaultValue = "0") int page) {
+        return orderService.getSellerFundingDetailOrderList(fundingId, page);
+    }
+
+    @PostMapping("/seller/month-amount-statistics")
+    public List<GetSellerMonthAmountStatisticsResponseDto> getSellerMonthAmountStatistics(@RequestBody List<Integer> fundingIdList) {
+        return orderService.getSellerMonthAmountStatistics(fundingIdList);
+    }
+
+    @GetMapping("/seller/funding/detail/statistics/{fundingId}")
+    public List<GetSellerFundingDetailStatisticsResponseDto> getSellerFundingDetailStatistics(@PathVariable("fundingId") int fundingId) {
+        return orderService.getSellerFundingDetailStatistics(fundingId);
+    }
+
+    @PostMapping("/seller/brand-statistics")
+    public List<Integer> getSellerBrandStatistics(@RequestBody List<Integer> fundingIdList) {
+        return orderService.getSellerBrandStatistics(fundingIdList);
+    }
+
+    @PostMapping("/seller/today-order/list")
+    public List<GetSellerTodayOrderTopThreeIdAndMoneyResponseDto> getSellerTodayOrderTopThree(@RequestBody List<Integer> fundingIdList) {
+        return orderService.getSellerTodayOrderTopThree(fundingIdList);
+    }
+
+    @GetMapping("/order-info")
+    public TotalAmountResponseDto getOrderInfoByFundingId(@RequestParam("fundingId") int fundingId) {
+        return orderService.getOrderInfoByFundingId(fundingId);
+    }
+
+    @PostMapping("/total-order-count")
+    public List<Integer> getTotalOrderCount(@RequestBody List<Integer> fundingIds) {
+        return orderService.getTotalOrderCount(fundingIds);
+    }
 }

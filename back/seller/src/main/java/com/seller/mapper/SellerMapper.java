@@ -16,4 +16,9 @@ public interface SellerMapper {
 
     //판매자 조회
     Seller getSeller(int sellerId);
+
+    void grantSellerRole(@Param("userId") int userId, @Param("name") String name, @Param("businessNumber") String businessNumber);
+    int getSellerIdByUserId(@Param("userId") int userId);
+
+    Seller getSellerInfo(int sellerId);
 }

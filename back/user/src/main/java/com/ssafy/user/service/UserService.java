@@ -32,4 +32,14 @@ public interface UserService {
 
     void logout(int userId);
 
+    List<Integer> getAgeList(List<GetAgeListRequestDto> dtos);
+
+    List<GetSellerFundingDetailOrderUserInfoListResponseDto> getSellerFundingDetailOrderList(GetSellerFundingDetailOrderListRequestDto getSellerFundingDetailOrderListRequestDto);
+
+    List<CouponResponseDto> getCouponList(int userId);
+
+    CouponCountResponseDto getCouponCount(int userId);
+
+    void postCoupon(int userId);
+
 }
