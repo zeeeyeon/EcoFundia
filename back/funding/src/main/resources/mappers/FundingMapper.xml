@@ -384,4 +384,7 @@
     </select>
 
 
+    <select id="getExpectedSettlements" resultType="integer">
+        call get_expected_settlements(#{sellerId})
+    </select>
 </mapper>

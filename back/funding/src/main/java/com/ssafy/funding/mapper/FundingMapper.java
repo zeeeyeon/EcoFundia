@@ -73,4 +73,5 @@ public interface FundingMapper {
 
     List<Funding> getCompletedFundings(@Param("sellerId") int sellerId);
 
+    int getExpectedSettlements(@Param("sellerId") int sellerId);
 }
