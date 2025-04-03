@@ -62,4 +62,16 @@ public interface FundingClient {
 
     @GetMapping("api/funding/seller/today-order/list/{sellerId}")
     List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThree(@PathVariable("sellerId") int sellerId);
+//
+//    @PostMapping("/api/seller/sellerNames")
+//    Map<Integer, String> getSellerNames(@RequestBody List<Integer> sellerIds);
+
+    @PostMapping("/api/funding/update-event-sent")
+    void updateSettlementCompleted(@RequestParam("fundingId") int fundingId, @RequestParam("eventSent") Boolean eventSent);
+
+    @GetMapping("/api/funding/seller/completed-funding/{sellerId}")
+    List<GetCompletedFundingsAtFundingResponseDto> getCompletedFundings(@PathVariable("sellerId") int sellerId);
+
+    @GetMapping("/api/funding/seller/settlements/expected-fundings/{sellerId}")
+    GetExpectedSettlementsResponseDto getExpectedSettlements(@PathVariable("sellerId") int sellerId);
 }
