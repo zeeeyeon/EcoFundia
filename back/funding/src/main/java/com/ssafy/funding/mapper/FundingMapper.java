@@ -53,6 +53,26 @@ public interface FundingMapper {
 
     List<SellerDetail> getSellerDetail(@PathVariable int sellerId);
 
+    int getSellerTotalAmount(@Param("sellerId") int sellerId);
+    int getSellerTotalFundingCount(@Param("sellerId") int sellerId);
+    List<Integer> getSellerTodayOrderCount(@Param("sellerId") int sellerId);
+    List<Funding> getSellerOngoingTopFiveFunding(@Param("sellerId") int sellerId);
+    List<Funding> getSellerOngoingFundingList(@Param("sellerId") int sellerId, @Param("page") int page);
+    List<Funding> getSellerEndFundingList(@Param("sellerId") int sellerId, @Param("page") int page);
+    List<Funding> getSellerTodayOrderTopThreeList(@Param("fundingIdList") List<Integer> fundingIdList);
+
     // 내가 주문한 펀딩 조회
     List<Funding> getMyFunding(List<Integer> fundingIds);
+    Funding getSellerFundingDetail(@Param("fundingId") int fundingId);
+    List<Funding> getSellerTodayOrderTopThree(@Param("fundingIdList") List<Integer> fundingIdList);
+
+    // SUCCESS 상태이고, 아직 settlementCompleted가 false인 펀딩 목록 조회
+    List<Funding> findByStatusAndEventSent(@Param("eventSent") Boolean eventSent);
+
+    // settlement_completed 플래그 업데이트
+    int updateSettlementCompleted(@Param("fundingId") int fundingId, @Param("eventSent") Boolean eventSent);
+
+    List<Funding> getCompletedFundings(@Param("sellerId") int sellerId);
+
+    int getExpectedSettlements(@Param("sellerId") int sellerId);
 }

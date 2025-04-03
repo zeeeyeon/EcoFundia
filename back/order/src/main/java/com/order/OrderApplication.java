@@ -9,9 +9,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @SpringBootApplication
 @EnableFeignClients(basePackages = "com.order.client")
 public class OrderApplication {
-
 	public static void main(String[] args) {
 		SpringApplication.run(OrderApplication.class, args);
 	}
-
 }

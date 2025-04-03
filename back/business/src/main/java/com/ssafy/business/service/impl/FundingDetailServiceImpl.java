@@ -36,9 +36,21 @@ public class FundingDetailServiceImpl implements FundingDetailService {
 
         ReviewResponseDTO reviewList = fundingClient.getFundingReview(sellerId, page);
 
-        if (reviewList == null) {
-            throw new CustomException(REVIEW_NOT_FOUND);
-        }
+        List<ReviewDTO> pagedList = pagenate(reviewList.getReviews(), page, 5);
+
+        ReviewResponseDTO responseDTO = ReviewResponseDTO.builder()
+                .totalRating(reviewList.getTotalRating())
+                .reviews(pagedList)
+                .build();
+
+        return responseDTO;
+    }
+
+    private List<ReviewDTO> pagenate(List<ReviewDTO> list, int page, int size) {
+        int total = list.size();
+        int start= Math.min((page -1) * size, total);
+        int end = Math.min(start + size, total);
+        List<ReviewDTO> reviewList = list.subList(start, end);
         return reviewList;
     }
 

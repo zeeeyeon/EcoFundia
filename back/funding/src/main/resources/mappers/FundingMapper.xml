@@ -21,6 +21,12 @@
         <result column="category" property="category" typeHandler="com.ssafy.funding.entity.typeHandlers.CategoryTypeHandler"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
+        <result column="progress_percentage" property="progressPercentage"/>
+        <result column="image_url" property="imageUrl"/>
+        <result column="remaining_time" property="remainingTime"/>
+        <result column="month" property="month"/>
+        <result column="total_amount" property="totalAmount"/>
+        <result property="settlementCompleted" column="settlement_completed"/>
     </resultMap>
 
     <resultMap id="FundingWishResultMap" type="com.ssafy.funding.entity.FundingWishCount">
@@ -275,12 +281,62 @@
     </select>
     <select id="findFundingsByIds" resultType="com.ssafy.funding.entity.Funding">
         SELECT funding_id, title, current_amount, target_amount,
-        start_date, end_date, seller_id
+        start_date, end_date, seller_id, image_urls
         FROM funding
         WHERE funding_id IN
         <foreach collection="fundingIds" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
+    </select>
+
+    <select id="getSellerTotalAmount" resultType="integer">
+        CALL get_seller_total_amount(#{sellerId})
+    </select>
+
+    <select id="getSellerTotalFundingCount" resultType="integer">
+        CALL get_seller_ongoing_funding_count(#{sellerId})
+    </select>
+
+    <select id="getSellerTodayOrderCount" resultType="integer">
+        SELECT
+            funding_id
+        FROM
+            funding
+        WHERE
+            seller_id = #{sellerId}
+    </select>
+
+    <select id="getSellerOngoingTopFiveFunding" resultMap="FundingResultMap">
+        CALL get_seller_ongoing_top_funding_list(#{sellerId})
+    </select>
+
+    <select id="getSellerOngoingFundingList" resultMap="FundingResultMap">
+        CALL get_seller_ongoing_funding_list(#{sellerId}, #{page})
+    </select>
+
+    <select id="getSellerEndFundingList" resultMap="FundingResultMap">
+        CALL get_seller_end_funding_list(#{sellerId}, #{page})
+    </select>
+
+    <select id="getSellerFundingDetail" resultMap="FundingResultMap">
+        CALL get_seller_funding_detail(#{fundingId})
+    </select>
+
+    <select id="getSellerTodayOrderTopThree" parameterType="list" resultMap="FundingResultMap">
+        SELECT
+            funding_id,
+            JSON_UNQUOTE(JSON_EXTRACT(image_urls, '$[0]')) AS image_url,
+            title,
+            description,
+            current_amount
+        FROM
+            funding
+        where
+        funding_id IN
+        <foreach item="fundingId" collection="fundingIdList" open="(" separator="," close=")">
+            #{fundingId}
+        </foreach>
+
     </select>
 
     <!-- 내가 주문한 펀딩 조회 -->
@@ -292,5 +348,45 @@
         </foreach>
     </select>
 
+    <select id="findByStatusAndEventSent" resultMap="FundingResultMap">
+        SELECT * FROM funding
+        WHERE status = 'SUCCESS' AND settlement_completed = #{eventSent}
+    </select>
 
+    <!-- settlement_completed 플래그 업데이트 (정산 완료 후 호출) -->
+    <update id="updateSettlementCompleted">
+        UPDATE funding
+        SET settlement_completed = #{eventSent}
+        WHERE funding_id = #{fundingId}
+    </update>
+
+    <select id="getCompletedFundings" parameterType="int" resultMap="FundingResultMap">
+        SELECT
+        funding_id,
+        seller_id,
+        title,
+        description,
+        story_file_url,
+        image_urls,
+        price,
+        quantity,
+        target_amount,
+        current_amount,
+        start_date,
+        end_date,
+        status,
+        category,
+        created_at,
+        updated_at,
+        settlement_completed,
+        floor((current_amount / target_amount) * 100) AS progressPercentage
+        FROM funding
+        WHERE seller_id = #{sellerId}
+        AND settlement_completed = 1
+    </select>
+
+
+    <select id="getExpectedSettlements" resultType="integer">
+        call get_expected_settlements(#{sellerId})
+    </select>
 </mapper>

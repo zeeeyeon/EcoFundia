@@ -1,5 +1,6 @@
 package com.ssafy.user.service.impl;
 
+import com.ssafy.user.client.CouponClient;
 import com.ssafy.user.client.FundingClient;
 import com.ssafy.user.client.OrderClient;
 import com.ssafy.user.client.SellerClient;
@@ -18,9 +19,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.ssafy.user.common.response.ResponseCode.*;
 
@@ -35,6 +39,7 @@ public class UserServiceImpl implements UserService {
     private final FundingClient fundingClient;
     private final OrderClient orderClient;
     private final SellerClient sellerClient;
+    private final CouponClient couponClient;
 
     @Override
     public LoginResponseDto verifyUser(LoginRequestDto requestDto) {
@@ -212,6 +217,47 @@ public class UserServiceImpl implements UserService {
         String key = "refreshToken:" + userId;
         redisTemplate.delete(key);
     }
+
+    @Override
+    public List<Integer> getAgeList(List<GetAgeListRequestDto> dtos) {
+        // 10대부터 60대까지 총 6개의 연령대 카운트를 0으로 초기화
+        List<Integer> ageGroupCounts = new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, 0));
+        System.out.println("getAgeList 시작!!!");
+        // 매퍼에서 결과는 ageGroup(0~5)와 count로 구성된 Map 리스트로 반환됨
+        List<Map<String, Object>> results = userMapper.selectAgeGroupCounts(dtos);
+        for (Map<String, Object> row : results) {
+            int group = (int) row.get("ageGroup");
+            // count를 Long에서 int로 변환
+//            int count = ((Long) row.get("count")).intValue();
+            Long count = (Long) row.get("count");
+            if (group >= 0 && group < 6) {
+                ageGroupCounts.set(group, count.intValue());
+            }
+        }
+        return ageGroupCounts;
+    }
+
+    @Override
+    public List<GetSellerFundingDetailOrderUserInfoListResponseDto> getSellerFundingDetailOrderList(GetSellerFundingDetailOrderListRequestDto getSellerFundingDetailOrderListRequestDto) {
+        return userMapper.getSellerFundingDetailOrderList(getSellerFundingDetailOrderListRequestDto.getUserIdList()).stream().map(User::toGetSellerFundingDetailOrderUserInfoListResponseDto).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<CouponResponseDto> getCouponList(int userId) {
+        return couponClient.getCouponList(userId);
+    }
+
+    @Override
+    public CouponCountResponseDto getCouponCount(int userId) {
+        List<CouponResponseDto> list = couponClient.getCouponList(userId);
+        return new CouponCountResponseDto(list.size());
+    }
+
+    @Override
+    public void postCoupon(int userId) {
+        couponClient.postCoupon(userId);
+    }
+
 
     private Map<String, Object> getGoogleUserInfo(String accessToken) {
         String url = GOOGLE_USER_INFO_URL + "?access_token=" + accessToken;

@@ -13,15 +13,13 @@ import com.ssafy.funding.dto.review.request.ReviewUpdateRequestDto;
 import com.ssafy.funding.dto.review.response.ReviewDto;
 import com.ssafy.funding.dto.review.response.ReviewResponseDto;
 import com.ssafy.funding.dto.seller.SellerDetailResponseDto;
+import com.ssafy.funding.dto.seller.response.*;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-// Client 선언부, name 또는 url 사용 가능
-// name or value 둘중 하나는 있어야 오류가 안남남
-//@FeignClient(name = "funding-client", url = "http://localhost:8080")
 @FeignClient(name = "funding")
 public interface FundingClient {
 
@@ -106,7 +104,7 @@ public interface FundingClient {
                                    @PathVariable int reviewId,
                                    @RequestBody ReviewUpdateRequestDto dto);
 
-    @RequestMapping(method = RequestMethod.DELETE, value = "/api/review/{reviewId}")
+    @DeleteMapping("/api/review/{reviewId}")
     ResponseEntity<?> deleteReview(@RequestHeader("X-User-Id") int userId,
                                    @PathVariable int reviewId);
 
@@ -122,5 +120,25 @@ public interface FundingClient {
     @DeleteMapping("/api/wishList/{fundingId}")
     ResponseEntity<?> deleteWish(@RequestHeader("X-User-Id") int userId, @PathVariable int fundingId);
 
+    @GetMapping("/api/funding/seller/total-amount/{sellerId}")
+    GetSellerTotalAmountResponseDto getSellerTotalAmount(@PathVariable("sellerId") int sellerId);
+
+    @GetMapping("/api/funding/seller/total-funding/count/{sellerId}")
+    GetSellerTotalFundingCountResponseDto getSellerTotalFundingCount(@PathVariable("sellerId") int sellerId);
+
+    @GetMapping("/api/funding/seller/today-order/{sellerId}")
+    GetSellerTodayOrderCountResponseDto getSellerTodayOrderCount(@PathVariable("sellerId") int sellerId);
+
+    @GetMapping("/api/funding/seller/ongoing/top/{sellerId}")
+    List<GetSellerOngoingTopFiveFundingResponseDto> getSellerOngoingTopFiveFunding(@PathVariable("sellerId") int sellerId);
+
+    @GetMapping("api/funding/seller/ongoing/list/{sellerId}")
+    List<GetSellerOngoingFundingListResponseDto> getSellerOngoingFundingList(@PathVariable("sellerId") int sellerId, @RequestParam(value = "page", defaultValue = "0") int page);
+
+    @GetMapping("api/funding/seller/end/list/{sellerId}")
+    List<GetSellerEndFundingListResponseDto> getSellerEndFundingList(@PathVariable("sellerId") int sellerId, @RequestParam(value = "page", defaultValue = "0") int page);
+
+    @GetMapping("api/funding/seller/funding/detail/{fundingId}")
+    GetSellerFundingDetailResponseDto getSellerFundingDetail(@PathVariable("fundingId") int fundingId);
 }
 

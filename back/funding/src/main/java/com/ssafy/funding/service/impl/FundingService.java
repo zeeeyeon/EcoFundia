@@ -3,11 +3,10 @@ package com.ssafy.funding.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ssafy.funding.client.OrderClient;
+import com.ssafy.funding.client.UserClient;
 import com.ssafy.funding.common.exception.CustomException;
-import com.ssafy.funding.common.util.JsonConverter;
-import com.ssafy.funding.dto.funding.request.FundingCreateRequestDto;
 import com.ssafy.funding.dto.funding.request.FundingCreateSendDto;
-import com.ssafy.funding.dto.funding.request.FundingUpdateRequestDto;
 import com.ssafy.funding.dto.funding.request.FundingUpdateSendDto;
 import com.ssafy.funding.dto.funding.response.FundingResponseDto;
 import com.ssafy.funding.dto.funding.response.FundingWishCountResponseDto;
@@ -17,6 +16,9 @@ import com.ssafy.funding.dto.review.response.ReviewDto;
 import com.ssafy.funding.dto.review.response.ReviewResponseDto;
 import com.ssafy.funding.dto.seller.SellerDetailDto;
 import com.ssafy.funding.dto.seller.SellerDetailResponseDto;
+import com.ssafy.funding.dto.seller.request.GetAgeListRequestDto;
+import com.ssafy.funding.dto.seller.request.GetSellerTodayOrderCountRequestDto;
+import com.ssafy.funding.dto.seller.response.*;
 import com.ssafy.funding.entity.Funding;
 import com.ssafy.funding.entity.FundingWishCount;
 import com.ssafy.funding.entity.SellerDetail;
@@ -28,11 +30,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.ssafy.funding.common.response.ResponseCode.*;
@@ -41,10 +43,11 @@ import static com.ssafy.funding.common.response.ResponseCode.*;
 @Service
 @RequiredArgsConstructor
 public class FundingService implements ProductService {
-
+    private final OrderClient orderClient;
     private final FundingMapper fundingMapper;
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper objectMapper;
+    private final UserClient userClient;
 
     private static final int PAGE_SIZE = 5;
 
@@ -280,6 +283,166 @@ public class FundingService implements ProductService {
         log.info("fundingList: " + fundingList);
         return fundingList.stream()
                 .map(MyFundingResponseDto::toDto).collect(Collectors.toList());
+    }
+    @Override
+    public GetSellerTotalAmountResponseDto getSellerTotalAmount(int sellerId) {
+        int totalAmount = fundingMapper.getSellerTotalAmount(sellerId);
+        return GetSellerTotalAmountResponseDto
+                .builder()
+                .totalAmount(totalAmount)
+                .build();
+    }
+
+    @Override
+    public GetSellerTotalFundingCountResponseDto getSellerTotalFundingCount(int sellerId) {
+        int totalCount = fundingMapper.getSellerTotalFundingCount(sellerId);
+        return GetSellerTotalFundingCountResponseDto
+                .builder()
+                .totalCount(totalCount)
+                .build();
+    }
+
+    @Override
+    public GetSellerTodayOrderCountResponseDto getSellerTodayOrderCount(int sellerId) {
+        List<Integer> fundingIdList = fundingMapper.getSellerTodayOrderCount(sellerId);
+
+        if(fundingIdList.size() == 0) {
+            int todayOrderCount = 0;
+            return GetSellerTodayOrderCountResponseDto
+                    .builder()
+                    .todayOrderCount(todayOrderCount)
+                    .build();
+        }
+
+        int todayOrderCount = orderClient.getSellerTodayOrderCount(
+                GetSellerTodayOrderCountRequestDto
+                        .builder()
+                        .fundingIdList(fundingIdList)
+                        .build()
+        ).getTodayOrderCount();
+
+        return GetSellerTodayOrderCountResponseDto
+                .builder()
+                .todayOrderCount(todayOrderCount)
+                .build();
+    }
+
+    @Override
+    public List<GetSellerOngoingTopFiveFundingResponseDto> getSellerOngoingTopFiveFunding(int sellerId) {
+        List<Funding> fundingList = fundingMapper.getSellerOngoingTopFiveFunding(sellerId);
+        return fundingList.stream().map(Funding::toGetSellerOngoingTopFiveFundingResponseDto).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<GetSellerOngoingFundingListResponseDto> getSellerOngoingFundingList(int sellerId, int page) {
+        List<Funding> fundingList = fundingMapper.getSellerOngoingFundingList(sellerId, page);
+        return fundingList.stream().map(Funding::toGetSellerOngoingFundingListResponseDto).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Funding> getSuccessFundingsNotSent() {
+        // SUCCESS 상태이며 아직 settlementCompleted가 false인 펀딩 조회
+        return fundingMapper.findByStatusAndEventSent(false);
+    }
+
+    @Override
+    public Funding getFundingById(int fundingId) {
+        return fundingMapper.findById(fundingId);
+    }
+
+    @Override
+    public void updateSettlementCompleted(int fundingId, Boolean eventSent) {
+        fundingMapper.updateSettlementCompleted(fundingId, eventSent);
+    }
+
+    @Override
+    public GetExpectedSettlementsResponseDto getExpectedSettlements(int sellerId) {
+        GetExpectedSettlementsResponseDto result = GetExpectedSettlementsResponseDto
+                .builder()
+                .expectedAmount(fundingMapper.getExpectedSettlements(sellerId))
+                .build();
+        return result;
+    }
+
+    @Override
+    public List<GetCompletedFundingsResponseDto> getCompletedFundings(int sellerId) {
+        List<Funding> fundings = fundingMapper.getCompletedFundings(sellerId);
+        List<GetCompletedFundingsResponseDto> dtos = new ArrayList<>();
+        for(Funding f : fundings){
+            GetCompletedFundingsResponseDto temp = GetCompletedFundingsResponseDto.builder()
+                    .title(f.getTitle())
+                    .endDate(f.getEndDate())
+                    .totalAmount(f.getCurrentAmount())
+                    .progressPercentage(f.getProgressPercentage())
+                    .fundingId(f.getFundingId())
+                    .build();
+            dtos.add(temp);
+        }
+        return dtos;
+    }
+
+    @Override
+    public List<GetSellerEndFundingListResponseDto> getSellerEndFundingList(int sellerId, int page) {
+        List<Funding> fundingList = fundingMapper.getSellerEndFundingList(sellerId, page);
+        return fundingList.stream().map(Funding::toGetSellerEndFundingListResponseDto).collect(Collectors.toList());
+    }
+
+    @Override
+    public GetSellerFundingDetailResponseDto getSellerFundingDetail(int fundingId) {
+        return fundingMapper.getSellerFundingDetail(fundingId).toGetSellerFundingDetailResponseDto();
+    }
+
+    @Override
+    public List<GetSellerMonthAmountStatisticsResponseDto> getSellerMonthAmountStatistics(int sellerId) {
+        List<Integer> fundingIdList = fundingMapper.getSellerTodayOrderCount(sellerId);
+        System.out.println(fundingIdList);
+        List<GetSellerMonthAmountStatisticsResponseDto> result = orderClient.getSellerMonthAmountStatistics(fundingIdList);
+        return result;
+    }
+
+    @Override
+    public List<GetSellerFundingDetailStatisticsResponseDto> getSellerFundingDetailStatistics(int fundingId) {
+        return List.of();
+    }
+
+    @Override
+    public List<GetSellerBrandStatisticsResponseDto> getSellerBrandStatistics(int sellerId) {
+        List<GetSellerBrandStatisticsResponseDto> result = new ArrayList<>();
+        List<Integer> fundingIdList = fundingMapper.getSellerTodayOrderCount(sellerId);
+        List<Integer> userIdList = orderClient.getSellerBrandStatistics(fundingIdList);
+        List<GetAgeListRequestDto> ageListRequestDtoList = userIdList.stream()
+                .map(userIdTarget -> new GetAgeListRequestDto(userIdTarget))
+                .collect(Collectors.toList());
+        List<Integer> userStatistics = userClient.getAgeList(ageListRequestDtoList);
+
+        int totalCount = 0;
+        for(int count: userStatistics) {
+            totalCount += count;
+        }
+        if(totalCount == 0) return result;
+
+        for (int i = 0; i < userStatistics.size(); i++) {
+            double percentage = (double) userStatistics.get(i) / totalCount * 100;
+            result.add(new GetSellerBrandStatisticsResponseDto((i + 1) * 10, Math.round(percentage * 10) / 10.0));
+        }
+
+        return result;
+    }
+
+    @Override
+    public List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThree(int sellerId) {
+        List<Integer> fundingIdListRequestDto = fundingMapper.getSellerTodayOrderCount(sellerId);
+        List<GetSellerTodayOrderTopThreeIdAndMoneyResponseDto> orderList = orderClient.getSellerTodayOrderTopThree(fundingIdListRequestDto);
+        if(orderList.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<Integer> fundingIdList = orderList.stream().map(GetSellerTodayOrderTopThreeIdAndMoneyResponseDto::getFundingId).collect(Collectors.toList());
+        List<Funding> fundingList = fundingMapper.getSellerTodayOrderTopThree(fundingIdList);
+        List<GetSellerTodayOrderTopThreeListResponseDto> result = fundingList.stream().map(Funding::toGetSellerTodayOrderTopThreeListResponseDto).collect(Collectors.toList());
+        for(int i = 0; i < orderList.size(); i++) {
+            result.get(i).setTodayAmount(orderList.get(i).getTotalAmount());
+        }
+        return result;
     }
 
 }

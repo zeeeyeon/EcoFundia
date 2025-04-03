@@ -14,9 +14,9 @@ import java.util.List;
 public interface FundingClient {
 
     @GetMapping("api/funding/is-ongoing/{fundingId}")
-    IsOngoingResponseDto isOngoing(@PathVariable int fundingId);
+    IsOngoingResponseDto isOngoing(@PathVariable("fundingId") int fundingId);
 
     @GetMapping("api/funding/my/funding")
-    List<FundingResponseDto> getMyFunding(@RequestParam List<Integer> fundingIds);
+    List<FundingResponseDto> getMyFunding(@RequestParam("fundingIds") List<Integer> fundingIds);
 
 }
