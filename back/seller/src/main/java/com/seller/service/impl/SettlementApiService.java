@@ -52,7 +52,7 @@ public class SettlementApiService {
                 // 입금 계좌: 판매자 계좌 (DB에서 조회)
                 .depositAccountNo(sellerAccount)
                 .depositTransactionSummary("{수시입출금} : 입금(정산)")
-                .transactionBalance(amount)
+                .transactionBalance((int) (amount*0.9f))
                 // 출금 계좌: 중앙 관리자 계좌
                 .withdrawalAccountNo(adminAccount)
                 .withdrawalTransactionSummary("{수시입출금} : 출금(정산)")
