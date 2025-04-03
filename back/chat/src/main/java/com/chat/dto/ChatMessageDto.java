@@ -1,14 +1,24 @@
 package com.chat.dto;
 
 
+import com.chat.entity.Sender;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 
-public record ChatMessageDto(
-    int fundingId,
-    int senderId,
-    String nickname,
-    String content,
-    String status, // ex: SENT, DELIVERED
-    LocalDateTime createdAt
-) {}
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class ChatMessageDto {
+
+    private int fundingId;
+    private Sender sender;
+    private String content;
+    private String status;
+    private LocalDateTime createdAt;
+
+}
 

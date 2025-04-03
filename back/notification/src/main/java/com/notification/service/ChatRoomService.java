@@ -1,4 +1,6 @@
 package com.notification.service;
 
-public class ChatRoomService {
+public interface ChatRoomService {
+
+    void createChatRoomIfNotExists(int fundingId);
 }
