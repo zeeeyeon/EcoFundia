@@ -26,6 +26,7 @@
         <result column="remaining_time" property="remainingTime"/>
         <result column="month" property="month"/>
         <result column="total_amount" property="totalAmount"/>
+        <result property="settlementCompleted" column="settlement_completed"/>
     </resultMap>
 
     <resultMap id="FundingWishResultMap" type="com.ssafy.funding.entity.FundingWishCount">
@@ -234,9 +235,51 @@
         LIMIT #{limit} OFFSET #{offset}
     </select>
 
+    <!-- 베스트, 마감임박 펀딩 조회 -->
+    <select id="getSpecialFundingList" resultMap="FundingWishResultMap">
+        SELECT *
+        FROM (
+        SELECT f.*, COUNT(w.wishlist_id) AS wish_count
+        FROM funding f
+        LEFT JOIN wishlist w ON f.funding_id = w.funding_id
+        WHERE f.status = 'ONGOING'
+        <if test="topic == 'soon'">
+            AND TIMESTAMPDIFF(MINUTE, NOW(), f.end_date) BETWEEN 0 AND 60
+        </if>
+        GROUP BY f.funding_id
+        <if test="topic == 'best'">
+            ORDER BY wish_count DESC
+        </if>
+        ) AS ranked_funding
+        <choose>
+            <when test="sort == 'latest'">
+                ORDER BY start_date DESC
+            </when>
+            <when test="sort == 'oldest'">
+                ORDER BY start_date ASC
+            </when>
+            <when test="sort == 'popular'">
+                ORDER BY current_amount DESC
+            </when>
+            <otherwise> <!-- sort == 'none' -->
+                <choose>
+                    <when test="topic == 'soon'">
+                        ORDER BY end_date ASC
+                    </when>
+                    <when test="topic == 'best'">
+                        ORDER BY wish_count DESC
+                    </when>
+                    <otherwise>
+                        ORDER BY start_date DESC <!-- fallback -->
+                    </otherwise>
+                </choose>
+            </otherwise>
+        </choose>
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
     <select id="findFundingsByIds" resultType="com.ssafy.funding.entity.Funding">
         SELECT funding_id, title, current_amount, target_amount,
-        start_date, end_date, seller_id
+        start_date, end_date, seller_id, image_urls
         FROM funding
         WHERE funding_id IN
         <foreach collection="fundingIds" item="id" open="(" separator="," close=")">
@@ -303,5 +346,19 @@
         </foreach>
     </select>
 
+    <select id="findByStatusAndEventSent" resultMap="FundingResultMap">
+        SELECT * FROM funding
+        WHERE status = 'SUCCESS' AND settlement_completed = #{eventSent}
+    </select>
 
+    <!-- settlement_completed 플래그 업데이트 (정산 완료 후 호출) -->
+    <update id="updateSettlementCompleted">
+        UPDATE funding
+        SET settlement_completed = #{eventSent}
+        WHERE funding_id = #{fundingId}
+    </update>
+
+    <select id="getExpectedSettlements" resultType="integer">
+        call get_expected_settlements(#{sellerId})
+    </select>
 </mapper>

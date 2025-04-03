@@ -64,4 +64,11 @@ public interface FundingMapper {
     List<Funding> getMyFunding(List<Integer> fundingIds);
     Funding getSellerFundingDetail(@Param("fundingId") int fundingId);
     List<Funding> getSellerTodayOrderTopThree(@Param("fundingIdList") List<Integer> fundingIdList);
+
+    // SUCCESS 상태이고, 아직 settlementCompleted가 false인 펀딩 목록 조회
+    List<Funding> findByStatusAndEventSent(@Param("eventSent") Boolean eventSent);
+
+    // settlement_completed 플래그 업데이트
+    int updateSettlementCompleted(@Param("fundingId") int fundingId, @Param("eventSent") Boolean eventSent);
+    int getExpectedSettlements(@Param("sellerId") int sellerId);
 }

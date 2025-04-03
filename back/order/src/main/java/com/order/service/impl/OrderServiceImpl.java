@@ -15,6 +15,7 @@ import com.order.dto.seller.response.GetSellerMonthAmountStatisticsResponseDto;
 import com.order.dto.funding.response.GetSellerTodayOrderCountResponseDto;
 import com.order.dto.funding.response.GetSellerTodayOrderTopThreeIdAndMoneyResponseDto;
 import com.order.dto.funding.response.IsOngoingResponseDto;
+import com.order.dto.seller.response.TotalAmountResponseDto;
 import com.order.dto.order.response.OrderResponseDto;
 import com.order.dto.ssafyApi.request.HeaderDto;
 import com.order.dto.ssafyApi.request.TransferRequestDto;
@@ -214,6 +215,14 @@ public class OrderServiceImpl implements OrderService {
         }
         List<FundingResponseDto> fundingList = fundingClient.getMyFunding(fundingIds);
         return fundingList;
+    }
+
+    @Override
+    public TotalAmountResponseDto getOrderInfoByFundingId(int fundingId) {
+        System.out.println("왔다" + fundingId + " ");
+        int amount = orderMapper.sumOrderAmountByFundingId(fundingId);
+
+        return new TotalAmountResponseDto(fundingId,amount);
     }
 }
 
