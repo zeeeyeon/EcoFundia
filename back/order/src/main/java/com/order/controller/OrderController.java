@@ -90,4 +90,8 @@ public class OrderController {
         return orderService.getOrderInfoByFundingId(fundingId);
     }
 
+    @PostMapping("/total-order-count")
+    public List<Integer> getTotalOrderCount(@RequestBody List<Integer> fundingIds) {
+        return orderService.getTotalOrderCount(fundingIds);
+    }
 }
