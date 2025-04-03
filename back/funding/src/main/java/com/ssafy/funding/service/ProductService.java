@@ -80,4 +80,5 @@ public interface ProductService {
 
     List<GetCompletedFundingsResponseDto> getCompletedFundings(int sellerId);
 
+    GetExpectedSettlementsResponseDto getExpectedSettlements(int sellerId);
 }
