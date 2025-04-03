@@ -13,6 +13,7 @@ import com.ssafy.funding.dto.order.response.IsOngoingResponseDto;
 import com.ssafy.funding.dto.review.response.ReviewResponseDto;
 import com.ssafy.funding.dto.seller.SellerDetailResponseDto;
 import com.ssafy.funding.dto.seller.response.*;
+import com.ssafy.funding.elasticsearch.ElasticsearchService;
 import com.ssafy.funding.service.OrderService;
 import com.ssafy.funding.service.ProductService;
 import jakarta.ws.rs.Path;
@@ -22,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Collections;
 import java.util.List;
 
 import static com.ssafy.funding.common.response.ResponseCode.*;
@@ -33,6 +35,7 @@ public class FundingController {
 
     private final ProductService productService;
     private final OrderService orderService;
+    private final ElasticsearchService elasticsearchService;
 
     //내가 주문한 펀딩 프로젝트 조회
     @GetMapping("/my/funding")
@@ -112,6 +115,15 @@ public class FundingController {
             @RequestParam(name= "page") int page) {
         List<GetFundingResponseDto> fundingList = productService.getSearchFundingList(sort ,keyword, page);
         return fundingList;
+    }
+
+    @GetMapping("/suggest")
+    public List<String> getSearchSuggestions(@RequestParam(name = "prefix") String prefix) {
+        try {
+            return elasticsearchService.getSuggestions(prefix);
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
     }
 
     // funding 서비스에서 검색페이지에 배스트 펀딩, 마감임박, 오늘의 검색어 중 선택한 색션 펀딩 리스트 데이터 요청

@@ -19,6 +19,7 @@ public enum ResponseCode {
     GET_FUNDING_REVIEW(successCode(), HttpStatus.OK, "리뷰를 성공적으로 조회되었습니다."),
     GET_SELLER_DETAIL(successCode(), HttpStatus.OK, "판매자 상세 정보를 성공적으로 조회되었습니다."),
     GET_SELLER_FUNDING(successCode(), HttpStatus.OK, "판매자의 펀딩 프로젝트 정보를 성공적으로 조회되었습니다."),
+    GET_SUGGESTION(successCode(),HttpStatus.OK, "검색어 자동완성 목록이 성공적으로 조회되었습니다."),
 
     // 일반 오류
     DATABASE_ERROR(500, HttpStatus.INTERNAL_SERVER_ERROR, "데이터베이스 오류가 발생했습니다."),
