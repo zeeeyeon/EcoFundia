@@ -2,6 +2,7 @@ package com.chat.controller;
 
 import com.chat.dto.ChatMessageDocument;
 import com.chat.dto.ChatMessageDto;
+import com.chat.dto.response.ChatPageResponseDto;
 import com.chat.producer.ChatKafkaProducer;
 import com.chat.repository.ChatMessageRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -11,7 +12,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -40,5 +43,20 @@ public class ChatController {
         //chatMessageRepository.save(document);
 
     }
+
+    // 채팅 색션에 들어갔을 때 채팅방 리스트와 마지막 채팅 내역 조회
+    @GetMapping("/chat/list")
+    public List<ChatPageResponseDto> getChatPageList(@RequestHeader("X-User-Id") int userId){
+        return null;
+    }
+
+    // 특정 채팅에 들어갔을때 그 채팅 메시지 내역 조회 20건씩 조회
+    // kafka에 해당 토픽에 메시지가 있는지 확인하고
+    @GetMapping("/chat/record")
+    public List<ChatMessageDto> getChatRecord(@RequestParam(name = "fundingId") int fundingId, @RequestParam( name = "page" ) int page){
+        return null;
+    }
+
+    //카프카
 
 }
