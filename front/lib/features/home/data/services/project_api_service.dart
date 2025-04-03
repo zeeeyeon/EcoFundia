@@ -133,7 +133,11 @@ class ProjectApiService extends ProjectService {
             };
 
             _logger.d('Merged project data for DTO: $projectData');
-            return ProjectDTO.fromJson(projectData);
+            final projectDTO = ProjectDTO.fromJson(projectData);
+            _logger.d('ProjectDTO storyFileUrl: ${projectDTO.storyFileUrl}');
+            _logger.d(
+                'ProjectEntity storyFileUrl: ${projectDTO.toEntity().storyFileUrl}');
+            return projectDTO;
           } else {
             throw Exception(
                 'Invalid API response format: fundingInfo or sellerInfo is missing');

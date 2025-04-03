@@ -79,6 +79,11 @@ class AuthViewModel extends StateNotifier<AuthState> {
       _appStateViewModel.setLoading(true);
 
       final isLoggedIn = await _checkLoginStatusUseCase.execute();
+
+      // 인증 상태가 확인되면 앱 상태도 즉시 업데이트 (동기적인 isLoggedInProvider 업데이트)
+      _appStateViewModel.setLoggedIn(isLoggedIn);
+      LoggerUtil.d('🔑 초기 인증 상태: $isLoggedIn (initializeAuthState)');
+
       if (!isLoggedIn) {
         state = state.copyWith(status: AuthStatus.unauthenticated);
         return;
@@ -105,6 +110,10 @@ class AuthViewModel extends StateNotifier<AuthState> {
       }
     } catch (e) {
       LoggerUtil.e('인증 상태 초기화 실패', e);
+
+      // 오류 발생 시 로그아웃 상태로 설정
+      _appStateViewModel.setLoggedIn(false);
+
       state = state.copyWith(
         status: AuthStatus.error,
         error: '인증 상태 확인 중 오류가 발생했습니다.',
@@ -327,11 +336,17 @@ class AuthViewModel extends StateNotifier<AuthState> {
 
       // 결과 처리
       if (result is AuthSuccessEntity) {
-        // 로그인 성공 - 앱 상태 업데이트 후 메인 화면으로 이동
+        // 로그인 성공 - 먼저 앱 상태를 업데이트
         _appStateViewModel.setLoggedIn(true);
+        LoggerUtil.i('✅ 앱 상태 로그인 업데이트 완료 (handleGoogleLogin)');
 
-        // 딜레이를 추가하여 상태 업데이트 후 네비게이션
-        await Future.delayed(const Duration(milliseconds: 50));
+        // 인증 관련 데이터가 완전히 반영될 때까지 충분한 지연
+        // 이 시간동안 로딩 상태를 유지하여 사용자가 다른 액션을 하지 못하게 함
+        LoggerUtil.d('⏳ 인증 데이터 동기화를 위해 대기 중...');
+        await Future.delayed(const Duration(milliseconds: 500));
+        LoggerUtil.d('✅ 인증 데이터 동기화 완료');
+
+        // 홈 화면으로 이동
         _router.go('/');
       } else if (result is AuthNewUserEntity) {
         // 회원가입 필요 - 회원가입 화면으로 이동
@@ -345,15 +360,25 @@ class AuthViewModel extends StateNotifier<AuthState> {
           });
         }
       } else if (result is AuthErrorEntity) {
-        // 에러 발생
-        LoggerUtil.e('로그인 오류: ${result.message}');
+        // 에러 발생 - 로그아웃 상태로 설정
+        _appStateViewModel.setLoggedIn(false);
+        LoggerUtil.e('❌ 로그인 오류: ${result.message} (앱 상태: 로그아웃)');
         _appStateViewModel.setError(result.message);
+      } else if (result is AuthCancelledEntity) {
+        // 취소된 경우 - 로그아웃 상태 유지
+        _appStateViewModel.setLoggedIn(false);
+        LoggerUtil.i('ℹ️ 로그인 취소됨 (앱 상태: 로그아웃)');
       }
     } catch (e) {
-      LoggerUtil.e('Google 로그인 실패', e);
+      // 모든 예외 처리 - 로그아웃 상태로 설정
+      _appStateViewModel.setLoggedIn(false);
+      LoggerUtil.e('❌ Google 로그인 실패 (앱 상태: 로그아웃)', e);
       _appStateViewModel.setError('로그인 처리 중 오류가 발생했습니다.');
     } finally {
-      _appStateViewModel.setLoading(false);
+      // 모든 처리가 끝난 후에만 로딩 상태 해제
+      if (_appStateViewModel.state.isLoading) {
+        _appStateViewModel.setLoading(false);
+      }
     }
   }
 }

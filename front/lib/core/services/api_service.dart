@@ -301,7 +301,8 @@ class ApiService {
 
       // 로컬 스토리지에서 토큰 및 사용자 정보 삭제
       await StorageService.clearAll();
-      LoggerUtil.i('✅ 로그아웃 성공');
+      LoggerUtil.i('✅ 로그아웃 성공: 토큰 및 사용자 정보 삭제 완료');
+
       return true;
     } catch (e) {
       LoggerUtil.e('❌ 로그아웃 실패', e);
@@ -342,10 +343,14 @@ int min(int a, int b) => a < b ? a : b;
 // 1. 이미지 URL을 백엔드 프록시를 통해 가져오도록 변환하는 함수 추가
 String getProxiedImageUrl(String originalUrl, {int? maxWidth, int? maxHeight}) {
   if (originalUrl.isEmpty) {
+    LoggerUtil.w('빈 이미지 URL이 전달됨');
     return '';
   }
 
   try {
+    LoggerUtil.d(
+        '이미지 URL 처리 시작: $originalUrl (maxWidth: $maxWidth, maxHeight: $maxHeight)');
+
     // 이미 프록시된 URL인 경우
     if (originalUrl.startsWith('http://') ||
         originalUrl.startsWith('https://')) {
@@ -363,12 +368,6 @@ String getProxiedImageUrl(String originalUrl, {int? maxWidth, int? maxHeight}) {
 
       if (maxHeight != null && !queryParams.containsKey('height')) {
         queryParams['height'] = maxHeight.toString();
-      }
-
-      // 안전한 WebGL 제한을 위한 기본값 설정 (명시적으로 지정되지 않은 경우)
-      if (maxWidth == null && maxHeight == null) {
-        // 이미지 서버에서 지원하는 경우에만 적용
-        // queryParams['max_dimension'] = '2048';
       }
 
       // 새 URI 생성
@@ -389,9 +388,10 @@ String getProxiedImageUrl(String originalUrl, {int? maxWidth, int? maxHeight}) {
     }
 
     // 그 외의 경우 (데이터 URL 등) 원본 반환
+    LoggerUtil.d('특별한 처리 없이 원본 URL 반환: $originalUrl');
     return originalUrl;
   } catch (e) {
-    LoggerUtil.e('이미지 URL 처리 중 오류 발생: $e');
+    LoggerUtil.e('이미지 URL 처리 중 오류 발생: $e, URL: $originalUrl');
     return originalUrl;
   }
 }

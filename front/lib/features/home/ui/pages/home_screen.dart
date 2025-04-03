@@ -190,7 +190,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           const SizedBox(height: AppSizes.spacingM),
 
           // 총 펀드 금액 표시
-          const TotalFundDisplay(key: ValueKey('total_fund_display')),
+          const TotalFundDisplay(),
         ],
       ),
     );

@@ -1,17 +1,21 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/core/constants/app_strings.dart';
 import 'package:front/core/themes/app_colors.dart';
 import 'package:front/core/themes/app_text_styles.dart';
 import 'package:front/features/home/domain/entities/project_entity.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:front/utils/auth_utils.dart';
+import 'package:front/core/providers/app_state_provider.dart';
+import 'package:front/utils/logger_util.dart';
 
 /// 프로젝트 카드 위젯
-class ProjectCard extends StatefulWidget {
+class ProjectCard extends ConsumerStatefulWidget {
   final ProjectEntity project;
   final VoidCallback onPurchaseTap;
-  final VoidCallback onLikeTap;
+  final Function(ProjectEntity) onLikeTap;
 
   const ProjectCard({
     super.key,
@@ -21,10 +25,10 @@ class ProjectCard extends StatefulWidget {
   });
 
   @override
-  State<ProjectCard> createState() => _ProjectCardState();
+  ConsumerState<ProjectCard> createState() => _ProjectCardState();
 }
 
-class _ProjectCardState extends State<ProjectCard> {
+class _ProjectCardState extends ConsumerState<ProjectCard> {
   late Timer _timer;
   String _remainingTime = '';
 
@@ -71,6 +75,53 @@ class _ProjectCardState extends State<ProjectCard> {
             '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')} 남음';
       }
     });
+  }
+
+  // 좋아요 버튼 클릭 핸들러
+  void _handleLikeTap() async {
+    // 먼저 동기 Provider를 통해 로그인 상태 확인 (즉각적인 상태 확인)
+    final isLoggedIn = ref.read(isLoggedInProvider);
+
+    if (!isLoggedIn) {
+      LoggerUtil.d('👍 좋아요 시도: 로그인 상태 확인 - 로그인 필요 (동기 상태 체크)');
+
+      // 로그인이 필요한 경우 모달 표시
+      final isAuthenticated = await AuthUtils.checkAuthAndShowModal(
+        context,
+        ref,
+        AuthRequiredFeature.like,
+      );
+
+      if (!isAuthenticated) {
+        LoggerUtil.d('👍 좋아요 토글: ${widget.project.id}, 인증: 필요 → 인증 모달 표시됨');
+        return; // 로그인하지 않으면 좋아요 기능 실행하지 않고 종료
+      }
+    }
+
+    // 토큰 유효성 추가 검증 (심층 체크) - 로그인된 상태에서만 수행
+    if (isLoggedIn) {
+      // 스토리지에 저장된 토큰이 유효한지 확인
+      final hasValidToken = await ref.read(isAuthenticatedProvider.future);
+      if (!hasValidToken) {
+        LoggerUtil.d('👍 좋아요 시도: 로그인되었으나 토큰 만료됨 - 재인증 필요');
+
+        // 토큰이 만료된 경우 모달을 통해 재로그인 유도
+        final reAuthenticated = await AuthUtils.checkAuthAndShowModal(
+          context,
+          ref,
+          AuthRequiredFeature.like,
+        );
+
+        if (!reAuthenticated) {
+          LoggerUtil.d('👍 좋아요 토글: ${widget.project.id}, 재인증: 필요 → 인증 모달 표시됨');
+          return; // 재인증하지 않으면 좋아요 기능 실행하지 않고 종료
+        }
+      }
+    }
+
+    // 인증된 경우에만 실제 좋아요 로직 실행
+    LoggerUtil.d('👍 좋아요 토글: ${widget.project.id}, 인증: 성공 → 좋아요 작업 실행');
+    widget.onLikeTap(widget.project);
   }
 
   @override
@@ -260,7 +311,7 @@ class _ProjectCardState extends State<ProjectCard> {
                         children: [
                           //좋아요버튼튼
                           InkWell(
-                            onTap: widget.onLikeTap,
+                            onTap: _handleLikeTap,
                             child: Icon(
                               widget.project.isLiked
                                   ? Icons.favorite

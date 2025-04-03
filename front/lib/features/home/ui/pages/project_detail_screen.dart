@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:front/utils/auth_utils.dart';
 import 'package:front/core/providers/app_state_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // ProjectDetail 상태 정의
 class ProjectDetailState {
@@ -295,65 +296,86 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                         size: 20,
                       ),
                     ),
-                    onPressed: () {
-                      // 찜하기 토글 기능 구현
-                      // 로그인 상태 체크
-                      final authCheck = AuthUtils.checkAuthAndShowModal(
+                    onPressed: () async {
+                      // 동기 Provider를 통해 로그인 상태 확인 (즉각적인 상태 확인)
+                      final isLoggedIn = ref.read(isLoggedInProvider);
+
+                      if (!isLoggedIn) {
+                        LoggerUtil.d('❤️ 좋아요 버튼 클릭: 로그인 필요 (동기 상태 체크)');
+                      }
+
+                      // 로그인 상태 체크 및 모달 표시
+                      final isAuthenticated =
+                          await AuthUtils.checkAuthAndShowModal(
                         context,
                         ref,
                         AuthRequiredFeature.like,
                       );
 
-                      authCheck.then((isAuthenticated) {
-                        if (isAuthenticated) {
-                          // 현재 상태 저장
-                          final isCurrentlyLiked = project.isLiked;
+                      if (!isAuthenticated) {
+                        LoggerUtil.d('❤️ 좋아요 버튼: 인증 필요 → 로그인 모달 표시됨');
+                        return; // 인증되지 않으면 좋아요 기능 실행하지 않음
+                      }
 
-                          // 1. Optimistic UI 업데이트 (즉시 UI 반영)
-                          // 프로젝트 상태를 낙관적으로 업데이트
-                          final updatedProject =
-                              project.copyWith(isLiked: !isCurrentlyLiked);
-                          ref
-                              .read(projectDetailProvider(widget.projectId)
-                                  .notifier)
-                              .updateProject(updatedProject);
-
-                          // 스낵바 표시
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                isCurrentlyLiked
-                                    ? '찜 목록에서 제거되었습니다.'
-                                    : '찜 목록에 추가되었습니다.',
-                              ),
-                              duration: const Duration(seconds: 2),
-                            ),
-                          );
-
-                          // 2. API 호출 - 현재 isLiked 상태를 전달하여 API에서 중복 확인을 방지
-                          ref
-                              .read(projectRepositoryProvider)
-                              .toggleProjectLike(
-                                project.id,
-                                isCurrentlyLiked: isCurrentlyLiked,
-                              )
-                              .catchError((error) {
-                            LoggerUtil.e('찜하기 토글 실패', error);
-
-                            // 3. 실패 시 UI 롤백
-                            ref
-                                .read(projectDetailProvider(widget.projectId)
-                                    .notifier)
-                                .updateProject(project);
-
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('찜하기 처리 중 오류가 발생했습니다.'),
-                                duration: Duration(seconds: 2),
-                              ),
-                            );
-                          });
+                      // 토큰 유효성 추가 검증 (로그인된 상태에서만 필요)
+                      if (isAuthenticated) {
+                        // 실제 토큰이 유효한지 스토리지에서 다시 확인
+                        final hasValidToken =
+                            await ref.read(isAuthenticatedProvider.future);
+                        if (!hasValidToken) {
+                          LoggerUtil.d('❤️ 좋아요 버튼: 토큰 만료됨, 재인증 필요');
+                          return; // 토큰이 유효하지 않으면 작업 중단
                         }
+                      }
+
+                      LoggerUtil.d('❤️ 좋아요 버튼: 인증 성공 → 좋아요 기능 실행');
+
+                      // 현재 상태 저장
+                      final isCurrentlyLiked = project.isLiked;
+
+                      // 1. Optimistic UI 업데이트 (즉시 UI 반영)
+                      // 프로젝트 상태를 낙관적으로 업데이트
+                      final updatedProject =
+                          project.copyWith(isLiked: !isCurrentlyLiked);
+                      ref
+                          .read(
+                              projectDetailProvider(widget.projectId).notifier)
+                          .updateProject(updatedProject);
+
+                      // 스낵바 표시
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            isCurrentlyLiked
+                                ? '찜 목록에서 제거되었습니다.'
+                                : '찜 목록에 추가되었습니다.',
+                          ),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+
+                      // 2. API 호출 - 현재 isLiked 상태를 전달하여 API에서 중복 확인을 방지
+                      ref
+                          .read(projectRepositoryProvider)
+                          .toggleProjectLike(
+                            project.id,
+                            isCurrentlyLiked: isCurrentlyLiked,
+                          )
+                          .catchError((error) {
+                        LoggerUtil.e('찜하기 토글 실패', error);
+
+                        // 3. 실패 시 UI 롤백
+                        ref
+                            .read(projectDetailProvider(widget.projectId)
+                                .notifier)
+                            .updateProject(project);
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('찜하기 처리 중 오류가 발생했습니다.'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
                       });
                     },
                   ),
@@ -532,34 +554,41 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                           ],
                         ),
                         ElevatedButton(
-                          onPressed: () {
-                            // 펀딩하기 로직
+                          onPressed: () async {
                             // 로그인 상태 체크
-                            final authCheck = AuthUtils.checkAuthAndShowModal(
+                            // 동기 Provider로 로그인 상태 먼저 확인
+                            final isLoggedIn = ref.read(isLoggedInProvider);
+
+                            if (!isLoggedIn) {
+                              LoggerUtil.d('💰 펀딩하기 버튼: 로그인 필요 (동기 상태 체크)');
+                            }
+
+                            // 로그인 모달 표시 로직 (필요시)
+                            final isAuthenticated =
+                                await AuthUtils.checkAuthAndShowModal(
                               context,
                               ref,
                               AuthRequiredFeature.funding,
                             );
 
-                            authCheck.then((isAuthenticated) {
-                              if (isAuthenticated) {
-                                // 로그인된 경우 펀딩 로직 실행
-                                LoggerUtil.d('펀딩하기 버튼 클릭: 로그인됨');
+                            if (!isAuthenticated) {
+                              LoggerUtil.d('💰 펀딩하기 버튼: 인증 필요 → 로그인 모달 표시됨');
+                              return; // 인증되지 않으면 펀딩 기능 실행하지 않음
+                            }
 
-                                // TODO: 실제 펀딩 페이지로 이동
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('펀딩하기 버튼이 클릭되었습니다.'),
-                                    duration: Duration(seconds: 2),
-                                  ),
-                                );
+                            // 인증된 경우 펀딩 로직 실행
+                            LoggerUtil.d('💰 펀딩하기 버튼: 인증 성공 → 펀딩 페이지로 이동');
 
-                                // 실제 구현 시에는 아래와 같이 펀딩 페이지로 이동
-                                // context.go('/payment/${project.id}');
-                              } else {
-                                LoggerUtil.d('펀딩하기 버튼 클릭: 로그인 필요');
-                              }
-                            });
+                            // 펀딩 페이지로 이동
+                            context.go('/payment/${project.id}');
+
+                            // 스낵바로 안내
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('펀딩 페이지로 이동합니다.'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
@@ -633,7 +662,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                       style: AppTextStyles.body1,
                     ),
 
-                    // 스토리 이미지 표시
+                    // 스토리 이미지 표시 부분 - 로깅 추가
                     if (project.storyFileUrl != null &&
                         project.storyFileUrl!.isNotEmpty)
                       Padding(
@@ -673,7 +702,16 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                                   ),
                               ],
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 2),
+                            // URL 디버깅 표시
+                            Text(
+                              '디버그 URL: ${project.storyFileUrl}',
+                              style: AppTextStyles.caption.copyWith(
+                                color: AppColors.grey,
+                                fontSize: 10,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
                             ClipRRect(
                               borderRadius: BorderRadius.circular(8),
                               child: Column(
@@ -692,27 +730,57 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                                     child: CachedNetworkImage(
                                       imageUrl: project.storyFileUrl!,
                                       width: double.infinity,
-                                      fit: BoxFit.fitWidth,
+                                      fit: BoxFit.contain,
                                       memCacheWidth: 1024,
                                       memCacheHeight: 2048,
                                       fadeInDuration:
                                           const Duration(milliseconds: 300),
+                                      maxWidthDiskCache: 1024,
+                                      maxHeightDiskCache: 2048,
+                                      httpHeaders: const {
+                                        'Accept':
+                                            'image/webp,image/*,*/*;q=0.8',
+                                      },
                                       placeholder: (context, url) {
                                         LoggerUtil.d('스토리 이미지 로딩 중: $url');
                                         return Container(
                                           height: 200,
                                           color: AppColors.lightGrey
                                               .withOpacity(0.3),
-                                          child: const Center(
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              color: AppColors.primary,
-                                            ),
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              const CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: AppColors.primary,
+                                              ),
+                                              const SizedBox(height: 12),
+                                              Text(
+                                                '이미지 로딩 중...',
+                                                style: AppTextStyles.body2
+                                                    .copyWith(
+                                                  color: AppColors.grey,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                url,
+                                                style: AppTextStyles.caption
+                                                    .copyWith(
+                                                  color: AppColors.grey,
+                                                  fontSize: 10,
+                                                ),
+                                                textAlign: TextAlign.center,
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ],
                                           ),
                                         );
                                       },
                                       errorWidget: (context, url, error) {
-                                        // 에러 위젯 코드는 그대로 유지
+                                        // 에러 위젯 - 더 자세한 정보 제공
                                         LoggerUtil.e(
                                             '스토리 이미지 로드 실패: $url', error);
                                         LoggerUtil.e(
@@ -725,7 +793,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                                             errorString.contains('range');
 
                                         return Container(
-                                          height: 150,
+                                          height: 200,
                                           color: AppColors.lightGrey
                                               .withOpacity(0.3),
                                           child: Column(
@@ -748,21 +816,59 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                                                   color: AppColors.grey,
                                                 ),
                                               ),
-                                              if (!isWebGLError)
-                                                Padding(
+                                              const SizedBox(height: 8),
+                                              GestureDetector(
+                                                onTap: () {
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(
+                                                    SnackBar(
+                                                      content:
+                                                          Text('이미지 URL: $url'),
+                                                      duration: const Duration(
+                                                          seconds: 5),
+                                                    ),
+                                                  );
+                                                },
+                                                child: Container(
                                                   padding: const EdgeInsets
                                                       .symmetric(
-                                                      horizontal: 16.0,
-                                                      vertical: 8.0),
-                                                  child: Text(
-                                                    '오류: ${error.toString().substring(0, error.toString().length > 50 ? 50 : error.toString().length)}...',
-                                                    textAlign: TextAlign.center,
-                                                    style: AppTextStyles.caption
-                                                        .copyWith(
-                                                      color: AppColors.grey,
+                                                    horizontal: 12,
+                                                    vertical: 6,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    color: AppColors.grey
+                                                        .withOpacity(0.2),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            4),
+                                                  ),
+                                                  child: const Text(
+                                                    '이미지 URL 보기',
+                                                    style: TextStyle(
+                                                      color: AppColors.darkGrey,
                                                     ),
                                                   ),
                                                 ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 16.0,
+                                                        vertical: 8.0),
+                                                child: Text(
+                                                  '이미지 파일 문제가 발생했습니다.',
+                                                  textAlign: TextAlign.center,
+                                                  style: AppTextStyles.caption
+                                                      .copyWith(
+                                                    color: AppColors.grey,
+                                                    fontSize: 10,
+                                                  ),
+                                                  maxLines: 2,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ),
                                             ],
                                           ),
                                         );

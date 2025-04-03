@@ -4,6 +4,10 @@ import 'package:front/core/services/api_service.dart';
 import 'package:front/core/ui/widgets/app_dialog.dart';
 import 'package:front/utils/logger_util.dart';
 import 'package:go_router/go_router.dart';
+import 'package:front/core/providers/app_state_provider.dart';
+import 'package:front/features/mypage/ui/view_model/profile_view_model.dart';
+import 'package:front/features/mypage/ui/view_model/total_funding_provider.dart';
+import 'package:front/features/wishlist/ui/view_model/wishlist_view_model.dart';
 
 class CustomerSupportSection extends ConsumerWidget {
   const CustomerSupportSection({super.key});
@@ -153,6 +157,15 @@ class CustomerSupportSection extends ConsumerWidget {
       // ApiService에서 로그아웃 요청 처리
       final apiService = ref.read(apiServiceProvider);
       final success = await apiService.logout();
+
+      // 앱 상태 업데이트 - isLoggedIn을 false로 설정
+      ref.read(appStateProvider.notifier).setLoggedIn(false);
+
+      // 사용자 정보 관련 Provider 초기화
+      ref.invalidate(profileProvider);
+      ref.invalidate(totalFundingAmountProvider);
+      ref.invalidate(wishlistViewModelProvider);
+      // 필요한 경우 다른 사용자 데이터 Provider도 초기화
 
       // 로딩 숨기기 전에 약간 지연 (UI 상태 안정화)
       await Future.delayed(const Duration(milliseconds: 300));

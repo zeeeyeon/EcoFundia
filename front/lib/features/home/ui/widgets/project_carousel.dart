@@ -161,7 +161,7 @@ class _ProjectCarouselState extends ConsumerState<ProjectCarousel>
             return ProjectCard(
               project: project,
               onPurchaseTap: () => widget.onPurchaseTap(project),
-              onLikeTap: () => widget.onLikeTap(project),
+              onLikeTap: widget.onLikeTap,
             );
           },
           options: CarouselOptions(

@@ -17,34 +17,42 @@ class AuthUtils {
     bool showModal = true,
   }) async {
     try {
-      final isAuthenticated = await ref.read(isAuthenticatedProvider.future);
+      // 먼저 동기적인 Provider에서 로그인 상태 확인 (즉시 반응)
+      final isLoggedIn = ref.read(isLoggedInProvider);
       final requiresAuth = ref.read(requiresAuthProvider(feature));
 
+      // 인증이 필요하지 않은 기능이면 항상 true 반환
       if (!requiresAuth) return true;
 
-      if (!isAuthenticated) {
-        LoggerUtil.d('권한 체크: 인증 필요 (${feature.name})');
-
-        // 모달이 이미 표시 중이면 중복 표시 방지
-        if (showModal && context.mounted && !_isModalShowing) {
-          _isModalShowing = true;
-          try {
-            // 각 표시마다 고유한 키 생성
-            final uniqueKey = UniqueKey();
-            await showDialog(
-              context: context,
-              barrierDismissible: true, // 바깥 영역 터치로 닫기 가능
-              builder: (context) => LoginRequiredModal(key: uniqueKey),
-            );
-          } finally {
-            // 모달이 닫히면 상태 업데이트, finally로 예외 발생해도 항상 실행되게 함
-            _isModalShowing = false;
-          }
-        }
-        return false;
+      // 로그인되어 있으면 추가 체크 없이 바로 true 반환
+      if (isLoggedIn) {
+        LoggerUtil.d('권한 체크 (isLoggedInProvider): 인증됨 (${feature.name})');
+        return true;
       }
 
-      return true;
+      LoggerUtil.d('권한 체크 (isLoggedInProvider): 인증 필요 (${feature.name})');
+
+      // 모달이 이미 표시 중이면 중복 표시 방지
+      if (showModal && context.mounted && !_isModalShowing) {
+        _isModalShowing = true;
+        try {
+          // 각 표시마다 고유한 키 생성
+          final uniqueKey = UniqueKey();
+          await showDialog(
+            context: context,
+            barrierDismissible: true, // 바깥 영역 터치로 닫기 가능
+            builder: (context) => LoginRequiredModal(key: uniqueKey),
+          );
+        } finally {
+          // 모달이 닫히면 상태 업데이트, finally로 예외 발생해도 항상 실행되게 함
+          _isModalShowing = false;
+        }
+
+        // 모달 닫힌 후 로그인 상태 다시 확인 (모달에서 로그인했을 수 있음)
+        return ref.read(isLoggedInProvider);
+      }
+
+      return false;
     } catch (e) {
       LoggerUtil.e('권한 체크 실패', e);
       // 오류 발생해도 모달 표시 상태 초기화
@@ -60,11 +68,29 @@ class AuthUtils {
     GoRouterState state,
   ) async {
     // 현재 경로가 로그인이 필요한 경로인지 확인
-    if (!isAuthRequiredPath(state.uri.toString())) return null;
+    final currentPath = state.uri.toString();
+    if (!isAuthRequiredPath(currentPath)) return null;
 
+    // 먼저 동기적인 Provider로 로그인 상태 확인 (즉시 상태 확인)
+    final isLoggedIn = ref.read(isLoggedInProvider);
+
+    if (isLoggedIn) {
+      // 이미 로그인된 상태이면 다음 라우트로 진행
+      return null;
+    }
+
+    // 로그인 상태가 아니면 추가로 토큰 유효성 확인 (더 안전한 검증)
     final isAuthenticated = await ref.read(isAuthenticatedProvider.future);
+
+    // 앱 상태와 동기화
+    if (isAuthenticated != isLoggedIn) {
+      ref.read(appStateProvider.notifier).setLoggedIn(isAuthenticated);
+      LoggerUtil.d('🔄 인증 상태 동기화: $isAuthenticated (라우트 체크)');
+    }
+
     if (!isAuthenticated) {
-      LoggerUtil.d('라우트 권한 체크: 인증 필요 (${state.uri.toString()})');
+      LoggerUtil.d('🔒 라우트 권한 체크: 인증 필요 ($currentPath) → 로그인 페이지로 리다이렉션');
+      // 로그인 페이지로 리다이렉션
       return '/login';
     }
 
@@ -73,6 +99,10 @@ class AuthUtils {
 
   /// 로그인이 필요한 경로인지 확인
   static bool isAuthRequiredPath(String path) {
+    // URL 파라미터 제거 (예: /mypage?tab=1 -> /mypage)
+    final cleanPath =
+        path.contains('?') ? path.substring(0, path.indexOf('?')) : path;
+
     const authRequiredPaths = {
       '/mypage': true,
       '/wishlist': true,
@@ -85,13 +115,13 @@ class AuthUtils {
     };
 
     // 정확한 경로 매칭 먼저 시도
-    if (authRequiredPaths.containsKey(path)) {
-      return authRequiredPaths[path]!;
+    if (authRequiredPaths.containsKey(cleanPath)) {
+      return authRequiredPaths[cleanPath]!;
     }
 
     // 부분 경로 매칭 (e.g., /review/123 -> /review로 매칭)
     for (final requiredPath in authRequiredPaths.keys) {
-      if (path.startsWith(requiredPath) && requiredPath != '/') {
+      if (cleanPath.startsWith(requiredPath) && requiredPath != '/') {
         return authRequiredPaths[requiredPath]!;
       }
     }

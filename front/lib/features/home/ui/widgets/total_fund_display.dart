@@ -10,8 +10,7 @@ import 'package:logger/logger.dart';
 
 /// 총 펀드 금액을 표시하는 위젯
 class TotalFundDisplay extends ConsumerStatefulWidget {
-  // 기본 생성자를 수정하여 명시적으로 key를 생성하도록 합니다
-  const TotalFundDisplay({super.key});
+  const TotalFundDisplay({Key? key}) : super(key: key);
 
   @override
   ConsumerState<TotalFundDisplay> createState() => _TotalFundDisplayState();

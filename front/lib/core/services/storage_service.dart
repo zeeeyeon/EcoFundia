@@ -137,7 +137,30 @@ class StorageService {
 
   /// 저장된 데이터 모두 삭제
   static Future<void> clearAll() async {
-    await _storage.deleteAll();
+    // 로그 추가
+    LoggerUtil.i('🔒 사용자 데이터 및 인증 정보 초기화 (로그아웃)');
+
+    try {
+      await _storage.deleteAll();
+      // 추가적으로 토큰 관련 키를 개별적으로 확실히 삭제
+      await _storage.delete(key: _tokenKey);
+      await _storage.delete(key: _refreshTokenKey);
+      await _storage.delete(key: _userIdKey);
+      await _storage.delete(key: _userEmailKey);
+      await _storage.delete(key: _userNicknameKey);
+
+      LoggerUtil.d('🧹 저장소 초기화 완료: 모든 인증 데이터 삭제됨');
+    } catch (e) {
+      LoggerUtil.e('❌ 저장소 초기화 중 오류 발생', e);
+      // 오류가 발생해도 토큰은 반드시 제거 시도
+      try {
+        await _storage.delete(key: _tokenKey);
+        await _storage.delete(key: _refreshTokenKey);
+        LoggerUtil.d('🔑 토큰 제거 시도 완료');
+      } catch (tokenError) {
+        LoggerUtil.e('❌ 토큰 제거 중 추가 오류 발생', tokenError);
+      }
+    }
   }
 
   /// 선택적 데이터 유지 로그아웃

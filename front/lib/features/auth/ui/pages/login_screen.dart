@@ -48,7 +48,7 @@ class LoginScreen extends ConsumerWidget {
 
     return LoadingOverlay(
       isLoading: appState.isLoading,
-      message: '로그인 중...',
+      message: '인증 처리 중...',
       child: Scaffold(
         backgroundColor: AppColors.white,
         body: SafeArea(

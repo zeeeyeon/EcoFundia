@@ -8,6 +8,7 @@ import 'package:front/features/wishlist/data/repositories/wishlist_repository_im
 import 'package:flutter/material.dart';
 import 'package:front/utils/error_handling_mixin.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:front/core/services/storage_service.dart';
 
 /// 위시리스트 상태
 class WishlistState {
@@ -99,6 +100,23 @@ class WishlistViewModel extends StateNotifier<WishlistState>
         hasMoreEndedItems: true);
 
     try {
+      // 로컬 스토리지에서 인증 상태 확인
+      final isAuthenticated = await StorageService.isAuthenticated();
+
+      // 인증되지 않은 경우 API 호출 중단
+      if (!isAuthenticated) {
+        LoggerUtil.w('⚠️ 위시리스트 로드 취소: 인증되지 않음');
+        state = state.copyWith(
+          isLoading: false,
+          activeItems: const [], // 빈 리스트로 초기화
+          endedItems: const [],
+          hasMoreActiveItems: false,
+          hasMoreEndedItems: false,
+        );
+        finishLoading(); // 로딩 상태 종료
+        return;
+      }
+
       if (kDebugMode) {
         LoggerUtil.i('🔄 위시리스트 API 요청 시작');
       }
