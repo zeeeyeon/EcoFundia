@@ -21,6 +21,7 @@ import com.ssafy.funding.dto.seller.request.GetSellerTodayOrderCountRequestDto;
 import com.ssafy.funding.dto.seller.response.*;
 import com.ssafy.funding.entity.Funding;
 import com.ssafy.funding.entity.FundingWishCount;
+import com.ssafy.funding.entity.SellerDetail;
 import com.ssafy.funding.entity.enums.Status;
 import com.ssafy.funding.mapper.FundingMapper;
 import com.ssafy.funding.service.ProductService;
@@ -268,8 +269,11 @@ public class FundingService implements ProductService {
     // 판매자 상세페이지 판매자 정보 요청 조회
     @Transactional
     public SellerDetailResponseDto getSellerDetail(int sellerId) {
-        List<SellerDetailDto> sellerDetailList = fundingMapper.getSellerDetail(sellerId);
-        return SellerDetailResponseDto.from(sellerDetailList);
+        List<SellerDetail> sellerDetailList = fundingMapper.getSellerDetail(sellerId);
+        List<SellerDetailDto> dtoList = sellerDetailList.stream()
+                .map(SellerDetailDto::toDto)
+                .collect(Collectors.toList());
+        return SellerDetailResponseDto.from(dtoList);
     }
 
     // 내가 주훔한 펀딩 조회
