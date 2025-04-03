@@ -1,5 +1,6 @@
 package com.ssafy.user.service.impl;
 
+import com.ssafy.user.client.CouponClient;
 import com.ssafy.user.client.FundingClient;
 import com.ssafy.user.client.OrderClient;
 import com.ssafy.user.client.SellerClient;
@@ -38,6 +39,7 @@ public class UserServiceImpl implements UserService {
     private final FundingClient fundingClient;
     private final OrderClient orderClient;
     private final SellerClient sellerClient;
+    private final CouponClient couponClient;
 
     @Override
     public LoginResponseDto verifyUser(LoginRequestDto requestDto) {
@@ -238,6 +240,22 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<GetSellerFundingDetailOrderUserInfoListResponseDto> getSellerFundingDetailOrderList(GetSellerFundingDetailOrderListRequestDto getSellerFundingDetailOrderListRequestDto) {
         return userMapper.getSellerFundingDetailOrderList(getSellerFundingDetailOrderListRequestDto.getUserIdList()).stream().map(User::toGetSellerFundingDetailOrderUserInfoListResponseDto).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<CouponResponseDto> getCouponList(int userId) {
+        return couponClient.getCouponList(userId);
+    }
+
+    @Override
+    public CouponCountResponseDto getCouponCount(int userId) {
+        List<CouponResponseDto> list = couponClient.getCouponList(userId);
+        return new CouponCountResponseDto(list.size());
+    }
+
+    @Override
+    public void postCoupon(int userId) {
+        couponClient.postCoupon(userId);
     }
 
 
