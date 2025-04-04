@@ -43,9 +43,8 @@ public class WishListController {
         return new ResponseEntity<>(Response.create(DELETE_WISHLIST, null), DELETE_WISHLIST.getHttpStatus());
     }
 
-    @GetMapping("/user")
-    public ResponseEntity<?> getUserWishlist(@RequestHeader("X-User-Id") int userId) {
-        List<Integer> wishlist = wishListService.getUserWishlist(userId);
-        return new ResponseEntity<>(Response.create(GET_WISHLIST, wishlist), GET_WISHLIST.getHttpStatus());
+    @GetMapping("/funding-ids")
+    public List<Integer> getWishListFundingIds(@RequestHeader("X-User-Id") int userId) {
+        return wishListService.getWishListFundingIds(userId);
     }
 }
