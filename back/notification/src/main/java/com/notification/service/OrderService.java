@@ -12,7 +12,7 @@ public class OrderService {
         this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
-    public void sendToAllTotalOrderAmount(int totalOrderAmount) {
+    public void sendToAllTotalOrderAmount(Long totalOrderAmount) {
         simpMessagingTemplate.convertAndSend("/topic/totalAmount", totalOrderAmount);
     }
 

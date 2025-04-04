@@ -16,7 +16,7 @@ public class OrderNotificationController {
     OrderService orderService;
 
     @PostMapping("/total-order-amount")
-    public ResponseEntity<?> sendToAllTotalOrderAmount(@RequestBody int totalOrderAmount) {
+    public ResponseEntity<?> sendToAllTotalOrderAmount(@RequestBody Long totalOrderAmount) {
         orderService.sendToAllTotalOrderAmount(totalOrderAmount);
         return new ResponseEntity<>(Response.create(SEND_TO_ALL_TOTAL_ORDER_AMOUNT, null), SEND_TO_ALL_TOTAL_ORDER_AMOUNT.getHttpStatus());
     }
