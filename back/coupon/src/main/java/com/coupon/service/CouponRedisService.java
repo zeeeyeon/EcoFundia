@@ -24,6 +24,7 @@ import java.time.ZoneId;
 import java.util.List;
 
 import static com.coupon.common.response.ResponseCode.*;
+import static com.coupon.common.util.CouponUtil.generateTodayCode;
 
 @Service
 @RequiredArgsConstructor
@@ -36,31 +37,21 @@ public class CouponRedisService {
 
     @PostConstruct
     public void initializeCouponCounts() {
-        List<Coupon> allCoupons = couponRepository.findAll();
-        for (Coupon coupon : allCoupons) {
-            String countKey = "coupon:count:" + coupon.getCouponCode();
-            redisTemplate.opsForValue().setIfAbsent(countKey, "0");
-        }
-        log.info("모든 쿠폰 카운트 키 초기화 완료");
+        int todayCode = generateTodayCode();
+        String countKey = "coupon:count:" + todayCode;
+        redisTemplate.opsForValue().setIfAbsent(countKey, "0");
     }
 
     public boolean issueCoupon(int userId, int couponCode) throws IOException {
         String userKey = "coupon:issued:" + userId + ":" + couponCode;
         String countKey = "coupon:count:" + couponCode;
 
-        if (Boolean.FALSE.equals(redisTemplate.hasKey(countKey))) {
-            redisTemplate.opsForValue().set(countKey, "0");
-            log.info("쿠폰 카운트 키 초기화: {}", countKey);
-        }
-
         ClassPathResource resource = new ClassPathResource("scripts/coupon_issue.lua");
         String script = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
         DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>(script, Long.class);
 
-        // TTL 계산 (오늘 하루 종료까지)
         long ttlSeconds = getTimeToLive();
 
-        // 로깅용 변수 출력
         log.debug("쿠폰 발급 시도 - 사용자: {}, 쿠폰: {}, 일일한도: {}, TTL: {}초",
                 userId, couponCode, CouponPolicy.DAILY_COUPON_QUANTITY, ttlSeconds);
 
@@ -99,7 +90,7 @@ public class CouponRedisService {
     }
 
     private void saveCouponToDB(int userId, int couponCode) {
-        Coupon coupon = couponRepository.findByCouponCodeWithLock(couponCode)
+        Coupon coupon = couponRepository.findByCouponCode(couponCode)
                 .orElseThrow(() -> {
                     log.warn("쿠폰 코드 [{}] 존재하지 않음", couponCode);
                     return new CustomException(COUPON_NOT_FOUND);
