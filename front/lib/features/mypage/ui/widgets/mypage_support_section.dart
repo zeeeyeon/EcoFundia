@@ -8,6 +8,8 @@ import 'package:front/core/providers/app_state_provider.dart';
 import 'package:front/features/mypage/ui/view_model/profile_view_model.dart';
 import 'package:front/features/mypage/ui/view_model/total_funding_provider.dart';
 import 'package:front/features/wishlist/ui/view_model/wishlist_view_model.dart';
+import 'package:front/features/auth/providers/auth_providers.dart';
+import 'package:dio/dio.dart';
 
 class CustomerSupportSection extends ConsumerWidget {
   const CustomerSupportSection({super.key});
@@ -95,6 +97,9 @@ class CustomerSupportSection extends ConsumerWidget {
     BuildContext? loadingContext;
     bool isLoading = false;
 
+    // CancelToken 추가
+    final cancelToken = CancelToken();
+
     // 로딩 표시 함수 - 안전한 방식으로 다이얼로그 표시
     void showLoading() {
       if (!isLoading && context.mounted) {
@@ -140,13 +145,9 @@ class CustomerSupportSection extends ConsumerWidget {
     // 홈으로 이동 함수 - 안전하게 라우팅 처리
     void navigateToHome() {
       if (context.mounted) {
-        // 약간의 지연 후 홈 이동 (비동기 작업과 충돌 방지)
-        Future.delayed(const Duration(milliseconds: 100), () {
-          if (context.mounted) {
-            // 홈 화면으로 이동 (스택을 모두 비우고 이동)
-            context.go('/');
-          }
-        });
+        // 즉시 홈 이동 (비동기 작업과 충돌 방지)
+        context.go('/');
+        LoggerUtil.i('🏠 로그아웃 후 홈 화면으로 이동 완료');
       }
     }
 
@@ -154,65 +155,55 @@ class CustomerSupportSection extends ConsumerWidget {
       showLoading();
       LoggerUtil.i('🔄 로그아웃 처리 시작');
 
-      // ApiService에서 로그아웃 요청 처리
-      final apiService = ref.read(apiServiceProvider);
-      final success = await apiService.logout();
+      // 순서 변경: 먼저 로그아웃 API 호출 후 홈 화면으로 이동
+      // 이렇게 하면 토큰이 있는 상태에서 API 요청이 발생함
+      final success = await ref.read(authProvider.notifier).signOut();
 
-      // 앱 상태 업데이트 - isLoggedIn을 false로 설정
-      ref.read(appStateProvider.notifier).setLoggedIn(false);
-
-      // 사용자 정보 관련 Provider 초기화
-      ref.invalidate(profileProvider);
-      ref.invalidate(totalFundingAmountProvider);
-      ref.invalidate(wishlistViewModelProvider);
-      // 필요한 경우 다른 사용자 데이터 Provider도 초기화
-
-      // 로딩 숨기기 전에 약간 지연 (UI 상태 안정화)
-      await Future.delayed(const Duration(milliseconds: 300));
+      // 로딩 인디케이터 닫기
       hideLoading();
 
-      if (success) {
-        LoggerUtil.i('✅ 로그아웃 완료 - 홈으로 이동');
-        if (context.mounted) {
-          navigateToHome();
+      // 로그아웃 API 호출 후 홈 화면으로 이동
+      navigateToHome();
 
-          // 스낵바는 라우팅 후 표시 (충돌 방지)
-          Future.delayed(const Duration(milliseconds: 500), () {
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('로그아웃 되었습니다')),
-              );
-            }
-          });
-        }
-      } else {
-        LoggerUtil.w('⚠️ 로그아웃 부분 실패');
-        if (context.mounted) {
-          navigateToHome();
-
-          Future.delayed(const Duration(milliseconds: 500), () {
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('로그아웃 처리가 완료되었습니다')),
-              );
-            }
-          });
-        }
-      }
-    } catch (e) {
-      LoggerUtil.e('❌ 로그아웃 처리 중 오류', e);
-      hideLoading();
-
+      // 로그아웃 성공/실패 메시지 (이미 홈 화면으로 이동한 상태)
       if (context.mounted) {
-        navigateToHome();
-
-        Future.delayed(const Duration(milliseconds: 500), () {
+        Future.delayed(const Duration(milliseconds: 300), () {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('로그아웃 중 오류가 발생했지만, 세션이 종료되었습니다')),
+              SnackBar(
+                content: Text(success ? '로그아웃 되었습니다' : '로그아웃 처리가 완료되었습니다'),
+                duration: const Duration(seconds: 2),
+              ),
             );
           }
         });
+      }
+    } catch (e) {
+      LoggerUtil.e('❌ 로그아웃 처리 중 오류', e);
+
+      // 로딩 인디케이터 닫기
+      hideLoading();
+
+      // 오류가 발생해도 홈 화면으로 이동
+      if (context.mounted) {
+        navigateToHome();
+
+        // 오류 메시지 표시
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('로그아웃 중 오류가 발생했지만, 세션이 종료되었습니다'),
+                duration: Duration(seconds: 2),
+              ),
+            );
+          }
+        });
+      }
+    } finally {
+      // 최종적으로 요청 취소하여 Dio 오류 방지
+      if (!cancelToken.isCancelled) {
+        cancelToken.cancel('로그아웃 처리 완료로 요청 취소');
       }
     }
   }

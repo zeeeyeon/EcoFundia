@@ -150,12 +150,33 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> signOut() async {
+  Future<void> signOut({CancelToken? cancelToken}) async {
     try {
+      // 서버 로그아웃 요청 (토큰이 있는 상태에서 요청해야 함)
+      LoggerUtil.i('🔄 서버 로그아웃 API 요청');
+      await _apiService.logout(cancelToken: cancelToken);
+      LoggerUtil.i('✅ 서버 로그아웃 성공');
+
+      // Google 로그아웃 (토큰이 필요하지 않음)
       await _googleSignIn.signOut();
+      LoggerUtil.i('✅ Google 로그아웃 성공');
+
+      // 로컬 스토리지 초기화 (마지막에 실행)
       await StorageService.clearAll();
+      LoggerUtil.i('✅ 로컬 스토리지 초기화 완료');
     } catch (e) {
-      LoggerUtil.e('로그아웃 실패', e);
+      // 요청 취소로 인한 오류는 무시
+      if (e is DioException && e.type == DioExceptionType.cancel) {
+        LoggerUtil.i('🛑 로그아웃 요청이 취소되었습니다.');
+        await StorageService.clearAll(); // 로컬 스토리지는 초기화
+        return; // 오류를 던지지 않음
+      }
+
+      LoggerUtil.e('❌ 로그아웃 실패', e);
+
+      // 오류가 발생해도 로컬 스토리지는 초기화
+      await StorageService.clearAll();
+
       throw AuthException('로그아웃 중 오류가 발생했습니다: $e');
     }
   }

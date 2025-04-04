@@ -290,21 +290,44 @@ class ApiService {
   }
 
   /// 로그아웃 처리
-  Future<bool> logout() async {
+  Future<bool> logout({CancelToken? cancelToken}) async {
     try {
-      LoggerUtil.i('🔄 서버에 로그아웃 요청 시작');
-      // 서버에 로그아웃 요청 전송
+      LoggerUtil.i('�� 서버에 로그아웃 요청 시작');
+
+      // 토큰 얻기 (요청 전 토큰 유효성 확인)
+      final token = await StorageService.getToken();
+      if (token == null) {
+        LoggerUtil.w('⚠️ 로그아웃 요청을 위한 토큰이 없습니다. 로컬 스토리지만 초기화합니다.');
+        await StorageService.clearAll();
+        return true; // 토큰이 없으면 서버 요청 없이 로컬 스토리지만 초기화
+      }
+
+      // 서버에 로그아웃 요청 전송 (명시적으로 토큰 포함)
       await post(
         apiEndpoints.logout,
-        options: Options(headers: {'X-Skip-Token-Refresh': 'true'}),
+        options: Options(headers: {
+          'X-Skip-Token-Refresh': 'true',
+          'Authorization': 'Bearer $token', // 명시적 토큰 포함
+        }),
+        cancelToken: cancelToken,
       );
 
-      // 로컬 스토리지에서 토큰 및 사용자 정보 삭제
+      LoggerUtil.i('✅ 서버 로그아웃 요청 성공');
+
+      // 서버 요청 성공 후 로컬 스토리지에서 토큰 및 사용자 정보 삭제
       await StorageService.clearAll();
       LoggerUtil.i('✅ 로그아웃 성공: 토큰 및 사용자 정보 삭제 완료');
 
       return true;
     } catch (e) {
+      // 요청 취소를 확인
+      if (e is DioException && e.type == DioExceptionType.cancel) {
+        LoggerUtil.i('🛑 로그아웃 요청이 취소되었습니다.');
+        // 요청이 취소되어도 로컬 스토리지는 비움
+        await StorageService.clearAll();
+        return true; // 로컬에서는 로그아웃 성공으로 처리
+      }
+
       LoggerUtil.e('❌ 로그아웃 실패', e);
       // 서버 요청 실패해도 로컬 스토리지는 비움
       await StorageService.clearAll();

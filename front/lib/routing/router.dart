@@ -34,10 +34,11 @@ import 'package:front/core/providers/app_state_provider.dart';
 // 필요한 ViewModel Provider들을 import
 import 'package:front/features/funding/ui/view_model/funding_list_view_model.dart';
 import 'package:front/features/home/ui/view_model/project_view_model.dart';
-import 'package:front/features/home/ui/view_model/home_view_model.dart';
 import 'package:front/features/wishlist/ui/view_model/wishlist_view_model.dart';
 import 'package:front/features/mypage/ui/view_model/profile_view_model.dart';
 import 'package:front/features/mypage/ui/view_model/total_funding_provider.dart';
+import 'package:front/features/mypage/ui/view_model/my_funding_view_model.dart';
+import 'package:front/features/mypage/ui/view_model/my_review_view_model.dart';
 
 // 정적으로 선언된 GlobalKey - 싱글턴으로 관리
 class AppNavigatorKeys {
@@ -395,9 +396,14 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
           if (isLoggedIn) {
             ref.read(wishlistViewModelProvider.notifier).loadWishlistItems();
           } else {
-            // 로그인되지 않은 경우, 위시리스트 초기화 (빈 상태로)
+            // 로그인되지 않은 경우, 위시리스트 상태를 명시적으로 초기화
+            // resetState 메서드가 있다면 호출 (최선의 방법)
             ref.read(wishlistViewModelProvider.notifier).resetState();
-            LoggerUtil.d('⚠️ 인증되지 않음: 위시리스트 초기화');
+
+            // 백업 방법으로, Provider를 완전히 무효화
+            ref.invalidate(wishlistViewModelProvider);
+
+            LoggerUtil.d('⚠️ 인증되지 않음: 위시리스트 초기화 완료');
           }
           break;
 
@@ -407,8 +413,13 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
             ref.invalidate(profileProvider); // Provider를 무효화하여 다음 접근 시 새로고침
             ref.invalidate(totalFundingAmountProvider); // 총 펀딩 금액 갱신
           } else {
-            // 로그인되지 않은 경우에 대한 처리는 UI단에서 이미 처리됨
-            LoggerUtil.d('⚠️ 인증되지 않음: 프로필 데이터 로드하지 않음');
+            // 로그인되지 않은 경우, 프로필 관련 Provider들을 명시적으로 초기화
+            ref.invalidate(profileProvider);
+            ref.invalidate(totalFundingAmountProvider);
+            ref.invalidate(myFundingViewModelProvider); // 내 펀딩 정보도 명시적으로 초기화
+            ref.invalidate(myReviewProvider); // 내 리뷰 정보도 명시적으로 초기화
+
+            LoggerUtil.d('⚠️ 인증되지 않음: 모든 사용자 프로필 데이터 초기화 완료');
           }
           break;
       }

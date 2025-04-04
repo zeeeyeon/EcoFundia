@@ -6,11 +6,11 @@ import 'package:front/utils/logger_util.dart';
 abstract class WishlistService {
   /// 진행중인 위시리스트 조회
   Future<List<WishlistItemModel>> fetchActiveWishlist(
-      {int page = 0, int size = 10});
+      {int page = 1, int size = 10});
 
   /// 종료된 위시리스트 조회
   Future<List<WishlistItemModel>> fetchEndedWishlist(
-      {int page = 0, int size = 10});
+      {int page = 1, int size = 10});
 
   /// 위시리스트에 추가
   Future<void> addToWishlist(int fundingId);
@@ -27,7 +27,7 @@ class WishlistApiService implements WishlistService {
 
   @override
   Future<List<WishlistItemModel>> fetchActiveWishlist(
-      {int page = 0, int size = 10}) async {
+      {int page = 1, int size = 10}) async {
     try {
       LoggerUtil.d('🔍 진행중인 위시리스트 조회 요청');
 
@@ -78,7 +78,7 @@ class WishlistApiService implements WishlistService {
 
   @override
   Future<List<WishlistItemModel>> fetchEndedWishlist(
-      {int page = 0, int size = 10}) async {
+      {int page = 1, int size = 10}) async {
     try {
       LoggerUtil.d('🔍 종료된 위시리스트 조회 요청');
 

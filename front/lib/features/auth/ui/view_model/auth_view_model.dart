@@ -14,11 +14,17 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:front/core/exceptions/auth_exception.dart';
 import 'package:go_router/go_router.dart';
+import 'package:front/features/mypage/ui/view_model/profile_view_model.dart';
+import 'package:front/features/mypage/ui/view_model/total_funding_provider.dart';
+import 'package:front/features/wishlist/ui/view_model/wishlist_view_model.dart';
+import 'package:front/features/mypage/ui/view_model/my_funding_view_model.dart';
+import 'package:front/features/mypage/ui/view_model/my_review_view_model.dart';
 
 /// 인증 ViewModel
 ///
 /// 인증 상태를 관리하고 UseCase들을 실행합니다.
 class AuthViewModel extends StateNotifier<AuthState> {
+  final Ref _ref;
   final AppStateViewModel _appStateViewModel;
   final AuthRepository _authRepository;
   final CheckLoginStatusUseCase _checkLoginStatusUseCase;
@@ -37,13 +43,15 @@ class AuthViewModel extends StateNotifier<AuthState> {
   bool _isInitialized = false;
 
   AuthViewModel({
+    required Ref ref,
     required AppStateViewModel appStateViewModel,
     required AuthRepository authRepository,
     required CheckLoginStatusUseCase checkLoginStatusUseCase,
     required GoogleSignInUseCase googleSignInUseCase,
     required SignOutUseCase signOutUseCase,
     required GoRouter router,
-  })  : _appStateViewModel = appStateViewModel,
+  })  : _ref = ref,
+        _appStateViewModel = appStateViewModel,
         _authRepository = authRepository,
         _checkLoginStatusUseCase = checkLoginStatusUseCase,
         _googleSignInUseCase = googleSignInUseCase,
@@ -249,20 +257,58 @@ class AuthViewModel extends StateNotifier<AuthState> {
   }
 
   Future<bool> signOut() async {
+    // CancelToken 생성
+    final cancelToken = CancelToken();
+
     try {
       _appStateViewModel.setLoading(true);
-      await _signOutUseCase.execute();
+
+      // API 요청으로 로그아웃 처리 (CancelToken 전달)
+      await _signOutUseCase.execute(cancelToken: cancelToken);
+
+      // 로컬 스토리지 초기화
       await StorageService.clearAll();
 
+      // 로그아웃 상태로 앱 상태 설정
+      _appStateViewModel.setLoggedIn(false);
+
+      // 모든 사용자 관련 Provider 초기화 - 이 목록이 완전해야 함
+      _ref.invalidate(profileProvider);
+      _ref.invalidate(wishlistViewModelProvider);
+      _ref.invalidate(totalFundingAmountProvider);
+      _ref.invalidate(myFundingViewModelProvider); // 내가 참여한 펀딩
+      _ref.invalidate(myReviewProvider); // 내가 작성한 리뷰
+      // 여기에 추가적인 사용자 관련 Provider 무효화 로직 추가 가능
+
+      LoggerUtil.i('✅ 로그아웃 완료 및 모든 사용자 데이터 초기화됨');
+
+      // 앱 상태 업데이트
       state = state.copyWith(
         status: AuthStatus.unauthenticated,
         accessToken: null,
         refreshToken: null,
         tokenExpiry: null,
       );
+
       return true;
     } catch (e) {
       LoggerUtil.e('로그아웃 실패', e);
+
+      // 오류 발생해도 앱 상태는 로그아웃으로 설정
+      _appStateViewModel.setLoggedIn(false);
+
+      // 에러 발생 시에도 모든 사용자 관련 Provider 초기화 시도
+      try {
+        _ref.invalidate(profileProvider);
+        _ref.invalidate(wishlistViewModelProvider);
+        _ref.invalidate(totalFundingAmountProvider);
+        _ref.invalidate(myFundingViewModelProvider);
+        _ref.invalidate(myReviewProvider);
+        LoggerUtil.i('⚠️ 로그아웃 실패했으나 사용자 데이터는 초기화됨');
+      } catch (providerError) {
+        LoggerUtil.e('Provider 초기화 실패', providerError);
+      }
+
       state = state.copyWith(
         status: AuthStatus.error,
         error: '로그아웃 중 오류가 발생했습니다.',
@@ -270,6 +316,11 @@ class AuthViewModel extends StateNotifier<AuthState> {
       return false;
     } finally {
       _appStateViewModel.setLoading(false);
+
+      // 진행 중인 요청 취소
+      if (!cancelToken.isCancelled) {
+        cancelToken.cancel('로그아웃 처리 완료');
+      }
     }
   }
 
