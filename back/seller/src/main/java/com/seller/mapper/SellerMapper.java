@@ -19,4 +19,6 @@ public interface SellerMapper {
 
     void grantSellerRole(@Param("userId") int userId, @Param("name") String name, @Param("businessNumber") String businessNumber);
     int getSellerIdByUserId(@Param("userId") int userId);
+
+    Seller getSellerInfo(int sellerId);
 }
