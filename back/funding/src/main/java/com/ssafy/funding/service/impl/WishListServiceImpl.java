@@ -58,8 +58,12 @@ public class WishListServiceImpl implements WishListService {
 
     private List<UserWishlistFundingDto> getWishlist(int userId, Function<List<Funding>, List<Funding>> filter) {
         List<Integer> fundingIds = wishListMapper.findFundingIdsByUserId(userId);
+        if (fundingIds.isEmpty()) return List.of();
+
         List<Funding> fundings = fundingMapper.findFundingsByIds(fundingIds);
         List<Funding> filteredFundings = filter.apply(fundings);
+        if (filteredFundings.isEmpty()) return List.of();
+
         Map<Integer, String> sellerNames = getSellerNames(filteredFundings);
         return convertToDtos(filteredFundings, sellerNames);
     }
@@ -86,7 +90,10 @@ public class WishListServiceImpl implements WishListService {
 
     private List<UserWishlistFundingDto> convertToDtos(List<Funding> fundings, Map<Integer, String> sellerNames) {
         return fundings.stream()
-                .map(funding -> UserWishlistFundingDto.from(funding, sellerNames.get(funding.getSellerId())))
+                .map(funding -> {
+                    String sellerName = sellerNames.getOrDefault(funding.getSellerId(), "알 수 없음");
+                    return UserWishlistFundingDto.from(funding, sellerName);
+                })
                 .collect(Collectors.toList());
     }
 }
