@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 import static com.ssafy.user.common.response.ResponseCode.*;
 
 @Slf4j
@@ -49,5 +51,11 @@ public class WishListController {
     public ResponseEntity<?> deleteWish(@RequestHeader("X-User-Id") int userId, @PathVariable int fundingId) {
         wishListService.deleteWish(userId, fundingId);
         return new ResponseEntity<>(Response.create(DELETE_WISHLIST, null), DELETE_WISHLIST.getHttpStatus());
+    }
+
+    @GetMapping("/funding-ids")
+    public ResponseEntity<?> getWishListFundingIds(@RequestHeader("X-User-Id") int userId) {
+        List<Integer> wishListFundingIds = wishListService.getWishListFundingIds(userId);
+        return new ResponseEntity<>(Response.create(GET_WISHLIST, wishListFundingIds), GET_WISHLIST.getHttpStatus());
     }
 }
