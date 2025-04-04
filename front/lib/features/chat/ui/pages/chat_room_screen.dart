@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:front/core/themes/app_colors.dart';
+import '../../../../core/themes/app_colors.dart';
 
-class ChatRoomScreen extends StatelessWidget {
+class ChatRoomScreen extends StatefulWidget {
   final int fundingId;
   final String fundingTitle;
 
@@ -12,138 +12,124 @@ class ChatRoomScreen extends StatelessWidget {
   });
 
   @override
+  State<ChatRoomScreen> createState() => _ChatRoomScreenState();
+}
+
+class _ChatRoomScreenState extends State<ChatRoomScreen> {
+  final TextEditingController _messageController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  final List<Map<String, dynamic>> _messages = [
+    {'fromMe': false, 'text': '이 펀딩 너무 좋아 보여요!'},
+    {'fromMe': true, 'text': '저도 관심 있어서 들어왔어요 :)'},
+    {'fromMe': false, 'text': '목표 금액 거의 달성했네요 🎉'},
+  ];
+
+  void _sendMessage() {
+    final text = _messageController.text.trim();
+    if (text.isEmpty) return;
+
+    setState(() {
+      _messages.add({'fromMe': true, 'text': text});
+    });
+
+    _messageController.clear();
+
+    // 스크롤 아래로 이동
+    Future.delayed(const Duration(milliseconds: 100), () {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('채팅방: $fundingTitle (#$fundingId)'),
+        title: Text('채팅방: ${widget.fundingTitle} (#${widget.fundingId})'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
       body: Column(
         children: [
+          // 🔼 메시지 목록
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              children: const [
-                _ChatBubble(
-                  isMine: false,
-                  message: "안녕하세요! 이 펀딩 너무 좋아 보여요 😍",
-                  timestamp: "오전 10:12",
-                ),
-                _ChatBubble(
-                  isMine: true,
-                  message: "저도요! 얼른 목표 달성했으면 좋겠네요",
-                  timestamp: "오전 10:14",
-                ),
-                _ChatBubble(
-                  isMine: false,
-                  message: "혹시 배송은 언제쯤 시작되나요?",
-                  timestamp: "오전 10:15",
-                ),
-              ],
+            child: ListView.builder(
+              controller: _scrollController,
+              padding: const EdgeInsets.all(16),
+              itemCount: _messages.length,
+              itemBuilder: (context, index) {
+                final msg = _messages[index];
+                final fromMe = msg['fromMe'] as bool;
+                final text = msg['text'] as String;
+
+                return Align(
+                  alignment:
+                      fromMe ? Alignment.centerRight : Alignment.centerLeft,
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: fromMe
+                          ? AppColors.primary.withOpacity(0.9)
+                          : Colors.grey[200],
+                      borderRadius: BorderRadius.only(
+                        topLeft: const Radius.circular(12),
+                        topRight: const Radius.circular(12),
+                        bottomLeft: Radius.circular(fromMe ? 12 : 0),
+                        bottomRight: Radius.circular(fromMe ? 0 : 12),
+                      ),
+                    ),
+                    child: Text(
+                      text,
+                      style: TextStyle(
+                        color: fromMe ? Colors.white : Colors.black87,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           ),
-          const _ChatInputField(),
-        ],
-      ),
-    );
-  }
-}
 
-class _ChatBubble extends StatelessWidget {
-  final bool isMine;
-  final String message;
-  final String timestamp;
-
-  const _ChatBubble({
-    required this.isMine,
-    required this.message,
-    required this.timestamp,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        constraints: const BoxConstraints(maxWidth: 280),
-        decoration: BoxDecoration(
-          color: isMine ? AppColors.primary : Colors.grey[200],
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(12),
-            topRight: const Radius.circular(12),
-            bottomLeft: Radius.circular(isMine ? 12 : 0),
-            bottomRight: Radius.circular(isMine ? 0 : 12),
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment:
-              isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-          children: [
-            Text(
-              message,
-              style: TextStyle(
-                color: isMine ? Colors.white : Colors.black87,
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              timestamp,
-              style: TextStyle(
-                fontSize: 10,
-                color: isMine ? Colors.white70 : Colors.black45,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ChatInputField extends StatelessWidget {
-  const _ChatInputField();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            offset: const Offset(0, -1),
-            blurRadius: 4,
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: '메시지를 입력하세요',
-                filled: true,
-                fillColor: Colors.grey[100],
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                  borderSide: BorderSide.none,
-                ),
+          // 🔽 입력창
+          SafeArea(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              color: Colors.white,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _messageController,
+                      decoration: InputDecoration(
+                        hintText: '메시지를 입력하세요...',
+                        filled: true,
+                        fillColor: Colors.grey[100],
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      onSubmitted: (_) => _sendMessage(),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: _sendMessage,
+                    icon: const Icon(Icons.send, color: AppColors.primary),
+                  ),
+                ],
               ),
             ),
           ),
-          const SizedBox(width: 8),
-          const CircleAvatar(
-            backgroundColor: AppColors.primary,
-            radius: 22,
-            child: Icon(Icons.send, color: Colors.white),
-          )
         ],
       ),
     );

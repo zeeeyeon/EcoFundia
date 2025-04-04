@@ -323,9 +323,9 @@ class _FundingDetailCardState extends State<FundingDetailCard> {
       width: double.infinity,
       child: ElevatedButton.icon(
         onPressed: () {
-          context.go(
+          context.push(
             '/chat/room/$fundingId',
-            extra: {'title': fundingTitle}, // ✅ extra로 title 전달
+            extra: {'title': fundingTitle}, // ✅ 여전히 title은 넘김!
           );
         },
         icon: const Icon(Icons.chat_bubble_outline),
