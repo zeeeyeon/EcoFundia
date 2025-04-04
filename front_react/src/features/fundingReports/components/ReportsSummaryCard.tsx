@@ -10,7 +10,7 @@ interface ReportsSummaryCardProps {
 const ReportsSummaryCard: React.FC<ReportsSummaryCardProps> = ({
   totalAmount,
   settlementAmount,
-  isLoading,
+  isLoading: isLoadingSummary,
 }) => {
   // 금액 포맷팅 함수
   const formatCurrency = (amount: number) => {
@@ -21,7 +21,7 @@ const ReportsSummaryCard: React.FC<ReportsSummaryCardProps> = ({
     }).format(amount);
   };
 
-  if (isLoading) {
+  if (isLoadingSummary) {
     return (
       <div className="reports-summary-card loading">
         <div className="summary-item skeleton"></div>

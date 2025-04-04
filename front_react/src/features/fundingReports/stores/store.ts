@@ -1,104 +1,130 @@
 import { create } from "zustand";
 import { FundingReportsState } from "../types";
 import {
-  getFundingReports,
-  getReportsSummary,
-  generateDummyData,
+  getCompletedFundingReports,
+  getScheduledAmount,
+  getTotalFundingAmount,
 } from "../services/fundingReportsService";
 import { getTokens } from "../../../shared/utils/auth";
 
-// 더미 데이터 (API 미구현 시 사용)
-const { dummySummary, getPaginatedDummyReports } = generateDummyData();
-
-const useFundingReportsStore = create<FundingReportsState>((set) => ({
+const useFundingReportsStore = create<FundingReportsState>((set, get) => ({
   // 초기 상태
   reports: [],
-  totalAmount: 0,
-  settlementAmount: 0,
+  totalAmount: null,
+  settlementAmount: null,
   totalElements: 0,
   totalPages: 0,
   currentPage: 0,
   isLoading: false,
+  isLoadingSummary: false,
   error: null,
 
-  // 정산내역 조회 함수
   fetchReports: async (page: number) => {
+    // 이미 해당 페이지를 로딩 중이면 중복 호출 방지
+    if (get().currentPage === page && get().isLoading) {
+      return;
+    }
+
     set({ isLoading: true, error: null });
 
     try {
-      // 토큰 확인 (로그인 상태 확인)
       const tokens = getTokens();
       if (!tokens) {
-        // 개발 모드에서 더미 데이터 사용
-        console.warn(
-          "토큰이 없습니다. 개발 모드에서 더미 데이터를 사용합니다."
-        );
-
-        // 페이지네이션된 더미 데이터 가져오기
-        const dummyData = getPaginatedDummyReports(page);
-
-        set({
-          reports: dummyData.content,
-          totalElements: dummyData.totalElements,
-          totalPages: dummyData.totalPages,
-          currentPage: page,
-          totalAmount: dummySummary.totalAmount,
-          settlementAmount: dummySummary.settlementAmount,
-          isLoading: false,
-        });
-        return;
+        throw new Error("로그인이 필요합니다.");
       }
 
-      // API 호출 (실제 데이터 가져오기)
-      const [reportsData, summaryData] = await Promise.all([
-        getFundingReports(page),
-        getReportsSummary(),
-      ]);
+      const reportsData = await getCompletedFundingReports(page);
 
       set({
         reports: reportsData.content,
         totalElements: reportsData.totalElements,
         totalPages: reportsData.totalPages,
         currentPage: page,
-        totalAmount: summaryData.totalAmount,
-        settlementAmount: summaryData.settlementAmount,
         isLoading: false,
       });
     } catch (error) {
-      console.error("정산내역 데이터 로딩 중 오류 발생:", error);
-
-      // 에러 발생 시 더미 데이터로 대체
-      const dummyData = getPaginatedDummyReports(page);
-
+      console.error(`정산내역 ${page}페이지 로딩 중 오류 발생:`, error);
       set({
-        reports: dummyData.content,
-        totalElements: dummyData.totalElements,
-        totalPages: dummyData.totalPages,
-        currentPage: page,
-        totalAmount: dummySummary.totalAmount,
-        settlementAmount: dummySummary.settlementAmount,
         isLoading: false,
         error:
           error instanceof Error
             ? error.message
-            : "정산내역을 불러오는데 실패했습니다.",
+            : `페이지 ${page}를 불러오는데 실패했습니다.`,
       });
     }
   },
 
-  // 에러 상태 초기화 함수
+  fetchInitialData: async () => {
+    // 이미 데이터가 있거나 로딩 중이면 중복 호출 방지
+    if (get().isLoadingSummary) {
+      return;
+    }
+
+    set({ isLoadingSummary: true, error: null });
+
+    try {
+      const tokens = getTokens();
+      if (!tokens) {
+        throw new Error("로그인이 필요합니다.");
+      }
+
+      // Promise.all을 사용하지 않고 개별적으로 호출하여 에러 처리
+      let totalAmountData = 0;
+      let scheduledAmountData = 0;
+
+      try {
+        totalAmountData = await getTotalFundingAmount();
+        console.log("성공적으로 총 펀딩액을 가져왔습니다:", totalAmountData);
+      } catch (error) {
+        console.error("총 펀딩액 가져오기 실패:", error);
+        // 실패해도 계속 진행
+      }
+
+      try {
+        scheduledAmountData = await getScheduledAmount();
+        console.log(
+          "성공적으로 정산 예정 금액을 가져왔습니다:",
+          scheduledAmountData
+        );
+      } catch (error) {
+        console.error("정산 예정 금액 가져오기 실패:", error);
+        // 실패해도 계속 진행
+      }
+
+      console.log("받아온 데이터:", { totalAmountData, scheduledAmountData });
+      console.log("현재 스토어 상태:", get());
+
+      set({
+        totalAmount: totalAmountData,
+        settlementAmount: scheduledAmountData,
+        isLoadingSummary: false,
+      });
+
+      console.log("업데이트 후 스토어 상태:", get());
+    } catch (error) {
+      console.error("초기 정산 데이터 로딩 중 오류 발생:", error);
+      set({
+        isLoadingSummary: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "초기 정보를 불러오는데 실패했습니다.",
+      });
+    }
+  },
+
   resetError: () => set({ error: null }),
 
-  // 스토어 초기화 함수
   resetStore: () =>
     set({
       reports: [],
-      totalAmount: 0,
-      settlementAmount: 0,
+      totalAmount: null,
+      settlementAmount: null,
       totalElements: 0,
       totalPages: 0,
       currentPage: 0,
       isLoading: false,
+      isLoadingSummary: false,
       error: null,
     }),
 }));

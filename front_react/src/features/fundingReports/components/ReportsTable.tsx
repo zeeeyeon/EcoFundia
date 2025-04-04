@@ -1,9 +1,9 @@
 import React from "react";
-import { FundingReport } from "../types";
+import { CompletedFundingReport } from "../types";
 import "../styles/ReportsTable.css";
 
 interface ReportsTableProps {
-  reports: FundingReport[];
+  reports: CompletedFundingReport[];
   isLoading: boolean;
 }
 
@@ -90,7 +90,11 @@ const ReportsTable: React.FC<ReportsTableProps> = ({ reports, isLoading }) => {
           </thead>
           <tbody>
             <tr>
-              <td colSpan={5} className="no-data-message">
+              <td
+                colSpan={5}
+                className="reports-table-no-data-message"
+                style={{ textAlign: "center" }}
+              >
                 정산 내역이 없습니다.
               </td>
             </tr>
@@ -115,17 +119,17 @@ const ReportsTable: React.FC<ReportsTableProps> = ({ reports, isLoading }) => {
         </thead>
         <tbody>
           {reports.map((report) => (
-            <tr key={report.id}>
-              <td className="product-name">{report.productName}</td>
-              <td>{formatDate(report.settlementDate)}</td>
-              <td className="order-count">{report.orderCount}</td>
+            <tr key={report.title}>
+              <td className="product-name">{report.title}</td>
+              <td>{formatDate(report.endDate)}</td>
+              <td className="order-count">{report.totalOrderCount}</td>
               <td className="amount-column">
-                {formatCurrency(report.totalFunding)}
+                {formatCurrency(report.totalAmount)}
               </td>
 
               <td className="funding-rate">
                 <span className="rate-value">
-                  {formatFundingRate(report.fundingRate)}
+                  {formatFundingRate(report.progressPercentage)}
                 </span>
               </td>
             </tr>

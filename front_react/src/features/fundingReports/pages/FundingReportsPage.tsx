@@ -24,8 +24,10 @@ const FundingReportsPage: React.FC = () => {
     settlementAmount,
     totalPages,
     isLoading,
+    isLoadingSummary,
     error,
     fetchReports,
+    fetchInitialData,
     resetError,
   } = useFundingReportsStore();
 
@@ -44,6 +46,11 @@ const FundingReportsPage: React.FC = () => {
     fetchReports(currentPage);
   }, [currentPage, fetchReports]);
 
+  // 초기 데이터(총 펀딩액, 정산 예정 금액) 로드
+  useEffect(() => {
+    fetchInitialData();
+  }, [fetchInitialData]);
+
   return (
     <div className="funding-reports-page">
       <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
@@ -54,9 +61,9 @@ const FundingReportsPage: React.FC = () => {
         <div className="reports-content-wrapper">
           {/* 요약 정보 카드 */}
           <ReportsSummaryCard
-            totalAmount={totalAmount}
-            settlementAmount={settlementAmount}
-            isLoading={isLoading}
+            totalAmount={totalAmount ?? 0}
+            settlementAmount={settlementAmount ?? 0}
+            isLoading={isLoadingSummary}
           />
 
           {/* 테이블 제목 */}
