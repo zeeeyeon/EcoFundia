@@ -6,6 +6,7 @@ class MyReviewModel {
   final String nickname; // 작성자 닉네임
   final String description;
   final int totalPrice;
+  final int fundingId; // ✅ 추가된 필드
 
   MyReviewModel({
     required this.reviewId,
@@ -15,6 +16,7 @@ class MyReviewModel {
     required this.nickname,
     required this.description,
     required this.totalPrice,
+    required this.fundingId, // ✅ 생성자에 추가
   });
 
   factory MyReviewModel.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,7 @@ class MyReviewModel {
       nickname: json['nickname'],
       description: json['description'] ?? '',
       totalPrice: json['totalPrice'] ?? 0,
+      fundingId: json['fundingId'], // ✅ fromJson에 매핑 추가
     );
   }
 }
