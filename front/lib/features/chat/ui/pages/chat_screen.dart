@@ -1,3 +1,4 @@
+// 내가 참여한 채팅방 리스트
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -10,7 +11,7 @@ class ChatScreen extends StatelessWidget {
     final mockRooms = [
       {
         'fundingId': 3,
-        'fundingTitle': '제로웨이스트 텀블러',
+        'fundingTitle': '제로웨이 스트 텀블러',
         'lastMessage': '언제 배송되나요?'
       },
       {'fundingId': 5, 'fundingTitle': '에코백 프로젝트', 'lastMessage': '좋은 프로젝트네요!'},
