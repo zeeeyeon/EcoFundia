@@ -76,6 +76,12 @@ public class FundingController {
         return new ResponseEntity<>(Response.create(ResponseCode.GET_FUNDING, fundingList), ResponseCode.GET_FUNDING.getHttpStatus());
     }
 
+    @GetMapping("/suggest")
+    public ResponseEntity<?> getAutoCompleteSuggestions(@RequestParam(name = "prefix") String prefix){
+        List<SuggestionResponseDto> dto = fundingSearchService.getAutoCompleteSuggestions(prefix);
+        return new ResponseEntity<>(Response.create(ResponseCode.GET_SUGGESTION, dto), ResponseCode.GET_SUGGESTION.getHttpStatus());
+    }
+
     @GetMapping("/search/special")
     public ResponseEntity<?> getSearchSpecialFunding(
             @RequestParam(name = "sort") String sort,

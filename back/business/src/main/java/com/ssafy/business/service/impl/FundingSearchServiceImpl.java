@@ -4,10 +4,12 @@ import com.ssafy.business.client.FundingClient;
 import com.ssafy.business.common.exception.CustomException;
 import com.ssafy.business.dto.responseDTO.FundingResponseDTO;
 import com.ssafy.business.dto.responseDTO.FundingWishCountResponseDto;
+import com.ssafy.business.dto.responseDTO.SuggestionResponseDto;
 import com.ssafy.business.service.FundingSearchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import static com.ssafy.business.common.response.ResponseCode.*;
 
@@ -49,5 +51,16 @@ public class FundingSearchServiceImpl implements FundingSearchService {
             throw new CustomException(FUNDING_NOT_FOUND);
         }
         return funingList;
+    }
+
+    @Override
+    public List<SuggestionResponseDto> getAutoCompleteSuggestions(String prefix) {
+        List<String> suggestions = fundingClient.getSuggestions(prefix);
+        List<SuggestionResponseDto> dto = new ArrayList<>();
+        for(String s : suggestions){
+            SuggestionResponseDto temp = new SuggestionResponseDto(s);
+            dto.add(temp);
+        }
+        return dto;
     }
 }

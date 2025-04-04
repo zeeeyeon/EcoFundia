@@ -6,6 +6,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ssafy.funding.client.OrderClient;
 import com.ssafy.funding.client.UserClient;
 import com.ssafy.funding.common.exception.CustomException;
+import com.ssafy.funding.common.util.JsonConverter;
+import com.ssafy.funding.document.FundingDocument;
+import com.ssafy.funding.dto.funding.request.FundingCreateRequestDto;
 import com.ssafy.funding.dto.funding.request.FundingCreateSendDto;
 import com.ssafy.funding.dto.funding.request.FundingUpdateSendDto;
 import com.ssafy.funding.dto.funding.response.FundingResponseDto;
@@ -19,6 +22,7 @@ import com.ssafy.funding.dto.seller.SellerDetailResponseDto;
 import com.ssafy.funding.dto.seller.request.GetAgeListRequestDto;
 import com.ssafy.funding.dto.seller.request.GetSellerTodayOrderCountRequestDto;
 import com.ssafy.funding.dto.seller.response.*;
+import com.ssafy.funding.elasticsearch.ElasticsearchService;
 import com.ssafy.funding.entity.Funding;
 import com.ssafy.funding.entity.FundingWishCount;
 import com.ssafy.funding.entity.SellerDetail;
@@ -46,6 +50,7 @@ import static com.ssafy.funding.common.response.ResponseCode.*;
 public class FundingService implements ProductService {
     private final OrderClient orderClient;
     private final FundingMapper fundingMapper;
+    private final ElasticsearchService elasticsearchService;
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper objectMapper;
     private final UserClient userClient;
@@ -65,6 +70,7 @@ public class FundingService implements ProductService {
     public Funding createFunding(int sellerId, FundingCreateSendDto dto) {
         Funding funding = dto.toEntity(sellerId);
         fundingMapper.createFunding(funding);
+        elasticsearchService.indexFunding(funding);
         return funding;
     }
 
@@ -74,6 +80,7 @@ public class FundingService implements ProductService {
         Funding funding = findByFundingId(fundingId);
         funding.update(dto);
         fundingMapper.updateFunding(funding);
+        elasticsearchService.indexFunding(funding);
         return funding;
     }
 
@@ -81,6 +88,7 @@ public class FundingService implements ProductService {
     public void deleteFunding(int fundingId) {
         findByFundingId(fundingId);
         fundingMapper.deleteFunding(fundingId);
+        elasticsearchService.deleteFunding(fundingId);
     }
 
     private Funding findByFundingId(int fundingId) {
@@ -212,32 +220,57 @@ public class FundingService implements ProductService {
     }
 
     // 펀딩 키워드 검색 조회
+//    @Transactional
+//    public List<GetFundingResponseDto> getSearchFundingList(String sort, String keyword, int page) {
+//
+//        String redisKey = String.format("search::%s::%s::%d", sort, keyword, page);
+//        System.out.println(redisKey);
+//
+//        // redis에서 키 조회
+//        String cachedJson = redisTemplate.opsForValue().get(redisKey);
+//
+//        if (cachedJson != null) {
+//            try {
+//                return objectMapper.readValue(cachedJson, new TypeReference<>() {});
+//            } catch (JsonProcessingException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//
+//        // redis에 없으면 DB 조회
+//        int offset = (page -1) * PAGE_SIZE;
+//        List<Funding> fundingList = fundingMapper.getSearchFundingList(sort, keyword, offset, PAGE_SIZE);
+//        List<GetFundingResponseDto> dtoList = fundingList.stream()
+//                .map(Funding::toDto).collect(Collectors.toList());
+//
+//        // redis에 캐싱
+//        redisCaching(redisKey, dtoList);
+//
+//        return dtoList;
+//    }
+
     @Transactional
     public List<GetFundingResponseDto> getSearchFundingList(String sort, String keyword, int page) {
-
         String redisKey = String.format("search::%s::%s::%d", sort, keyword, page);
-        System.out.println(redisKey);
-
-        // redis에서 키 조회
+        System.out.println("Redis Key: " + redisKey);
         String cachedJson = redisTemplate.opsForValue().get(redisKey);
-
         if (cachedJson != null) {
             try {
-                return objectMapper.readValue(cachedJson, new TypeReference<>() {});
+                return objectMapper.readValue(cachedJson, new TypeReference<List<GetFundingResponseDto>>() {});
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
             }
         }
-
-        // redis에 없으면 DB 조회
-        int offset = (page -1) * PAGE_SIZE;
-        List<Funding> fundingList = fundingMapper.getSearchFundingList(sort, keyword, offset, PAGE_SIZE);
-        List<GetFundingResponseDto> dtoList = fundingList.stream()
-                .map(Funding::toDto).collect(Collectors.toList());
-
-        // redis에 캐싱
+        List<FundingDocument> docList = elasticsearchService.searchDocuments(keyword, sort, page, PAGE_SIZE);
+        List<GetFundingResponseDto> dtoList = docList.stream()
+                .map(doc -> GetFundingResponseDto.builder()
+                        .fundingId(doc.getFundingId())
+                        .sellerId(doc.getSellerId())
+                        .title(doc.getTitle())
+                        .description(doc.getDescription())
+                        .build())
+                .collect(Collectors.toList());
         redisCaching(redisKey, dtoList);
-
         return dtoList;
     }
 
