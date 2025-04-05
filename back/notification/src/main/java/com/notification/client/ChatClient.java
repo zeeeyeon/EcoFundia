@@ -13,6 +13,6 @@ import java.util.List;
 public interface ChatClient {
 
 
-    @PostMapping("/chat/{fundingId}/store")
+    @PostMapping("/api/chat/{fundingId}/store")
     void storeMessages(@PathVariable int fundingId, @RequestBody List<ChatMessageDto> messages);
 }
