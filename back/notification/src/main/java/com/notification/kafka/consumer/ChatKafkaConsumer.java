@@ -25,7 +25,7 @@ public class ChatKafkaConsumer {
     private final ChatMessageBuffer buffer;
     private final ChatClient chatClient;
 
-    @KafkaListener(topicPattern = "chat-room.*", groupId = "chat-group")
+    @KafkaListener(topicPattern = "chat-room.*", groupId = "chat-group", containerFactory = "kafkaListenerContainerFactory")
     public void consume(ConsumerRecord<String, String> record, Acknowledgment ack) throws JsonProcessingException {
         try {
             String topic = record.topic();

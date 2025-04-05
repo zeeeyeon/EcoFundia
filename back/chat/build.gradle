@@ -29,13 +29,13 @@ ext {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+	//implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
 	//mongodb
 	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 
 	// Kafka
-	implementation 'org.springframework.kafka:spring-kafka'
+	// implementation 'org.springframework.kafka:spring-kafka'
 
 	//openfegin
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
