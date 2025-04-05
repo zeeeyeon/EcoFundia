@@ -1,24 +1,22 @@
-package com.chat.dto;
-
+package com.chat.dto.response;
 
 import com.chat.entity.Sender;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-
 @Data
+@Builder
 @AllArgsConstructor
-@NoArgsConstructor
-public class ChatMessageDto {
+public class ChatMessageResponseDto {
 
+    private String id;
     private int fundingId;
-    private Sender sender;
+    private int senderId;
+    private String nickname;
     private String content;
-    private String status;
     private LocalDateTime createdAt;
 
 }
-

@@ -28,7 +28,7 @@ public class StompSubscribeListener {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
         String destination = accessor.getDestination(); // 예시) sub/chat/1
 
-        if (destination != null && destination.equals("/sub/chat/")) {
+        if (destination != null && destination.startsWith("/sub/chat/")) {
             try {
                 int fundingId = Integer.parseInt(destination.substring("/sub/chat/".length()));
 

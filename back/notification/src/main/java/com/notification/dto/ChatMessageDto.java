@@ -8,7 +8,6 @@ public record ChatMessageDto (
     int senderId,
     String nickname,
     String content,
-    String status,
     LocalDateTime createdAt
 
 ) {}

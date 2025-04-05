@@ -1,63 +1,46 @@
 package com.chat.controller;
 
-import com.chat.dto.ChatMessageDocument;
-import com.chat.dto.ChatMessageDto;
+import com.chat.common.response.Response;
+import com.chat.dto.response.ChatMessageResponseDto;
+import com.chat.dto.reuqest.ChatMessageRequestDto;
 
-import com.chat.repository.ChatMessageRepository;
-
+import com.chat.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bson.types.ObjectId;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
+
+import static com.chat.common.response.ResponseCode.*;
 
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/chat")
+@RequestMapping("/api/chat")
 public class ChatController {
 
-    private final ChatMessageRepository chatMessageRepository;
+    private final ChatService chatService;
 
     @PostMapping("/{fundingId}/store")
-    public ResponseEntity<Void> storeMessages(
+    public ResponseEntity<?> storeMessages(
             @PathVariable int fundingId,
-            @RequestBody List<ChatMessageDto> messages
+            @RequestBody List<ChatMessageRequestDto> messages
     ) {
-        List<ChatMessageDocument> docs = messages.stream()
-                .map(dto -> ChatMessageDocument.fromDto(dto))
-                .toList();
-
-        chatMessageRepository.saveAll(docs);
-        return ResponseEntity.ok().build();
+        chatService.storeMessages(messages);
+        return new ResponseEntity<>(Response.create(STORE_MESSAGES,null),STORE_MESSAGES.getHttpStatus());
     }
 
-    @GetMapping("/{fundingId}/history")
-    public ResponseEntity<List<ChatMessageDto>> getChatHistory(
+    @GetMapping("/{fundingId}/messages")
+    public ResponseEntity<?> getPreviousMessages(
             @PathVariable int fundingId,
-            @RequestParam(required = false) String lastId,  // 커서 방식
-            @RequestParam(defaultValue = "20") int size
-    ) {
-        Pageable pageable = PageRequest.of(0, size, Sort.by(Sort.Direction.DESC, "_id"));
-        List<ChatMessageDocument> results;
+            @RequestParam(required = false)LocalDateTime before // 기본값 현재 시간
+            ) {
+        List<ChatMessageResponseDto> responseDto = chatService.getPreviousMessages(fundingId, before);
 
-        if (lastId != null) {
-            ObjectId lastObjectId = new ObjectId(lastId);
-            results = chatMessageRepository.findByFundingIdAndIdBefore(fundingId, lastObjectId, pageable);
-        } else {
-            results = chatMessageRepository.findByFundingIdOrderByIdDesc(fundingId, pageable);
-        }
-
-        List<ChatMessageDto> dtoList = results.stream()
-                .map(ChatMessageDocument::toDto)
-                .toList();
-
-        return ResponseEntity.ok(dtoList);
+        return new ResponseEntity<>(Response.create(GET_MESSAGES,responseDto),GET_MESSAGES.getHttpStatus());
     }
 
 }
