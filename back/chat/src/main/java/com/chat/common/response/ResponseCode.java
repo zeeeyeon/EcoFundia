@@ -11,6 +11,9 @@ public enum ResponseCode {
     STORE_MESSAGES(successCode(), HttpStatus.OK, "메시지가 성공적으로 저장되었습니다."),
     GET_MESSAGES(successCode(), HttpStatus.OK, "메시지를 성공적으로 조회하였습니다."),
     NO_MESSAGES(successCode(), HttpStatus.OK, "이전 메시지가 더이상 존재하지 않습니다."),
+    NO_CHAT_ROOMS(successCode(), HttpStatus.OK, "아직 참여중인 채팅방이 없습니다."),
+    PARTICIPANT_CHATROOM(successCode(), HttpStatus.OK, "채팅방에서 성공적으로 참가했습니다."),
+    DELETE_CHATROOM(successCode(), HttpStatus.OK, "채팅방에서 성공적으로 나갔습니다."),
 
 
 
