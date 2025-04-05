@@ -32,74 +32,27 @@ import static com.coupon.common.util.CouponUtil.generateTodayCode;
 public class CouponRedisService {
 
     private final RedisTemplate<String, Object> redisTemplate;
-    private final CouponRepository couponRepository;
-    private final CouponIssuedRepository couponIssuedRepository;
+    private final CouponExecutor couponExecutor;
 
-    @PostConstruct
-    public void initializeCouponCounts() {
-        int todayCode = generateTodayCode();
-        String countKey = "coupon:count:" + todayCode;
-        redisTemplate.opsForValue().setIfAbsent(countKey, "0");
-    }
-
-    public boolean issueCoupon(int userId, int couponCode) throws IOException {
+    public void issueCoupon(int userId, int couponCode) throws IOException {
         String userKey = "coupon:issued:" + userId + ":" + couponCode;
         String countKey = "coupon:count:" + couponCode;
-
-        ClassPathResource resource = new ClassPathResource("scripts/coupon_issue.lua");
-        String script = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-        DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>(script, Long.class);
-
         long ttlSeconds = getTimeToLive();
+
+        long result = couponExecutor.executeCoupon(userKey, countKey, String.valueOf(CouponPolicy.DAILY_COUPON_QUANTITY), String.valueOf(ttlSeconds));
 
         log.debug("쿠폰 발급 시도 - 사용자: {}, 쿠폰: {}, 일일한도: {}, TTL: {}초",
                 userId, couponCode, CouponPolicy.DAILY_COUPON_QUANTITY, ttlSeconds);
 
-        List<String> keys = List.of(userKey, countKey);
-        Long result = redisTemplate.execute(
-                redisScript,
-                keys,
-                String.valueOf(CouponPolicy.DAILY_COUPON_QUANTITY),
-                String.valueOf(ttlSeconds)
-        );
-
-        if (result == null) {
-            log.warn("Redis 스크립트 실행 결과가 null입니다");
-            return false;
-        }
-
-        switch (result.intValue()) {
-            case -1 -> {
-                log.info("쿠폰 이미 발급됨 - 사용자: {}, 쿠폰: {}", userId, couponCode);
-                throw new CustomException(COUPON_ALREADY_ISSUED);
-            }
-            case 0 -> {
-                log.info("쿠폰 재고 소진 - 쿠폰: {}", couponCode);
-                throw new CustomException(COUPON_OUT_OF_STOCK);
-            }
-            case 1 -> {
-                log.info("쿠폰 발급 성공 - 사용자: {}, 쿠폰: {}", userId, couponCode);
-                saveCouponToDB(userId, couponCode);
-                return true;
-            }
-            default -> {
-                log.warn("예상치 못한 Redis 결과: {}", result);
-                throw new IllegalStateException("Unexpected Redis result: " + result);
-            }
+        if (result == -1) throw new CustomException(COUPON_ALREADY_ISSUED);
+        if (result == 0) throw new CustomException(COUPON_OUT_OF_STOCK);
+        if (result == 1) {
+            String redisQueueKey = "coupon:queue";
+            String issuedData = userId + ":" + couponCode;
+            redisTemplate.opsForList().rightPush(redisQueueKey, issuedData);
         }
     }
 
-    private void saveCouponToDB(int userId, int couponCode) {
-        Coupon coupon = couponRepository.findByCouponCode(couponCode)
-                .orElseThrow(() -> {
-                    log.warn("쿠폰 코드 [{}] 존재하지 않음", couponCode);
-                    return new CustomException(COUPON_NOT_FOUND);
-                });
-
-        CouponIssued issued = CouponIssuedDto.toEntity(coupon, userId);
-        couponIssuedRepository.save(issued);
-        log.debug("쿠폰 DB 저장 완료 - 사용자: {}, 쿠폰: {}", userId, couponCode);
-    }
 
     private long getTimeToLive() {
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
