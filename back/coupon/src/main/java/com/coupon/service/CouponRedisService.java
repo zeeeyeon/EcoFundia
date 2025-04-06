@@ -33,7 +33,6 @@ import static com.coupon.common.util.CouponUtil.generateTodayCode;
 @Slf4j
 public class CouponRedisService {
 
-    private final RedisTemplate<String, Object> redisTemplate;
     private final CouponExecutor couponExecutor;
     private final CouponKafkaProducer couponKafkaProducer;
 
@@ -46,6 +45,8 @@ public class CouponRedisService {
 
         log.debug("쿠폰 발급 시도 - 사용자: {}, 쿠폰: {}, 일일한도: {}, TTL: {}초",
                 userId, couponCode, CouponPolicy.DAILY_COUPON_QUANTITY, ttlSeconds);
+
+        log.info("쿠폰 발급 Lua 결과값: {}", result);
 
         if (result == -1) throw new CustomException(COUPON_ALREADY_ISSUED);
         if (result == 0) throw new CustomException(COUPON_OUT_OF_STOCK);
