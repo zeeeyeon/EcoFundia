@@ -297,22 +297,40 @@ public class FundingService implements ProductService {
 
     @Transactional
     public List<GetFundingResponseDto> getSearchFundingList(String sort, String keyword, int page) {
-        List<FundingDocument> docList = elasticsearchService.searchDocuments(keyword, sort, page, PAGE_SIZE);
-        List<GetFundingResponseDto> dtoList = docList.stream()
-                .map(doc -> GetFundingResponseDto.builder()
-                        .fundingId(doc.getFundingId())
-                        .sellerId(doc.getSellerId())
-                        .title(doc.getTitle())
-                        .description(doc.getDescription())
-                        .imageUrls(JsonConverter.convertJsonToImageUrls(doc.getImageUrl()))
-                        .endDate(doc.getEndDate())
-                        .currentAmount(doc.getCurrentAmount())
-                        .category(doc.getCategory())
-                        .rate(doc.getRate())
-                        .build())
-                .collect(Collectors.toList());
+        List<GetFundingResponseDto> dtoList;
+        try {
+            // Elasticsearch 조회 시도
+            List<FundingDocument> docList = elasticsearchService.searchDocuments(keyword, sort, page, PAGE_SIZE);
+            // 조회 결과가 없으면 예외를 발생시켜 DB 조회로 넘어가게 함
+            if (docList == null || docList.isEmpty()) {
+                throw new Exception("No documents found in Elasticsearch");
+            }
+            dtoList = docList.stream()
+                    .map(doc -> GetFundingResponseDto.builder()
+                            .fundingId(doc.getFundingId())
+                            .sellerId(doc.getSellerId())
+                            .title(doc.getTitle())
+                            .description(doc.getDescription())
+                            .imageUrls(JsonConverter.convertJsonToImageUrls(doc.getImageUrl()))
+                            .endDate(doc.getEndDate())
+                            .currentAmount(doc.getCurrentAmount())
+                            .category(doc.getCategory())
+                            .rate(doc.getRate())
+                            .build())
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            // Elasticsearch 조회 실패 시 로그 출력 후 DB 조회로 대체
+            // (예: 더미 데이터 또는 인덱스 미구축 등의 경우)
+            e.printStackTrace();  // 로깅 프레임워크를 사용하여 에러 로그 남기기 권장
+            int offset = (page - 1) * PAGE_SIZE;
+            List<Funding> fundingList = fundingMapper.getSearchFundingList(sort, keyword, offset, PAGE_SIZE);
+            dtoList = fundingList.stream()
+                    .map(Funding::toDto)
+                    .collect(Collectors.toList());
+        }
         return dtoList;
     }
+
 
 
     // 펀딩 상세 페이지
