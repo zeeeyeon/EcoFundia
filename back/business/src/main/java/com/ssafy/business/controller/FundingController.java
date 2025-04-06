@@ -111,6 +111,7 @@ public class FundingController {
         SellerDetailResponseDTO sellerDetail = sellerService.getSellerDetail(sellerId);
         return new ResponseEntity<>(Response.create(ResponseCode.GET_SELLER_DETAIL, sellerDetail), ResponseCode.GET_SELLER_DETAIL.getHttpStatus());
     }
+    
 
     //판매자 프로젝트 현황 조회 - 판매자가 진행중 혹은 진행한 프로젝트 데이터 조회
 //    @GetMapping("seller/detail/{sellerId}/funding")
