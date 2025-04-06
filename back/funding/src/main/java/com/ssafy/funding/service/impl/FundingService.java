@@ -3,11 +3,13 @@ package com.ssafy.funding.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ssafy.funding.client.ChatClient;
 import com.ssafy.funding.client.OrderClient;
 import com.ssafy.funding.client.UserClient;
 import com.ssafy.funding.common.exception.CustomException;
 import com.ssafy.funding.common.util.JsonConverter;
 import com.ssafy.funding.document.FundingDocument;
+import com.ssafy.funding.dto.chat.request.ChatRoomCreateRequest;
 import com.ssafy.funding.dto.funding.request.FundingCreateRequestDto;
 import com.ssafy.funding.dto.funding.request.FundingCreateSendDto;
 import com.ssafy.funding.dto.funding.request.FundingUpdateSendDto;
@@ -57,6 +59,7 @@ public class FundingService implements ProductService {
 
     private static final int PAGE_SIZE = 5;
     private static final String TOTAL_FUND_KEY = "total_fund";
+    private final ChatClient chatClient;
 
     @Override
     public FundingResponseDto getFunding(int fundingId) {
@@ -70,6 +73,11 @@ public class FundingService implements ProductService {
     public Funding createFunding(int sellerId, FundingCreateSendDto dto) {
         Funding funding = dto.toEntity(sellerId);
         fundingMapper.createFunding(funding);
+
+        // 펀딩 상기면 chatroom 추가 로직 실행
+        ChatRoomCreateRequest chatRoomRequest = ChatRoomCreateRequest.from(funding);
+        chatClient.createRoom(chatRoomRequest);
+
         elasticsearchService.indexFunding(funding);
         return funding;
     }
