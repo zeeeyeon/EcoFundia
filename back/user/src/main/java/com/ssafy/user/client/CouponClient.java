@@ -12,8 +12,12 @@ import java.util.List;
 @FeignClient(name = "coupon")
 public interface CouponClient {
 
-    @GetMapping("/api/coupon/")
+    @GetMapping("/api/coupon")
     List<CouponResponseDto> getCouponList(@RequestHeader("X-User-Id") int userId);
+
+    @GetMapping("/api/coupon/count")
+    int getCouponCount(@RequestHeader("X-User-Id") int userId);
+
 
     @PostMapping("/api/coupon/issue")
     void postCoupon(@RequestHeader("X-User-Id") int userId);

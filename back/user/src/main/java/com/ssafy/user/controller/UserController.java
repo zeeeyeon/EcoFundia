@@ -149,8 +149,8 @@ public class UserController {
 
     @GetMapping("/coupons/count")
     public ResponseEntity<?> getCouponCount(@RequestHeader("X-User-Id") int userId){
-        CouponCountResponseDto dto = userService.getCouponCount(userId);
-        return new ResponseEntity<>(Response.create(COUPON_COUNT,dto), COUPON_COUNT.getHttpStatus());
+        int count = userService.getCouponCount(userId);
+        return new ResponseEntity<>(Response.create(COUPON_COUNT,count), COUPON_COUNT.getHttpStatus());
     }
 
     @PostMapping("/coupons/apply")
