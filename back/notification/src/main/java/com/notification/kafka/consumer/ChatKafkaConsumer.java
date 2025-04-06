@@ -25,7 +25,7 @@ public class ChatKafkaConsumer {
     private final ChatMessageBuffer buffer;
     private final ChatClient chatClient;
 
-    @KafkaListener(topicPattern = "chat-room.*", groupId = "chat-group")
+    @KafkaListener(topicPattern = "chat-room.*", groupId = "chat-group", containerFactory = "kafkaListenerContainerFactory")
     public void consume(ConsumerRecord<String, String> record, Acknowledgment ack) throws JsonProcessingException {
         try {
             String topic = record.topic();
@@ -44,7 +44,18 @@ public class ChatKafkaConsumer {
             // 50개 도달하면 chat-service로 저장
             if (buffer.isReadyToFlush(intFundingId)) {
                 List<ChatMessageDto> messagesToStore = buffer.getAndClearBuffer(intFundingId);
-                chatClient.storeMessages(intFundingId, messagesToStore); // 저장 요청
+
+                try {
+                    chatClient.storeMessages(intFundingId, messagesToStore); // 저장 요청
+
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
+
+                    for (ChatMessageDto msg : messagesToStore) {
+                        buffer.addMessage(intFundingId, msg); //다시 버퍼에 넣어서 복원
+                    }
+                }
+
             }
             ack.acknowledge(); // 저장까지 성공한 후에 커밋
 
