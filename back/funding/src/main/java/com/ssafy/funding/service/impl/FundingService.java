@@ -59,7 +59,7 @@ public class FundingService implements ProductService {
 
     private static final int PAGE_SIZE = 5;
     private static final String TOTAL_FUND_KEY = "total_fund";
-    private final ChatClient chatClient;
+    //private final ChatClient chatClient;
 
     @Override
     public FundingResponseDto getFunding(int fundingId) {
