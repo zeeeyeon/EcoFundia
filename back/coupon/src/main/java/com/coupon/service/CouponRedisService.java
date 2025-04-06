@@ -2,9 +2,11 @@ package com.coupon.service;
 
 import com.coupon.common.exception.CustomException;
 import com.coupon.dto.CouponIssuedDto;
+import com.coupon.dto.CouponIssuedEvent;
 import com.coupon.entity.Coupon;
 import com.coupon.entity.CouponIssued;
 import com.coupon.entity.constants.CouponPolicy;
+import com.coupon.kafka.CouponKafkaProducer;
 import com.coupon.repository.CouponIssuedRepository;
 import com.coupon.repository.CouponRepository;
 import jakarta.annotation.PostConstruct;
@@ -33,6 +35,7 @@ public class CouponRedisService {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final CouponExecutor couponExecutor;
+    private final CouponKafkaProducer couponKafkaProducer;
 
     public void issueCoupon(int userId, int couponCode) throws IOException {
         String userKey = "coupon:issued:" + userId + ":" + couponCode;
@@ -46,11 +49,10 @@ public class CouponRedisService {
 
         if (result == -1) throw new CustomException(COUPON_ALREADY_ISSUED);
         if (result == 0) throw new CustomException(COUPON_OUT_OF_STOCK);
-        if (result == 1) {
-            String redisQueueKey = "coupon:queue";
-            String issuedData = userId + ":" + couponCode;
-            redisTemplate.opsForList().rightPush(redisQueueKey, issuedData);
-        }
+
+        couponKafkaProducer.send(
+                CouponIssuedEvent.of((long) userId, (long) couponCode, LocalDateTime.now())
+        );
     }
 
 
