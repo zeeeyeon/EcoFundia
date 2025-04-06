@@ -46,10 +46,11 @@ public class ChatRoomController {
     }
 
     // 채팅방 나가기
-    @DeleteMapping("/{fundingId}/participants/{userId}")
+    @DeleteMapping("/{fundingId}/participants")
     public ResponseEntity<?> leaveChatRoom(
-            @PathVariable int fundingId,
-            @PathVariable int userId
+            @RequestHeader("X-User-Id") int userId,
+            @PathVariable int fundingId
+
     ) {
         chatRoomService.removeParticipant(fundingId, userId);
         return new ResponseEntity<>(Response.create(DELETE_CHATROOM,null),DELETE_CHATROOM.getHttpStatus());
