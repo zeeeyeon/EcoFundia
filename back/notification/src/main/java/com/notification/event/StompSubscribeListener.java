@@ -1,7 +1,9 @@
 package com.notification.event;
 
 import com.notification.buffer.ChatMessageBuffer;
+import com.notification.client.ChatClient;
 import com.notification.dto.ChatMessageDto;
+import com.notification.dto.request.AddParticipantRequest;
 import com.notification.service.ChatRoomService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +23,7 @@ public class StompSubscribeListener {
     private final ChatRoomService chatRoomService;
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final ChatMessageBuffer chatMessageBuffer;
+    private final ChatClient chatClient;
 
     @EventListener
     public void handleSubscribeEvent(SessionSubscribeEvent event) {
@@ -34,6 +37,11 @@ public class StompSubscribeListener {
 
                 // 1. Kafka 토픽 생성
                 chatRoomService.createChatRoomIfNotExists(fundingId);
+
+                // 2. 채팅방에 참여자로 추가
+                int userId = Integer.parseInt( accessor.getFirstNativeHeader("userId") );
+                AddParticipantRequest request = new AddParticipantRequest(userId);
+                chatClient.addParticipant(fundingId, request);
 
                 // 2. 버퍼에서 아직 저장되지 않은 메시지 조회 + 전송
                 List<ChatMessageDto> bufferedMessages = chatMessageBuffer.getBufferedMessages(fundingId);
