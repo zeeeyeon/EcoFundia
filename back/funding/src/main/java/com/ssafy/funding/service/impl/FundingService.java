@@ -70,7 +70,28 @@ public class FundingService implements ProductService {
     public Funding createFunding(int sellerId, FundingCreateSendDto dto) {
         Funding funding = dto.toEntity(sellerId);
         fundingMapper.createFunding(funding);
-        elasticsearchService.indexFunding(funding);
+        System.out.println(funding.getEndDate());
+        FundingDocument document = FundingDocument.builder()
+                .fundingId(fundingMapper.getLatestFundingId())
+                .sellerId(funding.getSellerId())
+                .title(funding.getTitle())
+                // 자동완성을 위해 제목을 그대로 설정 (필요에 따라 전처리 가능)
+                .titleSuggest(funding.getTitle())
+                .description(funding.getDescription())
+                // 이미지 URL 배열을 JSON 문자열 형태로 저장하는 경우
+                .imageUrl(funding.getImageUrl())
+                // 종료 날짜 (LocalDateTime 타입 등으로 저장)
+                .endDate(funding.getEndDate())
+                // 현재 모금액
+                .currentAmount(funding.getCurrentAmount())
+                // 카테고리 (예: "FASHION")
+                .category(funding.getCategory())
+                // 목표 달성률 또는 기타 비율
+                .rate(funding.getTotalAmount() != 0 ? funding.getCurrentAmount()/funding.getTotalAmount()*100 : 0)
+                .build();
+
+
+        elasticsearchService.indexFunding(document);
         return funding;
     }
 
@@ -80,7 +101,25 @@ public class FundingService implements ProductService {
         Funding funding = findByFundingId(fundingId);
         funding.update(dto);
         fundingMapper.updateFunding(funding);
-        elasticsearchService.indexFunding(funding);
+        FundingDocument document = FundingDocument.builder()
+                .fundingId(funding.getFundingId())
+                .sellerId(funding.getSellerId())
+                .title(funding.getTitle())
+                // 자동완성을 위해 제목을 그대로 설정 (필요에 따라 전처리 가능)
+                .titleSuggest(funding.getTitle())
+                .description(funding.getDescription())
+                // 이미지 URL 배열을 JSON 문자열 형태로 저장하는 경우
+                .imageUrl(funding.getImageUrl())
+                // 종료 날짜 (LocalDateTime 타입 등으로 저장)
+                .endDate(funding.getEndDate())
+                // 현재 모금액
+                .currentAmount(funding.getCurrentAmount())
+                // 카테고리 (예: "FASHION")
+                .category(funding.getCategory())
+                // 목표 달성률 또는 기타 비율
+                .rate(funding.getCurrentAmount()/funding.getTotalAmount()*100)
+                .build();
+        elasticsearchService.indexFunding(document);
         return funding;
     }
 
@@ -251,16 +290,6 @@ public class FundingService implements ProductService {
 
     @Transactional
     public List<GetFundingResponseDto> getSearchFundingList(String sort, String keyword, int page) {
-        String redisKey = String.format("search::%s::%s::%d", sort, keyword, page);
-        System.out.println("Redis Key: " + redisKey);
-        String cachedJson = redisTemplate.opsForValue().get(redisKey);
-        if (cachedJson != null) {
-            try {
-                return objectMapper.readValue(cachedJson, new TypeReference<List<GetFundingResponseDto>>() {});
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
-        }
         List<FundingDocument> docList = elasticsearchService.searchDocuments(keyword, sort, page, PAGE_SIZE);
         List<GetFundingResponseDto> dtoList = docList.stream()
                 .map(doc -> GetFundingResponseDto.builder()
@@ -268,11 +297,16 @@ public class FundingService implements ProductService {
                         .sellerId(doc.getSellerId())
                         .title(doc.getTitle())
                         .description(doc.getDescription())
+                        .imageUrls(JsonConverter.convertJsonToImageUrls(doc.getImageUrl()))
+                        .endDate(doc.getEndDate())
+                        .currentAmount(doc.getCurrentAmount())
+                        .category(doc.getCategory())
+                        .rate(doc.getRate())
                         .build())
                 .collect(Collectors.toList());
-        redisCaching(redisKey, dtoList);
         return dtoList;
     }
+
 
     // 펀딩 상세 페이지
     @Transactional
