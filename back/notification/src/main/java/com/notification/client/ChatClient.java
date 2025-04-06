@@ -3,11 +3,10 @@ package com.notification.client;
 
 import com.notification.dto.ChatMessageDto;
 import com.notification.dto.request.AddParticipantRequest;
+import com.notification.dto.response.ChatRoomSummaryResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -23,4 +22,7 @@ public interface ChatClient {
     ResponseEntity<?> addParticipant(@PathVariable int fundingId,
                                             @RequestBody AddParticipantRequest request);
 
+    // 참여하고 있는 채팅방 리스트 조회
+    @GetMapping("/api/chatroom/user/")
+    List<ChatRoomSummaryResponse> getChatRoomsByUserId(@RequestHeader("X-User-Id") int userId );
 }
