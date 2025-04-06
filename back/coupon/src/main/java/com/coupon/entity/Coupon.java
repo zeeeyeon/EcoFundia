@@ -36,6 +36,7 @@ public class Coupon {
 
     private LocalDateTime createAt;
 
+    @Builder.Default
     @OneToMany(mappedBy = "coupon", cascade = CascadeType.ALL)
     private List<CouponIssued> issuedList = new ArrayList<>();
 
