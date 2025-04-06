@@ -33,15 +33,8 @@ public class ElasticsearchService {
      *
      * @param funding DB의 Funding 엔티티
      */
-    public void indexFunding(Funding funding) {
-        FundingDocument doc = FundingDocument.builder()
-                .fundingId(funding.getFundingId())
-                .sellerId(funding.getSellerId())
-                .title(funding.getTitle())
-                .titleSuggest(funding.getTitle()) // 자동완성용 필드에 제목 값 할당
-                .description(funding.getDescription())
-                .build();
-        repository.save(doc);
+    public void indexFunding(FundingDocument funding) {
+        repository.save(funding);
     }
 
     /**
@@ -114,19 +107,41 @@ public class ElasticsearchService {
      * @return 검색 결과 FundingDocument 리스트
      */
     public List<FundingDocument> searchDocuments(String keyword, String sort, int page, int size) {
-        Pageable pageable = PageRequest.of(page - 1, size);
+        Pageable pageable = PageRequest.of(page, size);
+
         // 제목 또는 설명에 keyword가 포함되는 조건
         Criteria criteria = new Criteria("title").contains(keyword)
                 .or(new Criteria("description").contains(keyword));
         CriteriaQuery query = new CriteriaQuery(criteria);
         query.setPageable(pageable);
-        // 정렬 옵션 추가 (Sort.by() 사용)
+
+        // 정렬 옵션 추가: sort 값에 따라 실제 Elasticsearch 정렬 필드와 방향 결정
         if (sort != null && !sort.isEmpty()) {
-            query.addSort(org.springframework.data.domain.Sort.by(sort));
+            org.springframework.data.domain.Sort sortOption;
+            switch (sort.toLowerCase()) {
+                case "latest":
+                    // 최신순: 종료 날짜(endDate)를 내림차순 정렬
+                    sortOption = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "endDate");
+                    break;
+                case "oldest":
+                    // 오래된 순: 종료 날짜를 오름차순 정렬
+                    sortOption = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.ASC, "endDate");
+                    break;
+                case "popular":
+                    // 인기순: rate 필드를 내림차순 정렬 (필요에 따라 currentAmount 등으로도 변경 가능)
+                    sortOption = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "rate");
+                    break;
+                default:
+                    sortOption = org.springframework.data.domain.Sort.unsorted();
+                    break;
+            }
+            query.addSort(sortOption);
         }
+
         SearchHits<FundingDocument> searchHits = elasticsearchOperations.search(query, FundingDocument.class);
         List<FundingDocument> docs = new ArrayList<>();
         searchHits.forEach(hit -> docs.add(hit.getContent()));
         return docs;
     }
+
 }
