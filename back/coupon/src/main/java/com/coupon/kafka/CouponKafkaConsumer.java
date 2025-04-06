@@ -23,13 +23,13 @@ public class CouponKafkaConsumer {
 
     @KafkaListener(topics = "coupon-issued", groupId = "coupon-issued-group")
     public void consume(CouponIssuedEvent event) {
-        log.info("Kafka - userId: {}, couponCode: {}", event.userId(), event.couponId());
+        log.info("Kafka - userId: {}, couponCode: {}", event.userId(), event.couponCode());
 
-        Coupon coupon = couponRepository.findByCouponCode(event.couponId().intValue())
+        Coupon coupon = couponRepository.findByCouponCode(event.couponCode().intValue())
                 .orElseThrow(() -> new CustomException(COUPON_NOT_FOUND));
 
         CouponIssued issued = event.toEntity(coupon);
         couponIssuedRepository.save(issued);
-        log.info("쿠폰 DB 저장 완료 - userId: {}, couponCode: {}", event.userId(), event.couponId());
+        log.info("쿠폰 DB 저장 완료 - userId: {}, couponCode: {}", event.userId(), event.couponCode());
     }
 }
