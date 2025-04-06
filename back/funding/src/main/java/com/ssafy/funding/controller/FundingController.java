@@ -39,19 +39,19 @@ public class FundingController {
 
     //내가 주문한 펀딩 프로젝트 조회
     @GetMapping("/my/funding")
-    List<MyFundingResponseDto> getMyFunding(@RequestParam List<Integer> fundingIds){
+    List<MyFundingResponseDto> getMyFunding(@RequestParam("id") List<Integer> fundingIds){
         List<MyFundingResponseDto> fundingList = productService.getMyFunding(fundingIds);
         return fundingList;
     }
 
     @GetMapping("/{fundingId}")
-    public ResponseEntity<?> getFundingId(@PathVariable int fundingId) {
+    public ResponseEntity<?> getFundingId(@PathVariable("fundingId") int fundingId) {
         FundingResponseDto funding = productService.getFunding(fundingId);
         return new ResponseEntity<>(Response.create(GET_FUNDING, funding), GET_FUNDING.getHttpStatus());
     }
 
     @PostMapping(value = "/{sellerId}")
-    public ResponseEntity<?> createFunding(@PathVariable int sellerId, @RequestBody FundingCreateSendDto dto) {
+    public ResponseEntity<?> createFunding(@PathVariable("sellerId") int sellerId, @RequestBody FundingCreateSendDto dto) {
         productService.createFunding(sellerId, dto);
         return new ResponseEntity<>(Response.create(CREATE_FUNDING, null), CREATE_FUNDING.getHttpStatus());
     }
@@ -120,7 +120,7 @@ public class FundingController {
     @GetMapping("/suggest")
     public List<String> getSearchSuggestions(@RequestParam(name = "prefix") String prefix) {
         try {
-            return elasticsearchService.getSuggestions(prefix);
+            return elasticsearchService.advancedSuggestions(prefix);
         } catch (Exception e) {
             return Collections.emptyList();
         }
