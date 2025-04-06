@@ -21,7 +21,7 @@ public class CouponKafkaConsumer {
     private final CouponRepository couponRepository;
     private final CouponIssuedRepository couponIssuedRepository;
 
-    @KafkaListener(topics = "coupon-issued", groupId = "coupon-issued-group")
+    @KafkaListener(topics = "coupon-issued", groupId = "coupon")
     public void consume(CouponIssuedEvent event) {
         log.info("Kafka - userId: {}, couponCode: {}", event.userId(), event.couponCode());
 
