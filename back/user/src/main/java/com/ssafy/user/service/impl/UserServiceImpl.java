@@ -248,9 +248,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public CouponCountResponseDto getCouponCount(int userId) {
-        List<CouponResponseDto> list = couponClient.getCouponList(userId);
-        return new CouponCountResponseDto(list.size());
+    public int getCouponCount(int userId) {
+        return couponClient.getCouponCount(userId);
     }
 
     @Override
