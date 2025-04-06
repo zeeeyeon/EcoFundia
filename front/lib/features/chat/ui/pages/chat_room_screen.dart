@@ -1,5 +1,6 @@
 // 채팅방 UI 연결
 import 'package:flutter/material.dart';
+
 import '../../../../core/themes/app_colors.dart';
 
 class ChatRoomScreen extends StatefulWidget {
@@ -21,9 +22,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   final ScrollController _scrollController = ScrollController();
 
   final List<Map<String, dynamic>> _messages = [
-    {'fromMe': false, 'text': '이 펀딩 너무 좋아 보여요!'},
+    {'fromMe': false, 'nickname': '영희', 'text': '이 펀딩 너무 좋아 보여요!'},
     {'fromMe': true, 'text': '저도 관심 있어서 들어왔어요 :)'},
-    {'fromMe': false, 'text': '목표 금액 거의 달성했네요 🎉'},
+    {'fromMe': false, 'nickname': '철수', 'text': '목표 금액 거의 달성했네요 🎉'},
   ];
 
   void _sendMessage() {
@@ -50,7 +51,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('채팅방: ${widget.fundingTitle} (#${widget.fundingId})'),
+        title: Text(
+          '채팅방: ${widget.fundingTitle} (#${widget.fundingId})',
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
@@ -59,43 +66,63 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           // 🔼 메시지 목록
           Expanded(
             child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(16),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final msg = _messages[index];
-                final fromMe = msg['fromMe'] as bool;
-                final text = msg['text'] as String;
+                controller: _scrollController,
+                padding: const EdgeInsets.all(16),
+                itemCount: _messages.length,
+                // 메시지 아이템 렌더링
+                itemBuilder: (context, index) {
+                  final msg = _messages[index];
+                  final fromMe = msg['fromMe'] as bool;
+                  final text = msg['text'] as String;
+                  final nickname = msg['nickname'] as String?;
 
-                return Align(
-                  alignment:
-                      fromMe ? Alignment.centerRight : Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 6),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: fromMe
-                          ? AppColors.primary.withOpacity(0.9)
-                          : Colors.grey[200],
-                      borderRadius: BorderRadius.only(
-                        topLeft: const Radius.circular(12),
-                        topRight: const Radius.circular(12),
-                        bottomLeft: Radius.circular(fromMe ? 12 : 0),
-                        bottomRight: Radius.circular(fromMe ? 0 : 12),
-                      ),
+                  return Align(
+                    alignment:
+                        fromMe ? Alignment.centerRight : Alignment.centerLeft,
+                    child: Column(
+                      crossAxisAlignment: fromMe
+                          ? CrossAxisAlignment.end
+                          : CrossAxisAlignment.start,
+                      children: [
+                        if (!fromMe && nickname != null)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 4, bottom: 2),
+                            child: Text(
+                              nickname,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey[700],
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        Container(
+                          margin: const EdgeInsets.symmetric(vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: fromMe
+                                ? AppColors.primary.withOpacity(0.9)
+                                : Colors.grey[200],
+                            borderRadius: BorderRadius.only(
+                              topLeft: const Radius.circular(12),
+                              topRight: const Radius.circular(12),
+                              bottomLeft: Radius.circular(fromMe ? 12 : 0),
+                              bottomRight: Radius.circular(fromMe ? 0 : 12),
+                            ),
+                          ),
+                          child: Text(
+                            text,
+                            style: TextStyle(
+                              color: fromMe ? Colors.white : Colors.black87,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    child: Text(
-                      text,
-                      style: TextStyle(
-                        color: fromMe ? Colors.white : Colors.black87,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
+                  );
+                }),
           ),
 
           // 🔽 입력창
