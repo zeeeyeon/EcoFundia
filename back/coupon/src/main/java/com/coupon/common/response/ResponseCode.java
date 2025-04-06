@@ -9,8 +9,9 @@ import org.springframework.http.HttpStatus;
 public enum ResponseCode {
 
     // 쿠폰
-
     ISSUED_COUPON(successCode(), HttpStatus.CREATED, "쿠폰이 정상적으로 발급되었습니다."),
+    GET_COUNT_COUPON(successCode(), HttpStatus.CREATED, "보유한 쿠폰 수량을 조회했습니다."),
+    GET_COUPONS(successCode(), HttpStatus.CREATED, "보유한 쿠폰 목록을 조회했습니다."),
 
     COUPON_EXPIRED(400, HttpStatus.BAD_REQUEST, "만료된 쿠폰입니다."),
     COUPON_NOT_FOUND(404, HttpStatus.NOT_FOUND, "존재하지 않는 쿠폰입니다."),
