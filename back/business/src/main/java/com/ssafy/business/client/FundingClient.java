@@ -29,7 +29,7 @@ public interface FundingClient {
 
     // funding 서비스에게 최신 펀딩 리스트 데이터 요청
     @GetMapping("api/funding/latest-funding/{page}")
-    List<FundingResponseDTO> getLatestFundingList(@PathVariable int page);
+    List<FundingResponseDTO> getLatestFundingList(@PathVariable("page") int page);
 
     // funding 서비스에게 카테고리별 펀딩 리스트 데이터 요청
     @GetMapping("api/funding/category")
@@ -54,7 +54,7 @@ public interface FundingClient {
 
     // funding 서비스에게 펀딩 상세 정보 요청
     @GetMapping("api/funding/detail/{fundingId}")
-    FundingResponseDTO getFundingDetail(@PathVariable int fundingId);
+    FundingResponseDTO getFundingDetail(@PathVariable("fundingId") int fundingId);
 
     // funding 서비스에 펀딩 리뷰 조회
     @GetMapping("api/funding/review")
@@ -62,8 +62,8 @@ public interface FundingClient {
 
     // 판매자 상세페이지 판매자 정보 요청 조회
     @GetMapping("api/funding/seller/detail/{sellerId}")
-    SellerDetailDTO getSellerDetail(@PathVariable int sellerId);
+    SellerDetailDTO getSellerDetail(@PathVariable("sellerId") int sellerId);
 
     @GetMapping("api/funding/seller/detail/{sellerId}/funding")
-    SellerDetailDTO getSellerFunding(@PathVariable int sellerId);
+    SellerDetailDTO getSellerFunding(@PathVariable("sellerId") int sellerId);
 }

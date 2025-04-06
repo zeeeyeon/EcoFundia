@@ -3,11 +3,13 @@ package com.ssafy.funding.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ssafy.funding.client.ChatClient;
 import com.ssafy.funding.client.OrderClient;
 import com.ssafy.funding.client.UserClient;
 import com.ssafy.funding.common.exception.CustomException;
 import com.ssafy.funding.common.util.JsonConverter;
 import com.ssafy.funding.document.FundingDocument;
+import com.ssafy.funding.dto.chat.request.ChatRoomCreateRequest;
 import com.ssafy.funding.dto.funding.request.FundingCreateRequestDto;
 import com.ssafy.funding.dto.funding.request.FundingCreateSendDto;
 import com.ssafy.funding.dto.funding.request.FundingUpdateSendDto;
@@ -57,6 +59,7 @@ public class FundingService implements ProductService {
 
     private static final int PAGE_SIZE = 5;
     private static final String TOTAL_FUND_KEY = "total_fund";
+    //private final ChatClient chatClient;
 
     @Override
     public FundingResponseDto getFunding(int fundingId) {
@@ -70,7 +73,32 @@ public class FundingService implements ProductService {
     public Funding createFunding(int sellerId, FundingCreateSendDto dto) {
         Funding funding = dto.toEntity(sellerId);
         fundingMapper.createFunding(funding);
-        elasticsearchService.indexFunding(funding);
+        System.out.println(funding.getEndDate());
+        FundingDocument document = FundingDocument.builder()
+                .fundingId(fundingMapper.getLatestFundingId())
+                .sellerId(funding.getSellerId())
+                .title(funding.getTitle())
+                // 자동완성을 위해 제목을 그대로 설정 (필요에 따라 전처리 가능)
+                .titleSuggest(funding.getTitle())
+                .description(funding.getDescription())
+                // 이미지 URL 배열을 JSON 문자열 형태로 저장하는 경우
+                .imageUrl(funding.getImageUrl())
+                // 종료 날짜 (LocalDateTime 타입 등으로 저장)
+                .endDate(funding.getEndDate())
+                // 현재 모금액
+                .currentAmount(funding.getCurrentAmount())
+                // 카테고리 (예: "FASHION")
+                .category(funding.getCategory())
+                // 목표 달성률 또는 기타 비율
+                .rate(funding.getTotalAmount() != 0 ? funding.getCurrentAmount()/funding.getTotalAmount()*100 : 0)
+                .build();
+
+
+        elasticsearchService.indexFunding(document);
+
+        // 펀딩 상기면 chatroom 추가 로직 실행
+//        ChatRoomCreateRequest chatRoomRequest = ChatRoomCreateRequest.from(funding);
+//        chatClient.createRoom(chatRoomRequest);
         return funding;
     }
 
@@ -80,7 +108,25 @@ public class FundingService implements ProductService {
         Funding funding = findByFundingId(fundingId);
         funding.update(dto);
         fundingMapper.updateFunding(funding);
-        elasticsearchService.indexFunding(funding);
+        FundingDocument document = FundingDocument.builder()
+                .fundingId(funding.getFundingId())
+                .sellerId(funding.getSellerId())
+                .title(funding.getTitle())
+                // 자동완성을 위해 제목을 그대로 설정 (필요에 따라 전처리 가능)
+                .titleSuggest(funding.getTitle())
+                .description(funding.getDescription())
+                // 이미지 URL 배열을 JSON 문자열 형태로 저장하는 경우
+                .imageUrl(funding.getImageUrl())
+                // 종료 날짜 (LocalDateTime 타입 등으로 저장)
+                .endDate(funding.getEndDate())
+                // 현재 모금액
+                .currentAmount(funding.getCurrentAmount())
+                // 카테고리 (예: "FASHION")
+                .category(funding.getCategory())
+                // 목표 달성률 또는 기타 비율
+                .rate(funding.getCurrentAmount()/funding.getTotalAmount()*100)
+                .build();
+        elasticsearchService.indexFunding(document);
         return funding;
     }
 
@@ -251,28 +297,41 @@ public class FundingService implements ProductService {
 
     @Transactional
     public List<GetFundingResponseDto> getSearchFundingList(String sort, String keyword, int page) {
-        String redisKey = String.format("search::%s::%s::%d", sort, keyword, page);
-        System.out.println("Redis Key: " + redisKey);
-        String cachedJson = redisTemplate.opsForValue().get(redisKey);
-        if (cachedJson != null) {
-            try {
-                return objectMapper.readValue(cachedJson, new TypeReference<List<GetFundingResponseDto>>() {});
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
+        List<GetFundingResponseDto> dtoList;
+        try {
+            // Elasticsearch 조회 시도
+            List<FundingDocument> docList = elasticsearchService.searchDocuments(keyword, sort, page, PAGE_SIZE);
+            // 조회 결과가 없으면 예외를 발생시켜 DB 조회로 넘어가게 함
+            if (docList == null || docList.isEmpty()) {
+                throw new Exception("No documents found in Elasticsearch");
             }
+            dtoList = docList.stream()
+                    .map(doc -> GetFundingResponseDto.builder()
+                            .fundingId(doc.getFundingId())
+                            .sellerId(doc.getSellerId())
+                            .title(doc.getTitle())
+                            .description(doc.getDescription())
+                            .imageUrls(JsonConverter.convertJsonToImageUrls(doc.getImageUrl()))
+                            .endDate(doc.getEndDate())
+                            .currentAmount(doc.getCurrentAmount())
+                            .category(doc.getCategory())
+                            .rate(doc.getRate())
+                            .build())
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            // Elasticsearch 조회 실패 시 로그 출력 후 DB 조회로 대체
+            // (예: 더미 데이터 또는 인덱스 미구축 등의 경우)
+            e.printStackTrace();  // 로깅 프레임워크를 사용하여 에러 로그 남기기 권장
+            int offset = (page - 1) * PAGE_SIZE;
+            List<Funding> fundingList = fundingMapper.getSearchFundingList(sort, keyword, offset, PAGE_SIZE);
+            dtoList = fundingList.stream()
+                    .map(Funding::toDto)
+                    .collect(Collectors.toList());
         }
-        List<FundingDocument> docList = elasticsearchService.searchDocuments(keyword, sort, page, PAGE_SIZE);
-        List<GetFundingResponseDto> dtoList = docList.stream()
-                .map(doc -> GetFundingResponseDto.builder()
-                        .fundingId(doc.getFundingId())
-                        .sellerId(doc.getSellerId())
-                        .title(doc.getTitle())
-                        .description(doc.getDescription())
-                        .build())
-                .collect(Collectors.toList());
-        redisCaching(redisKey, dtoList);
         return dtoList;
     }
+
+
 
     // 펀딩 상세 페이지
     @Transactional

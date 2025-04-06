@@ -77,7 +77,7 @@
         SELECT * FROM funding WHERE funding_id = #{fundingId}
     </select>
 
-    <insert id="createFunding">
+    <insert id="createFunding" useGeneratedKeys="true" keyProperty="fundingId" >
         INSERT INTO funding (seller_id, title, description, story_file_url, image_urls, price, quantity, target_amount, current_amount, start_date, end_date, status, category, created_at, updated_at)
         VALUES (#{sellerId}, #{title}, #{description}, #{storyFileUrl}, #{imageUrls}, #{price}, #{quantity}, #{targetAmount}, #{currentAmount}, #{startDate}, #{endDate}, #{status}, #{category}, #{createdAt}, #{updatedAt})
     </insert>
@@ -112,7 +112,6 @@
     <select id="getTotalFund" resultType="java.lang.Long">
         SELECT COALESCE(SUM(current_amount), 0) AS totalFund
         FROM funding
-        WHERE funding.status = 'SUCCESS'
     </select>
 
     <!-- Top Funding 리스트 조회 -->
@@ -388,5 +387,12 @@
 
     <select id="getExpectedSettlements" resultType="integer">
         call get_expected_settlements(#{sellerId})
+    </select>
+
+    <select id="getLatestFundingId" resultType="int">
+        SELECT funding_id
+        FROM funding
+        ORDER BY funding_id DESC
+        LIMIT 1
     </select>
 </mapper>
