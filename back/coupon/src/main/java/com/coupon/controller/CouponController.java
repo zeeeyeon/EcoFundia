@@ -24,5 +24,4 @@ public class CouponController {
         couponRedisService.issueCoupon(userId, CouponUtil.generateTodayCode());
         return new ResponseEntity<>(Response.create(ISSUED_COUPON, null), ISSUED_COUPON.getHttpStatus());
     }
-
 }
