@@ -97,8 +97,8 @@ public class FundingService implements ProductService {
         elasticsearchService.indexFunding(document);
 
         // 펀딩 상기면 chatroom 추가 로직 실행
-        ChatRoomCreateRequest chatRoomRequest = ChatRoomCreateRequest.from(funding);
-        chatClient.createRoom(chatRoomRequest);
+//        ChatRoomCreateRequest chatRoomRequest = ChatRoomCreateRequest.from(funding);
+//        chatClient.createRoom(chatRoomRequest);
         return funding;
     }
 
