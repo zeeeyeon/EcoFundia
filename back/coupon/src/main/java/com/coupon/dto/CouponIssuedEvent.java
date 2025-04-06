@@ -7,11 +7,11 @@ import java.time.LocalDateTime;
 
 public record CouponIssuedEvent(
         Long userId,
-        Long couponId,
+        Long couponCode,
         LocalDateTime issuedAt
 ) {
-    public static CouponIssuedEvent of(Long userId, Long couponId, LocalDateTime issuedAt) {
-        return new CouponIssuedEvent(userId, couponId, issuedAt);
+    public static CouponIssuedEvent of(Long userId, Long couponCode, LocalDateTime issuedAt) {
+        return new CouponIssuedEvent(userId, couponCode, issuedAt);
     }
 
     public CouponIssued toEntity(Coupon coupon) {
