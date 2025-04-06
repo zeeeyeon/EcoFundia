@@ -38,7 +38,7 @@ public interface UserService {
 
     List<CouponResponseDto> getCouponList(int userId);
 
-    CouponCountResponseDto getCouponCount(int userId);
+    int getCouponCount(int userId);
 
     void postCoupon(int userId);
 
