@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/core/themes/app_colors.dart';
+import 'package:front/core/ui/widgets/custom_app_bar.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/providers/websocket_provider.dart';
@@ -64,14 +66,19 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('채팅 목록')),
+      appBar: const CustomAppBar(
+        title: "My Chats",
+      ),
       body: Column(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             width: double.infinity,
             color: Colors.grey[200],
-            child: Text(_connectionStatus),
+            child: Text(
+              _connectionStatus,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
           const Divider(height: 1),
           Expanded(
@@ -81,9 +88,27 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               itemBuilder: (context, index) {
                 final room = mockRooms[index];
                 return ListTile(
-                  leading: const Icon(Icons.chat_bubble_outline),
-                  title: Text(room['fundingTitle']?.toString() ?? ''),
-                  subtitle: Text(room['lastMessage']?.toString() ?? ''),
+                  leading: const Icon(
+                    Icons.forum_outlined,
+                    color: AppColors.primary, // ✅ 너희 프로젝트 메인 색상
+                  ),
+                  title: Text(
+                    room['fundingTitle']?.toString() ?? '',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  subtitle: Text(
+                    room['lastMessage']?.toString() ?? '',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  trailing: const Icon(
+                    Icons.chevron_right,
+                    color: AppColors.primary, // 👉 이동 아이콘도 메인색상
+                  ),
                   onTap: () {
                     context.push('/chat/room/${room['fundingId']}', extra: {
                       'fundingTitle': room['fundingTitle'],
