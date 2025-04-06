@@ -12,7 +12,6 @@ import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:front/utils/auth_utils.dart';
 import 'package:front/core/providers/app_state_provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 // ProjectDetail 상태 정의
 class ProjectDetailState {

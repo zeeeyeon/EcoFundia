@@ -54,20 +54,42 @@ class PaymentApiService {
   /// 결제 처리 API
   Future<bool> processPayment(PaymentDTO payment) async {
     try {
-      _logger.d('결제 처리 API 호출: ${payment.id}');
+      _logger.d('결제 처리 API 호출: ${payment.productId}');
+
+      // API 명세에 맞게 요청 데이터 구조화
+      final requestData = {
+        "fundingld": int.parse(payment.productId), // fundingId는 productId와 동일
+        "quantity": payment.quantity,
+        "totalPrice": payment.finalAmount // 최종 결제 금액
+      };
+
+      _logger.d('결제 요청 데이터: $requestData');
 
       // 실제 API 호출 구현
-      // final response = await _apiService.post(
-      //   '/api/payment/process',
-      //   data: payment.toJson(),
-      // );
-      // return response.data['success'] as bool;
+      final response = await _apiService.post(
+        '/user/order/funding',
+        data: requestData,
+      );
 
-      // Mock 데이터 반환
-      await Future.delayed(const Duration(seconds: 1));
-      return true;
+      // 응답 검증
+      if (response.statusCode == 201) {
+        _logger.i('결제 성공: 주문 ID ${response.data['content']['orderld']}');
+        return true;
+      } else {
+        _logger.w('결제 실패: 상태 코드 ${response.statusCode}');
+        throw DioException(
+          requestOptions: RequestOptions(path: '/user/order/funding'),
+          response: response,
+          error: '결제에 실패했습니다. 상태 코드: ${response.statusCode}',
+        );
+      }
     } catch (e) {
       _logger.e('결제 처리 실패', error: e);
+      if (e is DioException) {
+        final errorMsg =
+            e.response?.data?['status']?['message'] ?? '네트워크 오류가 발생했습니다.';
+        throw Exception('결제 실패: $errorMsg');
+      }
       rethrow;
     }
   }

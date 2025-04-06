@@ -283,41 +283,38 @@ class WishlistViewModel extends StateNotifier<WishlistState>
   /// 위시리스트에 아이템 토글 (추가/제거)
   Future<bool> toggleWishlistItem(int itemId,
       {required BuildContext context}) async {
-    // Optimistic UI 업데이트
-    final bool wasInWishlist =
-        state.activeItems.any((item) => item.id == itemId) ||
-            state.endedItems.any((item) => item.id == itemId);
-    _optimisticUpdateWishStatus(itemId, !wasInWishlist);
+    // 위시리스트 화면에서는 항상 제거 기능만 수행
+    // optimistic UI 업데이트 - 해당 아이템을 UI에서 즉시 제거
+    _optimisticUpdateWishStatus(itemId, false);
 
     try {
-      // API 호출
-      final result = await _toggleWishlistItemUseCase.execute(itemId);
+      // 명시적으로 removeFromWishlist 호출하여 제거 API만 호출
+      await _toggleWishlistItemUseCase.remove(itemId);
 
       // 실제 위시리스트 데이터 로드 (UI 동기화)
       await loadWishlistItems();
 
-      // 성공 메시지 표시 (선택적)
+      // 성공 메시지 표시
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content:
-                Text(wasInWishlist ? '위시리스트에서 제거되었습니다.' : '위시리스트에 추가되었습니다.'),
-            duration: const Duration(seconds: 1),
+          const SnackBar(
+            content: Text('위시리스트에서 제거되었습니다.'),
+            duration: Duration(seconds: 1),
           ),
         );
       }
 
-      return result;
+      return false; // 제거 후에는 항상 false 반환
     } catch (e) {
       if (kDebugMode) {
-        LoggerUtil.e('위시리스트 토글 실패: 아이템 ID $itemId', e);
+        LoggerUtil.e('위시리스트 제거 실패: 아이템 ID $itemId', e);
       }
 
       // 오류 처리 Mixin 사용
       setErrorState(e);
 
-      // 오류 발생 시 UI 상태 롤백
-      _revertWishStatus(itemId, wasInWishlist);
+      // 오류 발생 시 UI 상태 롤백 - 아이템 다시 표시
+      _optimisticUpdateWishStatus(itemId, true);
 
       // 오류 메시지 표시
       if (context.mounted) {
@@ -330,7 +327,7 @@ class WishlistViewModel extends StateNotifier<WishlistState>
         );
       }
 
-      return wasInWishlist;
+      return true; // 오류 발생 시 원래 상태로 복원
     }
   }
 
@@ -358,11 +355,6 @@ class WishlistViewModel extends StateNotifier<WishlistState>
           activeItems:
               state.activeItems.where((item) => item.id != itemId).toList());
     }
-  }
-
-  /// 상태 롤백 (API 실패 시)
-  void _revertWishStatus(int itemId, bool wasInWishlist) {
-    _optimisticUpdateWishStatus(itemId, wasInWishlist);
   }
 
   /// 에러 메시지 초기화

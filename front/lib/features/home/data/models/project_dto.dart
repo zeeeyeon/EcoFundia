@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:front/features/home/domain/entities/project_entity.dart';
+import 'package:intl/intl.dart';
 
 class ProjectDTO extends Equatable {
   final int fundingId;

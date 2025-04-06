@@ -78,19 +78,32 @@ class WishlistRepositoryImpl implements WishlistRepository {
   @override
   Future<bool> toggleLike(int itemId) async {
     try {
-      // 토글 기능은 기존 상태를 확인해야 하지만,
-      // API 명세상 isLiked 값이 없어서 직접 상태 확인은 어려움
-      // 이 경우 현재 상태를 viewModel에서 관리하고 해당 상태에 따라
-      // addToWishlist나 removeFromWishlist를 호출하는 것이 좋음
+      // 토글 기능은 완전히 별도의 API 엔드포인트를 호출하도록 개선
+      // 현재는 API가 분리되어 있어 이 메서드를 직접 호출하지 않는 것을 권장
+      LoggerUtil.w('⚠️ 위시리스트에서 toggleLike는 직접 호출하지 말고, '
+          'remove/add 메서드를 호출하세요. 현재는 항상 remove를 호출합니다.');
 
-      // 현재의 구현에서는 일단 추가 시도 후 성공 여부 반환
-      // (실제 구현에서는 viewModel에서 현재 isLiked 상태에 따라 분기)
-      LoggerUtil.w(
-          '⚠️ toggleLike는 직접 호출하지 말고 viewModel에서 상태에 따라 add/remove를 호출하세요');
-      return addToWishlist(itemId);
+      // 호출된 경우 위시리스트 화면에서는 항상 제거 동작 수행
+      await _wishlistService.removeFromWishlist(itemId);
+      LoggerUtil.i('✅ 위시리스트 제거 완료 (toggleLike 메서드로 호출): $itemId');
+      return false; // 제거 후에는 항상 false 반환
     } catch (e) {
       LoggerUtil.e('❌ 위시리스트 토글 실패', e);
-      return false;
+      throw Exception('위시리스트 토글에 실패했습니다: $e');
+    }
+  }
+
+  /// 위시리스트에 있는 펀딩 ID 목록 조회
+  @override
+  Future<List<int>> getWishlistFundingIds() async {
+    try {
+      final wishlistIds = await _wishlistService.getWishlistFundingIds();
+      LoggerUtil.i('✅ 위시리스트 펀딩 ID 목록 조회 완료: ${wishlistIds.length}개');
+      return wishlistIds;
+    } catch (e) {
+      LoggerUtil.e('❌ 위시리스트 펀딩 ID 목록 조회 실패', e);
+      // 오류 발생 시 빈 목록 반환 (좋아요 기능에 영향을 최소화하기 위함)
+      return [];
     }
   }
 }

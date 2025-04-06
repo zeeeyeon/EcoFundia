@@ -16,4 +16,7 @@ abstract class WishlistRepository {
 
   /// 위시리스트에서 아이템 제거
   Future<bool> removeFromWishlist(int itemId);
+
+  /// 위시리스트에 있는 펀딩 ID 목록 조회
+  Future<List<int>> getWishlistFundingIds();
 }

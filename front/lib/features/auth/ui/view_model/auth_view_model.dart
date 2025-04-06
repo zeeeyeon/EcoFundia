@@ -1,24 +1,27 @@
+import 'dart:async';
+import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/core/exceptions/auth_exception.dart';
 import 'package:front/core/providers/app_state_provider.dart';
+import 'package:front/core/services/storage_service.dart';
 import 'package:front/features/auth/domain/entities/auth_result_entity.dart';
 import 'package:front/features/auth/domain/entities/auth_state.dart';
-import 'package:front/utils/logger_util.dart';
-import 'package:front/core/services/storage_service.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:front/features/auth/domain/repositories/auth_repository.dart';
 import 'package:front/features/auth/domain/use_cases/check_login_status_use_case.dart';
 import 'package:front/features/auth/domain/use_cases/google_sign_in_use_case.dart';
 import 'package:front/features/auth/domain/use_cases/sign_out_use_case.dart';
-import 'dart:async';
-import 'dart:convert';
-import 'package:dio/dio.dart';
-import 'package:front/core/exceptions/auth_exception.dart';
-import 'package:go_router/go_router.dart';
-import 'package:front/features/mypage/ui/view_model/profile_view_model.dart';
-import 'package:front/features/mypage/ui/view_model/total_funding_provider.dart';
-import 'package:front/features/wishlist/ui/view_model/wishlist_view_model.dart';
 import 'package:front/features/mypage/ui/view_model/my_funding_view_model.dart';
 import 'package:front/features/mypage/ui/view_model/my_review_view_model.dart';
+import 'package:front/features/mypage/ui/view_model/profile_view_model.dart';
+import 'package:front/features/wishlist/ui/view_model/wishlist_provider.dart';
+import 'package:front/features/wishlist/ui/view_model/wishlist_view_model.dart';
+import 'package:front/utils/logger_util.dart';
+import 'package:go_router/go_router.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:front/features/mypage/ui/view_model/total_funding_provider.dart';
+import 'package:front/routing/router.dart';
+import 'package:front/utils/auth_utils.dart';
 
 /// 인증 ViewModel
 ///
@@ -211,6 +214,15 @@ class AuthViewModel extends StateNotifier<AuthState> {
       tokenExpiry: _parseTokenExpiry(result.accessToken),
     );
 
+    // 로그인 성공 후 위시리스트 ID 로딩
+    try {
+      LoggerUtil.i('🔄 로그인 성공 후 위시리스트 ID 목록 로딩 시작');
+      await _ref.read(loadWishlistIdsProvider)();
+    } catch (e) {
+      LoggerUtil.e('❌ 위시리스트 ID 목록 로딩 실패', e);
+      // 오류가 발생해도 로그인 플로우는 계속 진행
+    }
+
     LoggerUtil.i('로그인 성공: ${result.user.email}');
   }
 
@@ -271,6 +283,10 @@ class AuthViewModel extends StateNotifier<AuthState> {
 
       // 로그아웃 상태로 앱 상태 설정
       _appStateViewModel.setLoggedIn(false);
+
+      // 위시리스트 ID 목록 초기화
+      _ref.read(wishlistIdsProvider.notifier).state = <int>{};
+      LoggerUtil.i('🧹 위시리스트 ID 목록 초기화 완료');
 
       // 모든 사용자 관련 Provider 초기화 - 이 목록이 완전해야 함
       _ref.invalidate(profileProvider);

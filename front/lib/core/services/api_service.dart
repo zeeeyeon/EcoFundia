@@ -292,7 +292,7 @@ class ApiService {
   /// 로그아웃 처리
   Future<bool> logout({CancelToken? cancelToken}) async {
     try {
-      LoggerUtil.i('�� 서버에 로그아웃 요청 시작');
+      LoggerUtil.i('🔄 서버에 로그아웃 요청 시작');
 
       // 토큰 얻기 (요청 전 토큰 유효성 확인)
       final token = await StorageService.getToken();

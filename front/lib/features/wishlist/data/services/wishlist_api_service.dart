@@ -17,6 +17,9 @@ abstract class WishlistService {
 
   /// 위시리스트에서 제거
   Future<void> removeFromWishlist(int fundingId);
+
+  /// 위시리스트에 있는 펀딩 ID 목록 조회
+  Future<List<int>> getWishlistFundingIds();
 }
 
 /// 위시리스트 API 서비스 구현
@@ -186,6 +189,56 @@ class WishlistApiService implements WishlistService {
     } catch (e) {
       LoggerUtil.e('❌ 위시리스트 제거 중 예상치 못한 오류', e);
       throw Exception('위시리스트 제거 중 오류: $e');
+    }
+  }
+
+  @override
+  Future<List<int>> getWishlistFundingIds() async {
+    try {
+      LoggerUtil.d('🔍 위시리스트 펀딩 ID 목록 조회 요청');
+
+      final response = await _dio.get('/user/wishList/funding-ids');
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        LoggerUtil.d('✅ 위시리스트 펀딩 ID 목록 응답: $data');
+
+        if (data != null && data['content'] is List) {
+          final List<dynamic> idList = data['content'];
+          final List<int> fundingIds = idList.map((id) => id as int).toList();
+
+          LoggerUtil.i(
+              '📚 위시리스트 펀딩 ID ${fundingIds.length}개 조회 완료: $fundingIds');
+          return fundingIds;
+        } else {
+          LoggerUtil.w('⚠️ 위시리스트 펀딩 ID 목록 데이터 형식 오류: ${data['content']}');
+          return [];
+        }
+      } else {
+        // 401 오류는 로그인이 필요한 경우이므로 빈 목록 반환
+        if (response.statusCode == 401) {
+          LoggerUtil.w('⚠️ 위시리스트 펀딩 ID 목록 조회 권한 없음 (로그인 필요)');
+          return [];
+        }
+
+        LoggerUtil.e('❌ 위시리스트 펀딩 ID 목록 조회 실패: ${response.statusCode}');
+        throw Exception('위시리스트 펀딩 ID 목록 조회에 실패했습니다: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      // 401 오류는 로그인이 필요한 경우이므로 빈 목록 반환
+      if (e.response?.statusCode == 401) {
+        LoggerUtil.w('⚠️ 위시리스트 펀딩 ID 목록 조회 권한 없음 (로그인 필요)');
+        return [];
+      }
+
+      LoggerUtil.e('❌ 위시리스트 펀딩 ID 목록 조회 네트워크 오류', e);
+      if (e.response != null) {
+        LoggerUtil.e('📡 응답 데이터: ${e.response!.data}');
+      }
+      throw Exception('위시리스트 펀딩 ID 목록 조회 중 네트워크 오류: ${e.message}');
+    } catch (e) {
+      LoggerUtil.e('❌ 위시리스트 펀딩 ID 목록 조회 중 예상치 못한 오류', e);
+      throw Exception('위시리스트 펀딩 ID 목록 조회 중 오류: $e');
     }
   }
 }

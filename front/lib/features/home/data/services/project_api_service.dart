@@ -23,9 +23,35 @@ class ProjectApiService extends ProjectService {
       if (response.statusCode == 200) {
         final data = response.data;
 
+        // 전체 응답 구조 로깅
+        _logger.d('TOP 펀딩 API 응답 구조: $data');
+
         if (data['content'] != null && data['content'] is List) {
           final List<dynamic> projectsList = data['content'];
-          return projectsList.map((json) => ProjectDTO.fromJson(json)).toList();
+
+          // 첫 번째 항목의 구조를 상세 로깅
+          if (projectsList.isNotEmpty) {
+            _logger.d('첫 번째 펀딩 항목 구조: ${projectsList[0]}');
+
+            // 백엔드에서 제공하는 필드 확인 (isLiked는 제공하지 않음)
+            final availableFields = projectsList[0].keys.toList();
+            _logger.d('백엔드에서 제공되는 필드 목록: $availableFields');
+
+            // isLiked 필드는 백엔드에서 제공하지 않음을 명확히 로깅
+            _logger.d('📌 참고: isLiked 필드는 백엔드에서 제공하지 않음 (위시리스트 ID로 매칭 필요)');
+          }
+
+          final projects =
+              projectsList.map((json) => ProjectDTO.fromJson(json)).toList();
+
+          // 변환된 프로젝트 DTO 수 로깅
+          _logger.d('변환된 프로젝트 DTO 수: ${projects.length}개');
+
+          // 각 프로젝트 ID 목록 로깅 (위시리스트와 매칭하기 위함)
+          final projectIds = projects.map((p) => p.fundingId).toList();
+          _logger.d('프로젝트 ID 목록 (위시리스트 매칭용): $projectIds');
+
+          return projects;
         } else {
           throw Exception('Invalid API response format: content is not a list');
         }
