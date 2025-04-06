@@ -296,7 +296,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                       ),
                     ),
                     onPressed: () async {
-                      // 동기 Provider를 통해 로그인 상태 확인 (즉각적인 상태 확인)
+                      // 동기 Provider를 통해 로그인 상태 확인 (즉각적인 상태 체크)
                       final isLoggedIn = ref.read(isLoggedInProvider);
 
                       if (!isLoggedIn) {
@@ -578,16 +578,21 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                             // 인증된 경우 펀딩 로직 실행
                             LoggerUtil.d('💰 펀딩하기 버튼: 인증 성공 → 펀딩 페이지로 이동');
 
-                            // 펀딩 페이지로 이동
-                            context.go('/payment/${project.id}');
+                            // 펀딩 페이지로 이동 (프로젝트 데이터 전달)
+                            if (context.mounted) {
+                              context.push(
+                                '/payment/${project.id}',
+                                extra: project, // ProjectEntity 객체 전달
+                              );
 
-                            // 스낵바로 안내
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('펀딩 페이지로 이동합니다.'),
-                                duration: Duration(seconds: 2),
-                              ),
-                            );
+                              // 스낵바로 안내
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('펀딩 페이지로 이동합니다.'),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                            }
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,

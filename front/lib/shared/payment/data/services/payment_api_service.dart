@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/core/services/api_service.dart';
 import 'package:front/shared/payment/data/models/payment_dto.dart';
-import 'package:front/shared/dummy/data/payment_dummy.dart';
 import 'package:logger/logger.dart';
 
 /// 결제 관련 API 서비스
@@ -17,16 +16,58 @@ class PaymentApiService {
     try {
       _logger.d('결제 정보 조회 API 호출: $productId');
 
-      // 실제 API 호출 구현 (현재는 Mock 데이터 반환)
-      // final response = await _apiService.get('/api/payment/$productId');
-      // return PaymentDTO.fromJson(response.data);
+      // 실제 API 호출 구현
+      final response = await _apiService.get('/business/detail/$productId');
+      _logger.d('🐛 Project detail API response: ${response.data}');
 
-      // Mock 데이터 반환
-      await Future.delayed(const Duration(milliseconds: 800));
-      return paymentDummy;
+      if (response.statusCode == 200) {
+        // API 응답에서 필요한 데이터 추출 (content 필드 안에 데이터가 있음)
+        final content = response.data['content'];
+
+        // 응답 구조에 따라 fundingInfo와 sellerInfo 추출
+        final fundingInfo = content['fundingInfo'] ?? {};
+        final sellerInfo = content['sellerInfo'] ?? {};
+
+        _logger.d('🐛 fundingInfo: $fundingInfo');
+        _logger.d('🐛 sellerInfo: $sellerInfo');
+
+        // 이미지 URL 처리
+        String imageUrl = '';
+        if (fundingInfo['thumbnailFileUrl'] != null &&
+            fundingInfo['thumbnailFileUrl'].toString().isNotEmpty) {
+          imageUrl = fundingInfo['thumbnailFileUrl'];
+        } else if (fundingInfo['imageUrls'] != null &&
+            fundingInfo['imageUrls'] is List &&
+            (fundingInfo['imageUrls'] as List).isNotEmpty) {
+          imageUrl = fundingInfo['imageUrls'][0];
+        }
+
+        // 상품 정보를 PaymentDTO로 변환
+        final paymentDTO = PaymentDTO(
+          id: 'PAYMENT_${DateTime.now().millisecondsSinceEpoch}', // 고유 ID 생성
+          productId: productId,
+          productName: fundingInfo['title'] ?? '상품명 없음',
+          sellerName: sellerInfo['sellerName'] ??
+              fundingInfo['sellerName'] ??
+              '판매자 정보 없음',
+          imageUrl: imageUrl,
+          price: fundingInfo['price'] is int ? fundingInfo['price'] : 0,
+          quantity: 1, // 초기 수량 1로 설정
+          couponDiscount: 0, // 초기 할인 없음
+          recipientName: '', // 빈 값으로 설정
+          address: '', // 빈 값으로 설정
+          phoneNumber: '', // 빈 값으로 설정
+          isDefaultAddress: false,
+        );
+
+        _logger.d('결제 정보 생성 완료: ${paymentDTO.productName}');
+        return paymentDTO;
+      } else {
+        throw Exception('상품 정보를 가져오는데 실패했습니다: ${response.statusCode}');
+      }
     } catch (e) {
       _logger.e('결제 정보 조회 실패', error: e);
-      rethrow;
+      throw Exception('상품 정보를 가져오는데 실패했습니다: $e');
     }
   }
 
@@ -52,18 +93,21 @@ class PaymentApiService {
   }
 
   /// 결제 처리 API
-  Future<bool> processPayment(PaymentDTO payment) async {
+  Future<bool> processPayment({
+    required String fundingId,
+    required int quantity,
+    required int totalPrice,
+  }) async {
     try {
-      _logger.d('결제 처리 API 호출: ${payment.productId}');
+      _logger.d(
+          '결제 처리 API 호출: fundingId=$fundingId, quantity=$quantity, totalPrice=$totalPrice');
 
-      // API 명세에 맞게 요청 데이터 구조화
+      // API 명세에 맞게 요청 데이터 구조화 (필수 필드만 포함)
       final requestData = {
-        "fundingld": int.parse(payment.productId), // fundingId는 productId와 동일
-        "quantity": payment.quantity,
-        "totalPrice": payment.finalAmount // 최종 결제 금액
+        "fundingId": int.parse(fundingId),
+        "quantity": quantity,
+        "totalPrice": totalPrice
       };
-
-      _logger.d('결제 요청 데이터: $requestData');
 
       // 실제 API 호출 구현
       final response = await _apiService.post(
@@ -73,7 +117,7 @@ class PaymentApiService {
 
       // 응답 검증
       if (response.statusCode == 201) {
-        _logger.i('결제 성공: 주문 ID ${response.data['content']['orderld']}');
+        _logger.i('결제 성공: 주문 ID ${response.data['content']['orderId']}');
         return true;
       } else {
         _logger.w('결제 실패: 상태 코드 ${response.statusCode}');

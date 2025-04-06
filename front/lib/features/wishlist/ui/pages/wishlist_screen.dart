@@ -161,7 +161,7 @@ class _WishlistScreenState extends ConsumerState<WishlistScreen>
   /// 상세 페이지로 이동
   void _navigateToProjectDetail(int itemId) {
     LoggerUtil.i('🚀 프로젝트 상세 페이지로 이동: ID $itemId');
-    context.go('/project-detail/$itemId');
+    context.push('/project-detail/$itemId');
   }
 
   /// 좋아요 토글

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/core/themes/app_colors.dart';
 import 'package:front/core/themes/app_text_styles.dart';
+import 'package:front/features/home/domain/entities/project_entity.dart';
 import 'package:front/shared/payment/ui/view_model/payment_view_model.dart';
 import 'package:front/shared/payment/ui/widgets/product_info_section.dart';
 import 'package:front/shared/payment/ui/widgets/payment_info_section.dart';
@@ -14,9 +15,13 @@ class PaymentPage extends ConsumerStatefulWidget {
   /// 상품 ID
   final String productId;
 
+  /// 상세 페이지에서 전달받은 프로젝트 정보 (API 호출 대신 사용)
+  final ProjectEntity? projectEntity;
+
   const PaymentPage({
     Key? key,
     required this.productId,
+    this.projectEntity,
   }) : super(key: key);
 
   @override
@@ -27,18 +32,29 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
   @override
   void initState() {
     super.initState();
-    // 결제 정보 로드
-    Future.microtask(() {
-      ref
-          .read(paymentViewModelProvider.notifier)
-          .loadPaymentInfo(widget.productId);
-    });
+
+    // 프로젝트 정보가 전달되었는지 확인
+    if (widget.projectEntity != null) {
+      // 전달받은 프로젝트 정보로 결제 정보 초기화
+      Future.microtask(() {
+        ref
+            .read(paymentViewModelProvider.notifier)
+            .initializePaymentFromProject(widget.projectEntity!);
+      });
+    } else {
+      // 기존 방식대로 API로 결제 정보 로드
+      Future.microtask(() {
+        ref
+            .read(paymentViewModelProvider.notifier)
+            .loadPaymentInfo(widget.productId);
+      });
+    }
   }
 
   // 뒤로가기 핸들러 - 제품 상세 페이지로 이동
   void _handleBack() {
     // 제품 상세 페이지로 이동
-    context.go('/project-detail/${widget.productId}');
+    context.pop();
   }
 
   @override
@@ -65,65 +81,81 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
       );
     }
 
-    // 확인 다이얼로그 표시
+    // 확인 다이얼로그 표시 (한 번만 실행되도록 처리)
+    // 이전 상태와 현재 상태를 비교해서 showSuccessDialog가 false에서 true로 변경된 경우에만 표시
     if (state.showSuccessDialog && payment != null) {
+      // 모달이 표시되는 동안에는 상태 변경을 방지하기 위해 즉시 상태를 업데이트
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => PaymentConfirmDialog(
-            amount: payment.finalAmount,
-            onCancel: () {
-              viewModel.closePaymentDialog();
-              Navigator.pop(context);
-            },
-            onConfirm: () async {
-              try {
-                LoggerUtil.i('결제 처리 시작');
+        // 이미 다이얼로그가 표시 중인지 확인
+        bool isDialogShowing = false;
+        Navigator.of(context).popUntil((route) {
+          isDialogShowing = route is DialogRoute;
+          // 다이얼로그 이외의 라우트는 유지
+          return !isDialogShowing;
+        });
 
-                // 결제 처리 시작
-                final result = await viewModel.processPayment();
+        // 다이얼로그가 표시되고 있지 않을 때만 새로 표시
+        if (!isDialogShowing) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (dialogContext) => PaymentConfirmDialog(
+              amount: payment.finalAmount,
+              onCancel: () {
+                // 상태를 먼저 업데이트한 후 다이얼로그 닫기
+                viewModel.closePaymentDialog();
+                Navigator.of(dialogContext).pop();
+              },
+              onConfirm: () async {
+                try {
+                  LoggerUtil.i('결제 처리 시작');
 
-                // 다이얼로그 닫기
-                if (context.mounted) Navigator.pop(context);
+                  // 결제 처리 시작
+                  final result = await viewModel.processPayment();
 
-                if (result) {
-                  LoggerUtil.i('결제 성공 - 결제 완료 페이지로 이동');
+                  // 다이얼로그 닫기 (상태 업데이트 후)
+                  viewModel.closePaymentDialog();
+                  if (dialogContext.mounted) Navigator.of(dialogContext).pop();
 
-                  // 결제 완료 페이지로 이동
-                  if (context.mounted) {
-                    context.go('/payment/complete');
+                  if (result) {
+                    LoggerUtil.i('결제 성공 - 결제 완료 페이지로 이동');
+
+                    // 결제 완료 페이지로 이동
+                    if (context.mounted) {
+                      context.go('/payment/complete');
+                    }
+                  } else {
+                    // 결제 실패 메시지 표시
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(state.error ?? '결제 처리 중 오류가 발생했습니다.'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
                   }
-                } else {
-                  // 결제 실패 메시지 표시
+                } catch (e) {
+                  LoggerUtil.e('결제 처리 중 예외 발생', e);
+
+                  // 다이얼로그 닫기 (상태 업데이트 후)
+                  viewModel.closePaymentDialog();
+                  if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+
+                  // 오류 메시지 표시
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(state.error ?? '결제 처리 중 오류가 발생했습니다.'),
+                        content: Text('결제 처리 중 오류가 발생했습니다: ${e.toString()}'),
                         backgroundColor: Colors.red,
                       ),
                     );
                   }
                 }
-              } catch (e) {
-                LoggerUtil.e('결제 처리 중 예외 발생', e);
-
-                // 다이얼로그 닫기
-                if (context.mounted) Navigator.pop(context);
-
-                // 오류 메시지 표시
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('결제 처리 중 오류가 발생했습니다: ${e.toString()}'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              }
-            },
-          ),
-        );
+              },
+            ),
+          );
+        }
       });
     }
 
