@@ -389,4 +389,11 @@
     <select id="getExpectedSettlements" resultType="integer">
         call get_expected_settlements(#{sellerId})
     </select>
+
+    <select id="getLatestFundingId" resultType="int">
+        SELECT funding_id
+        FROM funding
+        ORDER BY funding_id DESC
+        LIMIT 1
+    </select>
 </mapper>
