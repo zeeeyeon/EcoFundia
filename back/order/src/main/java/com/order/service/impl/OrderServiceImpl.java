@@ -3,6 +3,7 @@ package com.order.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.order.client.FundingClient;
+import com.order.client.NotificationClient;
 import com.order.client.SellerClient;
 import com.order.client.UserClient;
 import com.order.common.exception.CustomException;
@@ -29,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,6 +52,9 @@ public class OrderServiceImpl implements OrderService {
     private final SellerClient sellerClient;
     private final ssafyApiService ssafyApiService;
     private final UserClient userClient;
+    private final StringRedisTemplate redisTemplate;
+    private final NotificationClient notificationClient;
+    private static final String TOTAL_FUND_KEY = "total_fund";
 
     @Value("${adm.account}")
     private String adminAccount;
@@ -107,6 +112,8 @@ public class OrderServiceImpl implements OrderService {
                 .updatedAt(LocalDateTime.now())
                 .build();
         orderMapper.createOrder(order);
+        redisTemplate.delete(TOTAL_FUND_KEY);
+        notificationClient.sendTotalOrderAmount(fundingClient.getTotalFund());
         return order;
     }
 
