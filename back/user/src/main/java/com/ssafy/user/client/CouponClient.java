@@ -15,6 +15,6 @@ public interface CouponClient {
     @GetMapping("/api/coupon/")
     List<CouponResponseDto> getCouponList(@RequestHeader("X-User-Id") int userId);
 
-    @PostMapping("/api/coupon/apply")
+    @PostMapping("/api/coupon/issue")
     void postCoupon(@RequestHeader("X-User-Id") int userId);
 }
