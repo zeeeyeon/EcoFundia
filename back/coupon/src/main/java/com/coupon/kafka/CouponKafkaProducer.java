@@ -13,8 +13,7 @@ public class CouponKafkaProducer {
 
     private final KafkaTemplate<String, CouponIssuedEvent> kafkaTemplate;
 
-    public void send(Long userId, Long couponCode) {
-        CouponIssuedEvent event = CouponIssuedEvent.of(userId, couponCode, LocalDateTime.now());
+    public void send(CouponIssuedEvent event) {
         kafkaTemplate.send("coupon-issued", event);
     }
 }
