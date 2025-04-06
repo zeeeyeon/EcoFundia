@@ -36,9 +36,9 @@ dependencies {
 	//eureka-client
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+//	implementation 'org.apache.commons:commons-pool2'
 
-	//mybatis
-	//implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.4'
 
 
 	compileOnly 'org.projectlombok:lombok'
