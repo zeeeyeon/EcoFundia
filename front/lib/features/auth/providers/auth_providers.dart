@@ -14,7 +14,6 @@ import 'package:front/features/auth/domain/use_cases/sign_out_use_case.dart';
 import 'package:front/features/auth/domain/use_cases/check_login_status_use_case.dart';
 import 'package:front/features/auth/ui/view_model/auth_view_model.dart';
 import 'package:front/routing/router.dart';
-import 'package:front/utils/logger_util.dart';
 
 /// Auth Service Provider
 final authServiceProvider = Provider<AuthService>((ref) {

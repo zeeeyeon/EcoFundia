@@ -20,8 +20,6 @@ import 'package:front/utils/logger_util.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:front/features/mypage/ui/view_model/total_funding_provider.dart';
-import 'package:front/routing/router.dart';
-import 'package:front/utils/auth_utils.dart';
 
 /// 인증 ViewModel
 ///
