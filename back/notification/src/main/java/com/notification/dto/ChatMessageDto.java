@@ -1,0 +1,13 @@
+package com.notification.dto;
+
+import java.time.LocalDateTime;
+
+public record ChatMessageDto (
+
+    int fundingId,
+    int senderId,
+    String nickname,
+    String content,
+    LocalDateTime createdAt
+
+) {}

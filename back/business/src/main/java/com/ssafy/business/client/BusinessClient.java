@@ -23,7 +23,7 @@ public interface BusinessClient {
 
     // 최신 펀딩 리스트 조회
     @GetMapping("api/business/latest-funding/{page}")
-    ResponseEntity<?> getLatestFundingList(@PathVariable int page);
+    ResponseEntity<?> getLatestFundingList(@PathVariable("page") int page);
 
     @GetMapping("/api/business/funding-page")
     ResponseEntity<?> getFundingPageList(
@@ -52,7 +52,7 @@ public interface BusinessClient {
 
     // 펀딩 상세 페이지
     @GetMapping("api/business/detail/{fundingId}")
-    ResponseEntity<?> getFundingDetail(@PathVariable int fundingId);
+    ResponseEntity<?> getFundingDetail(@PathVariable("fundingId") int fundingId);
     
     // 펀딩 리뷰 조회
     @GetMapping("api/business/review")
@@ -60,9 +60,9 @@ public interface BusinessClient {
 
     // 판매자 정보 조회
     @GetMapping("api/business/seller/detail/{sellerId}")
-    ResponseEntity<?> getSellerDetail(@PathVariable int sellerId);
+    ResponseEntity<?> getSellerDetail(@PathVariable("sellerId") int sellerId);
 
     // 판매자가 진행한 프로젝트 조회
     @GetMapping("api/business/seller/detail/{sellerId}/funding")
-    ResponseEntity<?> getSellerFunding(@PathVariable int sellerId);
+    ResponseEntity<?> getSellerFunding(@PathVariable("sellerId") int sellerId);
 }
