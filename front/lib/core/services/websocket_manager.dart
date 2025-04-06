@@ -10,7 +10,7 @@ class WebSocketManager {
   }) {
     stompClient = StompClient(
         config: StompConfig(
-      url: 'wss://j12e206.p.ssafy.io/ws-stomp', // ✅ 정확한 WebSocket 엔드포인트
+      url: 'wss://j12e206.p.ssafy.io/ws-stomp', // ✅ WebSocket 엔드포인트
       onConnect: onConnectCallback,
       onWebSocketError: onError ??
           (error) {
