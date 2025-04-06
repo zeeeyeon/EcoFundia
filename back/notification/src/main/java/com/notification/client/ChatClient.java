@@ -19,7 +19,7 @@ public interface ChatClient {
     void storeMessages(@PathVariable int fundingId, @RequestBody List<ChatMessageDto> messages);
 
     // 채팅방 참여자 추가
-    @PostMapping("/{fundingId}/participants")
+    @PostMapping("/api/chatroom/{fundingId}/participants")
     ResponseEntity<?> addParticipant(@PathVariable int fundingId,
                                             @RequestBody AddParticipantRequest request);
 
