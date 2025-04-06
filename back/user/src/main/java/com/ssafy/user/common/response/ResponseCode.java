@@ -26,7 +26,7 @@ public enum ResponseCode {
     COUPON_LIST(200,HttpStatus.OK, "쿠폰 조회를 성공하였습니다."),
     COUPON_COUNT(200,HttpStatus.OK, "쿠폰 개수 조회를 성공하였습니다."),
 
-
+    DELETE_CHATROOM(200, HttpStatus.OK, "채팅방에서 성공적으로 나갔습니다."),
 
     // 생성 응답 (201)
     CREATE_USER(201, HttpStatus.CREATED, "회원가입에 성공하였습니다."),

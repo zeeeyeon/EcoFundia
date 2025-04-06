@@ -1,5 +1,6 @@
 package com.ssafy.user.controller;
 
+import com.ssafy.user.client.ChatClient;
 import com.ssafy.user.common.response.PageResponse;
 import com.ssafy.user.common.response.Response;
 import com.ssafy.user.dto.request.*;
@@ -19,7 +20,9 @@ import static com.ssafy.user.common.response.ResponseCode.*;
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
 public class UserController {
+
     private final UserService userService;
+    private final ChatClient chatClient;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequestDto requestDto) {
@@ -156,5 +159,13 @@ public class UserController {
         return new ResponseEntity<>(Response.create(CREATE_COUPON,null), CREATE_COUPON.getHttpStatus());
     }
 
-
+    // 채팅방 나가기
+    @DeleteMapping("/{fundingId}/participants")
+    public ResponseEntity<?> leaveChatRoom(
+            @RequestHeader("X-User-Id") int userId,
+            @PathVariable int fundingId
+    ) {
+        chatClient.leaveChatRoom(userId, fundingId);
+        return new ResponseEntity<>(Response.create(DELETE_CHATROOM,null),DELETE_CHATROOM.getHttpStatus());
+    }
 }
