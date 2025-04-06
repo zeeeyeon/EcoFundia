@@ -2,6 +2,7 @@ package com.coupon.service;
 
 import com.coupon.common.exception.CustomException;
 import com.coupon.dto.CouponIssuedDto;
+import com.coupon.dto.CouponResponseDto;
 import com.coupon.entity.Coupon;
 import com.coupon.entity.CouponIssued;
 import com.coupon.repository.CouponIssuedRepository;
@@ -14,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.coupon.common.response.ResponseCode.*;
 import static com.coupon.common.util.CouponUtil.generateTodayCode;
@@ -53,5 +56,16 @@ public class CouponService {
         }
         CouponIssued issued = CouponIssuedDto.toEntity(coupon, userId);
         couponIssuedRepository.save(issued);
+    }
+
+    public int countCoupon(int userId) {
+        return couponIssuedRepository.countByUserId(userId);
+    }
+
+    public List<CouponResponseDto> getCoupons(int userId) {
+        List<CouponIssued> issuedList = couponIssuedRepository.findUnusedCouponsByUserId(userId);
+        return issuedList.stream()
+                .map(c -> CouponResponseDto.from(c.getCoupon()))
+                .collect(Collectors.toList());
     }
 }
