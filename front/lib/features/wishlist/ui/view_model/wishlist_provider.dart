@@ -1,11 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/features/wishlist/data/repositories/wishlist_repository_impl.dart';
 import 'package:front/features/wishlist/domain/repositories/wishlist_repository.dart';
-import 'package:front/features/wishlist/domain/use_cases/get_active_wishlist_items_use_case.dart';
-import 'package:front/features/wishlist/domain/use_cases/get_ended_wishlist_items_use_case.dart';
 import 'package:front/features/wishlist/domain/use_cases/get_wishlist_ids_use_case.dart';
-import 'package:front/features/wishlist/domain/use_cases/toggle_wishlist_item_use_case.dart';
-import 'package:front/features/wishlist/ui/view_model/wishlist_view_model.dart';
 import 'package:front/utils/logger_util.dart';
 import 'dart:async'; // TimeoutException을 위한 import 추가
 
