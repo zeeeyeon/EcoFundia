@@ -25,6 +25,7 @@ public interface OrderClient {
                                    @RequestParam(name="quantity") int quantity,
                                    @RequestParam(name="totalPrice") int totalPrice,
                                    @RequestParam(name="userKey") String userKey,
-                                   @RequestParam(name="userAccount") String userAccount);
+                                   @RequestParam(name="userAccount") String userAccount,
+                                   @RequestParam(name="couponId") Integer couponId);
 
 }
