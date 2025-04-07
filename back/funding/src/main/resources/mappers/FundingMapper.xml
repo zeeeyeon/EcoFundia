@@ -395,4 +395,12 @@
         ORDER BY funding_id DESC
         LIMIT 1
     </select>
+
+    <!-- current_amount 더하기 -->
+    <update id="addCurrentAmount">
+        UPDATE funding
+        SET current_amount = current_amount + #{amount}
+        WHERE funding_id = #{fundingId}
+    </update>
+
 </mapper>
