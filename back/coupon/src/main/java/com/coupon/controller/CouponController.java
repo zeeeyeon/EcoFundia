@@ -6,6 +6,7 @@ import com.coupon.dto.CouponResponseDto;
 import com.coupon.service.CouponRedisService;
 import com.coupon.service.CouponService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,6 +15,7 @@ import java.util.List;
 
 import static com.coupon.common.response.ResponseCode.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/coupon")
 @RequiredArgsConstructor
@@ -37,6 +39,7 @@ public class CouponController {
     @GetMapping
     public ResponseEntity<?> getCoupons(@RequestHeader("X-User-Id") int userId) throws IOException {
         List<CouponResponseDto> coupons = couponService.getCoupons(userId);
+        log.info("응답 coupon dto: {}", coupons);
         return new ResponseEntity<>(Response.create(GET_COUPONS, coupons), ISSUED_COUPON.getHttpStatus());
     }
 }
