@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/core/providers/app_state_provider.dart';
+import 'package:front/features/home/ui/widgets/project_card.dart';
+import 'package:front/features/wishlist/ui/view_model/wishlist_view_model.dart';
+import 'package:front/features/wishlist/ui/widgets/empty_wishlist.dart';
+import 'package:front/utils/logger_util.dart';
+import 'package:front/features/wishlist/ui/widgets/wishlist_item_card.dart';
+import 'package:front/features/wishlist/ui/widgets/wishlist_tab_bar.dart';
 import 'package:front/core/constants/app_strings.dart';
 import 'package:front/core/themes/app_colors.dart';
 import 'package:front/core/themes/app_text_styles.dart';
-import 'package:front/features/wishlist/ui/view_model/wishlist_view_model.dart';
-import 'package:front/features/wishlist/ui/widgets/empty_wishlist.dart';
-import 'package:front/features/wishlist/ui/widgets/wishlist_item_card.dart';
-import 'package:front/features/wishlist/ui/widgets/wishlist_tab_bar.dart';
-import 'package:front/utils/logger_util.dart';
 import 'package:go_router/go_router.dart';
 
 /// 위시리스트 화면
 /// 찜한 펀딩 프로젝트를 보여주는 화면
 class WishlistScreen extends ConsumerStatefulWidget {
-  const WishlistScreen({super.key});
+  const WishlistScreen({Key? key}) : super(key: key);
 
   @override
   ConsumerState<WishlistScreen> createState() => _WishlistScreenState();
@@ -24,25 +26,31 @@ class _WishlistScreenState extends ConsumerState<WishlistScreen>
         SingleTickerProviderStateMixin,
         AutomaticKeepAliveClientMixin,
         WidgetsBindingObserver {
-  late TabController _tabController;
+  @override
+  bool get wantKeepAlive => true; // 화면을 캐시하여 상태 유지
+
+  late final TabController _tabController;
   final ScrollController _activeScrollController = ScrollController();
   final ScrollController _endedScrollController = ScrollController();
+
   bool _isActiveLoadingMore = false;
   bool _isEndedLoadingMore = false;
-  bool _isPageVisible = true;
-  DateTime? _lastWishlistLoadTime; // 마지막 위시리스트 로드 시간 추적
-
-  @override
-  bool get wantKeepAlive => false; // 화면 상태 유지하지 않음
+  bool _isPageVisible = false;
+  DateTime? _lastWishlistLoadTime;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
 
-    // 스크롤 리스너 추가
+    // 스크롤 리스너 등록
     _activeScrollController.addListener(_activeScrollListener);
     _endedScrollController.addListener(_endedScrollListener);
+
+    // 앱 라이프사이클 변경 감지
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkIsWishlistTab();
+    });
 
     // 앱 라이프사이클 옵저버 등록
     WidgetsBinding.instance.addObserver(this);
@@ -60,11 +68,11 @@ class _WishlistScreenState extends ConsumerState<WishlistScreen>
 
   @override
   void dispose() {
+    _tabController.dispose();
     _activeScrollController.removeListener(_activeScrollListener);
     _endedScrollController.removeListener(_endedScrollListener);
     _activeScrollController.dispose();
     _endedScrollController.dispose();
-    _tabController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -79,23 +87,20 @@ class _WishlistScreenState extends ConsumerState<WishlistScreen>
     }
   }
 
-  // GoRouter의 StatefulShellRoute가 탭 변경 시 호출하는 메서드
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // 화면이 처음 빌드되거나 다시 보여질 때 호출됨
+    _checkIsWishlistTab();
+  }
 
-    // 현재 경로가 위시리스트인지 정확히 확인
-    final currentRoute = GoRouterState.of(context).uri.path;
-    final isWishlistTab = currentRoute == '/wishlist';
+  /// 탭 가시성 확인 및 데이터 로드
+  void _checkIsWishlistTab() {
+    final isWishlistTab = ModalRoute.of(context)?.isCurrent ?? false;
 
-    // 디버깅
-    LoggerUtil.d(
-        '🧪 didChangeDependencies - currentRoute: $currentRoute, isWishlistTab: $isWishlistTab, isPageVisible: $_isPageVisible');
-
+    // 탭이 보이게 되면 데이터 로드
     if (isWishlistTab && !_isPageVisible) {
       _isPageVisible = true;
-      LoggerUtil.i('🔄 위시리스트 페이지 활성화 - 데이터 로드');
+      LoggerUtil.i('🔄 위시리스트 페이지 활성화');
       _loadWishlistData();
     } else if (!isWishlistTab && _isPageVisible) {
       _isPageVisible = false;
@@ -161,7 +166,7 @@ class _WishlistScreenState extends ConsumerState<WishlistScreen>
   /// 상세 페이지로 이동
   void _navigateToProjectDetail(int itemId) {
     LoggerUtil.i('🚀 프로젝트 상세 페이지로 이동: ID $itemId');
-    context.push('/project-detail/$itemId');
+    context.push('/project/$itemId');
   }
 
   /// 좋아요 토글
@@ -174,6 +179,66 @@ class _WishlistScreenState extends ConsumerState<WishlistScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+
+    // 로그인 상태 확인
+    final isLoggedIn = ref.watch(isLoggedInProvider);
+
+    // 로그인하지 않은 경우 로그인 안내 화면 표시
+    if (!isLoggedIn) {
+      return Scaffold(
+        backgroundColor: AppColors.white,
+        appBar: AppBar(
+          backgroundColor: AppColors.white,
+          elevation: 0,
+          automaticallyImplyLeading: false, // 뒤로가기 버튼 제거
+          title: Text(
+            AppBarStrings.myWishList,
+            style: AppTextStyles.appBarTitle,
+          ),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.favorite_border,
+                size: 80,
+                color: Colors.grey,
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                '로그인이 필요한 서비스입니다',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                '로그인하시면 관심있는 펀딩 프로젝트를\n찜 목록에 저장하실 수 있습니다.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
+              ),
+              const SizedBox(height: 32),
+              ElevatedButton(
+                onPressed: () {
+                  context.push('/login');
+                },
+                style: ElevatedButton.styleFrom(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 48, vertical: 12),
+                ),
+                child: const Text('로그인 하기'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     // 위시리스트 상태 조회
     final wishlistState = ref.watch(wishlistViewModelProvider);
 
@@ -241,7 +306,7 @@ class _WishlistScreenState extends ConsumerState<WishlistScreen>
     );
   }
 
-  /// 위시리스트 탭 빌드
+  /// 위시리스트 탭 화면 구성
   Widget _buildWishlistTab({
     required bool isLoading,
     required List items,
@@ -249,50 +314,49 @@ class _WishlistScreenState extends ConsumerState<WishlistScreen>
     required ScrollController scrollController,
     required bool isLoadingMore,
   }) {
-    if (isLoading && items.isEmpty) {
-      return const Center(
-          child: CircularProgressIndicator(color: AppColors.primary));
-    }
-
-    if (items.isEmpty) {
-      return EmptyWishlist(message: emptyMessage);
-    }
-
-    // RefreshIndicator로 감싸서 당겨서 새로고침 기능 추가
     return RefreshIndicator(
-      color: AppColors.primary,
       onRefresh: () async {
-        await ref
-            .read(wishlistViewModelProvider.notifier)
-            .refreshWishlistItems();
+        LoggerUtil.i('🔄 위시리스트 수동 새로고침');
+        await ref.read(wishlistViewModelProvider.notifier).loadWishlistItems();
       },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: ListView.builder(
-          controller: scrollController,
-          itemCount: items.length + (isLoadingMore ? 1 : 0),
-          physics: const AlwaysScrollableScrollPhysics(), // 항상 스크롤 가능하도록 설정
-          itemBuilder: (context, index) {
-            if (index == items.length) {
-              // 마지막 아이템 로딩 인디케이터
-              return const Padding(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                child: Center(
-                  child: CircularProgressIndicator(color: AppColors.primary),
-                ),
-              );
-            }
+      child: isLoading && items.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : items.isEmpty
+              ? EmptyWishlist(message: emptyMessage)
+              : ListView.builder(
+                  controller: scrollController,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  itemCount: items.length + (isLoadingMore ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    // 하단 로딩 인디케이터
+                    if (index == items.length) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    }
 
-            final item = items[index];
-            return WishlistItemCard(
-              item: item,
-              onToggleLike: _toggleLike,
-              onParticipate: _navigateToProjectDetail,
-              onNavigateToDetail: _navigateToProjectDetail,
-            );
-          },
-        ),
-      ),
+                    final item = items[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: WishlistItemCard(
+                        item: item,
+                        onToggleLike: _toggleLike,
+                        onParticipate: _navigateToProjectDetail,
+                        onNavigateToDetail: _navigateToProjectDetail,
+                      ),
+                    );
+                  },
+                ),
     );
+  }
+
+  @override
+  void didUpdateWidget(WishlistScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
   }
 }

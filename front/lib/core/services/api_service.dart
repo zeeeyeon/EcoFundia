@@ -234,17 +234,38 @@ class ApiService {
       {dynamic data,
       Map<String, dynamic>? queryParameters,
       Options? options,
-      CancelToken? cancelToken}) async {
+      CancelToken? cancelToken,
+      ProgressCallback? onSendProgress,
+      ProgressCallback? onReceiveProgress}) async {
+    LoggerUtil.d('📤 POST 요청 시작: $path');
+
+    // 쿠폰 관련 API 호출 특별 로깅
+    if (path.contains('coupons')) {
+      LoggerUtil.i('🎫 쿠폰 API 호출: POST $path');
+      LoggerUtil.i('🎫 요청 데이터: $data');
+      LoggerUtil.i('🎫 요청 옵션: ${options?.toString()}');
+    }
+
     try {
-      return await _dio.post(
+      final response = await _dio.post(
         path,
         data: data,
         queryParameters: queryParameters,
         options: options,
         cancelToken: cancelToken,
+        onSendProgress: onSendProgress,
+        onReceiveProgress: onReceiveProgress,
       );
+
+      // 쿠폰 관련 API 응답 특별 로깅
+      if (path.contains('coupons')) {
+        LoggerUtil.i('🎫 쿠폰 API 응답: ${response.statusCode}');
+        LoggerUtil.i('🎫 응답 데이터: ${response.data}');
+      }
+
+      return response;
     } catch (e) {
-      LoggerUtil.e('POST 요청 실패: $path', e);
+      LoggerUtil.e('❌ POST 요청 실패: $path', e);
       rethrow;
     }
   }

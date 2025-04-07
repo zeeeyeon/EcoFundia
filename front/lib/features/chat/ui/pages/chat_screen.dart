@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/providers/websocket_provider.dart';
 import '../../../../core/services/storage_service.dart';
+import '../../../../core/services/websocket_manager.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({super.key});
@@ -16,10 +17,12 @@ class ChatScreen extends ConsumerStatefulWidget {
 
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   String _connectionStatus = '⏳ WebSocket 연결 중...';
+  late final WebSocketManager _wsManager;
 
   @override
   void initState() {
     super.initState();
+    _wsManager = ref.read(websocketManagerProvider);
     _connectToWebSocket();
   }
 
@@ -30,8 +33,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       return;
     }
 
-    final wsManager = ref.read(websocketManagerProvider);
-    wsManager.connect(
+    _wsManager.connect(
       userToken: token,
       onConnectCallback: (frame) {
         setState(() {
@@ -50,7 +52,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   void dispose() {
-    ref.read(websocketManagerProvider).disconnect();
+    _wsManager.disconnect();
     super.dispose();
   }
 

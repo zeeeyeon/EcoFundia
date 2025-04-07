@@ -24,6 +24,12 @@ class ApiEndpoints {
   final String mypage = '/mypage';
   final String test = '/user/health';
 
+  // 쿠폰 관련 엔드포인트
+  final String couponCount = '/user/coupons/count'; // 쿠폰 개수 조회
+  final String couponApply = '/user/coupons/apply'; // 쿠폰 발급 신청
+  final String couponList = '/user/coupons/list'; // 쿠폰 목록 조회
+  final String couponUse = '/user/order/coupon'; // 결제 완료 시 쿠폰 사용 처리
+
   // 다른 기능별 엔드포인트는 여기에 추가
   const ApiEndpoints();
 }

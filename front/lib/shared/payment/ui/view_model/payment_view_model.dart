@@ -68,6 +68,50 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
     }
   }
 
+  /// 쿠폰 적용 (API에서 가져온 쿠폰 사용)
+  void applyCouponWithId(int couponId, int discountAmount) {
+    if (state.payment == null) return;
+
+    try {
+      state = state.applyingCoupon();
+
+      // 현재 상태의 결제 객체에 쿠폰 정보 적용
+      final updatedPayment = state.payment!.copyWith(
+        appliedCouponId: couponId,
+        couponDiscount: discountAmount,
+      );
+
+      state = state.copyWith(
+        isApplyingCoupon: false,
+        payment: updatedPayment,
+        error: null,
+      );
+      _logger.d('쿠폰 적용 성공: ID $couponId, 할인금액: $discountAmount');
+    } catch (e) {
+      _logger.e('쿠폰 적용 실패', error: e);
+      state = state.copyWith(
+        isApplyingCoupon: false,
+        error: '쿠폰 적용 중 오류가 발생했습니다: ${e.toString()}',
+      );
+    }
+  }
+
+  /// 쿠폰 제거
+  void removeCoupon() {
+    if (state.payment == null) return;
+
+    // 쿠폰 정보 제거
+    final updatedPayment = state.payment!.copyWith(
+      appliedCouponId: 0,
+      couponDiscount: 0,
+    );
+
+    state = state.copyWith(
+      payment: updatedPayment,
+    );
+    _logger.d('쿠폰 제거됨');
+  }
+
   /// 결제 프로세스 시작
   void startPaymentProcess() {
     if (state.payment == null) return;

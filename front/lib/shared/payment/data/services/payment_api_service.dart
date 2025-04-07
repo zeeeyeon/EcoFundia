@@ -77,15 +77,20 @@ class PaymentApiService {
       _logger.d('쿠폰 적용 API 호출: $couponCode');
 
       // 실제 API 호출 구현
-      // final response = await _apiService.post(
-      //   '/api/payment/coupon',
-      //   data: {'couponCode': couponCode},
-      // );
-      // return response.data['discountAmount'] as int;
+      final response = await _apiService.post(
+        '/user/order/coupon',
+        data: {'couponCode': couponCode},
+      );
 
-      // Mock 데이터 반환
-      await Future.delayed(const Duration(milliseconds: 500));
-      return _getMockCouponDiscount(couponCode);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final discountAmount =
+            response.data['content']['discountAmount'] as int;
+        _logger.d('쿠폰 적용 성공: $couponCode, 할인액: $discountAmount');
+        return discountAmount;
+      } else {
+        _logger.w('쿠폰 적용 실패: 상태 코드 ${response.statusCode}');
+        throw Exception('쿠폰 적용에 실패했습니다. (${response.statusCode})');
+      }
     } catch (e) {
       _logger.e('쿠폰 적용 실패', error: e);
       rethrow;
@@ -135,6 +140,37 @@ class PaymentApiService {
         throw Exception('결제 실패: $errorMsg');
       }
       rethrow;
+    }
+  }
+
+  /// 쿠폰 사용 처리 API (결제 성공 후 호출)
+  Future<bool> useCoupon(int couponId) async {
+    try {
+      _logger.d('쿠폰 사용 처리 API 호출: couponId=$couponId');
+
+      // API 엔드포인트 및 요청 데이터 구조
+      final requestData = {
+        "couponId": couponId,
+      };
+
+      // 실제 API 호출
+      final response = await _apiService.post(
+        '/user/order/coupon',
+        data: requestData,
+      );
+
+      // 응답 검증
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        _logger.i('쿠폰 사용 처리 성공: $couponId');
+        return true;
+      } else {
+        _logger.w('쿠폰 사용 처리 실패: 상태 코드 ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      _logger.e('쿠폰 사용 처리 실패', error: e);
+      // 이 메서드는 결제 성공 후 호출되므로, 실패 시에도 예외를 던지지 않고 false 반환
+      return false;
     }
   }
 

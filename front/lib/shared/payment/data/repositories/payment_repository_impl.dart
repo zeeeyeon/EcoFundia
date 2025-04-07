@@ -69,14 +69,36 @@ class PaymentRepositoryImpl implements PaymentRepository {
       final int totalPrice = payment.finalAmount;
 
       _logger.d(
-          '결제 요청 데이터: fundingId=$fundingId, quantity=$quantity, totalPrice=$totalPrice');
+          '결제 요청 데이터: fundingId=$fundingId, quantity=$quantity, totalPrice=$totalPrice, couponId=${payment.appliedCouponId}');
 
-      // 필요한 데이터만 API 서비스에 전달
-      return await _apiService.processPayment(
+      // 결제 API 호출
+      final paymentResult = await _apiService.processPayment(
         fundingId: fundingId,
         quantity: quantity,
         totalPrice: totalPrice,
       );
+
+      // 결제가 성공하고, 쿠폰이 적용된 경우 쿠폰 사용 처리
+      if (paymentResult && payment.appliedCouponId > 0) {
+        _logger.d('결제 성공, 쿠폰 사용 처리 시작: couponId=${payment.appliedCouponId}');
+
+        try {
+          // 여기서는 Repository 내에서 직접 API를 호출하지 않고,
+          // 관심사 분리를 위해 UseCase를 사용하는 것이 이상적이나,
+          // 편의상 여기에서 API를 호출하는 코드를 추가합니다.
+          // 실제 구현에서는 이 부분을 외부에서 주입받은 UseCouponUseCase를 사용하거나,
+          // 성공 후 별도 처리가 필요한 경우 위에서 호출하도록 구조를 변경해야 합니다.
+
+          await _apiService.useCoupon(payment.appliedCouponId);
+          _logger.d('쿠폰 사용 처리 완료: couponId=${payment.appliedCouponId}');
+        } catch (couponError) {
+          // 쿠폰 사용 처리 실패는 결제 성공에 영향을 주지 않습니다.
+          // 로그만 남기고 결제는 성공으로 처리합니다.
+          _logger.e('쿠폰 사용 처리 실패 (무시됨): ${couponError.toString()}');
+        }
+      }
+
+      return paymentResult;
     } catch (e) {
       _logger.e('결제 처리 실패', error: e);
       rethrow;

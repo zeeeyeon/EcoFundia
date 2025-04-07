@@ -11,6 +11,7 @@ class PaymentEntity extends Equatable {
   final int price;
   final int quantity;
   final int couponDiscount;
+  final int appliedCouponId; // 적용된 쿠폰 ID
   final String recipientName;
   final String address;
   final String phoneNumber;
@@ -25,6 +26,7 @@ class PaymentEntity extends Equatable {
     required this.price,
     required this.quantity,
     this.couponDiscount = 0,
+    this.appliedCouponId = 0, // 0은 쿠폰이 적용되지 않았음을 의미
     required this.recipientName,
     required this.address,
     required this.phoneNumber,
@@ -37,6 +39,9 @@ class PaymentEntity extends Equatable {
   // 최종 결제 금액 계산
   int get finalAmount => totalProductPrice - couponDiscount;
 
+  // 쿠폰이 적용되었는지 확인
+  bool get hasCouponApplied => appliedCouponId > 0 && couponDiscount > 0;
+
   PaymentEntity copyWith({
     String? id,
     String? productId,
@@ -46,6 +51,7 @@ class PaymentEntity extends Equatable {
     int? price,
     int? quantity,
     int? couponDiscount,
+    int? appliedCouponId,
     String? recipientName,
     String? address,
     String? phoneNumber,
@@ -60,6 +66,7 @@ class PaymentEntity extends Equatable {
       price: price ?? this.price,
       quantity: quantity ?? this.quantity,
       couponDiscount: couponDiscount ?? this.couponDiscount,
+      appliedCouponId: appliedCouponId ?? this.appliedCouponId,
       recipientName: recipientName ?? this.recipientName,
       address: address ?? this.address,
       phoneNumber: phoneNumber ?? this.phoneNumber,
@@ -76,6 +83,7 @@ class PaymentEntity extends Equatable {
     bool isDefaultAddress = false,
     int quantity = 1,
     int couponDiscount = 0,
+    int appliedCouponId = 0,
   }) {
     return PaymentEntity(
       id: 'PAYMENT_${DateTime.now().millisecondsSinceEpoch}',
@@ -86,6 +94,7 @@ class PaymentEntity extends Equatable {
       price: project.priceValue,
       quantity: quantity,
       couponDiscount: couponDiscount,
+      appliedCouponId: appliedCouponId,
       recipientName: recipientName,
       address: address,
       phoneNumber: phoneNumber,
@@ -103,6 +112,7 @@ class PaymentEntity extends Equatable {
         price,
         quantity,
         couponDiscount,
+        appliedCouponId,
         recipientName,
         address,
         phoneNumber,

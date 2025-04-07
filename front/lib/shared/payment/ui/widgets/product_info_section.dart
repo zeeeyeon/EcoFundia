@@ -171,23 +171,64 @@ class ProductInfoSection extends ConsumerWidget {
         InkWell(
           onTap: () => CouponDialog.show(
             context: context,
-            onCouponSelected: (couponCode) {
-              viewModel.applyCoupon(couponCode);
+            onCouponSelected: (couponId, discountAmount) {
+              viewModel.applyCouponWithId(couponId, discountAmount);
             },
           ),
           child: Container(
             height: 36,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
-              border: Border.all(color: AppColors.lightGrey),
+              border: Border.all(
+                color: payment.hasCouponApplied
+                    ? AppColors.primary
+                    : AppColors.lightGrey,
+              ),
               borderRadius: BorderRadius.circular(8),
+              color: payment.hasCouponApplied
+                  ? AppColors.primary.withOpacity(0.1)
+                  : Colors.white,
             ),
             alignment: Alignment.center,
-            child: Text(
-              '쿠폰 사용',
-              style: AppTextStyles.body2.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  payment.hasCouponApplied
+                      ? Icons.local_activity
+                      : Icons.local_activity_outlined,
+                  size: 16,
+                  color: payment.hasCouponApplied
+                      ? AppColors.primary
+                      : AppColors.darkGrey,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  payment.hasCouponApplied
+                      ? '${NumberFormat('#,###').format(payment.couponDiscount)}원 할인'
+                      : '쿠폰 사용',
+                  style: AppTextStyles.body2.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: payment.hasCouponApplied
+                        ? AppColors.primary
+                        : AppColors.darkGrey,
+                  ),
+                ),
+                if (payment.hasCouponApplied) ...[
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () {
+                      // 이벤트 전파 방지
+                      viewModel.removeCoupon();
+                    },
+                    child: const Icon(
+                      Icons.close,
+                      size: 16,
+                      color: AppColors.darkGrey,
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
         ),

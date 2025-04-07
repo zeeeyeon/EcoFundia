@@ -22,18 +22,21 @@ class LoginScreen extends ConsumerWidget {
 
     // 에러 발생 시 스낵바 표시
     if (appState.error != null) {
-      Future.microtask(() {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(appState.error!)),
-        );
-        ref.read(appStateProvider.notifier).clearError();
+      // 안전하게 스낵바 표시 로직 수정
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(appState.error!)),
+          );
+          ref.read(appStateProvider.notifier).clearError();
+        }
       });
     }
 
     // 이미 로그인되어 있으면 홈으로 이동
     if (isLoggedIn.status == AuthStatus.authenticated) {
       // 딜레이를 추가하여 렌더링 충돌 방지
-      Future.microtask(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         if (context.mounted) {
           context.go('/');
         }

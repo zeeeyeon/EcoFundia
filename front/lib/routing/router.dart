@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/features/chat/ui/pages/chat_room_screen.dart';
 import 'package:front/features/chat/ui/pages/chat_screen.dart';
 import 'package:front/features/funding/ui/pages/search_screen.dart';
-import 'package:front/features/mypage/ui/pages/coupon_screen.dart';
+import 'package:front/features/mypage/ui/pages/coupons_screen.dart';
 import 'package:front/features/mypage/ui/pages/edit_review_screen.dart';
 import 'package:front/features/mypage/ui/pages/my_review_screen.dart';
 import 'package:front/features/mypage/ui/pages/profile_edit_screen.dart';
@@ -32,7 +32,6 @@ import 'package:front/shared/payment/ui/pages/payment_complete_page.dart';
 import 'package:front/utils/auth_utils.dart';
 import 'package:front/utils/logger_util.dart';
 import 'package:front/core/providers/app_state_provider.dart';
-
 // 필요한 ViewModel Provider들을 import
 import 'package:front/features/funding/ui/view_model/funding_list_view_model.dart';
 import 'package:front/features/home/ui/view_model/project_view_model.dart';
@@ -41,6 +40,8 @@ import 'package:front/features/mypage/ui/view_model/profile_view_model.dart';
 import 'package:front/features/mypage/ui/view_model/total_funding_provider.dart';
 import 'package:front/features/mypage/ui/view_model/my_funding_view_model.dart';
 import 'package:front/features/mypage/ui/view_model/my_review_view_model.dart';
+import 'package:front/features/wishlist/ui/view_model/wishlist_provider.dart';
+import 'package:front/features/mypage/ui/view_model/coupon_view_model.dart';
 
 // 정적으로 선언된 GlobalKey - 싱글턴으로 관리
 class AppNavigatorKeys {
@@ -60,7 +61,31 @@ class AppNavigatorKeys {
   final homeTabKey = GlobalKey<NavigatorState>(debugLabel: 'home_tab');
   final wishlistTabKey = GlobalKey<NavigatorState>(debugLabel: 'wishlist_tab');
   final mypageTabKey = GlobalKey<NavigatorState>(debugLabel: 'mypage_tab');
+  final chatTabKey = GlobalKey<NavigatorState>(debugLabel: 'chat_tab');
 }
+
+// 각 탭별 마지막 데이터 로드 시간 추적
+class TabLoadState {
+  DateTime? lastHomeLoadTime;
+  DateTime? lastFundingLoadTime;
+  DateTime? lastWishlistLoadTime;
+  DateTime? lastMypageLoadTime;
+  DateTime? lastChatLoadTime;
+  int lastTabIndex = 0; // 마지막으로 선택된 탭 인덱스
+
+  // 각 탭별 상태 초기화 (앱 시작 또는 로그아웃 시 사용)
+  void reset() {
+    lastHomeLoadTime = null;
+    lastFundingLoadTime = null;
+    lastWishlistLoadTime = null;
+    lastMypageLoadTime = null;
+    lastChatLoadTime = null;
+    lastTabIndex = 0;
+  }
+}
+
+// 전역 상태 인스턴스
+final _tabLoadState = TabLoadState();
 
 final routerProvider = Provider<GoRouter>((ref) {
   // 인증 상태 변경을 감지하는 ValueNotifier
@@ -76,11 +101,29 @@ final routerProvider = Provider<GoRouter>((ref) {
   });
 
   return GoRouter(
-    navigatorKey: AppNavigatorKeys.instance.rootNavigatorKey, // 루트 네비게이터 키 추가
+    navigatorKey: AppNavigatorKeys.instance.rootNavigatorKey, // 싱글턴 인스턴스의 키 사용
     initialLocation: '/splash', // ✅ 앱 실행 시 먼저 스플래시 화면 표시
     refreshListenable: authStateListenable, // ✅ 인증 상태 변경 감지 리스너 추가
     redirect: (context, state) async {
-      //권한체크
+      // 현재 경로가 로그인/스플래시 페이지인 경우 리디렉션 로직 건너뜀
+      if (state.uri.toString() == '/login' ||
+          state.uri.toString() == '/splash') {
+        return null;
+      }
+
+      // 인증이 필요한 경로인지 확인
+      final currentPath = state.uri.toString();
+      if (AuthUtils.isAuthRequiredPath(currentPath)) {
+        // 로그인 상태 확인
+        final isLoggedIn = ref.read(isLoggedInProvider);
+
+        if (!isLoggedIn) {
+          LoggerUtil.d('🔒 라우트 권한 체크: 인증 필요 ($currentPath) → 로그인 페이지로 리다이렉션');
+          return '/login';
+        }
+      }
+
+      // 기존 체크 로직도 유지
       return await AuthUtils.checkAuthForRoute(context, ref, state);
     },
     routes: [
@@ -302,7 +345,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
               GoRoute(
                 path: '/coupons',
-                builder: (context, state) => const CouponScreen(),
+                builder: (context, state) => const CouponsScreen(),
               ),
               GoRoute(
                 path: '/support/faq',
@@ -349,6 +392,14 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
   // 네비게이션 쉘 래핑을 위한 전역 키
   final _shellContainerKey = GlobalKey(debugLabel: 'shell_container_key');
 
+  // 탭별 마지막 데이터 로드 시간 추적
+  final Map<int, DateTime> _lastTabRefreshTimes = {};
+  // 이전에 선택된 탭 인덱스
+  int _lastSelectedIndex = -1;
+
+  // 탭 데이터 새로고침 사이의 최소 시간 간격 (초)
+  static const int _minRefreshIntervalSeconds = 30;
+
   @override
   void dispose() {
     _debounce?.cancel(); // 위젯 dispose 시 타이머 취소
@@ -385,7 +436,7 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
                 );
 
                 // 선택된 탭에 따라 해당 ViewModel 데이터 새로고침
-                _refreshTabData(ref, index);
+                _refreshTabData(ref, index, previousIndex);
               });
             },
             destinations: const [
@@ -416,61 +467,191 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
     );
   }
 
-  // 선택된 탭에 따라 데이터 새로고침
-  void _refreshTabData(WidgetRef ref, int index) {
+  // 선택된 탭에 따라 데이터 새로고침 - 통합 버전
+  void _refreshTabData(WidgetRef ref, int index, int previousIndex) {
     try {
       // 인증 상태 확인 (isLoggedIn은 동기적으로 현재 상태 확인)
-      final isLoggedIn = ref.read(appStateProvider).isLoggedIn;
-      LoggerUtil.d('🔒 탭 $index 새로고침 - 인증 상태: $isLoggedIn');
+      final appState = ref.read(appStateProvider);
+      final isLoggedIn = appState.isLoggedIn;
 
+      // 현재 시간
+      final now = DateTime.now();
+
+      // 같은 탭을 클릭했는지 여부
+      final isSameTab = index == previousIndex;
+
+      // 마이페이지 또는 채팅/찜 탭이면서 로그인이 안 된 경우
+      // 기본 탭으로 이동시키는 로직 추가 (옵션)
+      if (!isLoggedIn && (index == 1 || index == 3 || index == 4)) {
+        LoggerUtil.d('⚠️ 인증 필요 탭 접근 시도(탭 $index) - 로그인 필요');
+
+        // 마이페이지의 경우 탭 자체를 변경하지 않고 로그인 요청 화면을 표시
+        if (index == 4) {
+          LoggerUtil.d('🔒 마이페이지 탭: 비로그인 상태로 접근 허용 (안내 화면 표시)');
+          // 마이페이지 내부에서 로그인 안내 화면을 표시하므로 여기서는 별도 처리 없음
+        }
+      }
+
+      // 마지막 로드 시간 확인 - 전역 시간 객체 또는 로컬 시간 객체
+      DateTime? lastRefreshTime;
+
+      // 탭 인덱스별 마지막 데이터 로드 시간 가져오기
       switch (index) {
-        case 0: // 펀딩 탭 - 인증 불필요
-          // FundingListViewModel의 첫 페이지를 다시 로드
-          ref.read(fundingListProvider.notifier).fetchFundingList(
-                page: 1, // 첫 페이지부터 다시 로드
-                sort: ref.read(sortOptionProvider), // 현재 정렬 유지
-                categories: ref.read(selectedCategoriesProvider), // 현재 카테고리 유지
-              );
+        case 0: // 펀딩 탭
+          lastRefreshTime = _tabLoadState.lastFundingLoadTime;
           break;
-
-        case 1: // 홈 탭 - 인증 불필요
-          ref.read(projectViewModelProvider.notifier).loadProjects();
+        case 1: // 위시리스트 탭
+          lastRefreshTime = _tabLoadState.lastWishlistLoadTime;
           break;
-
-        case 2: // 찜 탭 - 인증 필요
-          if (isLoggedIn) {
-            ref.read(wishlistViewModelProvider.notifier).loadWishlistItems();
-          } else {
-            // 로그인되지 않은 경우, 위시리스트 상태를 명시적으로 초기화
-            // resetState 메서드가 있다면 호출 (최선의 방법)
-            ref.read(wishlistViewModelProvider.notifier).resetState();
-
-            // 백업 방법으로, Provider를 완전히 무효화
-            ref.invalidate(wishlistViewModelProvider);
-
-            LoggerUtil.d('⚠️ 인증되지 않음: 위시리스트 초기화 완료');
-          }
+        case 2: // 홈 탭
+          lastRefreshTime = _tabLoadState.lastHomeLoadTime;
           break;
-
-        case 3: // 마이페이지 탭 - 인증 필요
-          if (isLoggedIn) {
-            // 현재 Provider 상태에 따라 refresh 또는 invalidate 사용
-            ref.invalidate(profileProvider); // Provider를 무효화하여 다음 접근 시 새로고침
-            ref.invalidate(totalFundingAmountProvider); // 총 펀딩 금액 갱신
-          } else {
-            // 로그인되지 않은 경우, 프로필 관련 Provider들을 명시적으로 초기화
-            ref.invalidate(profileProvider);
-            ref.invalidate(totalFundingAmountProvider);
-            ref.invalidate(myFundingViewModelProvider); // 내 펀딩 정보도 명시적으로 초기화
-            ref.invalidate(myReviewProvider); // 내 리뷰 정보도 명시적으로 초기화
-
-            LoggerUtil.d('⚠️ 인증되지 않음: 모든 사용자 프로필 데이터 초기화 완료');
-          }
+        case 3: // 채팅 탭
+          lastRefreshTime = _tabLoadState.lastChatLoadTime;
+          break;
+        case 4: // 마이페이지 탭
+          lastRefreshTime = _tabLoadState.lastMypageLoadTime;
           break;
       }
-      LoggerUtil.d('🔄 탭 $index 선택됨 - 관련 데이터 새로고침 요청');
+
+      // 같은 탭 클릭 시 항상 새로고침하거나, 다른 탭에서 돌아왔을 때 시간 기준 확인
+      final isRefreshNeeded = isSameTab ||
+          lastRefreshTime == null ||
+          now.difference(lastRefreshTime).inSeconds >
+              _minRefreshIntervalSeconds;
+
+      LoggerUtil.d(
+          '🔒 탭 $index 선택됨 - 이전 탭: $previousIndex, 마지막 선택 탭: $_lastSelectedIndex');
+      LoggerUtil.d(
+          '🔒 탭 $index 새로고침 조건 - 재로드 필요: $isRefreshNeeded, 인증 상태: $isLoggedIn, 같은 탭 클릭: $isSameTab');
+
+      // 현재 탭 인덱스 저장
+      _lastSelectedIndex = index;
+
+      // 탭 데이터 로드가 필요한 경우에만 처리
+      if (isRefreshNeeded) {
+        switch (index) {
+          case 0: // 펀딩 탭 - 인증 불필요
+            // FundingListViewModel의 첫 페이지를 다시 로드
+            LoggerUtil.i(
+                '🔄 펀딩 탭 데이터 새로고침 ${isSameTab ? "(탭 재클릭)" : "(탭 전환)"}');
+
+            try {
+              // 첫 페이지부터 다시 로드
+              ref.read(fundingListProvider.notifier).fetchFundingList(
+                    page: 1, // 첫 페이지부터 다시 로드
+                    sort: ref.read(sortOptionProvider), // 현재 정렬 유지
+                    categories:
+                        ref.read(selectedCategoriesProvider), // 현재 카테고리 유지
+                  );
+            } catch (e) {
+              LoggerUtil.e('❌ 펀딩 목록 탭 데이터 로드 오류: $e');
+            }
+
+            // 위시리스트 ID 로드 (로그인 된 경우에만)
+            if (isLoggedIn) {
+              final loadWishlistIds = ref.read(loadWishlistIdsProvider);
+              loadWishlistIds();
+            }
+
+            // 시간 업데이트
+            _tabLoadState.lastFundingLoadTime = now;
+            _lastTabRefreshTimes[index] = now;
+            break;
+
+          case 1: // 찜 탭 - 인증 필요
+            if (isLoggedIn) {
+              LoggerUtil.i(
+                  '🔄 찜 탭 데이터 새로고침 ${isSameTab ? "(탭 재클릭)" : "(탭 전환)"}');
+
+              // 위시리스트 데이터 로드
+              ref.read(wishlistViewModelProvider.notifier).loadWishlistItems();
+
+              // 위시리스트 ID 로드
+              final loadWishlistIds = ref.read(loadWishlistIdsProvider);
+              loadWishlistIds();
+
+              // 시간 업데이트
+              _tabLoadState.lastWishlistLoadTime = now;
+              _lastTabRefreshTimes[index] = now;
+            } else {
+              // 로그인되지 않은 경우, 위시리스트 상태를 명시적으로 초기화
+              ref.read(wishlistViewModelProvider.notifier).resetState();
+              LoggerUtil.d('⚠️ 인증되지 않음: 위시리스트 초기화 완료');
+            }
+            break;
+
+          case 2: // 홈 탭 - 인증 불필요
+            LoggerUtil.i('🔄 홈 탭 데이터 새로고침 ${isSameTab ? "(탭 재클릭)" : "(탭 전환)"}');
+
+            // 프로젝트 데이터 로드
+            ref.read(projectViewModelProvider.notifier).loadProjects();
+
+            // 위시리스트 ID 로드 (로그인 된 경우에만)
+            if (isLoggedIn) {
+              final loadWishlistIds = ref.read(loadWishlistIdsProvider);
+              loadWishlistIds();
+            }
+
+            // 시간 업데이트
+            _tabLoadState.lastHomeLoadTime = now;
+            _lastTabRefreshTimes[index] = now;
+            break;
+
+          case 3: // 채팅 탭 - 인증 필요
+            if (isLoggedIn) {
+              LoggerUtil.i(
+                  '🔄 채팅 탭 데이터 새로고침 ${isSameTab ? "(탭 재클릭)" : "(탭 전환)"}');
+
+              // 채팅 데이터 로드 (향후 구현 예정)
+              // TODO: 채팅 데이터 로드 구현
+
+              // 시간 업데이트
+              _tabLoadState.lastChatLoadTime = now;
+              _lastTabRefreshTimes[index] = now;
+            } else {
+              LoggerUtil.d('⚠️ 인증되지 않음: 채팅 기능은 로그인이 필요합니다');
+            }
+            break;
+
+          case 4: // 마이페이지 탭 - 인증 필요
+            if (isLoggedIn) {
+              LoggerUtil.i(
+                  '🔄 마이페이지 탭 데이터 새로고침 ${isSameTab ? "(탭 재클릭)" : "(탭 전환)"}');
+
+              // 진행 중인 비동기 요청이 있으면 취소 후 다시 로드
+              ref.invalidate(profileProvider);
+              ref.invalidate(totalFundingAmountProvider);
+
+              // 쿠폰 데이터 로드
+              final couponState = ref.read(couponViewModelProvider);
+              final isDefaultTime =
+                  couponState.lastUpdated.millisecondsSinceEpoch == 0;
+
+              if (isSameTab || couponState.couponCount <= 0 || isDefaultTime) {
+                LoggerUtil.d('🎫 쿠폰 데이터 로드 시작');
+                ref.read(couponViewModelProvider.notifier).loadCouponCount();
+              }
+
+              // 시간 업데이트
+              _tabLoadState.lastMypageLoadTime = now;
+              _lastTabRefreshTimes[index] = now;
+            } else {
+              // 로그인되지 않은 경우, 프로필 관련 Provider들을 명시적으로 초기화
+              ref.invalidate(profileProvider);
+              ref.invalidate(totalFundingAmountProvider);
+              ref.invalidate(myFundingViewModelProvider);
+              ref.invalidate(myReviewProvider);
+              ref.invalidate(couponViewModelProvider);
+              LoggerUtil.d('⚠️ 인증되지 않음: 모든 사용자 프로필 데이터 초기화 완료');
+            }
+            break;
+        }
+      } else {
+        LoggerUtil.d('🔄 탭 $index 데이터 새로고침 스킵 - 최근에 이미 로드됨');
+      }
     } catch (e) {
-      LoggerUtil.e('탭 데이터 새로고침 오류', e);
+      LoggerUtil.e('❌ 탭 데이터 새로고침 오류: $e');
     }
   }
 }
