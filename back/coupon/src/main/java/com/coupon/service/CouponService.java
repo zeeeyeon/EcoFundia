@@ -59,7 +59,8 @@ public class CouponService {
     }
 
     public int countCoupon(int userId) {
-        return couponIssuedRepository.countByUserId(userId);
+        List<CouponIssued> coupons = couponIssuedRepository.findUnusedCouponsByUserId(userId);
+        return coupons.size();
     }
 
     @Transactional(readOnly = true)
