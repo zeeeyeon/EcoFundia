@@ -39,8 +39,8 @@ public class ChatRoomController {
     }
 
     // 참여하고 있는 채팅방 리스트 조회
-    @GetMapping("/user/{userId}")
-    public List<ChatRoomSummaryResponse> getChatRoomsByUserId(@PathVariable int userId) {
+    @GetMapping("/user/")
+    public List<ChatRoomSummaryResponse> getChatRoomsByUserId( @RequestHeader("X-User-Id") int userId ) {
         List<ChatRoomSummaryResponse> chatRooms = chatRoomService.findChatRoomByUserId(userId);
         return chatRooms;
     }

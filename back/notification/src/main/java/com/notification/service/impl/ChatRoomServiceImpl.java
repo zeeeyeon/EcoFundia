@@ -1,5 +1,7 @@
 package com.notification.service.impl;
 
+import com.notification.client.ChatClient;
+import com.notification.dto.response.ChatRoomSummaryResponse;
 import com.notification.service.ChatRoomService;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.admin.AdminClient;
@@ -15,6 +17,7 @@ import java.util.Set;
 public class ChatRoomServiceImpl implements ChatRoomService {
 
     private final AdminClient kafkaAdminClient;
+    private final ChatClient chatClient;
 
     public void createChatRoomIfNotExists(int fundingId){
 
@@ -36,5 +39,13 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         } catch (Exception e) {
             System.err.println("❌ Kafka 토픽 생성 실패: " + e.getMessage());
         }
+    }
+
+    @Override
+    public List<ChatRoomSummaryResponse> getChatRoomsByUserId(int userId){
+
+        List<ChatRoomSummaryResponse> chatRoomSummaryResponses = chatClient.getChatRoomsByUserId(userId);
+
+        return chatRoomSummaryResponses;
     }
 }
