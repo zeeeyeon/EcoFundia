@@ -4,6 +4,7 @@ import com.ssafy.funding.dto.review.response.ReviewDto;
 import com.ssafy.funding.dto.seller.SellerDetailDto;
 import com.ssafy.funding.entity.Funding;
 import com.ssafy.funding.entity.FundingWishCount;
+import com.ssafy.funding.entity.SellerDetail;
 import org.apache.ibatis.annotations.*;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -50,7 +51,7 @@ public interface FundingMapper {
     // 브랜드 만족도 조회
     List<ReviewDto> getReviewList(@Param("sellerId") int sellerId, @Param("page") int page);
 
-    List<SellerDetailDto> getSellerDetail(@PathVariable int sellerId);
+    List<SellerDetail> getSellerDetail(@PathVariable int sellerId);
 
     int getSellerTotalAmount(@Param("sellerId") int sellerId);
     int getSellerTotalFundingCount(@Param("sellerId") int sellerId);
@@ -64,4 +65,14 @@ public interface FundingMapper {
     List<Funding> getMyFunding(List<Integer> fundingIds);
     Funding getSellerFundingDetail(@Param("fundingId") int fundingId);
     List<Funding> getSellerTodayOrderTopThree(@Param("fundingIdList") List<Integer> fundingIdList);
+
+    // SUCCESS 상태이고, 아직 settlementCompleted가 false인 펀딩 목록 조회
+    List<Funding> findByStatusAndEventSent(@Param("eventSent") Boolean eventSent);
+
+    // settlement_completed 플래그 업데이트
+    int updateSettlementCompleted(@Param("fundingId") int fundingId, @Param("eventSent") Boolean eventSent);
+
+    List<Funding> getCompletedFundings(@Param("sellerId") int sellerId);
+
+    int getExpectedSettlements(@Param("sellerId") int sellerId);
 }

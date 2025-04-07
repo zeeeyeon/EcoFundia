@@ -2,6 +2,7 @@ package com.ssafy.user.common.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.apache.hc.client5.http.ssl.HttpsSupport;
 import org.springframework.http.HttpStatus;
 
 @Getter
@@ -22,6 +23,9 @@ public enum ResponseCode {
     UPDATE_MY_REVIEW_SUCCESS(200, HttpStatus.OK, "리뷰 수정 성공"),
     DELETE_MY_REVIEW_SUCCESS(200, HttpStatus.OK, "리뷰 삭제 성공"),
     LOGOUT_SUCCESS(200,HttpStatus.OK, "로그아웃에 성공하였습니다."),
+    COUPON_LIST(200,HttpStatus.OK, "쿠폰 조회를 성공하였습니다."),
+    COUPON_COUNT(200,HttpStatus.OK, "쿠폰 개수 조회를 성공하였습니다."),
+
 
 
     // 생성 응답 (201)
@@ -29,6 +33,7 @@ public enum ResponseCode {
     CREATE_WISHLIST(201, HttpStatus.CREATED, "위시리스트에 추가되었습니다."),
     CREATE_MY_REVIEW_SUCCESS(201, HttpStatus.CREATED, "리뷰 작성 성공"),
     CREATE_PAYMENT_SUCCESS(201, HttpStatus.CREATED, "결제 생성 성공"),
+    CREATE_COUPON(201, HttpStatus.CREATED, "쿠폰 발급 완료"),
 
     // 클라이언트 오류 (400)
     MISSING_REFRESH_TOKEN(400, HttpStatus.BAD_REQUEST, "Refresh Token이 제공되지 않았습니다."),
