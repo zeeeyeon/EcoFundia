@@ -1,6 +1,13 @@
 package com.chat.dto.reuqest;
 
-public record AddParticipantRequest(
+import lombok.Builder;
+import lombok.Data;
 
-        int userId
-) {}
+@Builder
+@Data
+public class AddParticipantRequest {
+
+    private int userId;
+
+
+}
