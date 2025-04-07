@@ -36,7 +36,7 @@ public class ChatController {
 
     }
 
-    @GetMapping("api/notification/chat/user")
+    @GetMapping("/api/notification/chat/user")
     public ResponseEntity<?> getChatRoomByUserId(
             @RequestHeader("X-User-Id") int userId
     ){
