@@ -11,4 +11,5 @@ public class CreatePaymentRequestDto {
     private int fundingId;
     private int quantity;
     private int totalPrice;
+    private Integer couponId;
 }
