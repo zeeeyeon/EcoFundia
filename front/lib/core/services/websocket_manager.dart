@@ -108,6 +108,16 @@ class WebSocketManager {
     );
   }
 
+  void leaveLocalSubscription(int fundingId) {
+    final destination = '/sub/chat/$fundingId';
+
+    if (_unsubscribeMap.containsKey(fundingId)) {
+      print('👋 구독 해제: $destination');
+      _unsubscribeMap[fundingId]?.call();
+      _unsubscribeMap.remove(fundingId);
+    }
+  }
+
   /// 전체 구독 해제 및 WebSocket 연결 종료
   void disconnect() {
     print('🔌 WebSocket 연결 해제 중...');

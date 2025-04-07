@@ -1,8 +1,7 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:front/utils/logger_util.dart';
 import 'package:front/core/config/app_config.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:front/utils/logger_util.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 /// JWT 토큰 및 사용자 정보를 안전하게 저장하는 서비스
 class StorageService {
@@ -147,7 +146,13 @@ class StorageService {
     LoggerUtil.i('🔒 사용자 데이터 및 인증 정보 초기화 (로그아웃)');
 
     try {
-      await _storage.deleteAll();
+      // await _storage.deleteAll();
+      final keys = await _storage.readAll();
+      for (final key in keys.keys) {
+        if (key != 'joinedChatRooms') {
+          await _storage.delete(key: key);
+        }
+      }
       // 추가적으로 토큰 관련 키를 개별적으로 확실히 삭제
       await _storage.delete(key: _tokenKey);
       await _storage.delete(key: _refreshTokenKey);
