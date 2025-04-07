@@ -39,4 +39,14 @@ public class CouponController {
     public List<CouponResponseDto> getCoupons(@RequestHeader("X-User-Id") int userId) throws IOException {
         return couponService.getCoupons(userId);
     }
+
+    @GetMapping("/info")
+    public CouponResponseDto getCouponInfo(int couponId) throws IOException {
+        return couponService.getCouponInfo(couponId);
+    }
+
+    @PostMapping("/use")
+    public void useCoupon(int userId, int couponId, int fundingId) throws IOException {
+        couponService.useCoupon(userId, couponId, fundingId);
+    }
 }

@@ -3,12 +3,16 @@ package com.coupon.service;
 import com.coupon.common.exception.CustomException;
 import com.coupon.dto.CouponIssuedDto;
 import com.coupon.dto.CouponResponseDto;
+import com.coupon.dto.CouponUsageRequestDto;
 import com.coupon.entity.Coupon;
 import com.coupon.entity.CouponIssued;
+import com.coupon.entity.CouponUsage;
 import com.coupon.repository.CouponIssuedRepository;
 import com.coupon.repository.CouponRepository;
+import com.coupon.repository.CouponUsageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +32,7 @@ public class CouponService {
 
     private final CouponRepository couponRepository;
     private final CouponIssuedRepository couponIssuedRepository;
+    private final CouponUsageRepository couponUsageRepository;
 
     @Transactional
     public void issueCoupon(int userId) {
@@ -59,8 +64,7 @@ public class CouponService {
     }
 
     public int countCoupon(int userId) {
-        List<CouponIssued> coupons = couponIssuedRepository.findUnusedCouponsByUserId(userId);
-        return coupons.size();
+        return couponIssuedRepository.countByUserId(userId);
     }
 
     @Transactional(readOnly = true)
@@ -71,5 +75,24 @@ public class CouponService {
                 .peek(i -> log.info("Coupon ID: {}", i.getCoupon().getCouponId()))
                 .map(c -> CouponResponseDto.from(c.getCoupon()))
                 .collect(Collectors.toList());
+    }
+
+    public CouponResponseDto getCouponInfo(int couponId) {
+        Coupon coupon = couponRepository.findById(couponId)
+                .orElseThrow(() -> new CustomException(COUPON_NOT_FOUND));
+        return CouponResponseDto.from(coupon);
+    }
+
+    @Transactional
+    public void useCoupon(int userId, int couponId, int fundingId) {
+        CouponIssued issuedCoupon = couponIssuedRepository.findValidIssuedCoupon(userId, couponId)
+                .orElseThrow(() -> new CustomException(COUPON_NOT_FOUND));
+
+        issuedCoupon.use();
+
+        CouponUsage usage = new CouponUsageRequestDto(userId, fundingId, couponId)
+                .toEntity(issuedCoupon);
+
+        couponUsageRepository.save(usage);
     }
 }

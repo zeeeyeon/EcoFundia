@@ -28,4 +28,10 @@ public class CouponIssued {
     private int userId;
     private boolean isUsed;
     private LocalDateTime usedAt;
+
+    public void use() {
+        this.isUsed = true;
+        this.usedAt = LocalDateTime.now();
+    }
 }
+
