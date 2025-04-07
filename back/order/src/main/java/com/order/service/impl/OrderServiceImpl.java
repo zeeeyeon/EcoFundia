@@ -80,7 +80,7 @@ public class OrderServiceImpl implements OrderService {
         if (couponId != null) {
             CouponResponseDto coupon = couponClient.getCouponInfo(couponId);
             totalPrice -= coupon.discountAmount();
-            couponClient.useCoupon(userId, couponId);
+            couponClient.useCoupon(userId, couponId, fundingId);
         }
 
         // 3. 계좌 이체 하기

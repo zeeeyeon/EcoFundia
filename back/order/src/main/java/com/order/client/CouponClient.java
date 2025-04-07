@@ -12,5 +12,5 @@ public interface CouponClient {
     CouponResponseDto getCouponInfo(@RequestParam("couponId") int couponId);
 
     @PostMapping("/api/coupon/use")
-    void useCoupon(@RequestParam("userId") int userId, @RequestParam("couponId") int couponId);
+    void useCoupon(@RequestParam("userId") int userId, @RequestParam("couponId") int couponId, @RequestParam("fundingId") int fundingId);
 }
