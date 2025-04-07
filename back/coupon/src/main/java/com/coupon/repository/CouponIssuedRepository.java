@@ -20,4 +20,7 @@ public interface CouponIssuedRepository extends JpaRepository<CouponIssued, Inte
 
     @Query("SELECT ci FROM CouponIssued ci WHERE ci.userId = :userId AND ci.isUsed = false")
     List<CouponIssued> findUnusedCouponsByUserId(@Param("userId") int userId);
+
+    @Query("SELECT ci FROM CouponIssued ci WHERE ci.userId = :userId AND ci.coupon.couponId = :couponId AND ci.isUsed = false")
+    Optional<CouponIssued> findValidIssuedCoupon(@Param("userId") int userId, @Param("couponId") int couponId);
 }
