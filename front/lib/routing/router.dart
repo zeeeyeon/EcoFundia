@@ -190,20 +190,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
           StatefulShellBranch(
-            navigatorKey: AppNavigatorKeys.instance.homeTabKey, // ✅ 싱글턴 키 사용
-            routes: [
-              GoRoute(
-                path: '/',
-                pageBuilder: (context, state) {
-                  return const NoTransitionPage(
-                    key: ValueKey('home'),
-                    child: HomeScreen(),
-                  );
-                },
-              ),
-            ],
-          ),
-          StatefulShellBranch(
             navigatorKey:
                 AppNavigatorKeys.instance.wishlistTabKey, // ✅ 싱글턴 키 사용
             routes: [
@@ -213,6 +199,20 @@ final routerProvider = Provider<GoRouter>((ref) {
                   return const NoTransitionPage(
                     key: ValueKey('wishlist'),
                     child: WishlistScreen(),
+                  );
+                },
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            navigatorKey: AppNavigatorKeys.instance.homeTabKey, // ✅ 싱글턴 키 사용
+            routes: [
+              GoRoute(
+                path: '/',
+                pageBuilder: (context, state) {
+                  return const NoTransitionPage(
+                    key: ValueKey('home'),
+                    child: HomeScreen(),
                   );
                 },
               ),
