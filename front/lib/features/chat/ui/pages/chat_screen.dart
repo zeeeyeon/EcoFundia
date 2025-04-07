@@ -15,43 +15,44 @@ class ChatScreen extends ConsumerStatefulWidget {
 }
 
 class _ChatScreenState extends ConsumerState<ChatScreen> {
-  String _connectionStatus = '⏳ WebSocket 연결 중...';
+  String _connectionStatus = '⏳ WebSocket 연결 시도 중...';
 
   @override
   void initState() {
     super.initState();
-    _connectToWebSocket();
+    _tryConnectWebSocket();
   }
 
-  Future<void> _connectToWebSocket() async {
-    final token = await StorageService.getToken(); // JWT 불러오기
+  Future<void> _tryConnectWebSocket() async {
+    final token = await StorageService.getToken();
     if (token == null) {
       setState(() => _connectionStatus = '❌ 토큰 없음');
       return;
     }
 
     final wsManager = ref.read(websocketManagerProvider);
-    wsManager.connect(
-      userToken: token,
-      onConnectCallback: (frame) {
-        setState(() {
-          _connectionStatus = '✅ WebSocket 연결 성공!';
-        });
-        print('✅ WebSocket 연결 성공! headers: ${frame.headers ?? '없음'}');
-      },
-      onError: (error) {
-        setState(() {
-          _connectionStatus = '❌ WebSocket 연결 실패: $error';
-        });
-        print('❌ WebSocket 연결 실패: $error');
-      },
-    );
-  }
 
-  @override
-  void dispose() {
-    ref.read(websocketManagerProvider).disconnect();
-    super.dispose();
+    if (!wsManager.isConnected) {
+      wsManager.connect(
+        userToken: token,
+        onConnectCallback: (frame) {
+          setState(() {
+            _connectionStatus = '✅ WebSocket 연결 성공!';
+          });
+          print('✅ WebSocket 연결 성공: ${frame.headers}');
+        },
+        onError: (error) {
+          setState(() {
+            _connectionStatus = '❌ 연결 실패: $error';
+          });
+          print('❌ WebSocket 연결 실패: $error');
+        },
+      );
+    } else {
+      setState(() {
+        _connectionStatus = '✅ 이미 연결됨';
+      });
+    }
   }
 
   @override
@@ -66,9 +67,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     ];
 
     return Scaffold(
-      appBar: const CustomAppBar(
-        title: "My Chats",
-      ),
+      appBar: const CustomAppBar(title: "My Chats"),
       body: Column(
         children: [
           Container(
@@ -88,10 +87,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               itemBuilder: (context, index) {
                 final room = mockRooms[index];
                 return ListTile(
-                  leading: const Icon(
-                    Icons.forum_outlined,
-                    color: AppColors.primary, // ✅ 너희 프로젝트 메인 색상
-                  ),
+                  leading: const Icon(Icons.forum_outlined,
+                      color: AppColors.primary),
                   title: Text(
                     room['fundingTitle']?.toString() ?? '',
                     style: const TextStyle(
@@ -101,18 +98,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   ),
                   subtitle: Text(
                     room['lastMessage']?.toString() ?? '',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(color: Colors.grey[600]),
                   ),
-                  trailing: const Icon(
-                    Icons.chevron_right,
-                    color: AppColors.primary, // 👉 이동 아이콘도 메인색상
-                  ),
+                  trailing:
+                      const Icon(Icons.chevron_right, color: AppColors.primary),
                   onTap: () {
-                    context.push('/chat/room/${room['fundingId']}', extra: {
-                      'fundingTitle': room['fundingTitle'],
-                    });
+                    context.push(
+                      '/chat/room/${room['fundingId']}',
+                      extra: {'fundingTitle': room['fundingTitle']},
+                    );
                   },
                 );
               },

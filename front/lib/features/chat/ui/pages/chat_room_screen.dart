@@ -1,11 +1,14 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/core/services/storage_service.dart';
+import 'package:front/core/services/websocket_manager.dart';
 import 'package:front/core/themes/app_colors.dart';
-import 'package:front/core/services/websocket_manager.dart'; // WebSocketManager는 따로 만든 파일이어야 해
+import 'package:front/core/providers/websocket_provider.dart';
+import 'package:stomp_dart_client/stomp_dart_client.dart';
 
-class ChatRoomScreen extends StatefulWidget {
+class ChatRoomScreen extends ConsumerStatefulWidget {
   final int fundingId;
   final String fundingTitle;
 
@@ -16,69 +19,106 @@ class ChatRoomScreen extends StatefulWidget {
   });
 
   @override
-  State<ChatRoomScreen> createState() => _ChatRoomScreenState();
+  ConsumerState<ChatRoomScreen> createState() => _ChatRoomScreenState();
 }
 
-class _ChatRoomScreenState extends State<ChatRoomScreen> {
+class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final WebSocketManager _webSocketManager = WebSocketManager();
-
   final List<Map<String, dynamic>> _messages = [];
+
+  late final WebSocketManager _wsManager;
 
   @override
   void initState() {
     super.initState();
-    _initWebSocketConnection();
+    _wsManager = ref.read(websocketManagerProvider);
+    _subscribeToChatRoom();
   }
 
-  Future<void> _initWebSocketConnection() async {
+  Future<void> _subscribeToChatRoom() async {
     final token = await StorageService.getToken();
     final userIdStr = await StorageService.getUserId();
     final userId = int.tryParse(userIdStr ?? '0') ?? 0;
 
-    _webSocketManager.connect(
-      userToken: token!,
-      onConnectCallback: (frame) {
-        print('✅ WebSocket 연결 성공');
+    if (!_wsManager.isConnected) {
+      _wsManager.connect(
+        userToken: token!,
+        onConnectCallback: (_) {
+          if (!mounted) return;
+          _subscribe(userId);
+        },
+      );
+    } else {
+      _subscribe(userId);
+    }
+  }
 
-        _webSocketManager.subscribeToRoom(
-          fundingId: widget.fundingId,
-          userId: userId,
-          onMessage: (frame) {
-            print('📩 메시지 수신: ${frame.body}');
+  void _subscribe(int userId) {
+    final destination = '/sub/chat/${widget.fundingId}';
+    debugPrint('📡 채팅방 구독 요청 → $destination (userId: $userId)');
 
-            try {
-              final data = jsonDecode(frame.body!);
-              final content = data['content'];
+    _wsManager.subscribeToRoom(
+      fundingId: widget.fundingId,
+      userId: userId,
+      onMessage: (StompFrame frame) {
+        if (frame.body == null) {
+          debugPrint('⚠️ 수신된 메시지 body가 null입니다.');
+          return;
+        }
 
-              setState(() {
-                _messages.add({
-                  'fromMe': false,
-                  'nickname': '서버',
-                  'text': '예정 정산 금액: ${content['expectedAmount']}원',
-                });
-              });
-            } catch (e) {
-              print('❌ 메시지 파싱 오류: $e');
-            }
-          },
-        );
+        debugPrint('📩 [Raw 메시지 수신] body: ${frame.body}');
+
+        try {
+          final data = jsonDecode(frame.body!);
+
+          final senderId = data['senderId'];
+          final nickname = data['nickname'] ?? '익명';
+          final content = data['content'];
+          final createdAtString = data['createdAt'];
+          final fromMe = senderId == userId;
+
+          // ✅ createdAt 파싱
+          final createdAt = createdAtString != null
+              ? DateTime.tryParse(createdAtString)
+              : null;
+
+          if (!mounted) return;
+          setState(() {
+            _messages.add({
+              'fromMe': fromMe,
+              'nickname': nickname,
+              'text': content,
+              'createdAt': createdAt, // ⏱️ 시간 정보 추가
+            });
+          });
+        } catch (e) {
+          debugPrint('❌ JSON 파싱 오류: $e');
+        }
       },
     );
   }
 
-  void _sendMessage() {
+  void _sendMessage() async {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
 
-    setState(() {
-      _messages.add({'fromMe': true, 'text': text});
-    });
+    final userIdStr = await StorageService.getUserId();
+    final nickname = await StorageService.getNickname(); // 닉네임 가져오기
+    final userId = int.tryParse(userIdStr ?? '0') ?? 0;
+
+    // 서버에 전송
+    _wsManager.sendMessageToRoom(
+      fundingId: widget.fundingId,
+      senderId: userId,
+      nickname: nickname ?? '익명',
+      content: text,
+      createdAt: DateTime.now(), // 현재 시간 전송
+    );
 
     _messageController.clear();
 
-    // 스크롤 아래로 이동
+    // 스크롤 아래로
     Future.delayed(const Duration(milliseconds: 100), () {
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
@@ -90,7 +130,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
   @override
   void dispose() {
-    _webSocketManager.disconnect();
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -102,10 +141,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       appBar: AppBar(
         title: Text(
           '채팅방: ${widget.fundingTitle} (#${widget.fundingId})',
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
@@ -122,6 +158,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 final fromMe = msg['fromMe'] as bool;
                 final text = msg['text'] as String;
                 final nickname = msg['nickname'] as String?;
+                final createdAt = msg['createdAt'] as DateTime?;
+
+                // 시간 포맷팅 (예: 오후 3:24)
+                final formattedTime = createdAt != null
+                    ? TimeOfDay.fromDateTime(createdAt).format(context)
+                    : null;
 
                 return Align(
                   alignment:
@@ -144,7 +186,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                           ),
                         ),
                       Container(
-                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        margin: const EdgeInsets.symmetric(vertical: 2),
                         padding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 10),
                         decoration: BoxDecoration(
@@ -166,6 +208,18 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                           ),
                         ),
                       ),
+                      if (formattedTime != null)
+                        Padding(
+                          padding:
+                              const EdgeInsets.only(top: 2, left: 8, right: 8),
+                          child: Text(
+                            formattedTime,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 );

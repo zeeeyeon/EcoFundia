@@ -2,6 +2,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:front/utils/logger_util.dart';
 import 'package:front/core/config/app_config.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// JWT 토큰 및 사용자 정보를 안전하게 저장하는 서비스
 class StorageService {
@@ -117,6 +118,11 @@ class StorageService {
   /// 사용자 ID 조회
   static Future<String?> getUserId() async {
     return await _storage.read(key: _userIdKey);
+  }
+
+  // 사용자 닉네임 조회
+  static Future<String?> getNickname() async {
+    return await _storage.read(key: _userNicknameKey);
   }
 
   /// 사용자 이메일 저장
