@@ -111,13 +111,14 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
                   LoggerUtil.i('결제 처리 시작');
 
                   // 결제 처리 시작
-                  final result = await viewModel.processPayment();
+                  await viewModel.processPayment();
 
                   // 다이얼로그 닫기 (상태 업데이트 후)
                   viewModel.closePaymentDialog();
                   if (dialogContext.mounted) Navigator.of(dialogContext).pop();
 
-                  if (result) {
+                  // 에러가 없으면 결제 성공으로 처리
+                  if (state.error == null) {
                     LoggerUtil.i('결제 성공 - 결제 완료 페이지로 이동');
 
                     // 결제 완료 페이지로 이동
@@ -221,7 +222,7 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13),
             offset: const Offset(0, -1),
             blurRadius: 8,
           ),

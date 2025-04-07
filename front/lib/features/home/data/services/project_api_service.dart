@@ -192,53 +192,59 @@ class ProjectApiService extends ProjectService {
   @override
   Future<int> getTotalFund() async {
     try {
-      _logger.d('Fetching total fund from API');
+      _logger.d('📈 총 펀딩 금액 조회 API 요청');
 
       final response = await _dio.get('/business/total-fund');
 
       if (response.statusCode == 200) {
         final data = response.data;
+        _logger.d('✅ 총 펀딩 금액 API 응답: $data');
 
-        // 전체 응답 로깅
-        _logger.d('Total fund API response: $data');
-
-        // content 필드가 있고 정수값인지 확인
+        // 응답 데이터에서 content 필드 가져오기
         if (data['content'] != null) {
-          // int 타입 확인 및 변환
-          final content = data['content'];
-          int totalFund;
-
-          if (content is int) {
-            totalFund = content;
-          } else if (content is double) {
-            totalFund = content.toInt();
-          } else if (content is String) {
-            totalFund = int.tryParse(content) ?? 0;
-          } else {
-            _logger.e('Unexpected content type: ${content.runtimeType}');
-            totalFund = 0;
-          }
-
-          _logger.d('Parsed total fund: $totalFund');
-          return totalFund;
+          return _parseTotalFund(data['content']);
         } else {
-          _logger.e('Invalid API response format: content is null or missing');
+          _logger.e('❌ 유효하지 않은 API 응답 형식: content 필드 누락');
           throw Exception(
-              'Invalid API response format: content is null or missing');
+              'Invalid API response format: content field is missing');
         }
       } else {
-        _logger.e('Failed to fetch total fund: ${response.statusCode}');
+        _logger.e('❌ 총 펀딩 금액 조회 실패: ${response.statusCode}');
         throw Exception('Failed to fetch total fund: ${response.statusCode}');
       }
     } on DioException catch (e) {
-      _logger.e('Dio error fetching total fund', error: e);
+      _logger.e('❌ 네트워크 오류: 총 펀딩 금액 조회 실패', error: e);
       if (e.response != null) {
-        _logger.e('Response error: ${e.response!.data}');
+        _logger.e('응답 오류 데이터: ${e.response!.data}');
       }
       throw Exception('Network error when fetching total fund: ${e.message}');
     } catch (e) {
-      _logger.e('Error fetching total fund', error: e);
+      _logger.e('❌ 총 펀딩 금액 조회 중 오류 발생', error: e);
       throw Exception('Error fetching total fund: $e');
+    }
+  }
+
+  /// 다양한 형식의 totalFund 값을 파싱하는 헬퍼 메서드
+  int _parseTotalFund(dynamic content) {
+    try {
+      int totalFund;
+
+      if (content is int) {
+        totalFund = content;
+      } else if (content is double) {
+        totalFund = content.toInt();
+      } else if (content is String) {
+        totalFund = int.tryParse(content) ?? 0;
+      } else {
+        _logger.w('⚠️ 예상치 못한 content 타입: ${content.runtimeType}, 기본값 0 사용');
+        totalFund = 0;
+      }
+
+      _logger.d('🔢 파싱된 총 펀딩 금액: $totalFund');
+      return totalFund;
+    } catch (e) {
+      _logger.e('❌ 총 펀딩 금액 파싱 중 오류', error: e);
+      return 0; // 오류 발생 시 기본값 0 반환
     }
   }
 }

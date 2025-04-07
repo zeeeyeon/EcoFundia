@@ -9,12 +9,16 @@ class PaymentState extends Equatable {
   final bool isApplyingCoupon;
   final bool showSuccessDialog;
 
+  /// 로컬에서 선택한 쿠폰 ID (UI 업데이트용)
+  final int? locallySelectedCouponId;
+
   const PaymentState({
     this.payment,
     this.isLoading = false,
     this.error,
     this.isApplyingCoupon = false,
     this.showSuccessDialog = false,
+    this.locallySelectedCouponId,
   });
 
   // 초기 상태
@@ -58,20 +62,23 @@ class PaymentState extends Equatable {
   // 성공 다이얼로그 숨김
   PaymentState hideConfirmDialog() => copyWith(showSuccessDialog: false);
 
-  // 복사본 생성
+  // 상태 복사 메소드
   PaymentState copyWith({
     PaymentEntity? payment,
     bool? isLoading,
     String? error,
     bool? isApplyingCoupon,
     bool? showSuccessDialog,
+    int? locallySelectedCouponId,
   }) {
     return PaymentState(
       payment: payment ?? this.payment,
       isLoading: isLoading ?? this.isLoading,
-      error: error, // null을 전달하면 오류 메시지 제거
+      error: error,
       isApplyingCoupon: isApplyingCoupon ?? this.isApplyingCoupon,
       showSuccessDialog: showSuccessDialog ?? this.showSuccessDialog,
+      locallySelectedCouponId:
+          locallySelectedCouponId ?? this.locallySelectedCouponId,
     );
   }
 
@@ -82,5 +89,6 @@ class PaymentState extends Equatable {
         error,
         isApplyingCoupon,
         showSuccessDialog,
+        locallySelectedCouponId,
       ];
 }

@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:logger/logger.dart';
 import 'package:front/shared/payment/domain/usecases/payment_use_case.dart';
 import 'package:front/shared/payment/data/repositories/payment_repository_impl.dart';
 import 'package:front/shared/payment/domain/repositories/payment_repository.dart';
@@ -7,11 +6,11 @@ import 'package:front/shared/payment/ui/state/payment_state.dart';
 import 'package:front/shared/payment/data/services/payment_api_service.dart';
 import 'package:front/features/home/domain/entities/project_entity.dart';
 import 'package:front/shared/payment/domain/entities/payment_entity.dart';
+import 'package:front/utils/logger_util.dart';
 
 /// 결제 관련 ViewModel
 class PaymentViewModel extends StateNotifier<PaymentState> {
   final PaymentUseCase _useCase;
-  final Logger _logger = Logger();
 
   PaymentViewModel(this._useCase) : super(PaymentState.initial());
 
@@ -23,9 +22,9 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
       final payment = await _useCase.loadPaymentInfo(productId);
 
       state = PaymentState.success(payment);
-      _logger.d('결제 정보 로드 성공: ${payment.productName}');
+      LoggerUtil.d('결제 정보 로드 성공: ${payment.productName}');
     } catch (e) {
-      _logger.e('결제 정보 로드 실패', error: e);
+      LoggerUtil.e('결제 정보 로드 실패: $e');
       state = PaymentState.error('결제 정보를 불러오는 중 오류가 발생했습니다.');
     }
   }
@@ -58,9 +57,9 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
       final discountAmount = await _useCase.applyCoupon(couponCode);
 
       state = state.couponApplied(discountAmount);
-      _logger.d('쿠폰 적용 성공: $couponCode, 할인금액: $discountAmount');
+      LoggerUtil.d('쿠폰 적용 성공: $couponCode, 할인금액: $discountAmount');
     } catch (e) {
-      _logger.e('쿠폰 적용 실패', error: e);
+      LoggerUtil.e('쿠폰 적용 실패: $e');
       state = state.copyWith(
         isApplyingCoupon: false,
         error: '쿠폰 적용 중 오류가 발생했습니다: ${e.toString()}',
@@ -85,10 +84,14 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
         isApplyingCoupon: false,
         payment: updatedPayment,
         error: null,
+        // 로컬 선택 상태도 업데이트
+        locallySelectedCouponId: couponId,
       );
-      _logger.d('쿠폰 적용 성공: ID $couponId, 할인금액: $discountAmount');
+
+      LoggerUtil.d(
+          '쿠폰 적용 성공: ID $couponId, 할인금액: $discountAmount, 로컬 상태 업데이트됨');
     } catch (e) {
-      _logger.e('쿠폰 적용 실패', error: e);
+      LoggerUtil.e('쿠폰 적용 실패: $e');
       state = state.copyWith(
         isApplyingCoupon: false,
         error: '쿠폰 적용 중 오류가 발생했습니다: ${e.toString()}',
@@ -108,8 +111,11 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
 
     state = state.copyWith(
       payment: updatedPayment,
+      // 로컬 선택 상태도 초기화
+      locallySelectedCouponId: null,
     );
-    _logger.d('쿠폰 제거됨');
+
+    LoggerUtil.d('쿠폰 제거됨, 로컬 선택 상태 초기화됨');
   }
 
   /// 결제 프로세스 시작
@@ -125,31 +131,51 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
   }
 
   /// 결제 처리
-  Future<bool> processPayment() async {
-    if (state.payment == null) return false;
+  Future<void> processPayment() async {
+    if (state.payment == null) return;
 
     try {
       state = state.copyWith(isLoading: true);
 
+      // 실제 결제 처리 로직을 UseCase를 통해 호출
       final result = await _useCase.processPayment(state.payment!);
+      LoggerUtil.d('결제 처리 요청 결과: $result');
 
-      state = state.copyWith(isLoading: false);
-      _logger.d('결제 처리 결과: $result');
-      return result;
+      if (!result) {
+        // 결제 실패 시 에러 상태 설정
+        state = state.copyWith(
+          isLoading: false,
+          error: '결제 처리에 실패했습니다.',
+        );
+        LoggerUtil.e('결제 처리 실패: 서버에서 실패 응답');
+      } else {
+        // 결제 성공 처리
+        LoggerUtil.i('결제 처리 성공');
+        state = state.copyWith(
+          isLoading: false,
+          error: null,
+        );
+      }
     } catch (e) {
-      _logger.e('결제 처리 실패', error: e);
+      LoggerUtil.e('결제 처리 실패: $e');
       state = state.copyWith(
         isLoading: false,
-        error: '결제 처리 중 오류가 발생했습니다.',
+        error: '결제 처리 중 오류가 발생했습니다: ${e.toString()}',
       );
-      return false;
+    } finally {
+      // 결제 시도 후 로컬 쿠폰 선택 상태 초기화
+      state = state.copyWith(
+        locallySelectedCouponId: null,
+      );
+
+      LoggerUtil.d('결제 시도 후 로컬 쿠폰 선택 상태 초기화됨');
     }
   }
 
   /// 프로젝트 엔티티를 이용해 결제 정보 초기화 (API 호출 대신 전달된 데이터 사용)
   Future<void> initializePaymentFromProject(ProjectEntity project) async {
     try {
-      _logger.d('프로젝트 데이터로부터 결제 정보 초기화: ${project.id}');
+      LoggerUtil.d('프로젝트 데이터로부터 결제 정보 초기화: ${project.id}');
 
       // 로딩 상태로 변경
       state = state.copyWith(isLoading: true);
@@ -170,7 +196,7 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
         error: null,
       );
     } catch (e) {
-      _logger.e('결제 정보 초기화 실패', error: e);
+      LoggerUtil.e('결제 정보 초기화 실패: $e');
       state = state.copyWith(
         isLoading: false,
         error: '결제 정보를 초기화하는데 실패했습니다: $e',
@@ -194,6 +220,6 @@ final paymentUseCaseProvider = Provider<PaymentUseCase>((ref) {
 /// ViewModel Provider
 final paymentViewModelProvider =
     StateNotifierProvider<PaymentViewModel, PaymentState>((ref) {
-  final useCase = ref.watch(paymentUseCaseProvider);
+  final PaymentUseCase useCase = ref.read(paymentUseCaseProvider);
   return PaymentViewModel(useCase);
 });

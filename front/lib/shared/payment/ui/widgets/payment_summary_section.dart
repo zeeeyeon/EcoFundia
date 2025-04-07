@@ -24,7 +24,7 @@ class PaymentSummarySection extends ConsumerWidget {
         _buildPriceItem(
           label: '총 상품 금액',
           amount: payment.totalProductPrice,
-          backgroundColor: AppColors.extraLightGrey.withOpacity(0.7),
+          backgroundColor: AppColors.extraLightGrey.withAlpha(179),
         ),
 
         // 쿠폰 할인 금액 (있는 경우에만 표시)
@@ -32,7 +32,7 @@ class PaymentSummarySection extends ConsumerWidget {
           _buildPriceItem(
             label: '쿠폰',
             amount: -payment.couponDiscount,
-            backgroundColor: Colors.white.withOpacity(0.7),
+            backgroundColor: Colors.white.withAlpha(179),
             border: Border.all(color: AppColors.lightGrey),
           ),
       ],
