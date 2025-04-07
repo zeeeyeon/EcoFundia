@@ -19,8 +19,4 @@ abstract class CouponRepository {
 
   /// 사용 가능한 쿠폰 목록 조회 (결제 시)
   Future<List<CouponEntity>> getAvailableCoupons();
-
-  /// 결제 시 쿠폰 사용
-  /// 참고: 현재 사용되지 않음
-  Future<bool> useCoupon(int couponId);
 }

@@ -62,29 +62,30 @@ class AuthRepositoryImpl implements AuthRepository {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {
-        return const AuthResultEntity.error('Google 로그인이 취소되었습니다.');
+        return const AuthResultEntity.cancelled();
       }
 
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
 
-      final response = await _authenticateWithGoogle(
-        googleAuth.accessToken ?? '',
-        googleUser.email,
-      );
-
-      if (response.status.code == 404 &&
-          response.status.message == "해당 이메일로 가입된 사용자가 없습니다. 회원가입이 필요합니다.") {
-        return AuthResultEntity.newUser(
-          "해당 이메일로 가입된 사용자가 없습니다. 회원가입이 필요합니다.",
-          token: googleAuth.accessToken ?? '',
+      try {
+        final response = await _authenticateWithGoogle(
+          googleAuth.accessToken ?? '',
+          googleUser.email,
         );
+        return response.toEntity();
+      } on AuthException catch (e) {
+        if (e.isNewUser == true) {
+          return AuthResultEntity.newUser(
+            e.message,
+            token: googleAuth.accessToken ?? '',
+          );
+        }
+        rethrow;
       }
-
-      return response.toEntity();
     } on AuthException catch (e) {
       LoggerUtil.e('Google 로그인 실패: ${e.message}');
-      return AuthResultEntity.error(e.message);
+      return AuthResultEntity.error(e.message, statusCode: e.statusCode);
     } catch (e) {
       LoggerUtil.e('Google 로그인 중 예상치 못한 오류 발생: $e');
       return const AuthResultEntity.error('로그인 중 오류가 발생했습니다.');

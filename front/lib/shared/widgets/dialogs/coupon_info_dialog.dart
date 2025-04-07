@@ -109,8 +109,8 @@ class CouponInfoDialog extends StatelessWidget {
 }
 
 /// 이미 발급된 쿠폰 안내 다이얼로그를 표시하는 함수
-void showAlreadyIssuedCouponDialog(BuildContext context) {
-  showDialog(
+Future<void> showAlreadyIssuedCouponDialog(BuildContext context) {
+  return showDialog(
     context: context,
     builder: (BuildContext context) => const CouponInfoDialog(
       title: '쿠폰 안내',
@@ -122,8 +122,8 @@ void showAlreadyIssuedCouponDialog(BuildContext context) {
 }
 
 /// 쿠폰 발급 성공 다이얼로그를 표시하는 함수
-void showCouponSuccessDialog(BuildContext context) {
-  showDialog(
+Future<void> showCouponSuccessDialog(BuildContext context) {
+  return showDialog(
     context: context,
     builder: (BuildContext context) => const CouponInfoDialog(
       title: '쿠폰 발급 성공',
@@ -135,8 +135,8 @@ void showCouponSuccessDialog(BuildContext context) {
 }
 
 /// 쿠폰 발급 실패 다이얼로그를 표시하는 함수
-void showCouponErrorDialog(BuildContext context, String message) {
-  showDialog(
+Future<void> showCouponErrorDialog(BuildContext context, String message) {
+  return showDialog(
     context: context,
     builder: (BuildContext context) => CouponInfoDialog(
       title: '쿠폰 발급 실패',
@@ -148,8 +148,8 @@ void showCouponErrorDialog(BuildContext context, String message) {
 }
 
 /// 로그인 필요 다이얼로그를 표시하는 함수
-void showLoginRequiredDialog(BuildContext context) {
-  showDialog(
+Future<void> showLoginRequiredDialog(BuildContext context) {
+  return showDialog(
     context: context,
     builder: (BuildContext context) => CouponInfoDialog(
       title: '로그인 필요',

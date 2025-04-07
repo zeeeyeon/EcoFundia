@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:front/core/themes/app_colors.dart';
-import 'package:front/core/themes/app_text_styles.dart';
 
 /// 전체 화면 로딩 오버레이
 class LoadingOverlay extends StatelessWidget {

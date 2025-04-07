@@ -219,32 +219,6 @@ class CouponService {
       rethrow;
     }
   }
-
-  /// 결제 시 쿠폰 사용
-  /// 결제가 성공적으로 완료된 후 쿠폰을 사용 처리할 때 호출
-  /// [POST /api/user/order/coupon]
-  Future<bool> useCoupon(int couponId) async {
-    try {
-      LoggerUtil.d('🎫 쿠폰 사용 요청: 쿠폰 ID $couponId');
-
-      final response = await _apiService.post(
-        ApiService.apiEndpoints.couponUse,
-        data: {'couponId': couponId},
-      );
-
-      final responseModel = CouponResponseModel.fromJson(response.data);
-
-      if (responseModel.isSuccess) {
-        LoggerUtil.d('✅ 쿠폰 사용 성공');
-        return true;
-      } else {
-        throw Exception('쿠폰 사용 실패: ${responseModel.message}');
-      }
-    } catch (e) {
-      LoggerUtil.e('❌ 쿠폰 사용 실패', e);
-      rethrow;
-    }
-  }
 }
 
 /// 쿠폰 서비스 Provider

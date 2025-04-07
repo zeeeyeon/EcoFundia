@@ -72,16 +72,6 @@ class CouponRepositoryImpl implements CouponRepository {
       rethrow;
     }
   }
-
-  @override
-  Future<bool> useCoupon(int couponId) async {
-    try {
-      return await _couponService.useCoupon(couponId);
-    } catch (e) {
-      LoggerUtil.e('쿠폰 사용 저장소 오류', e);
-      rethrow;
-    }
-  }
 }
 
 /// 쿠폰 Repository Provider

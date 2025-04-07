@@ -95,13 +95,24 @@ final isLoggedInProvider = Provider<bool>((ref) {
 /// 로그인 상태 체크 Provider (비동기)
 final isAuthenticatedProvider = FutureProvider<bool>((ref) async {
   try {
+    // 1. 토큰 존재 여부 확인
+    final token = await StorageService.getToken();
+    if (token == null) {
+      LoggerUtil.d('🔑 인증 상태 체크: 토큰 없음');
+      ref.read(appStateProvider.notifier).setLoggedIn(false);
+      return false;
+    }
+
+    // 2. 토큰 유효성 검사
     final hasValidToken = await StorageService.isAuthenticated();
 
-    // 상태 업데이트 - 앱 전체 상태 동기화
+    // 3. 상태 업데이트 - 앱 전체 상태 동기화
     ref.read(appStateProvider.notifier).setLoggedIn(hasValidToken);
 
     if (!hasValidToken) {
-      LoggerUtil.d('🔑 인증 상태 체크: 유효한 토큰 없음');
+      LoggerUtil.d('🔑 인증 상태 체크: 유효하지 않은 토큰');
+    } else {
+      LoggerUtil.d('🔑 인증 상태 체크: 유효한 토큰 확인됨');
     }
 
     return hasValidToken;

@@ -25,6 +25,57 @@ class NetworkException implements Exception {
   String toString() => message;
 }
 
+/// 쿠폰 관련 오류 예외 클래스
+class CouponException implements Exception {
+  final String message;
+  final int? statusCode;
+  final CouponErrorType type;
+
+  CouponException(this.message,
+      {this.statusCode, this.type = CouponErrorType.unknown});
+
+  @override
+  String toString() => message;
+}
+
+/// 쿠폰 오류 타입
+enum CouponErrorType {
+  unknown,
+  alreadyIssued,
+  notAvailable,
+  expired,
+  invalid,
+  serverError,
+  networkError,
+  unauthorized,
+}
+
+/// 인증 관련 오류 예외 클래스
+class AuthException implements Exception {
+  final String message;
+  final int? statusCode;
+  final AuthErrorType type;
+
+  AuthException(this.message,
+      {this.statusCode, this.type = AuthErrorType.unknown});
+
+  @override
+  String toString() => message;
+}
+
+/// 인증 오류 타입
+enum AuthErrorType {
+  unknown,
+  invalidCredentials,
+  tokenExpired,
+  tokenInvalid,
+  unauthorized,
+  serverError,
+  networkError,
+  userNotFound,
+  emailAlreadyInUse,
+}
+
 /// ViewModel에서 공통으로 사용하는 오류 처리 기능 (클래스에 상관없이 사용)
 class ErrorHandlingUtil {
   /// Dio 오류에 대한 사용자 친화적인 메시지 생성
@@ -78,6 +129,69 @@ class ErrorHandlingUtil {
         return '서비스가 일시적으로 사용 불가능합니다. 잠시 후 다시 시도해 주세요.';
       default:
         return error.message;
+    }
+  }
+
+  /// 쿠폰 오류에 대한 사용자 친화적인 메시지 생성
+  static String getCouponErrorMessage(CouponException error) {
+    switch (error.type) {
+      case CouponErrorType.alreadyIssued:
+        return '이미 발급받은 쿠폰입니다.';
+      case CouponErrorType.notAvailable:
+        return '현재 사용할 수 없는 쿠폰입니다.';
+      case CouponErrorType.expired:
+        return '만료된 쿠폰입니다.';
+      case CouponErrorType.invalid:
+        return '유효하지 않은 쿠폰입니다.';
+      case CouponErrorType.serverError:
+        return '서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+      case CouponErrorType.networkError:
+        return '네트워크 연결에 문제가 있습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.';
+      case CouponErrorType.unauthorized:
+        return '로그인이 필요한 서비스입니다.';
+      case CouponErrorType.unknown:
+      default:
+        return error.message;
+    }
+  }
+
+  /// 인증 오류에 대한 사용자 친화적인 메시지 생성
+  static String getAuthErrorMessage(AuthException error) {
+    switch (error.type) {
+      case AuthErrorType.invalidCredentials:
+        return '아이디 또는 비밀번호가 올바르지 않습니다.';
+      case AuthErrorType.tokenExpired:
+        return '로그인 세션이 만료되었습니다. 다시 로그인해 주세요.';
+      case AuthErrorType.tokenInvalid:
+        return '유효하지 않은 인증 정보입니다. 다시 로그인해 주세요.';
+      case AuthErrorType.unauthorized:
+        return '로그인이 필요한 서비스입니다.';
+      case AuthErrorType.serverError:
+        return '서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+      case AuthErrorType.networkError:
+        return '네트워크 연결에 문제가 있습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.';
+      case AuthErrorType.userNotFound:
+        return '사용자를 찾을 수 없습니다.';
+      case AuthErrorType.emailAlreadyInUse:
+        return '이미 사용 중인 이메일입니다.';
+      case AuthErrorType.unknown:
+      default:
+        return error.message;
+    }
+  }
+
+  /// 일반 예외에 대한 사용자 친화적인 메시지 생성
+  static String getGenericErrorMessage(dynamic error) {
+    if (error is DioException) {
+      return getDioErrorMessage(error);
+    } else if (error is NetworkException) {
+      return getNetworkErrorMessage(error);
+    } else if (error is CouponException) {
+      return getCouponErrorMessage(error);
+    } else if (error is AuthException) {
+      return getAuthErrorMessage(error);
+    } else {
+      return '오류가 발생했습니다. 다시 시도해 주세요.';
     }
   }
 }
@@ -141,10 +255,26 @@ mixin ChangeNotifierErrorHandlingMixin on ChangeNotifier {
       _lastErrorCode = error.response?.statusCode;
       _errorMessage = ErrorHandlingUtil.getDioErrorMessage(error);
       resultState = LoadingStateType.networkError;
+    } else if (error is CouponException) {
+      // 쿠폰 오류 처리
+      _isNetworkError = error.type == CouponErrorType.networkError;
+      _lastErrorCode = error.statusCode;
+      _errorMessage = ErrorHandlingUtil.getCouponErrorMessage(error);
+      resultState = _isNetworkError
+          ? LoadingStateType.networkError
+          : LoadingStateType.error;
+    } else if (error is AuthException) {
+      // 인증 오류 처리
+      _isNetworkError = error.type == AuthErrorType.networkError;
+      _lastErrorCode = error.statusCode;
+      _errorMessage = ErrorHandlingUtil.getAuthErrorMessage(error);
+      resultState = _isNetworkError
+          ? LoadingStateType.networkError
+          : LoadingStateType.error;
     } else {
       // 일반 오류
       _isNetworkError = false;
-      _errorMessage = '데이터를 불러오는데 실패했습니다. 다시 시도해 주세요.';
+      _errorMessage = ErrorHandlingUtil.getGenericErrorMessage(error);
       resultState = LoadingStateType.error;
     }
 
@@ -225,10 +355,26 @@ mixin StateNotifierErrorHandlingMixin<T> on StateNotifier<T> {
       _lastErrorCode = error.response?.statusCode;
       _errorMessage = ErrorHandlingUtil.getDioErrorMessage(error);
       resultState = LoadingStateType.networkError;
+    } else if (error is CouponException) {
+      // 쿠폰 오류 처리
+      _isNetworkError = error.type == CouponErrorType.networkError;
+      _lastErrorCode = error.statusCode;
+      _errorMessage = ErrorHandlingUtil.getCouponErrorMessage(error);
+      resultState = _isNetworkError
+          ? LoadingStateType.networkError
+          : LoadingStateType.error;
+    } else if (error is AuthException) {
+      // 인증 오류 처리
+      _isNetworkError = error.type == AuthErrorType.networkError;
+      _lastErrorCode = error.statusCode;
+      _errorMessage = ErrorHandlingUtil.getAuthErrorMessage(error);
+      resultState = _isNetworkError
+          ? LoadingStateType.networkError
+          : LoadingStateType.error;
     } else {
       // 일반 오류
       _isNetworkError = false;
-      _errorMessage = '데이터를 불러오는데 실패했습니다. 다시 시도해 주세요.';
+      _errorMessage = ErrorHandlingUtil.getGenericErrorMessage(error);
       resultState = LoadingStateType.error;
     }
 
@@ -245,5 +391,69 @@ mixin StateNotifierErrorHandlingMixin<T> on StateNotifier<T> {
     _errorMessage = '';
     _isNetworkError = false;
     _lastErrorCode = null;
+  }
+
+  /// 에러 처리 헬퍼 메서드 - try-catch 블록에서 사용
+  ///
+  /// 사용 예시:
+  /// ```dart
+  /// try {
+  ///   // 작업 수행
+  /// } catch (e) {
+  ///   return handleError(e, '작업 설명');
+  /// }
+  /// ```
+  ///
+  /// 반환 값은 에러 상태에 따라 다름:
+  /// - 성공: true
+  /// - 실패: false
+  /// - 특별한 경우: 다른 값 (구체적인 구현에서 정의)
+  dynamic handleError(dynamic error, String operationDescription) {
+    final errorState = setErrorState(error);
+
+    // 에러 로깅
+    LoggerUtil.e('$operationDescription 실패', error);
+
+    // 기본적으로 실패를 반환
+    return false;
+  }
+
+  /// 에러 처리 헬퍼 메서드 - Future를 반환하는 작업에서 사용
+  ///
+  /// 사용 예시:
+  /// ```dart
+  /// return executeWithErrorHandling(
+  ///   () => someAsyncOperation(),
+  ///   '작업 설명',
+  ///   onSuccess: (result) {
+  ///     // 성공 시 처리
+  ///   },
+  ///   onError: (error) {
+  ///     // 에러 시 추가 처리
+  ///   },
+  /// );
+  /// ```
+  Future<T?> executeWithErrorHandling<T>(
+    Future<T> Function() operation,
+    String operationDescription, {
+    void Function(T)? onSuccess,
+    void Function(dynamic)? onError,
+  }) async {
+    try {
+      final result = await operation();
+      if (onSuccess != null) {
+        onSuccess(result);
+      }
+      return result;
+    } catch (e) {
+      final errorState = setErrorState(e);
+      LoggerUtil.e('$operationDescription 실패', e);
+
+      if (onError != null) {
+        onError(e);
+      }
+
+      return null;
+    }
   }
 }

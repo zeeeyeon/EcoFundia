@@ -625,8 +625,8 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
 
               // 쿠폰 데이터 로드
               final couponState = ref.read(couponViewModelProvider);
-              final isDefaultTime =
-                  couponState.lastUpdated.millisecondsSinceEpoch == 0;
+              final isDefaultTime = couponState.lastUpdated == null ||
+                  couponState.lastUpdated!.millisecondsSinceEpoch == 0;
 
               if (isSameTab || couponState.couponCount <= 0 || isDefaultTime) {
                 LoggerUtil.d('🎫 쿠폰 데이터 로드 시작');

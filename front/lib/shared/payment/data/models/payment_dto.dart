@@ -11,6 +11,7 @@ class PaymentDTO extends Equatable {
   final int price;
   final int quantity;
   final int couponDiscount;
+  final int appliedCouponId;
   final String recipientName;
   final String address;
   final String phoneNumber;
@@ -25,6 +26,7 @@ class PaymentDTO extends Equatable {
     required this.price,
     required this.quantity,
     this.couponDiscount = 0,
+    this.appliedCouponId = 0,
     required this.recipientName,
     required this.address,
     required this.phoneNumber,
@@ -48,6 +50,7 @@ class PaymentDTO extends Equatable {
       price: json['price'] as int,
       quantity: json['quantity'] as int,
       couponDiscount: json['couponDiscount'] as int? ?? 0,
+      appliedCouponId: json['appliedCouponId'] as int? ?? 0,
       recipientName: json['recipientName'] as String,
       address: json['address'] as String,
       phoneNumber: json['phoneNumber'] as String,
@@ -66,6 +69,7 @@ class PaymentDTO extends Equatable {
       price: price,
       quantity: quantity,
       couponDiscount: couponDiscount,
+      appliedCouponId: appliedCouponId,
       recipientName: recipientName,
       address: address,
       phoneNumber: phoneNumber,
@@ -84,6 +88,7 @@ class PaymentDTO extends Equatable {
       'price': price,
       'quantity': quantity,
       'couponDiscount': couponDiscount,
+      'appliedCouponId': appliedCouponId,
       'recipientName': recipientName,
       'address': address,
       'phoneNumber': phoneNumber,
@@ -101,6 +106,7 @@ class PaymentDTO extends Equatable {
         price,
         quantity,
         couponDiscount,
+        appliedCouponId,
         recipientName,
         address,
         phoneNumber,

@@ -18,37 +18,97 @@ class StorageService {
   /// 스토리지 서비스 초기화
   static Future<void> init() async {
     LoggerUtil.d('📦 스토리지 서비스 초기화');
-    // 필요한 경우 여기에 스토리지 초기화 코드를 추가
 
-    // 저장된 토큰 확인 (디버깅용)
-    if (await isAuthenticated()) {
-      LoggerUtil.d('🔑 유효한 인증 토큰이 존재합니다');
+    try {
+      // 저장된 토큰 확인
+      final token = await _storage.read(key: _tokenKey);
+      if (token != null) {
+        LoggerUtil.d('🔑 저장된 토큰 발견');
 
-      // 토큰 만료 시간 확인 및 필요시 갱신
-      await checkAndRefreshTokenIfNeeded();
+        // 토큰 유효성 검사
+        if (!JwtDecoder.isExpired(token)) {
+          LoggerUtil.d('✅ 토큰 유효함');
+          await checkAndRefreshTokenIfNeeded();
+        } else {
+          LoggerUtil.w('⚠️ 토큰 만료됨');
+          // 만료된 토큰 제거
+          await _storage.delete(key: _tokenKey);
+        }
+      }
+    } catch (e) {
+      LoggerUtil.e('❌ 스토리지 초기화 중 오류', e);
+      // 오류 발생 시 토큰 초기화
+      await _storage.delete(key: _tokenKey);
+    }
+  }
+
+  /// 토큰 저장 (동기화 처리)
+  static Future<void> saveToken(String token) async {
+    try {
+      // 토큰 유효성 검사
+      if (!_isValidToken(token)) {
+        throw Exception('유효하지 않은 토큰 형식입니다.');
+      }
+
+      // 토큰 저장
+      await _storage.write(key: _tokenKey, value: token);
+      LoggerUtil.d('✅ 토큰 저장 완료');
+
+      // 마지막 로그인 시간 업데이트
+      await updateLastLoginDate();
+    } catch (e) {
+      LoggerUtil.e('❌ 토큰 저장 실패', e);
+      // 저장 실패 시 기존 토큰 제거
+      await _storage.delete(key: _tokenKey);
+      rethrow;
+    }
+  }
+
+  /// 토큰 유효성 검사
+  static bool _isValidToken(String token) {
+    try {
+      final decodedToken = JwtDecoder.decode(token);
+      return decodedToken['exp'] != null && decodedToken['sub'] != null;
+    } catch (e) {
+      LoggerUtil.e('❌ 토큰 유효성 검사 실패', e);
+      return false;
     }
   }
 
   /// 사용자가 인증되어 있는지 확인
-  /// 액세스 토큰이 유효하거나 리프레시 토큰이 있으면 인증된 것으로 간주
   static Future<bool> isAuthenticated() async {
     try {
       // 1. 액세스 토큰 확인
       final token = await _storage.read(key: _tokenKey);
-      if (token != null) {
-        // JWT 토큰 만료 시간 확인
-        if (!JwtDecoder.isExpired(token)) {
+      if (token == null) {
+        LoggerUtil.d('🔑 인증 상태: 토큰 없음');
+        return false;
+      }
+
+      // 2. 토큰 유효성 검사
+      if (!_isValidToken(token)) {
+        LoggerUtil.w('⚠️ 인증 상태: 유효하지 않은 토큰');
+        return false;
+      }
+
+      // 3. 토큰 만료 확인
+      if (JwtDecoder.isExpired(token)) {
+        LoggerUtil.w('⚠️ 인증 상태: 만료된 토큰');
+
+        // 리프레시 토큰 확인
+        final refreshToken = await _storage.read(key: _refreshTokenKey);
+        if (refreshToken != null && !JwtDecoder.isExpired(refreshToken)) {
+          LoggerUtil.d('🔄 인증 상태: 리프레시 토큰 유효함');
           return true;
         }
 
-        // 토큰이 만료되었지만 리프레시 토큰이 있는 경우
-        final refreshToken = await _storage.read(key: _refreshTokenKey);
-        return refreshToken != null && !JwtDecoder.isExpired(refreshToken);
+        return false;
       }
 
-      return false;
+      LoggerUtil.d('✅ 인증 상태: 유효한 토큰');
+      return true;
     } catch (e) {
-      LoggerUtil.e('❌ 인증 상태 확인 중 오류 발생', e);
+      LoggerUtil.e('❌ 인증 상태 확인 중 오류', e);
       return false;
     }
   }
@@ -67,26 +127,18 @@ class StorageService {
       final now = DateTime.now();
       final minutesToExpiration = expirationTime.difference(now).inMinutes;
 
-      // 설정된 시간 내에 만료되는 경우 갱신
+      // 설정된 시간 내에 만료되는 경우 갱신 필요
       if (minutesToExpiration <=
           AppConfig.tokenConfig.refreshBeforeExpirationMinutes) {
-        LoggerUtil.i('🔄 토큰이 곧 만료됩니다. 자동 갱신 시작 (남은 시간: $minutesToExpiration분)');
-        // 실제 토큰 갱신은 ApiService에서 수행합니다.
-        // 여기서는 ApiService를 직접 호출하지 않고, 다음 API 요청 시 인터셉터에서 처리됩니다.
+        LoggerUtil.i('🔄 토큰 갱신 필요 (남은 시간: $minutesToExpiration분)');
         return true;
       }
 
       return false;
     } catch (e) {
-      LoggerUtil.e('❌ 토큰 만료 확인 중 오류 발생', e);
+      LoggerUtil.e('❌ 토큰 만료 확인 중 오류', e);
       return false;
     }
-  }
-
-  /// 액세스 토큰 저장
-  static Future<void> saveToken(String token) async {
-    await _storage.write(key: _tokenKey, value: token);
-    await updateLastLoginDate(); // 마지막 로그인 시간 업데이트
   }
 
   /// JWT 토큰 조회

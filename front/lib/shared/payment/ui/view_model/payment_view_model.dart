@@ -182,7 +182,7 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
 /// Repository Provider
 final paymentRepositoryProvider = Provider<PaymentRepository>((ref) {
   final apiService = ref.watch(paymentApiServiceProvider);
-  return PaymentRepositoryImpl(apiService);
+  return PaymentRepositoryImpl(apiService, ref);
 });
 
 /// UseCase Provider

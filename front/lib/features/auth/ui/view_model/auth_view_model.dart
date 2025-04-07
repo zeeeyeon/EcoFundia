@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:front/core/exceptions/auth_exception.dart';
+import 'package:front/core/exceptions/auth_exception.dart' as core_auth;
 import 'package:front/core/providers/app_state_provider.dart';
 import 'package:front/core/services/storage_service.dart';
 import 'package:front/features/auth/domain/entities/auth_result_entity.dart';
@@ -16,15 +16,18 @@ import 'package:front/features/mypage/ui/view_model/my_review_view_model.dart';
 import 'package:front/features/mypage/ui/view_model/profile_view_model.dart';
 import 'package:front/features/wishlist/ui/view_model/wishlist_provider.dart';
 import 'package:front/features/wishlist/ui/view_model/wishlist_view_model.dart';
+import 'package:front/utils/error_handling_mixin.dart';
 import 'package:front/utils/logger_util.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:front/features/mypage/ui/view_model/total_funding_provider.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 /// 인증 ViewModel
 ///
 /// 인증 상태를 관리하고 UseCase들을 실행합니다.
-class AuthViewModel extends StateNotifier<AuthState> {
+class AuthViewModel extends StateNotifier<AuthState>
+    with StateNotifierErrorHandlingMixin<AuthState> {
   final Ref _ref;
   final AppStateViewModel _appStateViewModel;
   final AuthRepository _authRepository;
@@ -111,21 +114,26 @@ class AuthViewModel extends StateNotifier<AuthState> {
             refreshToken: refreshToken,
             tokenExpiry: tokenExpiry,
           );
+          LoggerUtil.i('✅ 유효한 토큰으로 인증 상태 설정 완료');
         } else {
+          LoggerUtil.w('⚠️ 토큰 만료, 갱신 시도');
           await _refreshToken();
         }
       } else {
+        LoggerUtil.w('⚠️ 토큰 없음, 인증되지 않은 상태로 설정');
         state = state.copyWith(status: AuthStatus.unauthenticated);
       }
     } catch (e) {
-      LoggerUtil.e('인증 상태 초기화 실패', e);
+      LoggerUtil.e('❌ 인증 상태 초기화 실패', e);
 
       // 오류 발생 시 로그아웃 상태로 설정
       _appStateViewModel.setLoggedIn(false);
 
+      // 에러 처리 통합 적용
+      setErrorState(e);
       state = state.copyWith(
         status: AuthStatus.error,
-        error: '인증 상태 확인 중 오류가 발생했습니다.',
+        error: errorMessage,
       );
     } finally {
       _appStateViewModel.setLoading(false);
@@ -142,13 +150,13 @@ class AuthViewModel extends StateNotifier<AuthState> {
       _refreshCompleter = Completer<void>();
 
       if (state.refreshToken == null) {
-        throw AuthException('리프레시 토큰이 없습니다.');
+        throw core_auth.AuthException('리프레시 토큰이 없습니다.');
       }
 
       final response = await _authRepository.refreshToken(state.refreshToken!);
 
       if (response.accessToken == null || response.refreshToken == null) {
-        throw AuthException('토큰 정보가 올바르지 않습니다.');
+        throw core_auth.AuthException('토큰 정보가 올바르지 않습니다.');
       }
 
       await _saveTokens(response.accessToken!, response.refreshToken!);
@@ -159,20 +167,30 @@ class AuthViewModel extends StateNotifier<AuthState> {
         refreshToken: response.refreshToken,
         tokenExpiry: _parseTokenExpiry(response.accessToken!),
       );
+
+      LoggerUtil.i('✅ 토큰 갱신 완료');
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
+        LoggerUtil.w('❌ 토큰 갱신 실패: 인증 오류 (401)');
         await signOut();
       } else {
+        LoggerUtil.e('❌ 토큰 갱신 실패: DioException', e);
+
+        // 에러 처리 통합 적용
+        setErrorState(e);
         state = state.copyWith(
           status: AuthStatus.error,
-          error: '토큰 갱신 중 오류가 발생했습니다.',
+          error: errorMessage,
         );
       }
     } catch (e) {
-      LoggerUtil.e('토큰 갱신 실패', e);
+      LoggerUtil.e('❌ 토큰 갱신 실패', e);
+
+      // 에러 처리 통합 적용
+      setErrorState(e);
       state = state.copyWith(
         status: AuthStatus.error,
-        error: '네트워크 연결을 확인해주세요.',
+        error: errorMessage,
       );
     } finally {
       _isRefreshing = false;
@@ -182,8 +200,20 @@ class AuthViewModel extends StateNotifier<AuthState> {
   }
 
   Future<void> _saveTokens(String accessToken, String refreshToken) async {
-    await StorageService.saveToken(accessToken);
-    await StorageService.saveRefreshToken(refreshToken);
+    try {
+      // 1. 액세스 토큰 저장
+      await StorageService.saveToken(accessToken);
+
+      // 2. 리프레시 토큰 저장
+      await StorageService.saveRefreshToken(refreshToken);
+
+      LoggerUtil.i('✅ 토큰 저장 완료');
+    } catch (e) {
+      LoggerUtil.e('❌ 토큰 저장 실패', e);
+      // 저장 실패 시 상태 초기화
+      await StorageService.clearAll();
+      rethrow;
+    }
   }
 
   Future<void> _updateUserSessionData(
@@ -197,31 +227,69 @@ class AuthViewModel extends StateNotifier<AuthState> {
   }
 
   Future<void> _handleAuthSuccess(AuthSuccessEntity result) async {
-    await _updateUserSessionData(
-      result.user.userId.toString(),
-      result.user.email,
-      result.user.nickname,
-    );
+    LoggerUtil.i('🔄 인증 성공 처리 시작: ${result.user.email}');
 
-    await _saveTokens(result.accessToken, result.refreshToken);
-
-    state = state.copyWith(
-      status: AuthStatus.authenticated,
-      accessToken: result.accessToken,
-      refreshToken: result.refreshToken,
-      tokenExpiry: _parseTokenExpiry(result.accessToken),
-    );
-
-    // 로그인 성공 후 위시리스트 ID 로딩
     try {
-      LoggerUtil.i('🔄 로그인 성공 후 위시리스트 ID 목록 로딩 시작');
-      await _ref.read(loadWishlistIdsProvider)();
-    } catch (e) {
-      LoggerUtil.e('❌ 위시리스트 ID 목록 로딩 실패', e);
-      // 오류가 발생해도 로그인 플로우는 계속 진행
-    }
+      // 1. 토큰 유효성 검사
+      if (!_isValidToken(result.accessToken)) {
+        throw Exception('유효하지 않은 액세스 토큰');
+      }
+      if (!_isValidToken(result.refreshToken)) {
+        throw Exception('유효하지 않은 리프레시 토큰');
+      }
 
-    LoggerUtil.i('로그인 성공: ${result.user.email}');
+      // 2. 토큰 저장 (동기적으로)
+      await _saveTokens(result.accessToken, result.refreshToken);
+      LoggerUtil.i('✅ 토큰 저장 완료');
+
+      // 3. 사용자 세션 데이터 업데이트
+      await _updateUserSessionData(
+        result.user.userId.toString(),
+        result.user.email,
+        result.user.nickname,
+      );
+      LoggerUtil.i('✅ 사용자 세션 데이터 업데이트 완료');
+
+      // 4. 앱 상태 업데이트 (동기적으로)
+      _appStateViewModel.setLoggedIn(true);
+      LoggerUtil.i('✅ 앱 상태 로그인 업데이트 완료');
+
+      // 5. 인증 상태 업데이트
+      state = state.copyWith(
+        status: AuthStatus.authenticated,
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+        tokenExpiry: _parseTokenExpiry(result.accessToken),
+      );
+      LoggerUtil.i('✅ 인증 상태 업데이트 완료');
+
+      // 6. 위시리스트 ID 로딩 (비동기적으로)
+      try {
+        LoggerUtil.i('🔄 로그인 성공 후 위시리스트 ID 목록 로딩 시작');
+        await _ref.read(loadWishlistIdsProvider)();
+        LoggerUtil.i('✅ 위시리스트 ID 목록 로딩 완료');
+      } catch (e) {
+        LoggerUtil.e('❌ 위시리스트 ID 목록 로딩 실패', e);
+        // 오류가 발생해도 로그인 플로우는 계속 진행
+      }
+
+      LoggerUtil.i('✅ 로그인 성공 처리 완료: ${result.user.email}');
+    } catch (e) {
+      LoggerUtil.e('❌ 인증 성공 처리 중 오류 발생', e);
+      // 오류 발생 시 상태 초기화
+      _handleAuthError(e);
+    }
+  }
+
+  /// 토큰 유효성 검사
+  bool _isValidToken(String token) {
+    try {
+      final decodedToken = JwtDecoder.decode(token);
+      return decodedToken['exp'] != null && decodedToken['sub'] != null;
+    } catch (e) {
+      LoggerUtil.e('❌ 토큰 유효성 검사 실패', e);
+      return false;
+    }
   }
 
   Future<AuthResultEntity> signInWithGoogle() async {
@@ -234,10 +302,15 @@ class AuthViewModel extends StateNotifier<AuthState> {
       if (authResult is AuthSuccessEntity) {
         await _handleAuthSuccess(authResult);
       } else if (authResult is AuthNewUserEntity) {
+        // 신규 사용자 정보 저장
+        LoggerUtil.i('🔄 신규 사용자 정보 획득 시도');
         _lastUserInfo = await _authRepository.getGoogleUserInfo();
         if (_lastUserInfo != null) {
           _lastUserInfo!['token'] = authResult.token;
-          LoggerUtil.i('회원가입용 Google 정보 획득: $_lastUserInfo');
+          LoggerUtil.i('✅ 회원가입용 Google 정보 획득: $_lastUserInfo');
+        } else {
+          LoggerUtil.e('❌ Google 사용자 정보를 가져올 수 없습니다.');
+          throw core_auth.AuthException('Google 사용자 정보를 가져올 수 없습니다.');
         }
       } else if (authResult is AuthErrorEntity) {
         state = state.copyWith(
@@ -255,11 +328,14 @@ class AuthViewModel extends StateNotifier<AuthState> {
       return authResult;
     } catch (e) {
       LoggerUtil.e('로그인 중 오류 발생', e);
+
+      // 에러 처리 통합 적용
+      setErrorState(e);
       state = state.copyWith(
         status: AuthStatus.error,
-        error: '로그인 중 오류가 발생했습니다.',
+        error: errorMessage,
       );
-      _appStateViewModel.setError('로그인 중 오류가 발생했습니다.');
+      _appStateViewModel.setError(errorMessage);
       return const AuthResultEntity.error('로그인 중 오류가 발생했습니다.');
     } finally {
       _appStateViewModel.setLoading(false);
@@ -311,6 +387,13 @@ class AuthViewModel extends StateNotifier<AuthState> {
       // 오류 발생해도 앱 상태는 로그아웃으로 설정
       _appStateViewModel.setLoggedIn(false);
 
+      // 에러 처리 통합 적용
+      setErrorState(e);
+      state = state.copyWith(
+        status: AuthStatus.error,
+        error: errorMessage,
+      );
+
       // 에러 발생 시에도 모든 사용자 관련 Provider 초기화 시도
       try {
         _ref.invalidate(profileProvider);
@@ -323,10 +406,6 @@ class AuthViewModel extends StateNotifier<AuthState> {
         LoggerUtil.e('Provider 초기화 실패', providerError);
       }
 
-      state = state.copyWith(
-        status: AuthStatus.error,
-        error: '로그아웃 중 오류가 발생했습니다.',
-      );
       return false;
     } finally {
       _appStateViewModel.setLoading(false);
@@ -341,32 +420,43 @@ class AuthViewModel extends StateNotifier<AuthState> {
   void clearError() {
     state = state.copyWith(error: null);
     _appStateViewModel.clearError();
+    clearErrorState();
   }
 
   void resetState() {
     state = const AuthState();
     _appStateViewModel.resetState();
+    clearErrorState();
   }
 
   Future<Map<String, dynamic>?> getGoogleLoginInfoForSignUp() async {
     try {
+      // 이미 정보가 있으면 바로 반환
       if (_lastUserInfo != null) {
         return _lastUserInfo;
       }
 
+      // 정보가 없으면 새로 로그인 시도
       _appStateViewModel.setLoading(true);
-
       LoggerUtil.i('회원가입을 위한 Google 로그인 정보 획득 시도');
-      final result = await signInWithGoogle();
+
+      final result = await _googleSignInUseCase.execute();
 
       if (result is AuthNewUserEntity) {
-        return _lastUserInfo;
-      } else {
-        LoggerUtil.w('Google 로그인 결과가 신규 사용자가 아님: $result');
-        return null;
+        _lastUserInfo = await _authRepository.getGoogleUserInfo();
+        if (_lastUserInfo != null) {
+          _lastUserInfo!['token'] = result.token;
+          return _lastUserInfo;
+        }
       }
+
+      LoggerUtil.w('Google 로그인 결과가 신규 사용자가 아님: $result');
+      return null;
     } catch (e) {
       LoggerUtil.e('회원가입용 Google 정보 획득 실패', e);
+
+      // 에러 처리 통합 적용
+      setErrorState(e);
       return null;
     } finally {
       _appStateViewModel.setLoading(false);
@@ -397,6 +487,8 @@ class AuthViewModel extends StateNotifier<AuthState> {
   Future<void> handleGoogleLogin() async {
     try {
       _appStateViewModel.setLoading(true);
+      _appStateViewModel.clearError();
+
       final result = await signInWithGoogle();
 
       // 결과 처리
@@ -405,45 +497,133 @@ class AuthViewModel extends StateNotifier<AuthState> {
         _appStateViewModel.setLoggedIn(true);
         LoggerUtil.i('✅ 앱 상태 로그인 업데이트 완료 (handleGoogleLogin)');
 
-        // 인증 관련 데이터가 완전히 반영될 때까지 충분한 지연
-        // 이 시간동안 로딩 상태를 유지하여 사용자가 다른 액션을 하지 못하게 함
-        LoggerUtil.d('⏳ 인증 데이터 동기화를 위해 대기 중...');
-        await Future.delayed(const Duration(milliseconds: 500));
-        LoggerUtil.d('✅ 인증 데이터 동기화 완료');
+        // 인증 관련 데이터가 완전히 반영될 때까지 대기
+        await _waitForAuthDataSync();
+
+        // 위시리스트 ID 로딩 완료 대기
+        await _loadWishlistIds();
 
         // 홈 화면으로 이동
-        _router.go('/');
+        _navigateToHome();
       } else if (result is AuthNewUserEntity) {
         // 회원가입 필요 - 회원가입 화면으로 이동
-        final userInfo = await getGoogleLoginInfoForSignUp();
-        if (userInfo != null) {
-          await Future.delayed(const Duration(milliseconds: 50));
-          _router.pushNamed('signup', extra: {
-            'email': userInfo['email'],
-            'name': userInfo['name'],
-            'token': userInfo['token'],
-          });
-        }
+        await _handleNewUser(result);
       } else if (result is AuthErrorEntity) {
         // 에러 발생 - 로그아웃 상태로 설정
-        _appStateViewModel.setLoggedIn(false);
-        LoggerUtil.e('❌ 로그인 오류: ${result.message} (앱 상태: 로그아웃)');
-        _appStateViewModel.setError(result.message);
+        _handleAuthError(result.message);
       } else if (result is AuthCancelledEntity) {
         // 취소된 경우 - 로그아웃 상태 유지
-        _appStateViewModel.setLoggedIn(false);
-        LoggerUtil.i('ℹ️ 로그인 취소됨 (앱 상태: 로그아웃)');
+        _handleAuthCancelled();
       }
     } catch (e) {
       // 모든 예외 처리 - 로그아웃 상태로 설정
-      _appStateViewModel.setLoggedIn(false);
-      LoggerUtil.e('❌ Google 로그인 실패 (앱 상태: 로그아웃)', e);
-      _appStateViewModel.setError('로그인 처리 중 오류가 발생했습니다.');
+      _handleAuthException(e);
     } finally {
       // 모든 처리가 끝난 후에만 로딩 상태 해제
       if (_appStateViewModel.state.isLoading) {
         _appStateViewModel.setLoading(false);
       }
     }
+  }
+
+  /// 인증 데이터 동기화 대기
+  Future<void> _waitForAuthDataSync() async {
+    LoggerUtil.d('🔄 인증 데이터 동기화 대기 중...');
+    // 인증 관련 데이터가 완전히 반영될 때까지 충분한 지연
+    await Future.delayed(const Duration(milliseconds: 500));
+    LoggerUtil.d('✅ 인증 데이터 동기화 완료');
+  }
+
+  /// 위시리스트 ID 로딩
+  Future<void> _loadWishlistIds() async {
+    try {
+      LoggerUtil.i('🔄 로그인 성공 후 위시리스트 ID 목록 로딩 시작');
+      await _ref.read(loadWishlistIdsProvider)();
+      LoggerUtil.i('✅ 위시리스트 ID 목록 로딩 완료');
+    } catch (e) {
+      LoggerUtil.e('❌ 위시리스트 ID 목록 로딩 실패', e);
+      // 오류가 발생해도 로그인 플로우는 계속 진행
+    }
+  }
+
+  /// 홈 화면으로 이동
+  void _navigateToHome() {
+    if (_router.canPop()) {
+      _router.pop();
+    }
+    _router.go('/');
+  }
+
+  /// 신규 사용자 처리
+  Future<void> _handleNewUser(AuthNewUserEntity result) async {
+    if (_lastUserInfo == null) {
+      _lastUserInfo = await _authRepository.getGoogleUserInfo();
+      if (_lastUserInfo == null) {
+        throw core_auth.AuthException('Google 사용자 정보를 가져올 수 없습니다.');
+      }
+      _lastUserInfo!['token'] = result.token;
+    }
+
+    LoggerUtil.i('회원가입 페이지로 이동: ${_lastUserInfo!['email']}');
+
+    // 로딩 상태 해제
+    _appStateViewModel.setLoading(false);
+
+    // 현재 페이지에서 pop 가능한 경우 pop
+    if (_router.canPop()) {
+      _router.pop();
+    }
+
+    // 회원가입 페이지로 이동
+    _router.pushNamed(
+      'signup',
+      extra: {
+        'email': _lastUserInfo!['email'],
+        'name': _lastUserInfo!['name'] ?? '',
+        'token': result.token,
+      },
+    );
+  }
+
+  /// 인증 오류 처리
+  Future<void> _handleAuthError(dynamic error) async {
+    // 1. 상태 초기화
+    state = state.copyWith(
+      status: AuthStatus.unauthenticated,
+      accessToken: null,
+      refreshToken: null,
+      tokenExpiry: null,
+    );
+
+    // 2. 앱 상태 업데이트
+    _appStateViewModel.setLoggedIn(false);
+
+    // 3. 저장된 데이터 초기화
+    await StorageService.clearAll();
+
+    // 4. 오류 메시지 설정
+    String errorMessage = '인증 처리 중 오류가 발생했습니다.';
+    if (error is Exception) {
+      errorMessage = error.toString().replaceAll('Exception: ', '');
+    } else if (error is String) {
+      errorMessage = error;
+    }
+    state = state.copyWith(error: errorMessage);
+  }
+
+  /// 인증 취소 처리
+  void _handleAuthCancelled() {
+    _appStateViewModel.setLoggedIn(false);
+    LoggerUtil.i('ℹ️ 로그인 취소됨 (앱 상태: 로그아웃)');
+  }
+
+  /// 인증 예외 처리
+  void _handleAuthException(dynamic e) {
+    _appStateViewModel.setLoggedIn(false);
+    LoggerUtil.e('❌ Google 로그인 실패 (앱 상태: 로그아웃)', e);
+
+    // 에러 처리 통합 적용
+    setErrorState(e);
+    _appStateViewModel.setError(errorMessage);
   }
 }

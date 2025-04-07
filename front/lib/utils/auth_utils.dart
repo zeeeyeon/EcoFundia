@@ -103,6 +103,11 @@ class AuthUtils {
     final cleanPath =
         path.contains('?') ? path.substring(0, path.indexOf('?')) : path;
 
+    // 회원가입 관련 경로는 인증 불필요
+    if (cleanPath == '/signup' || cleanPath == '/signup-complete') {
+      return false;
+    }
+
     const authRequiredPaths = {
       '/mypage': true,
       '/wishlist': true,

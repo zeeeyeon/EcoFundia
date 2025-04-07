@@ -6,8 +6,11 @@ import 'package:front/core/themes/app_colors.dart';
 import 'package:front/utils/logger_util.dart';
 import 'package:front/features/mypage/ui/view_model/coupon_view_model.dart';
 import 'package:front/shared/widgets/dialogs/coupon_info_dialog.dart';
-import 'package:front/core/providers/app_state_provider.dart'; // 로그인 상태 확인용
-import 'package:front/utils/auth_utils.dart'; // AuthUtils 추가
+import 'package:front/core/providers/app_state_provider.dart';
+import 'package:front/utils/auth_utils.dart';
+
+/// 쿠폰 초기화 상태 관리를 위한 Provider
+final couponInitializedProvider = StateProvider<bool>((ref) => false);
 
 // ConsumerWidget -> ConsumerStatefulWidget으로 변경
 class FundingStatusCard extends ConsumerStatefulWidget {
@@ -25,41 +28,27 @@ class FundingStatusCard extends ConsumerStatefulWidget {
 }
 
 class _FundingStatusCardState extends ConsumerState<FundingStatusCard> {
-  // 마지막 처리된 모달 이벤트 추적 (중복 처리 방지)
-  CouponModalEvent? _lastProcessedModalEvent;
-  // ViewModel 인스턴스 저장 (dispose에서 안전하게 사용하기 위함)
-  late final couponViewModel;
+  // ViewModel 인스턴스 저장
+  late final CouponViewModel _couponViewModel;
+  // 쿠폰 버튼 클릭 방지 타이머
+  Timer? _clickDebounceTimer;
+  // 쿠폰 버튼 클릭 가능 여부
+  bool _canClickCouponButton = true;
 
   @override
   void initState() {
     super.initState();
+    _couponViewModel = ref.read(couponViewModelProvider.notifier);
 
-    // ViewModel 인스턴스 저장
-    couponViewModel = ref.read(couponViewModelProvider.notifier);
-
-    try {
-      LoggerUtil.d('🎫 FundingStatusCard: initState 실행');
-
-      // 캐시된 쿠폰 수 확인
-      final couponState = ref.read(couponViewModelProvider);
-      DateTime? lastUpdated;
-
-      try {
-        lastUpdated = couponState.lastUpdated;
-        LoggerUtil.d('🎫 마지막 쿠폰 개수 업데이트 시간: $lastUpdated');
-      } catch (e) {
-        LoggerUtil.e('🎫 마지막 쿠폰 업데이트 확인 중 오류', e);
+    // 위젯 빌드 후 쿠폰 데이터 로드 (일회성 작업)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final isInitialized = ref.read(couponInitializedProvider);
+      if (!isInitialized) {
+        LoggerUtil.d('🎫 FundingStatusCard: 쿠폰 데이터 초기화 진행');
+        _loadCouponData();
+        ref.read(couponInitializedProvider.notifier).state = true;
       }
-
-      // 마이페이지 진입 시 항상 최신 쿠폰 개수를 보여주기 위해 쿠폰 개수 로드
-      // 초기 진입 시에는 무조건 로드하도록 강제 새로고침 옵션 추가
-      _loadCouponCount(forceRefresh: true);
-      LoggerUtil.d('🎫 FundingStatusCard: 쿠폰 개수 강제 새로고침 요청');
-    } catch (e) {
-      LoggerUtil.e('쿠폰 초기화 중 오류 발생', e);
-      // 오류가 발생해도 UI가 깨지지 않게 쿠폰 개수를 로드
-      _loadCouponCount(forceRefresh: true);
-    }
+    });
   }
 
   @override
@@ -73,13 +62,26 @@ class _FundingStatusCardState extends ConsumerState<FundingStatusCard> {
     // 위젯이 dispose될 때 모달 이벤트 초기화
     // 페이지를 떠날 때 쿠폰 모달이 다른 화면에서 표시되는 것을 방지
     try {
-      // 저장된 인스턴스 사용
-      couponViewModel.clearModalEvent();
+      _couponViewModel.clearModalEvent();
       LoggerUtil.d('🎫 FundingStatusCard: dispose 시 모달 이벤트 초기화');
     } catch (e) {
       // 오류 무시 (이미 제거된 경우)
     }
+    _clickDebounceTimer?.cancel();
     super.dispose();
+  }
+
+  /// 쿠폰 데이터 로드
+  Future<void> _loadCouponData() async {
+    try {
+      LoggerUtil.d('🎫 FundingStatusCard: couponCountProvider를 통한 쿠폰 개수 로드 시작');
+      // Future Provider를 사용하여 쿠폰 개수 로드 (안전한 상태 관리)
+      final count = await ref.refresh(couponCountProvider.future);
+      LoggerUtil.d('🎫 FundingStatusCard: 쿠폰 개수 로드 완료 - $count개');
+    } catch (e) {
+      LoggerUtil.e('🎫 FundingStatusCard: 쿠폰 개수 로드 실패', e);
+      // 오류가 발생해도 UI 처리는 AsyncValue를 통해 자동으로 처리됨
+    }
   }
 
   Widget _buildStatusItem(
@@ -112,28 +114,157 @@ class _FundingStatusCardState extends ConsumerState<FundingStatusCard> {
     );
   }
 
-  // 쿠폰 개수 로드
-  void _loadCouponCount({bool forceRefresh = false}) {
-    ref
-        .read(couponViewModelProvider.notifier)
-        .loadCouponCount(forceRefresh: forceRefresh);
+  // 쿠폰 발급 처리
+  Future<void> _handleCouponApply() async {
+    if (!_canClickCouponButton) {
+      LoggerUtil.d('🎫 쿠폰 버튼 클릭 무시: 디바운스 중');
+      return;
+    }
+
+    LoggerUtil.d('🎫 FundingStatusCard: 쿠폰 버튼 클릭됨');
+
+    // 클릭 방지 설정 (2초 동안 중복 클릭 방지)
+    _canClickCouponButton = false;
+    _clickDebounceTimer?.cancel();
+    _clickDebounceTimer = Timer(const Duration(seconds: 2), () {
+      _canClickCouponButton = true;
+    });
+
+    try {
+      // AuthUtils를 사용하여 로그인 상태 확인 및 모달 표시
+      final isAuthenticated = await AuthUtils.checkAuthAndShowModal(
+        context,
+        ref,
+        AuthRequiredFeature.funding,
+        showModal: true,
+      );
+
+      if (!isAuthenticated) {
+        LoggerUtil.d('🎫 FundingStatusCard: 인증되지 않은 사용자, 쿠폰 발급 취소');
+        return;
+      }
+
+      LoggerUtil.d('🎫 FundingStatusCard: 인증된 사용자, 쿠폰 발급 진행');
+
+      // 모달 이벤트 초기화 (이전 상태 제거)
+      _couponViewModel.clearModalEvent();
+
+      // ViewModel의 applyCoupon 메서드 직접 호출
+      await _couponViewModel.applyCoupon();
+      LoggerUtil.d('🎫 쿠폰 발급 API 호출 완료');
+
+      // 쿠폰 개수 갱신
+      final updatedCount = await ref.refresh(couponCountProvider.future);
+      LoggerUtil.d('🎫 쿠폰 발급 후 개수 갱신 완료: $updatedCount개');
+    } catch (e) {
+      LoggerUtil.e('🎫 쿠폰 발급 중 예외 발생', e);
+
+      // 에러 발생 시 스낵바로 알림
+      if (mounted && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('쿠폰 발급 중 오류가 발생했습니다. 다시 시도해주세요.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  // 모달 이벤트 처리
+  void _handleModalEvent(CouponModalEvent event) {
+    if (!mounted || !context.mounted) return;
+
+    LoggerUtil.d('🎫 FundingStatusCard: 모달 이벤트 처리 - $event');
+
+    try {
+      switch (event) {
+        case CouponModalEvent.success:
+          LoggerUtil.i('🎫 쿠폰 발급 성공 모달 표시');
+          showCouponSuccessDialog(context).then((_) {
+            // 모달이 닫힌 후 버튼 다시 활성화
+            _resetCouponButton();
+          });
+          break;
+
+        case CouponModalEvent.alreadyIssued:
+          LoggerUtil.i('🎫 쿠폰 이미 발급됨 모달 표시');
+          showAlreadyIssuedCouponDialog(context).then((_) {
+            // 모달이 닫힌 후 버튼 다시 활성화
+            _resetCouponButton();
+          });
+          break;
+
+        case CouponModalEvent.needLogin:
+          LoggerUtil.i('🎫 로그인 필요 모달 표시');
+          showLoginRequiredDialog(context).then((_) {
+            // 모달이 닫힌 후 버튼 다시 활성화
+            _resetCouponButton();
+          });
+          break;
+
+        case CouponModalEvent.error:
+          LoggerUtil.i('🎫 쿠폰 발급 오류 모달 표시');
+          showCouponErrorDialog(
+                  context, ref.read(couponViewModelProvider).errorMessage)
+              .then((_) {
+            // 모달이 닫힌 후 버튼 다시 활성화
+            _resetCouponButton();
+          });
+          break;
+
+        default:
+          LoggerUtil.d('🎫 처리할 모달 이벤트 없음');
+          break;
+      }
+
+      // 모달 이벤트 초기화를 지연시켜 처리
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) {
+          try {
+            _couponViewModel.clearModalEvent();
+            LoggerUtil.d('🎫 모달 이벤트 초기화 완료');
+          } catch (e) {
+            LoggerUtil.e('🎫 모달 이벤트 초기화 실패', e);
+          }
+        }
+      });
+    } catch (e) {
+      LoggerUtil.e('🎫 모달 이벤트 처리 중 오류 발생', e);
+      // 오류 발생 시에도 모달 이벤트 초기화 시도
+      if (mounted) {
+        try {
+          _couponViewModel.clearModalEvent();
+          _resetCouponButton(); // 오류 발생해도 버튼 초기화 시도
+        } catch (clearError) {
+          LoggerUtil.e('🎫 모달 이벤트 초기화 실패', clearError);
+        }
+      }
+    }
+  }
+
+  // 쿠폰 버튼 초기화 함수 (버튼 활성화)
+  void _resetCouponButton() {
+    if (!mounted) return;
+
+    setState(() {
+      _canClickCouponButton = true;
+    });
+
+    // 최신 쿠폰 개수 정보 갱신
+    ref.refresh(couponCountProvider);
+
+    LoggerUtil.d('🎫 쿠폰 버튼 활성화됨');
   }
 
   @override
   Widget build(BuildContext context) {
-    // 쿠폰 ViewModel 사용 - 필요한 부분만 select로 가져오기
-    final couponCount = ref.watch(
-      couponViewModelProvider.select((state) => state.couponCount),
-    );
+    // 쿠폰 개수 가져오기 (FutureProvider 사용)
+    final couponCountAsync = ref.watch(couponCountProvider);
 
-    // UI에 영향을 주는 상태만 watch
+    // 쿠폰 상태 모니터링
     final isApplying = ref.watch(
       couponViewModelProvider.select((state) => state.isApplying),
-    );
-
-    // 모달 이벤트 상태 감지 (위젯 리빌드 시 항상 체크)
-    final modalEvent = ref.watch(
-      couponViewModelProvider.select((state) => state.modalEvent),
     );
 
     // 모달 이벤트 리스너 추가
@@ -143,67 +274,53 @@ class _FundingStatusCardState extends ConsumerState<FundingStatusCard> {
 
       LoggerUtil.d('🎫 모달 이벤트 감지: $next');
 
-      if (next == CouponModalEvent.none || next == previous) {
-        return; // 이벤트가 없거나 이전과 동일하면 무시
+      if (next == CouponModalEvent.none) {
+        return; // 이벤트가 없으면 무시
       }
 
-      // 마지막으로 처리된 이벤트와 동일해도 무시 (중복 처리 방지)
-      if (next == _lastProcessedModalEvent) {
-        LoggerUtil.d('🎫 FundingStatusCard: 이미 처리된 모달 이벤트 무시 ($next)');
-        return;
-      }
-
-      // 처리할 이벤트 기록
-      _lastProcessedModalEvent = next;
+      // 이전과 동일한 이벤트면 무시하지 않고 처리 (버그 수정)
+      // 마지막으로 처리된 이벤트와 동일해도 처리 (이미 발급 모달도 항상 보여주기)
       LoggerUtil.d('🎫 FundingStatusCard: 모달 이벤트 처리 시작 - $next');
 
       // 모달 이벤트 처리
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) {
+        if (!mounted || !context.mounted) {
           LoggerUtil.w('🎫 FundingStatusCard: 위젯이 마운트되지 않아 모달 표시 불가');
           return;
         }
 
-        LoggerUtil.i('🎫 FundingStatusCard: 모달 다이얼로그 표시 시작 - $next');
-
-        switch (next) {
-          case CouponModalEvent.success:
-            LoggerUtil.i('🎫 쿠폰 발급 성공 모달 표시');
-            showCouponSuccessDialog(context);
-            break;
-
-          case CouponModalEvent.alreadyIssued:
-            LoggerUtil.i('🎫 쿠폰 이미 발급됨 모달 표시');
-            showAlreadyIssuedCouponDialog(context);
-            break;
-
-          case CouponModalEvent.needLogin:
-            LoggerUtil.i('🎫 로그인 필요 모달 표시');
-            showLoginRequiredDialog(context);
-            break;
-
-          case CouponModalEvent.error:
-            LoggerUtil.i('🎫 쿠폰 발급 오류 모달 표시');
-            showCouponErrorDialog(
-                context, ref.read(couponViewModelProvider).errorMessage);
-            break;
-
-          default:
-            break;
-        }
-
-        // 모달 이벤트 초기화
-        Future.delayed(const Duration(milliseconds: 300), () {
-          if (mounted) {
-            try {
-              ref.read(couponViewModelProvider.notifier).clearModalEvent();
-            } catch (e) {
-              LoggerUtil.e('🎫 모달 이벤트 초기화 실패', e);
-            }
-          }
-        });
+        _handleModalEvent(next);
       });
     });
+
+    // 쿠폰 개수를 표시하는 위젯
+    Widget buildCouponCount() {
+      return couponCountAsync.when(
+        data: (count) => Text(
+          "$count장",
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: count > 0 ? AppColors.primary : Colors.black,
+          ),
+        ),
+        error: (_, __) => const Text(
+          "0장",
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+        loading: () => const SizedBox(
+          width: 15,
+          height: 15,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+          ),
+        ),
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -241,11 +358,31 @@ class _FundingStatusCardState extends ConsumerState<FundingStatusCard> {
                   color: Colors.grey.shade300,
                 ),
                 Expanded(
-                  child: _buildStatusItem(
-                    context,
-                    "쿠폰",
-                    "$couponCount장",
-                    highlight: true,
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "쿠폰",
+                          style: TextStyle(
+                            fontWeight: FontWeight.normal,
+                            color: Colors.grey[600],
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        GestureDetector(
+                          onTap: () {
+                            // 쿠폰 목록 페이지로 이동하기 전에 상태 완전 초기화
+                            _couponViewModel.resetState();
+                            context.push('/coupons');
+                          },
+                          child: buildCouponCount(),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -256,47 +393,9 @@ class _FundingStatusCardState extends ConsumerState<FundingStatusCard> {
             Padding(
               padding: const EdgeInsets.all(18.0),
               child: ElevatedButton.icon(
-                onPressed: isApplying
-                    ? null // 로딩 중이면 버튼 비활성화
-                    : () async {
-                        LoggerUtil.d('🎫 FundingStatusCard: 쿠폰 버튼 클릭됨');
-
-                        // AuthUtils를 사용하여 로그인 상태 확인 및 모달 표시
-                        final isAuthenticated =
-                            await AuthUtils.checkAuthAndShowModal(
-                          context,
-                          ref,
-                          AuthRequiredFeature.funding,
-                          showModal: true,
-                        );
-
-                        if (!isAuthenticated) {
-                          LoggerUtil.d(
-                              '🎫 FundingStatusCard: 인증되지 않은 사용자, 쿠폰 발급 취소');
-                          return;
-                        }
-
-                        LoggerUtil.d('🎫 FundingStatusCard: 인증된 사용자, 쿠폰 발급 진행');
-                        try {
-                          // ViewModel의 applyCoupon 메서드 직접 호출
-                          await ref
-                              .read(couponViewModelProvider.notifier)
-                              .applyCoupon();
-                          LoggerUtil.d('🎫 쿠폰 발급 API 호출 완료');
-                        } catch (e) {
-                          LoggerUtil.e('🎫 쿠폰 발급 중 예외 발생', e);
-
-                          // 에러 발생 시 스낵바로 알림
-                          if (mounted && context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('쿠폰 발급 중 오류가 발생했습니다. 다시 시도해주세요.'),
-                                duration: Duration(seconds: 3),
-                              ),
-                            );
-                          }
-                        }
-                      },
+                onPressed: _canClickCouponButton && !isApplying
+                    ? _handleCouponApply
+                    : null,
                 icon: isApplying
                     ? const SizedBox(
                         width: 20,
@@ -313,7 +412,7 @@ class _FundingStatusCardState extends ConsumerState<FundingStatusCard> {
                       fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isApplying
+                  backgroundColor: isApplying || !_canClickCouponButton
                       ? AppColors.primary.withOpacity(0.7)
                       : AppColors.primary,
                   foregroundColor: Colors.white,

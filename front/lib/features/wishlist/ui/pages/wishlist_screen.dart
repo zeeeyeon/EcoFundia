@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/core/providers/app_state_provider.dart';
-import 'package:front/features/home/ui/widgets/project_card.dart';
 import 'package:front/features/wishlist/ui/view_model/wishlist_view_model.dart';
 import 'package:front/features/wishlist/ui/widgets/empty_wishlist.dart';
 import 'package:front/utils/logger_util.dart';
