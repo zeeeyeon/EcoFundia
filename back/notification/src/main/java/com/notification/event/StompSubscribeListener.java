@@ -49,6 +49,7 @@ public class StompSubscribeListener {
                 List<ChatMessageDto> bufferedMessages = chatMessageBuffer.getBufferedMessages(fundingId);
                 if (!bufferedMessages.isEmpty()) {
                     for (ChatMessageDto message : bufferedMessages) {
+                        log.info("message={}", message);
                         simpMessagingTemplate.convertAndSend(destination, message);
                     }
                     log.info("📨 구독자에게 버퍼 메시지 전송: fundingId={}, count={}", fundingId, bufferedMessages.size());
