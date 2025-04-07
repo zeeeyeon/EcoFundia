@@ -77,4 +77,6 @@ public interface FundingMapper {
     int getExpectedSettlements(@Param("sellerId") int sellerId);
 
     int getLatestFundingId();
+
+    void addCurrentAmount(@Param("fundingId") int fundingId, @Param("amount") int amount);
 }
