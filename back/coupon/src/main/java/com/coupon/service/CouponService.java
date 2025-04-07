@@ -68,6 +68,7 @@ public class CouponService {
         List<CouponIssued> issuedList = couponIssuedRepository.findUnusedCouponsByUserId(userId);
         log.info("issuedList size: {}", issuedList.size());
         return issuedList.stream()
+                .peek(i -> log.info("Coupon ID: {}", i.getCoupon().getCouponId()))
                 .map(c -> CouponResponseDto.from(c.getCoupon()))
                 .collect(Collectors.toList());
     }
