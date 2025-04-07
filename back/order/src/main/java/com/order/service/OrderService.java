@@ -12,7 +12,7 @@ import java.util.List;
 
 public interface OrderService {
 
-    Order createOrder(int userId, int fundingId, int quantity, int totalPrice, String userKey, String userAccount);
+    Order createOrder(int userId, int fundingId, int quantity, int totalPrice, String userKey, String userAccount, Integer couponId);
 
     List<Order> getOrder(int userId);
 

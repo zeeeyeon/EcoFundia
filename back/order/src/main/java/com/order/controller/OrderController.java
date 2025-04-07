@@ -28,9 +28,10 @@ public class OrderController {
                                         @RequestParam(name = "quantity") int quantity,
                                         @RequestParam(name = "totalPrice") int totalPrice,
                                         @RequestParam(name = "userKey") String userKey,
-                                        @RequestParam(name = "userAccount") String userAccount
+                                        @RequestParam(name = "userAccount") String userAccount,
+                                        @RequestParam(name = "couponId", required = false) Integer couponId
     ){
-        Order response = orderService.createOrder(userId, fundingId, quantity, totalPrice, userKey, userAccount);
+        Order response = orderService.createOrder(userId, fundingId, quantity, totalPrice, userKey, userAccount, couponId);
 
         return OrderResponseDto.toDto(response);
     }
