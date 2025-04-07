@@ -36,10 +36,11 @@ public class FundingController {
 
     //내가 주문한 펀딩 프로젝트 조회
     @GetMapping("/my/funding")
-    List<MyFundingResponseDto> getMyFunding(@RequestParam("id") List<Integer> fundingIds){
+    List<MyFundingResponseDto> getMyFunding(@RequestParam("fundingIds") List<Integer> fundingIds){
         List<MyFundingResponseDto> fundingList = productService.getMyFunding(fundingIds);
         return fundingList;
     }
+
 
     @GetMapping("/{fundingId}")
     public ResponseEntity<?> getFundingId(@PathVariable("fundingId") int fundingId) {
