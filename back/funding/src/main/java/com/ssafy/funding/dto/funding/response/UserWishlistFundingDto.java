@@ -21,7 +21,8 @@ public record UserWishlistFundingDto(
         int amountGap = funding.getCurrentAmount() - funding.getTargetAmount();
 
         List<String> imageUrls = funding.getImageUrlList();
-        String imageUrl = imageUrls.isEmpty() ? "https://example.com/default_image.jpg" : imageUrls.get(0);
+        System.out.println(imageUrls);
+        String imageUrl = imageUrls.isEmpty() ? "https://ssafy-funding.s3.ap-northeast-2.amazonaws.com/funding/images/1743560407748_%EB%8A%90%EC%A2%8B%EC%9A%B0%EB%A6%AC%EC%A1%B0.png" : imageUrls.get(0);
 
         return new UserWishlistFundingDto(
                 funding.getFundingId(),

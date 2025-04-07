@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.order.client.CouponClient;
 import com.order.client.FundingClient;
+import com.order.client.NotificationClient;
 import com.order.client.SellerClient;
 import com.order.client.UserClient;
 import com.order.common.exception.CustomException;
@@ -16,6 +17,8 @@ import com.order.dto.seller.response.GetSellerMonthAmountStatisticsResponseDto;
 import com.order.dto.funding.response.GetSellerTodayOrderCountResponseDto;
 import com.order.dto.funding.response.GetSellerTodayOrderTopThreeIdAndMoneyResponseDto;
 import com.order.dto.funding.response.IsOngoingResponseDto;
+import com.order.dto.seller.response.TotalAmountResponseDto;
+import com.order.dto.order.response.OrderResponseDto;
 import com.order.dto.ssafyApi.request.HeaderDto;
 import com.order.dto.ssafyApi.request.TransferRequestDto;
 import com.order.dto.ssafyApi.response.ApiResponseDto;
@@ -28,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,6 +54,9 @@ public class OrderServiceImpl implements OrderService {
     private final ssafyApiService ssafyApiService;
     private final UserClient userClient;
     private final CouponClient couponClient;
+    private final StringRedisTemplate redisTemplate;
+    private final NotificationClient notificationClient;
+    private static final String TOTAL_FUND_KEY = "total_fund";
 
     @Value("${adm.account}")
     private String adminAccount;
@@ -112,6 +119,8 @@ public class OrderServiceImpl implements OrderService {
                 .updatedAt(LocalDateTime.now())
                 .build();
         orderMapper.createOrder(order);
+        redisTemplate.delete(TOTAL_FUND_KEY);
+        notificationClient.sendTotalOrderAmount(fundingClient.getTotalFund());
         return order;
     }
 
@@ -177,6 +186,15 @@ public class OrderServiceImpl implements OrderService {
     public List<GetSellerFundingDetailStatisticsResponseDto> getSellerFundingDetailStatistics(int fundingId) {
         List<GetSellerFundingDetailStatisticsResponseDto> result = new ArrayList<>();
         List<Integer> userIdList = orderMapper.getSellerFundingDetailStatistics(fundingId);
+        if(userIdList.isEmpty()) {
+            result.add(new GetSellerFundingDetailStatisticsResponseDto(10, 0.0));
+            result.add(new GetSellerFundingDetailStatisticsResponseDto(20, 0.0));
+            result.add(new GetSellerFundingDetailStatisticsResponseDto(30, 0.0));
+            result.add(new GetSellerFundingDetailStatisticsResponseDto(40, 0.0));
+            result.add(new GetSellerFundingDetailStatisticsResponseDto(50, 0.0));
+            result.add(new GetSellerFundingDetailStatisticsResponseDto(60, 0.0));
+            return result;
+        }
         List<GetAgeListRequestDto> ageListRequestDtoList = userIdList.stream()
                 .map(userIdTarget -> new GetAgeListRequestDto(userIdTarget))
                 .collect(Collectors.toList());
@@ -220,6 +238,20 @@ public class OrderServiceImpl implements OrderService {
         }
         List<FundingResponseDto> fundingList = fundingClient.getMyFunding(fundingIds);
         return fundingList;
+    }
+
+    @Override
+    public TotalAmountResponseDto getOrderInfoByFundingId(int fundingId) {
+        System.out.println("왔다" + fundingId + " ");
+        int amount = orderMapper.sumOrderAmountByFundingId(fundingId);
+
+        return new TotalAmountResponseDto(fundingId,amount);
+    }
+
+    @Override
+    public List<Integer> getTotalOrderCount(List<Integer> fundingIds) {
+        return orderMapper.getTotalOrderCount(fundingIds);
+
     }
 }
 

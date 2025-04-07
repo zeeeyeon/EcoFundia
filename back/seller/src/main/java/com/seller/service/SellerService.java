@@ -1,6 +1,7 @@
 package com.seller.service;
 
 
+import com.seller.common.response.PageResponse;
 import com.seller.dto.request.FundingCreateRequestDto;
 import com.seller.dto.request.FundingUpdateRequestDto;
 import com.seller.dto.request.GrantSellerRoleRequestDto;
@@ -35,4 +36,9 @@ public interface SellerService {
     List<GetSellerFundingDetailStatisticsResponseDto> getSellerFundingDetailStatistics(int fundingId);
     List<GetSellerBrandStatisticsResponseDto> getSellerBrandStatistics(int userId);
     List<GetSellerTodayOrderTopThreeListResponseDto> getSellerTodayOrderTopThree(int userId);
+
+    void processSettlement(int fundingId, int sellerId);
+
+    PageResponse<GetCompletedFundingsResponseDto> getCompletedFundings(int userId, int page, int size);
+    GetExpectedSettlementsResponseDto getExpectedSettlements(int userId);
 }

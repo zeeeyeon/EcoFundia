@@ -6,10 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ssafy.funding.client.OrderClient;
 import com.ssafy.funding.client.UserClient;
 import com.ssafy.funding.common.exception.CustomException;
-import com.ssafy.funding.common.util.JsonConverter;
-import com.ssafy.funding.dto.funding.request.FundingCreateRequestDto;
 import com.ssafy.funding.dto.funding.request.FundingCreateSendDto;
-import com.ssafy.funding.dto.funding.request.FundingUpdateRequestDto;
 import com.ssafy.funding.dto.funding.request.FundingUpdateSendDto;
 import com.ssafy.funding.dto.funding.response.FundingResponseDto;
 import com.ssafy.funding.dto.funding.response.FundingWishCountResponseDto;
@@ -21,10 +18,10 @@ import com.ssafy.funding.dto.seller.SellerDetailDto;
 import com.ssafy.funding.dto.seller.SellerDetailResponseDto;
 import com.ssafy.funding.dto.seller.request.GetAgeListRequestDto;
 import com.ssafy.funding.dto.seller.request.GetSellerTodayOrderCountRequestDto;
-import com.ssafy.funding.dto.seller.request.GetSellerTodayOrderTopThreeListRequestDto;
 import com.ssafy.funding.dto.seller.response.*;
 import com.ssafy.funding.entity.Funding;
 import com.ssafy.funding.entity.FundingWishCount;
+import com.ssafy.funding.entity.SellerDetail;
 import com.ssafy.funding.entity.enums.Status;
 import com.ssafy.funding.mapper.FundingMapper;
 import com.ssafy.funding.service.ProductService;
@@ -33,14 +30,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import javax.crypto.spec.PSource;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.ssafy.funding.common.response.ResponseCode.*;
@@ -275,8 +269,11 @@ public class FundingService implements ProductService {
     // 판매자 상세페이지 판매자 정보 요청 조회
     @Transactional
     public SellerDetailResponseDto getSellerDetail(int sellerId) {
-        List<SellerDetailDto> sellerDetailList = fundingMapper.getSellerDetail(sellerId);
-        return SellerDetailResponseDto.from(sellerDetailList);
+        List<SellerDetail> sellerDetailList = fundingMapper.getSellerDetail(sellerId);
+        List<SellerDetailDto> dtoList = sellerDetailList.stream()
+                .map(SellerDetailDto::toDto)
+                .collect(Collectors.toList());
+        return SellerDetailResponseDto.from(dtoList);
     }
 
     // 내가 주훔한 펀딩 조회
@@ -343,6 +340,48 @@ public class FundingService implements ProductService {
     }
 
     @Override
+    public List<Funding> getSuccessFundingsNotSent() {
+        // SUCCESS 상태이며 아직 settlementCompleted가 false인 펀딩 조회
+        return fundingMapper.findByStatusAndEventSent(false);
+    }
+
+    @Override
+    public Funding getFundingById(int fundingId) {
+        return fundingMapper.findById(fundingId);
+    }
+
+    @Override
+    public void updateSettlementCompleted(int fundingId, Boolean eventSent) {
+        fundingMapper.updateSettlementCompleted(fundingId, eventSent);
+    }
+
+    @Override
+    public GetExpectedSettlementsResponseDto getExpectedSettlements(int sellerId) {
+        GetExpectedSettlementsResponseDto result = GetExpectedSettlementsResponseDto
+                .builder()
+                .expectedAmount(fundingMapper.getExpectedSettlements(sellerId))
+                .build();
+        return result;
+    }
+
+    @Override
+    public List<GetCompletedFundingsResponseDto> getCompletedFundings(int sellerId) {
+        List<Funding> fundings = fundingMapper.getCompletedFundings(sellerId);
+        List<GetCompletedFundingsResponseDto> dtos = new ArrayList<>();
+        for(Funding f : fundings){
+            GetCompletedFundingsResponseDto temp = GetCompletedFundingsResponseDto.builder()
+                    .title(f.getTitle())
+                    .endDate(f.getEndDate())
+                    .totalAmount(f.getCurrentAmount())
+                    .progressPercentage(f.getProgressPercentage())
+                    .fundingId(f.getFundingId())
+                    .build();
+            dtos.add(temp);
+        }
+        return dtos;
+    }
+
+    @Override
     public List<GetSellerEndFundingListResponseDto> getSellerEndFundingList(int sellerId, int page) {
         List<Funding> fundingList = fundingMapper.getSellerEndFundingList(sellerId, page);
         return fundingList.stream().map(Funding::toGetSellerEndFundingListResponseDto).collect(Collectors.toList());
@@ -405,4 +444,5 @@ public class FundingService implements ProductService {
         }
         return result;
     }
+
 }

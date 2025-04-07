@@ -19,4 +19,6 @@ public interface FundingClient {
     @GetMapping("api/funding/my/funding")
     List<FundingResponseDto> getMyFunding(@RequestParam("fundingIds") List<Integer> fundingIds);
 
+    @GetMapping("api/funding/total-fund")
+    Long getTotalFund();
 }
