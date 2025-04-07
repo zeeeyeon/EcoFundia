@@ -7,11 +7,8 @@ import com.order.client.NotificationClient;
 import com.order.client.SellerClient;
 import com.order.client.UserClient;
 import com.order.common.exception.CustomException;
-import com.order.dto.funding.request.GetAgeListRequestDto;
-import com.order.dto.funding.request.GetSellerFundingDetailOrderListRequestDto;
+import com.order.dto.funding.request.*;
 import com.order.dto.funding.response.*;
-import com.order.dto.funding.request.GetSellerTodayOrderCountRequestDto;
-import com.order.dto.funding.request.GetSellerTodayOrderTopThreeListRequestDto;
 import com.order.dto.seller.response.GetSellerMonthAmountStatisticsResponseDto;
 import com.order.dto.funding.response.GetSellerTodayOrderCountResponseDto;
 import com.order.dto.funding.response.GetSellerTodayOrderTopThreeIdAndMoneyResponseDto;
@@ -112,6 +109,13 @@ public class OrderServiceImpl implements OrderService {
                 .updatedAt(LocalDateTime.now())
                 .build();
         orderMapper.createOrder(order);
+
+        AddCurrentAmountRequestDto addCurrentAmountRequestDto = AddCurrentAmountRequestDto.builder()
+                .fundingId(fundingId)
+                .amount(amount)
+                .build();
+
+        fundingClient.addCurrentAmount(addCurrentAmountRequestDto);
         redisTemplate.delete(TOTAL_FUND_KEY);
         notificationClient.sendTotalOrderAmount(fundingClient.getTotalFund());
         return order;
