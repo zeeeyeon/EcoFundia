@@ -36,7 +36,7 @@ public class ChatMessageBuffer {
      * 50개 이상이면 즉시 flush 조건 만족
      */
     public boolean isReadyToFlush(int fundingId) {
-        return buffer.getOrDefault(fundingId, List.of()).size() >= 50;
+        return buffer.getOrDefault(fundingId, List.of()).size() >= 1;
     }
 
     /**
