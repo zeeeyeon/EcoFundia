@@ -77,8 +77,10 @@ public class OrderServiceImpl implements OrderService {
         }
 
         if (couponId != null) {
+            log.info("couponId: " + couponId);
             CouponResponseDto coupon = couponClient.getCouponInfo(couponId);
             totalPrice -= coupon.discountAmount();
+            log.info("coupon: " + coupon + totalPrice);
             couponClient.useCoupon(userId, couponId, fundingId);
         }
 
