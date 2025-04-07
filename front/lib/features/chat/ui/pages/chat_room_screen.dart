@@ -1,7 +1,9 @@
-// 채팅방 UI 연결
-import 'package:flutter/material.dart';
+import 'dart:convert';
 
-import '../../../../core/themes/app_colors.dart';
+import 'package:flutter/material.dart';
+import 'package:front/core/services/storage_service.dart';
+import 'package:front/core/themes/app_colors.dart';
+import 'package:front/core/services/websocket_manager.dart'; // WebSocketManager는 따로 만든 파일이어야 해
 
 class ChatRoomScreen extends StatefulWidget {
   final int fundingId;
@@ -20,12 +22,51 @@ class ChatRoomScreen extends StatefulWidget {
 class _ChatRoomScreenState extends State<ChatRoomScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final WebSocketManager _webSocketManager = WebSocketManager();
 
-  final List<Map<String, dynamic>> _messages = [
-    {'fromMe': false, 'nickname': '영희', 'text': '이 펀딩 너무 좋아 보여요!'},
-    {'fromMe': true, 'text': '저도 관심 있어서 들어왔어요 :)'},
-    {'fromMe': false, 'nickname': '철수', 'text': '목표 금액 거의 달성했네요 🎉'},
-  ];
+  final List<Map<String, dynamic>> _messages = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _initWebSocketConnection();
+  }
+
+  Future<void> _initWebSocketConnection() async {
+    final token = await StorageService.getToken();
+    final userIdStr = await StorageService.getUserId();
+    final userId = int.tryParse(userIdStr ?? '0') ?? 0;
+
+    _webSocketManager.connect(
+      userToken: token!,
+      onConnectCallback: (frame) {
+        print('✅ WebSocket 연결 성공');
+
+        _webSocketManager.subscribeToRoom(
+          fundingId: widget.fundingId,
+          userId: userId,
+          onMessage: (frame) {
+            print('📩 메시지 수신: ${frame.body}');
+
+            try {
+              final data = jsonDecode(frame.body!);
+              final content = data['content'];
+
+              setState(() {
+                _messages.add({
+                  'fromMe': false,
+                  'nickname': '서버',
+                  'text': '예정 정산 금액: ${content['expectedAmount']}원',
+                });
+              });
+            } catch (e) {
+              print('❌ 메시지 파싱 오류: $e');
+            }
+          },
+        );
+      },
+    );
+  }
 
   void _sendMessage() {
     final text = _messageController.text.trim();
@@ -48,6 +89,14 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   }
 
   @override
+  void dispose() {
+    _webSocketManager.disconnect();
+    _messageController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -63,69 +112,66 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       ),
       body: Column(
         children: [
-          // 🔼 메시지 목록
           Expanded(
             child: ListView.builder(
-                controller: _scrollController,
-                padding: const EdgeInsets.all(16),
-                itemCount: _messages.length,
-                // 메시지 아이템 렌더링
-                itemBuilder: (context, index) {
-                  final msg = _messages[index];
-                  final fromMe = msg['fromMe'] as bool;
-                  final text = msg['text'] as String;
-                  final nickname = msg['nickname'] as String?;
+              controller: _scrollController,
+              padding: const EdgeInsets.all(16),
+              itemCount: _messages.length,
+              itemBuilder: (context, index) {
+                final msg = _messages[index];
+                final fromMe = msg['fromMe'] as bool;
+                final text = msg['text'] as String;
+                final nickname = msg['nickname'] as String?;
 
-                  return Align(
-                    alignment:
-                        fromMe ? Alignment.centerRight : Alignment.centerLeft,
-                    child: Column(
-                      crossAxisAlignment: fromMe
-                          ? CrossAxisAlignment.end
-                          : CrossAxisAlignment.start,
-                      children: [
-                        if (!fromMe && nickname != null)
-                          Padding(
-                            padding: const EdgeInsets.only(left: 4, bottom: 2),
-                            child: Text(
-                              nickname,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey[700],
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
-                        Container(
-                          margin: const EdgeInsets.symmetric(vertical: 4),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: fromMe
-                                ? AppColors.primary.withOpacity(0.9)
-                                : Colors.grey[200],
-                            borderRadius: BorderRadius.only(
-                              topLeft: const Radius.circular(12),
-                              topRight: const Radius.circular(12),
-                              bottomLeft: Radius.circular(fromMe ? 12 : 0),
-                              bottomRight: Radius.circular(fromMe ? 0 : 12),
-                            ),
-                          ),
+                return Align(
+                  alignment:
+                      fromMe ? Alignment.centerRight : Alignment.centerLeft,
+                  child: Column(
+                    crossAxisAlignment: fromMe
+                        ? CrossAxisAlignment.end
+                        : CrossAxisAlignment.start,
+                    children: [
+                      if (!fromMe && nickname != null)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 4, bottom: 2),
                           child: Text(
-                            text,
+                            nickname,
                             style: TextStyle(
-                              color: fromMe ? Colors.white : Colors.black87,
-                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey[700],
+                              fontSize: 12,
                             ),
                           ),
                         ),
-                      ],
-                    ),
-                  );
-                }),
+                      Container(
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: fromMe
+                              ? AppColors.primary.withOpacity(0.9)
+                              : Colors.grey[200],
+                          borderRadius: BorderRadius.only(
+                            topLeft: const Radius.circular(12),
+                            topRight: const Radius.circular(12),
+                            bottomLeft: Radius.circular(fromMe ? 12 : 0),
+                            bottomRight: Radius.circular(fromMe ? 0 : 12),
+                          ),
+                        ),
+                        child: Text(
+                          text,
+                          style: TextStyle(
+                            color: fromMe ? Colors.white : Colors.black87,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
-
-          // 🔽 입력창
           SafeArea(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),

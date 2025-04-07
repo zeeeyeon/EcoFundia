@@ -36,4 +36,20 @@ class WebSocketManager {
   void disconnect() {
     stompClient?.deactivate();
   }
+
+  void subscribeToRoom({
+    required int fundingId,
+    required int userId,
+    required void Function(StompFrame frame) onMessage,
+  }) {
+    final destination = 'wss://j12e206.p.ssafy.io/sub/chat/$fundingId';
+
+    stompClient?.subscribe(
+      destination: destination,
+      headers: {
+        'userId': userId.toString(),
+      },
+      callback: onMessage,
+    );
+  }
 }
