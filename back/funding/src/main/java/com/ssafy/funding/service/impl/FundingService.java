@@ -542,4 +542,10 @@ public class FundingService implements ProductService {
         return result;
     }
 
+    // 주문시 currentAmount 반영 API
+    @Override
+    public void addCurrentAmount(int fundingId, int amount) {
+        fundingMapper.addCurrentAmount(fundingId, amount);
+    }
+
 }
