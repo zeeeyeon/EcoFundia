@@ -1,7 +1,6 @@
 package com.ssafy.user.dto.response;
 
 import lombok.*;
-
 import java.time.LocalDateTime;
 
 @Getter
