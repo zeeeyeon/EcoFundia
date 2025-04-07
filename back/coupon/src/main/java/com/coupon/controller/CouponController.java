@@ -46,7 +46,7 @@ public class CouponController {
     }
 
     @PostMapping("/use")
-    public ResponseEntity<?> useCoupon(int userId, int couponId) throws IOException {
-        return couponService.useCoupon(userId, couponId);
+    public void useCoupon(int userId, int couponId, int fundingId) throws IOException {
+        couponService.useCoupon(userId, couponId, fundingId);
     }
 }
