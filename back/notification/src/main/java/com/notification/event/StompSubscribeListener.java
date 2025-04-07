@@ -40,6 +40,7 @@ public class StompSubscribeListener {
 
                 // 2. 채팅방에 참여자로 추가
                 int userId = Integer.parseInt( accessor.getFirstNativeHeader("userId") );
+                log.info("📨 클라이언트로부터 받은 userId: userId={}", userId );
                 AddParticipantRequest request = new AddParticipantRequest(userId);
                 chatClient.addParticipant(fundingId, request);
 
