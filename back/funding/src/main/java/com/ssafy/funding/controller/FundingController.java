@@ -41,6 +41,7 @@ public class FundingController {
         return fundingList;
     }
 
+
     @GetMapping("/{fundingId}")
     public ResponseEntity<?> getFundingId(@PathVariable("fundingId") int fundingId) {
         FundingResponseDto funding = productService.getFunding(fundingId);
