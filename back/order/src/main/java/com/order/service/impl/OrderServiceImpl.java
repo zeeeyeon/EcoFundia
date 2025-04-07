@@ -2,20 +2,20 @@ package com.order.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.order.client.CouponClient;
 import com.order.client.FundingClient;
 import com.order.client.SellerClient;
 import com.order.client.UserClient;
 import com.order.common.exception.CustomException;
+import com.order.dto.coupon.CouponResponseDto;
 import com.order.dto.funding.request.GetAgeListRequestDto;
 import com.order.dto.funding.request.GetSellerFundingDetailOrderListRequestDto;
 import com.order.dto.funding.response.*;
 import com.order.dto.funding.request.GetSellerTodayOrderCountRequestDto;
-import com.order.dto.funding.request.GetSellerTodayOrderTopThreeListRequestDto;
 import com.order.dto.seller.response.GetSellerMonthAmountStatisticsResponseDto;
 import com.order.dto.funding.response.GetSellerTodayOrderCountResponseDto;
 import com.order.dto.funding.response.GetSellerTodayOrderTopThreeIdAndMoneyResponseDto;
 import com.order.dto.funding.response.IsOngoingResponseDto;
-import com.order.dto.order.response.OrderResponseDto;
 import com.order.dto.ssafyApi.request.HeaderDto;
 import com.order.dto.ssafyApi.request.TransferRequestDto;
 import com.order.dto.ssafyApi.response.ApiResponseDto;
@@ -49,6 +49,7 @@ public class OrderServiceImpl implements OrderService {
     private final SellerClient sellerClient;
     private final ssafyApiService ssafyApiService;
     private final UserClient userClient;
+    private final CouponClient couponClient;
 
     @Value("${adm.account}")
     private String adminAccount;
@@ -58,7 +59,7 @@ public class OrderServiceImpl implements OrderService {
 
     // 결제 하기
     @Transactional
-    public Order createOrder(int userId, int fundingId, int quantity, int totalPrice, String userKey, String userAccount){
+    public Order createOrder(int userId, int fundingId, int quantity, int totalPrice, String userKey, String userAccount, Integer couponId){
         int amount = totalPrice / quantity;
 
         // 1. funding 중인 상품이 현재 펀딩 진행 중인지 확인 (sellerId 받아와아함)
@@ -68,6 +69,11 @@ public class OrderServiceImpl implements OrderService {
             throw new CustomException(FUNDING_NOT_ONGOING);
         }
 
+        if (couponId != null) {
+            CouponResponseDto coupon = couponClient.getCouponInfo(couponId);
+            totalPrice -= coupon.discountAmount();
+            couponClient.useCoupon(userId, couponId);
+        }
 
         // 3. 계좌 이체 하기
         // 3.1 header 만들기
