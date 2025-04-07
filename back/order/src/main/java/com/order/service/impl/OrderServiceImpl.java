@@ -243,10 +243,11 @@ public class OrderServiceImpl implements OrderService {
 
     public List<FundingResponseDto> getMyFunding(int userId){
         List<Integer> fundingIds = orderMapper.getMyFundingIds(userId);
-        if (fundingIds.isEmpty()) {
+        List<Integer> deduplicatedIds = fundingIds.stream().distinct().toList();
+        if (deduplicatedIds.isEmpty()) {
             return Collections.emptyList();
         }
-        List<FundingResponseDto> fundingList = fundingClient.getMyFunding(fundingIds);
+        List<FundingResponseDto> fundingList = fundingClient.getMyFunding(deduplicatedIds);
         return fundingList;
     }
 
