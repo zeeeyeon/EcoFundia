@@ -32,16 +32,23 @@ class LoginScreen extends ConsumerWidget {
 
     // 이미 로그인되어 있으면 홈으로 이동
     if (isLoggedIn.status == AuthStatus.authenticated) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 딜레이를 추가하여 렌더링 충돌 방지
+      Future.microtask(() {
         if (context.mounted) {
           context.go('/');
         }
       });
+      // 빈 컨테이너를 반환하여 추가 렌더링 방지
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
     }
 
     return LoadingOverlay(
       isLoading: appState.isLoading,
-      message: '로그인 중...',
+      message: '인증 처리 중...',
       child: Scaffold(
         backgroundColor: AppColors.white,
         body: SafeArea(

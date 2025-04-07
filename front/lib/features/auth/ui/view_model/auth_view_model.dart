@@ -1,24 +1,31 @@
+import 'dart:async';
+import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/core/exceptions/auth_exception.dart';
 import 'package:front/core/providers/app_state_provider.dart';
+import 'package:front/core/services/storage_service.dart';
 import 'package:front/features/auth/domain/entities/auth_result_entity.dart';
 import 'package:front/features/auth/domain/entities/auth_state.dart';
-import 'package:front/utils/logger_util.dart';
-import 'package:front/core/services/storage_service.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:front/features/auth/domain/repositories/auth_repository.dart';
 import 'package:front/features/auth/domain/use_cases/check_login_status_use_case.dart';
 import 'package:front/features/auth/domain/use_cases/google_sign_in_use_case.dart';
 import 'package:front/features/auth/domain/use_cases/sign_out_use_case.dart';
-import 'dart:async';
-import 'dart:convert';
-import 'package:dio/dio.dart';
-import 'package:front/core/exceptions/auth_exception.dart';
+import 'package:front/features/mypage/ui/view_model/my_funding_view_model.dart';
+import 'package:front/features/mypage/ui/view_model/my_review_view_model.dart';
+import 'package:front/features/mypage/ui/view_model/profile_view_model.dart';
+import 'package:front/features/wishlist/ui/view_model/wishlist_provider.dart';
+import 'package:front/features/wishlist/ui/view_model/wishlist_view_model.dart';
+import 'package:front/utils/logger_util.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:front/features/mypage/ui/view_model/total_funding_provider.dart';
 
 /// 인증 ViewModel
 ///
 /// 인증 상태를 관리하고 UseCase들을 실행합니다.
 class AuthViewModel extends StateNotifier<AuthState> {
+  final Ref _ref;
   final AppStateViewModel _appStateViewModel;
   final AuthRepository _authRepository;
   final CheckLoginStatusUseCase _checkLoginStatusUseCase;
@@ -37,13 +44,15 @@ class AuthViewModel extends StateNotifier<AuthState> {
   bool _isInitialized = false;
 
   AuthViewModel({
+    required Ref ref,
     required AppStateViewModel appStateViewModel,
     required AuthRepository authRepository,
     required CheckLoginStatusUseCase checkLoginStatusUseCase,
     required GoogleSignInUseCase googleSignInUseCase,
     required SignOutUseCase signOutUseCase,
     required GoRouter router,
-  })  : _appStateViewModel = appStateViewModel,
+  })  : _ref = ref,
+        _appStateViewModel = appStateViewModel,
         _authRepository = authRepository,
         _checkLoginStatusUseCase = checkLoginStatusUseCase,
         _googleSignInUseCase = googleSignInUseCase,
@@ -79,6 +88,11 @@ class AuthViewModel extends StateNotifier<AuthState> {
       _appStateViewModel.setLoading(true);
 
       final isLoggedIn = await _checkLoginStatusUseCase.execute();
+
+      // 인증 상태가 확인되면 앱 상태도 즉시 업데이트 (동기적인 isLoggedInProvider 업데이트)
+      _appStateViewModel.setLoggedIn(isLoggedIn);
+      LoggerUtil.d('🔑 초기 인증 상태: $isLoggedIn (initializeAuthState)');
+
       if (!isLoggedIn) {
         state = state.copyWith(status: AuthStatus.unauthenticated);
         return;
@@ -105,6 +119,10 @@ class AuthViewModel extends StateNotifier<AuthState> {
       }
     } catch (e) {
       LoggerUtil.e('인증 상태 초기화 실패', e);
+
+      // 오류 발생 시 로그아웃 상태로 설정
+      _appStateViewModel.setLoggedIn(false);
+
       state = state.copyWith(
         status: AuthStatus.error,
         error: '인증 상태 확인 중 오류가 발생했습니다.',
@@ -194,6 +212,15 @@ class AuthViewModel extends StateNotifier<AuthState> {
       tokenExpiry: _parseTokenExpiry(result.accessToken),
     );
 
+    // 로그인 성공 후 위시리스트 ID 로딩
+    try {
+      LoggerUtil.i('🔄 로그인 성공 후 위시리스트 ID 목록 로딩 시작');
+      await _ref.read(loadWishlistIdsProvider)();
+    } catch (e) {
+      LoggerUtil.e('❌ 위시리스트 ID 목록 로딩 실패', e);
+      // 오류가 발생해도 로그인 플로우는 계속 진행
+    }
+
     LoggerUtil.i('로그인 성공: ${result.user.email}');
   }
 
@@ -240,20 +267,62 @@ class AuthViewModel extends StateNotifier<AuthState> {
   }
 
   Future<bool> signOut() async {
+    // CancelToken 생성
+    final cancelToken = CancelToken();
+
     try {
       _appStateViewModel.setLoading(true);
-      await _signOutUseCase.execute();
+
+      // API 요청으로 로그아웃 처리 (CancelToken 전달)
+      await _signOutUseCase.execute(cancelToken: cancelToken);
+
+      // 로컬 스토리지 초기화
       await StorageService.clearAll();
 
+      // 로그아웃 상태로 앱 상태 설정
+      _appStateViewModel.setLoggedIn(false);
+
+      // 위시리스트 ID 목록 초기화
+      _ref.read(wishlistIdsProvider.notifier).state = <int>{};
+      LoggerUtil.i('🧹 위시리스트 ID 목록 초기화 완료');
+
+      // 모든 사용자 관련 Provider 초기화 - 이 목록이 완전해야 함
+      _ref.invalidate(profileProvider);
+      _ref.invalidate(wishlistViewModelProvider);
+      _ref.invalidate(totalFundingAmountProvider);
+      _ref.invalidate(myFundingViewModelProvider); // 내가 참여한 펀딩
+      _ref.invalidate(myReviewProvider); // 내가 작성한 리뷰
+      // 여기에 추가적인 사용자 관련 Provider 무효화 로직 추가 가능
+
+      LoggerUtil.i('✅ 로그아웃 완료 및 모든 사용자 데이터 초기화됨');
+
+      // 앱 상태 업데이트
       state = state.copyWith(
         status: AuthStatus.unauthenticated,
         accessToken: null,
         refreshToken: null,
         tokenExpiry: null,
       );
+
       return true;
     } catch (e) {
       LoggerUtil.e('로그아웃 실패', e);
+
+      // 오류 발생해도 앱 상태는 로그아웃으로 설정
+      _appStateViewModel.setLoggedIn(false);
+
+      // 에러 발생 시에도 모든 사용자 관련 Provider 초기화 시도
+      try {
+        _ref.invalidate(profileProvider);
+        _ref.invalidate(wishlistViewModelProvider);
+        _ref.invalidate(totalFundingAmountProvider);
+        _ref.invalidate(myFundingViewModelProvider);
+        _ref.invalidate(myReviewProvider);
+        LoggerUtil.i('⚠️ 로그아웃 실패했으나 사용자 데이터는 초기화됨');
+      } catch (providerError) {
+        LoggerUtil.e('Provider 초기화 실패', providerError);
+      }
+
       state = state.copyWith(
         status: AuthStatus.error,
         error: '로그아웃 중 오류가 발생했습니다.',
@@ -261,6 +330,11 @@ class AuthViewModel extends StateNotifier<AuthState> {
       return false;
     } finally {
       _appStateViewModel.setLoading(false);
+
+      // 진행 중인 요청 취소
+      if (!cancelToken.isCancelled) {
+        cancelToken.cancel('로그아웃 처리 완료');
+      }
     }
   }
 
@@ -327,12 +401,23 @@ class AuthViewModel extends StateNotifier<AuthState> {
 
       // 결과 처리
       if (result is AuthSuccessEntity) {
-        // 로그인 성공 - 메인 화면으로 이동
+        // 로그인 성공 - 먼저 앱 상태를 업데이트
+        _appStateViewModel.setLoggedIn(true);
+        LoggerUtil.i('✅ 앱 상태 로그인 업데이트 완료 (handleGoogleLogin)');
+
+        // 인증 관련 데이터가 완전히 반영될 때까지 충분한 지연
+        // 이 시간동안 로딩 상태를 유지하여 사용자가 다른 액션을 하지 못하게 함
+        LoggerUtil.d('⏳ 인증 데이터 동기화를 위해 대기 중...');
+        await Future.delayed(const Duration(milliseconds: 500));
+        LoggerUtil.d('✅ 인증 데이터 동기화 완료');
+
+        // 홈 화면으로 이동
         _router.go('/');
       } else if (result is AuthNewUserEntity) {
         // 회원가입 필요 - 회원가입 화면으로 이동
         final userInfo = await getGoogleLoginInfoForSignUp();
         if (userInfo != null) {
+          await Future.delayed(const Duration(milliseconds: 50));
           _router.pushNamed('signup', extra: {
             'email': userInfo['email'],
             'name': userInfo['name'],
@@ -340,15 +425,25 @@ class AuthViewModel extends StateNotifier<AuthState> {
           });
         }
       } else if (result is AuthErrorEntity) {
-        // 에러 발생
-        LoggerUtil.e('로그인 오류: ${result.message}');
+        // 에러 발생 - 로그아웃 상태로 설정
+        _appStateViewModel.setLoggedIn(false);
+        LoggerUtil.e('❌ 로그인 오류: ${result.message} (앱 상태: 로그아웃)');
         _appStateViewModel.setError(result.message);
+      } else if (result is AuthCancelledEntity) {
+        // 취소된 경우 - 로그아웃 상태 유지
+        _appStateViewModel.setLoggedIn(false);
+        LoggerUtil.i('ℹ️ 로그인 취소됨 (앱 상태: 로그아웃)');
       }
     } catch (e) {
-      LoggerUtil.e('Google 로그인 실패', e);
+      // 모든 예외 처리 - 로그아웃 상태로 설정
+      _appStateViewModel.setLoggedIn(false);
+      LoggerUtil.e('❌ Google 로그인 실패 (앱 상태: 로그아웃)', e);
       _appStateViewModel.setError('로그인 처리 중 오류가 발생했습니다.');
     } finally {
-      _appStateViewModel.setLoading(false);
+      // 모든 처리가 끝난 후에만 로딩 상태 해제
+      if (_appStateViewModel.state.isLoading) {
+        _appStateViewModel.setLoading(false);
+      }
     }
   }
 }

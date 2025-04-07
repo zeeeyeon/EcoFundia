@@ -8,7 +8,8 @@ class GetEndedWishlistItemsUseCase {
   GetEndedWishlistItemsUseCase(this._repository);
 
   /// 유스케이스 실행
-  Future<List<WishlistItemEntity>> execute() async {
-    return _repository.getEndedWishlist();
+  Future<List<WishlistItemEntity>> execute(
+      {int page = 1, int size = 10}) async {
+    return _repository.getEndedWishlist(page: page, size: size);
   }
 }

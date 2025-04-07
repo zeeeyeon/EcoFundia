@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:front/core/themes/app_text_styles.dart';
 import 'package:front/core/themes/app_colors.dart';
 import 'package:front/shared/seller/domain/entities/seller_project_entity.dart';
+import 'package:front/shared/seller/domain/entities/seller_entity.dart';
 import 'package:front/utils/logger_util.dart';
 import 'package:intl/intl.dart';
 
@@ -9,11 +10,13 @@ import 'package:intl/intl.dart';
 class SellerProjectCard extends StatelessWidget {
   final SellerProjectEntity project;
   final VoidCallback onTap;
+  final SellerEntity seller;
 
   const SellerProjectCard({
     super.key,
     required this.project,
     required this.onTap,
+    required this.seller,
   });
 
   @override
@@ -85,7 +88,7 @@ class SellerProjectCard extends StatelessWidget {
                       children: [
                         // 회사명
                         Text(
-                          project.companyName,
+                          seller.name,
                           style: WishlistTextStyles.companyName,
                         ),
                         const SizedBox(height: 5),
@@ -112,7 +115,9 @@ class SellerProjectCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(5),
                           ),
                           child: Text(
-                            project.isActive ? project.remainingDays : '마감',
+                            project.isActive
+                                ? '${project.remainingDays}일 남음'
+                                : '마감',
                             style: WishlistTextStyles.badge,
                           ),
                         ),
@@ -144,7 +149,7 @@ class SellerProjectCard extends StatelessWidget {
 
                   // 펀딩 금액
                   Text(
-                    project.fundingAmount,
+                    '${NumberFormat.decimalPattern().format(int.parse(project.fundingAmount))}원',
                     style: WishlistTextStyles.fundingAmount,
                   ),
                 ],

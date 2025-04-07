@@ -19,19 +19,78 @@ class HomeScreen extends ConsumerStatefulWidget {
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends ConsumerState<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen>
+    with AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
+  DateTime? _lastLoadTime;
+  bool _isPageVisible = true;
+
+  @override
+  bool get wantKeepAlive => false; // 탭 이동 시 항상 재로드하기 위해 false로 설정
+
   @override
   void initState() {
     super.initState();
+    // 앱 라이프사이클 옵저버 등록
+    WidgetsBinding.instance.addObserver(this);
 
-    // 초기 데이터 로드
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(projectViewModelProvider.notifier).loadProjects();
+    // Future.microtask를 사용하여 위젯 빌드 사이클 이후에 실행
+    Future.microtask(() {
+      _loadData();
     });
   }
 
   @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    // 앱이 포그라운드로 돌아오는 경우
+    if (state == AppLifecycleState.resumed && _isPageVisible) {
+      _loadData();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // GoRouter에서 현재 페이지 확인
+    final currentLocation = GoRouterState.of(context).uri.path;
+    final isHomeTab = currentLocation == '/';
+
+    if (isHomeTab && !_isPageVisible) {
+      _isPageVisible = true;
+      _loadData();
+    } else if (!isHomeTab) {
+      _isPageVisible = false;
+    }
+  }
+
+  // 데이터 로드 메서드
+  Future<void> _loadData() async {
+    // 마지막 로드 시간으로부터 5초가 지났거나, 첫 로드인 경우에만 데이터 로드
+    final now = DateTime.now();
+    if (_lastLoadTime == null || now.difference(_lastLoadTime!).inSeconds > 5) {
+      _lastLoadTime = now;
+      ref.read(projectViewModelProvider.notifier).loadProjects();
+    }
+  }
+
+  // 새로고침 처리 메서드
+  Future<void> _handleRefresh() async {
+    _lastLoadTime = DateTime.now();
+    await ref.read(projectViewModelProvider.notifier).loadProjects();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context); // AutomaticKeepAliveClientMixin 사용 시 필요
+
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 360;
 
@@ -46,48 +105,55 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       backgroundColor: AppColors.background,
       body: SafeArea(
         bottom: false, // 바텀 오버플로우 방지
-        child: SingleChildScrollView(
-          physics: const ClampingScrollPhysics(),
-          child: Column(
-            children: [
-              // 상단 정보 컨테이너 (SIMPLE 로고, 현재 시간, 총 펀드 금액)
-              _buildTopInfoContainer(),
+        child: RefreshIndicator(
+          onRefresh: _handleRefresh,
+          color: AppColors.primary,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              children: [
+                // 상단 정보 컨테이너 (SIMPLE 로고, 현재 시간, 총 펀드 금액)
+                _buildTopInfoContainer(),
 
-              // 간격 추가
-              const SizedBox(height: 8),
+                // 간격 추가
+                const SizedBox(height: 8),
 
-              // 프로젝트 캐러셀
-              SizedBox(
-                height: carouselContainerHeight,
-                child: Consumer(
-                  builder: (context, ref, _) {
-                    final projectState = ref.watch(projectViewModelProvider);
+                // 프로젝트 캐러셀
+                SizedBox(
+                  height: carouselContainerHeight,
+                  child: Consumer(
+                    builder: (context, ref, _) {
+                      final projectState = ref.watch(projectViewModelProvider);
 
-                    if (projectState.isLoading) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
+                      if (projectState.isLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
 
-                    if (projectState.error != null) {
-                      return Center(child: Text(projectState.error!));
-                    }
+                      if (projectState.error != null) {
+                        return Center(child: Text(projectState.error!));
+                      }
 
-                    return ProjectCarousel(
-                      projects: projectState.projects,
-                      onPurchaseTap: (project) {
-                        // 펀딩하기 버튼 클릭 시 상세 페이지로 이동
-                        context.push('/project/${project.id}',
-                            extra: {'project': project});
-                      },
-                      onLikeTap: (project) {
-                        ref
-                            .read(projectViewModelProvider.notifier)
-                            .toggleLike(project);
-                      },
-                    );
-                  },
+                      return ProjectCarousel(
+                        projects: projectState.projects,
+                        onPurchaseTap: (project) {
+                          // 펀딩하기 버튼 클릭 시 상세 페이지로 이동
+                          context.push('/project/${project.id}',
+                              extra: {'project': project});
+                        },
+                        onLikeTap: (project) {
+                          ref
+                              .read(projectViewModelProvider.notifier)
+                              .toggleLike(project);
+                        },
+                      );
+                    },
+                  ),
                 ),
-              ),
-            ],
+
+                // 충분한 스크롤 공간 확보를 위한 여백
+                const SizedBox(height: 50),
+              ],
+            ),
           ),
         ),
       ),

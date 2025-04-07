@@ -4,7 +4,7 @@ import 'package:equatable/equatable.dart';
 class SellerEntity extends Equatable {
   final int id;
   final String name;
-  final String profileImageUrl;
+  final String? profileImageUrl;
   final bool isMaker; // 예: 킹 메이커
   final bool isTop100;
   final double satisfaction; // 만족도 점수 (예: 4.5)
@@ -15,7 +15,7 @@ class SellerEntity extends Equatable {
   const SellerEntity({
     required this.id,
     required this.name,
-    required this.profileImageUrl,
+    this.profileImageUrl,
     required this.isMaker,
     required this.isTop100,
     required this.satisfaction,

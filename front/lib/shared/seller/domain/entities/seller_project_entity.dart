@@ -8,7 +8,7 @@ class SellerProjectEntity extends Equatable {
   final String imageUrl;
   final double fundingPercentage;
   final String fundingAmount;
-  final String remainingDays;
+  final int remainingDays;
   final bool isActive; // 진행 중 여부
 
   const SellerProjectEntity({

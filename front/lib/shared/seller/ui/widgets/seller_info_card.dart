@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:front/core/themes/app_text_styles.dart';
 import 'package:front/core/themes/app_colors.dart';
 import 'package:front/shared/seller/domain/entities/seller_entity.dart';
+import 'package:front/utils/logger_util.dart';
+import 'package:intl/intl.dart';
 
 /// 판매자 정보 카드 위젯
 class SellerInfoCard extends StatelessWidget {
@@ -38,12 +40,42 @@ class SellerInfoCard extends StatelessWidget {
 
   /// 판매자 헤더 정보 위젯
   Widget _buildSellerHeader() {
+    // NetworkImage 사용을 위한 로직 추가
+    ImageProvider? backgroundImageProvider;
+    bool isNetworkImage = false;
+
+    if (seller.profileImageUrl != null &&
+        seller.profileImageUrl!.startsWith('http')) {
+      try {
+        isNetworkImage = true;
+        LoggerUtil.d('판매자 프로필 이미지 로드 (네트워크): ${seller.profileImageUrl}');
+        backgroundImageProvider = NetworkImage(seller.profileImageUrl!);
+      } catch (e) {
+        LoggerUtil.e('Error creating NetworkImage: $e');
+        // NetworkImage 생성 실패 시 기본 이미지 사용
+        backgroundImageProvider = const AssetImage('assets/images/apple.png');
+        isNetworkImage = false;
+      }
+    } else {
+      // URL이 없거나 http로 시작하지 않으면 기본 asset 이미지 사용
+      LoggerUtil.d('판매자 프로필 이미지 로드 (에셋): assets/images/apple.png');
+      backgroundImageProvider = const AssetImage('assets/images/apple.png');
+    }
+
     return Row(
       children: [
         // 프로필 이미지
         CircleAvatar(
           radius: 28,
-          backgroundImage: AssetImage(seller.profileImageUrl),
+          backgroundColor: AppColors.primary.withOpacity(0.1),
+          backgroundImage: backgroundImageProvider,
+          child: (!isNetworkImage)
+              ? const Icon(
+                  Icons.store,
+                  size: 30,
+                  color: AppColors.primary,
+                )
+              : null,
         ),
         const SizedBox(width: 12),
 
@@ -111,7 +143,8 @@ class SellerInfoCard extends StatelessWidget {
         _buildStatItem(
           icon: Icons.attach_money,
           title: '총 펀딩금액',
-          value: seller.totalFundingAmount,
+          value:
+              '${NumberFormat.decimalPattern().format(int.parse(seller.totalFundingAmount))}원',
           subtitle: '',
         ),
         _buildStatItem(

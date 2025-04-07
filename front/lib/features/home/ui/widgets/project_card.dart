@@ -1,15 +1,21 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/core/constants/app_strings.dart';
 import 'package:front/core/themes/app_colors.dart';
 import 'package:front/core/themes/app_text_styles.dart';
 import 'package:front/features/home/domain/entities/project_entity.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:front/utils/auth_utils.dart';
+import 'package:front/core/providers/app_state_provider.dart';
+import 'package:front/utils/logger_util.dart';
 
 /// 프로젝트 카드 위젯
-class ProjectCard extends StatelessWidget {
+class ProjectCard extends ConsumerStatefulWidget {
   final ProjectEntity project;
   final VoidCallback onPurchaseTap;
-  final VoidCallback onLikeTap;
+  final Function(ProjectEntity) onLikeTap;
 
   const ProjectCard({
     super.key,
@@ -17,6 +23,106 @@ class ProjectCard extends StatelessWidget {
     required this.onPurchaseTap,
     required this.onLikeTap,
   });
+
+  @override
+  ConsumerState<ProjectCard> createState() => _ProjectCardState();
+}
+
+class _ProjectCardState extends ConsumerState<ProjectCard> {
+  late Timer _timer;
+  String _remainingTime = '';
+
+  @override
+  void initState() {
+    super.initState();
+    // 초기 남은 시간 계산
+    _calculateRemainingTime();
+    // 1초마다 남은 시간 업데이트
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      _calculateRemainingTime();
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  void _calculateRemainingTime() {
+    final now = DateTime.now();
+    final endDate = widget.project.endDate;
+
+    if (endDate.isBefore(now)) {
+      setState(() {
+        _remainingTime = '마감됨';
+      });
+      return;
+    }
+
+    final duration = endDate.difference(now);
+    final days = duration.inDays;
+    final hours = duration.inHours.remainder(24);
+    final minutes = duration.inMinutes.remainder(60);
+    final seconds = duration.inSeconds.remainder(60);
+
+    setState(() {
+      if (days > 0) {
+        _remainingTime =
+            '$days일 ${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')} 남음';
+      } else {
+        _remainingTime =
+            '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')} 남음';
+      }
+    });
+  }
+
+  // 좋아요 버튼 클릭 핸들러
+  void _handleLikeTap() async {
+    // 먼저 동기 Provider를 통해 로그인 상태 확인 (즉각적인 상태 확인)
+    final isLoggedIn = ref.read(isLoggedInProvider);
+
+    if (!isLoggedIn) {
+      LoggerUtil.d('👍 좋아요 시도: 로그인 상태 확인 - 로그인 필요 (동기 상태 체크)');
+
+      // 로그인이 필요한 경우 모달 표시
+      final isAuthenticated = await AuthUtils.checkAuthAndShowModal(
+        context,
+        ref,
+        AuthRequiredFeature.like,
+      );
+
+      if (!isAuthenticated) {
+        LoggerUtil.d('👍 좋아요 토글: ${widget.project.id}, 인증: 필요 → 인증 모달 표시됨');
+        return; // 로그인하지 않으면 좋아요 기능 실행하지 않고 종료
+      }
+    }
+
+    // 토큰 유효성 추가 검증 (심층 체크) - 로그인된 상태에서만 수행
+    if (isLoggedIn) {
+      // 스토리지에 저장된 토큰이 유효한지 확인
+      final hasValidToken = await ref.read(isAuthenticatedProvider.future);
+      if (!hasValidToken) {
+        LoggerUtil.d('👍 좋아요 시도: 로그인되었으나 토큰 만료됨 - 재인증 필요');
+
+        // 토큰이 만료된 경우 모달을 통해 재로그인 유도
+        final reAuthenticated = await AuthUtils.checkAuthAndShowModal(
+          context,
+          ref,
+          AuthRequiredFeature.like,
+        );
+
+        if (!reAuthenticated) {
+          LoggerUtil.d('👍 좋아요 토글: ${widget.project.id}, 재인증: 필요 → 인증 모달 표시됨');
+          return; // 재인증하지 않으면 좋아요 기능 실행하지 않고 종료
+        }
+      }
+    }
+
+    // 인증된 경우에만 실제 좋아요 로직 실행
+    LoggerUtil.d('👍 좋아요 토글: ${widget.project.id}, 인증: 성공 → 좋아요 작업 실행');
+    widget.onLikeTap(widget.project);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +147,7 @@ class ProjectCard extends StatelessWidget {
 
         return GestureDetector(
           onTap: () {
-            context.push('/project/${project.id}', extra: {'project': project});
+            context.push('/project/${widget.project.id}');
           },
           child: Container(
             width: cardWidth,
@@ -66,10 +172,16 @@ class ProjectCard extends StatelessWidget {
                       const BorderRadius.vertical(top: Radius.circular(16)),
                   child: SizedBox(
                     height: imageHeight,
-                    child: Image.asset(
-                      project.imageUrl,
+                    child: CachedNetworkImage(
+                      imageUrl: widget.project.imageUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
+                      placeholder: (context, url) => Container(
+                        color: AppColors.lightGrey.withOpacity(0.3),
+                        child: const Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      ),
+                      errorWidget: (context, error, stackTrace) => Container(
                         color: AppColors.lightGrey.withOpacity(0.3),
                         child: Center(
                           child: Column(
@@ -107,7 +219,7 @@ class ProjectCard extends StatelessWidget {
                     children: [
                       // 프로젝트 제목
                       Text(
-                        project.title,
+                        widget.project.title,
                         style: AppTextStyles.heading3.copyWith(
                           fontSize: titleSize,
                           fontWeight: FontWeight.w700,
@@ -120,7 +232,7 @@ class ProjectCard extends StatelessWidget {
 
                       // 프로젝트 설명
                       Text(
-                        project.description,
+                        widget.project.description,
                         style: AppTextStyles.body2.copyWith(
                           fontSize: descSize,
                           color: AppColors.grey,
@@ -156,7 +268,7 @@ class ProjectCard extends StatelessWidget {
                               children: [
                                 // 퍼센트
                                 Text(
-                                  '${project.percentage.toStringAsFixed(1)}%',
+                                  '${widget.project.percentage.toStringAsFixed(1)}%',
                                   style: AppTextStyles.heading3.copyWith(
                                     fontSize: priceSize,
                                     fontWeight: FontWeight.bold,
@@ -169,7 +281,7 @@ class ProjectCard extends StatelessWidget {
                                 // 가격
                                 Expanded(
                                   child: Text(
-                                    project.price,
+                                    widget.project.price,
                                     style: AppTextStyles.heading3.copyWith(
                                       fontSize: priceSize * 0.95,
                                       height: 1.0,
@@ -183,7 +295,7 @@ class ProjectCard extends StatelessWidget {
 
                             // 남은 시간
                             Text(
-                              project.remainingTime,
+                              _remainingTime,
                               style: AppTextStyles.body2.copyWith(
                                 fontSize: descSize * 0.9,
                                 color: AppColors.grey,
@@ -199,12 +311,12 @@ class ProjectCard extends StatelessWidget {
                         children: [
                           //좋아요버튼튼
                           InkWell(
-                            onTap: onLikeTap,
+                            onTap: _handleLikeTap,
                             child: Icon(
-                              project.isLiked
+                              widget.project.isLiked
                                   ? Icons.favorite
                                   : Icons.favorite_border,
-                              color: project.isLiked
+                              color: widget.project.isLiked
                                   ? AppColors.primary
                                   : AppColors.grey,
                               size: 24 * scaleFactor,
@@ -212,7 +324,7 @@ class ProjectCard extends StatelessWidget {
                           ),
                           SizedBox(width: 8 * scaleFactor),
                           ElevatedButton(
-                            onPressed: onPurchaseTap,
+                            onPressed: widget.onPurchaseTap,
                             style: ElevatedButton.styleFrom(
                               padding: EdgeInsets.symmetric(
                                 horizontal: 16 * scaleFactor,

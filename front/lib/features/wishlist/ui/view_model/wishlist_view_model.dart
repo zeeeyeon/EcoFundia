@@ -1,10 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/features/wishlist/domain/entities/wishlist_item_entity.dart';
-import 'package:front/features/wishlist/domain/repositories/wishlist_repository.dart';
 import 'package:front/features/wishlist/domain/use_cases/get_active_wishlist_items_use_case.dart';
 import 'package:front/features/wishlist/domain/use_cases/get_ended_wishlist_items_use_case.dart';
 import 'package:front/features/wishlist/domain/use_cases/toggle_wishlist_item_use_case.dart';
 import 'package:front/utils/logger_util.dart';
+import 'package:front/features/wishlist/data/repositories/wishlist_repository_impl.dart';
+import 'package:flutter/material.dart';
+import 'package:front/utils/error_handling_mixin.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:front/core/services/storage_service.dart';
 
 /// 위시리스트 상태
 class WishlistState {
@@ -13,6 +17,10 @@ class WishlistState {
   final List<WishlistItemEntity> activeItems;
   final List<WishlistItemEntity> endedItems;
   final String? error;
+  final int activeCurrentPage;
+  final int endedCurrentPage;
+  final bool hasMoreActiveItems;
+  final bool hasMoreEndedItems;
 
   const WishlistState({
     this.isLoading = false,
@@ -20,6 +28,10 @@ class WishlistState {
     this.activeItems = const [],
     this.endedItems = const [],
     this.error,
+    this.activeCurrentPage = 1,
+    this.endedCurrentPage = 1,
+    this.hasMoreActiveItems = true,
+    this.hasMoreEndedItems = true,
   });
 
   WishlistState copyWith({
@@ -28,6 +40,10 @@ class WishlistState {
     List<WishlistItemEntity>? activeItems,
     List<WishlistItemEntity>? endedItems,
     String? error,
+    int? activeCurrentPage,
+    int? endedCurrentPage,
+    bool? hasMoreActiveItems,
+    bool? hasMoreEndedItems,
   }) {
     return WishlistState(
       isLoading: isLoading ?? this.isLoading,
@@ -35,15 +51,25 @@ class WishlistState {
       activeItems: activeItems ?? this.activeItems,
       endedItems: endedItems ?? this.endedItems,
       error: error,
+      activeCurrentPage: activeCurrentPage ?? this.activeCurrentPage,
+      endedCurrentPage: endedCurrentPage ?? this.endedCurrentPage,
+      hasMoreActiveItems: hasMoreActiveItems ?? this.hasMoreActiveItems,
+      hasMoreEndedItems: hasMoreEndedItems ?? this.hasMoreEndedItems,
     );
   }
 }
 
 /// 위시리스트 뷰모델
-class WishlistViewModel extends StateNotifier<WishlistState> {
+class WishlistViewModel extends StateNotifier<WishlistState>
+    with StateNotifierErrorHandlingMixin<WishlistState> {
   final GetActiveWishlistItemsUseCase _getActiveWishlistItemsUseCase;
   final GetEndedWishlistItemsUseCase _getEndedWishlistItemsUseCase;
   final ToggleWishlistItemUseCase _toggleWishlistItemUseCase;
+  final int _pageSize = 10; // 페이지당 아이템 수
+
+  // GlobalKey for ScaffoldMessenger to show SnackBar
+  final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
+      GlobalKey<ScaffoldMessengerState>();
 
   WishlistViewModel({
     required GetActiveWishlistItemsUseCase getActiveWishlistItemsUseCase,
@@ -54,14 +80,51 @@ class WishlistViewModel extends StateNotifier<WishlistState> {
         _toggleWishlistItemUseCase = toggleWishlistItemUseCase,
         super(const WishlistState());
 
-  /// 위시리스트 데이터 로드
+  /// 위시리스트 데이터 로드 (첫 페이지)
   Future<void> loadWishlistItems() async {
-    state = state.copyWith(isLoading: true, error: null);
+    // 이미 로딩 중이면 중복 요청 방지
+    if (state.isLoading || state.isRefreshing) {
+      if (kDebugMode) {
+        LoggerUtil.d('🚫 위시리스트 로드 취소: 이미 로딩 중');
+      }
+      return;
+    }
+
+    startLoading(); // Mixin의 로딩 상태 추적 메서드 사용
+    state = state.copyWith(
+        isLoading: true,
+        error: null,
+        activeCurrentPage: 1,
+        endedCurrentPage: 1,
+        hasMoreActiveItems: true,
+        hasMoreEndedItems: true);
 
     try {
+      // 로컬 스토리지에서 인증 상태 확인
+      final isAuthenticated = await StorageService.isAuthenticated();
+
+      // 인증되지 않은 경우 API 호출 중단
+      if (!isAuthenticated) {
+        LoggerUtil.w('⚠️ 위시리스트 로드 취소: 인증되지 않음');
+        state = state.copyWith(
+          isLoading: false,
+          activeItems: const [], // 빈 리스트로 초기화
+          endedItems: const [],
+          hasMoreActiveItems: false,
+          hasMoreEndedItems: false,
+        );
+        finishLoading(); // 로딩 상태 종료
+        return;
+      }
+
+      if (kDebugMode) {
+        LoggerUtil.i('🔄 위시리스트 API 요청 시작');
+      }
       // 병렬로 두 요청 실행
-      final activeItemsFuture = _getActiveWishlistItemsUseCase.execute();
-      final endedItemsFuture = _getEndedWishlistItemsUseCase.execute();
+      final activeItemsFuture =
+          _getActiveWishlistItemsUseCase.execute(page: 1, size: _pageSize);
+      final endedItemsFuture =
+          _getEndedWishlistItemsUseCase.execute(page: 1, size: _pageSize);
 
       // 두 결과 모두 기다림
       final results = await Future.wait([activeItemsFuture, endedItemsFuture]);
@@ -69,19 +132,102 @@ class WishlistViewModel extends StateNotifier<WishlistState> {
       final activeItems = results[0];
       final endedItems = results[1];
 
+      // 더 불러올 데이터가 있는지 확인
+      final hasMoreActiveItems = activeItems.length >= _pageSize;
+      final hasMoreEndedItems = endedItems.length >= _pageSize;
+
       state = state.copyWith(
         isLoading: false,
         activeItems: activeItems,
         endedItems: endedItems,
+        hasMoreActiveItems: hasMoreActiveItems,
+        hasMoreEndedItems: hasMoreEndedItems,
       );
 
-      LoggerUtil.i(
-          '✅ 위시리스트 로드 완료: 진행 중 ${activeItems.length}개, 종료됨 ${endedItems.length}개');
+      if (kDebugMode) {
+        LoggerUtil.i(
+            '✅ 위시리스트 로드 완료: 진행 중 ${activeItems.length}개, 종료됨 ${endedItems.length}개');
+      }
     } catch (e) {
-      LoggerUtil.e('❌ 위시리스트 로드 실패', e);
+      if (kDebugMode) {
+        LoggerUtil.e('❌ 위시리스트 로드 실패', e);
+      }
+      final errorState = setErrorState(e); // Mixin의 오류 처리 메서드 사용
       state = state.copyWith(
         isLoading: false,
-        error: '위시리스트를 불러오는데 실패했습니다.',
+        error: errorState.toString(), // Mixin에서 제공하는 오류 메시지 사용
+      );
+    } finally {
+      finishLoading(); // Mixin의 로딩 상태 종료 메서드 사용
+    }
+  }
+
+  /// 진행 중인 위시리스트 아이템 더 불러오기
+  Future<void> loadMoreActiveItems() async {
+    // 더 불러올 아이템이 없거나 이미 로딩 중이면 종료
+    if (!state.hasMoreActiveItems || state.isLoading || state.isRefreshing) {
+      return;
+    }
+
+    try {
+      final nextPage = state.activeCurrentPage + 1;
+      LoggerUtil.i('🔄 진행 중인 위시리스트 $nextPage페이지 로드 시작');
+
+      final newItems = await _getActiveWishlistItemsUseCase.execute(
+          page: nextPage, size: _pageSize);
+
+      // 더 불러올 데이터가 있는지 확인
+      final hasMoreItems = newItems.length >= _pageSize;
+
+      // 이전 아이템과 새 아이템 합치기
+      final updatedItems = [...state.activeItems, ...newItems];
+
+      state = state.copyWith(
+        activeItems: updatedItems,
+        activeCurrentPage: nextPage,
+        hasMoreActiveItems: hasMoreItems,
+      );
+
+      LoggerUtil.i('✅ 진행 중인 위시리스트 더 불러오기 완료: ${newItems.length}개 추가');
+    } catch (e) {
+      LoggerUtil.e('❌ 진행 중인 위시리스트 더 불러오기 실패', e);
+      state = state.copyWith(
+        error: '위시리스트를 더 불러오는데 실패했습니다.',
+      );
+    }
+  }
+
+  /// 종료된 위시리스트 아이템 더 불러오기
+  Future<void> loadMoreEndedItems() async {
+    // 더 불러올 아이템이 없거나 이미 로딩 중이면 종료
+    if (!state.hasMoreEndedItems || state.isLoading || state.isRefreshing) {
+      return;
+    }
+
+    try {
+      final nextPage = state.endedCurrentPage + 1;
+      LoggerUtil.i('🔄 종료된 위시리스트 $nextPage페이지 로드 시작');
+
+      final newItems = await _getEndedWishlistItemsUseCase.execute(
+          page: nextPage, size: _pageSize);
+
+      // 더 불러올 데이터가 있는지 확인
+      final hasMoreItems = newItems.length >= _pageSize;
+
+      // 이전 아이템과 새 아이템 합치기
+      final updatedItems = [...state.endedItems, ...newItems];
+
+      state = state.copyWith(
+        endedItems: updatedItems,
+        endedCurrentPage: nextPage,
+        hasMoreEndedItems: hasMoreItems,
+      );
+
+      LoggerUtil.i('✅ 종료된 위시리스트 더 불러오기 완료: ${newItems.length}개 추가');
+    } catch (e) {
+      LoggerUtil.e('❌ 종료된 위시리스트 더 불러오기 실패', e);
+      state = state.copyWith(
+        error: '위시리스트를 더 불러오는데 실패했습니다.',
       );
     }
   }
@@ -90,12 +236,20 @@ class WishlistViewModel extends StateNotifier<WishlistState> {
   Future<void> refreshWishlistItems() async {
     if (state.isLoading || state.isRefreshing) return;
 
-    state = state.copyWith(isRefreshing: true, error: null);
+    state = state.copyWith(
+        isRefreshing: true,
+        error: null,
+        activeCurrentPage: 1,
+        endedCurrentPage: 1,
+        hasMoreActiveItems: true,
+        hasMoreEndedItems: true);
 
     try {
       // 병렬로 두 요청 실행
-      final activeItemsFuture = _getActiveWishlistItemsUseCase.execute();
-      final endedItemsFuture = _getEndedWishlistItemsUseCase.execute();
+      final activeItemsFuture =
+          _getActiveWishlistItemsUseCase.execute(page: 1, size: _pageSize);
+      final endedItemsFuture =
+          _getEndedWishlistItemsUseCase.execute(page: 1, size: _pageSize);
 
       // 두 결과 모두 기다림
       final results = await Future.wait([activeItemsFuture, endedItemsFuture]);
@@ -103,10 +257,16 @@ class WishlistViewModel extends StateNotifier<WishlistState> {
       final activeItems = results[0];
       final endedItems = results[1];
 
+      // 더 불러올 데이터가 있는지 확인
+      final hasMoreActiveItems = activeItems.length >= _pageSize;
+      final hasMoreEndedItems = endedItems.length >= _pageSize;
+
       state = state.copyWith(
         isRefreshing: false,
         activeItems: activeItems,
         endedItems: endedItems,
+        hasMoreActiveItems: hasMoreActiveItems,
+        hasMoreEndedItems: hasMoreEndedItems,
       );
 
       LoggerUtil.i(
@@ -120,54 +280,86 @@ class WishlistViewModel extends StateNotifier<WishlistState> {
     }
   }
 
-  /// 좋아요 상태 토글
-  Future<void> toggleWishlistItem(int itemId) async {
+  /// 위시리스트에 아이템 토글 (추가/제거)
+  Future<bool> toggleWishlistItem(int itemId,
+      {required BuildContext context}) async {
+    // 위시리스트 화면에서는 항상 제거 기능만 수행
+    // optimistic UI 업데이트 - 해당 아이템을 UI에서 즉시 제거
+    _optimisticUpdateWishStatus(itemId, false);
+
     try {
-      _updateItemLikeStatus(itemId);
+      // 명시적으로 removeFromWishlist 호출하여 제거 API만 호출
+      await _toggleWishlistItemUseCase.remove(itemId);
 
-      final result = await _toggleWishlistItemUseCase.execute(itemId);
+      // 실제 위시리스트 데이터 로드 (UI 동기화)
+      await loadWishlistItems();
 
-      if (!result) {
-        _updateItemLikeStatus(itemId);
-        state = state.copyWith(
-          error: '위시리스트 항목을 업데이트하는데 실패했습니다.',
+      // 성공 메시지 표시
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('위시리스트에서 제거되었습니다.'),
+            duration: Duration(seconds: 1),
+          ),
         );
       }
+
+      return false; // 제거 후에는 항상 false 반환
     } catch (e) {
-      _updateItemLikeStatus(itemId);
-      LoggerUtil.e('❌ 위시리스트 토글 실패', e);
-      state = state.copyWith(
-        error: '위시리스트 처리 중 오류가 발생했습니다.',
-      );
+      if (kDebugMode) {
+        LoggerUtil.e('위시리스트 제거 실패: 아이템 ID $itemId', e);
+      }
+
+      // 오류 처리 Mixin 사용
+      setErrorState(e);
+
+      // 오류 발생 시 UI 상태 롤백 - 아이템 다시 표시
+      _optimisticUpdateWishStatus(itemId, true);
+
+      // 오류 메시지 표시
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage), // Mixin에서 제공하는 오류 메시지 사용
+            backgroundColor: Colors.red.shade700,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+
+      return true; // 오류 발생 시 원래 상태로 복원
     }
   }
 
-  /// 아이템 좋아요 상태 업데이트 (낙관적 UI 업데이트용)
-  void _updateItemLikeStatus(int itemId) {
-    final activeItemIndex =
-        state.activeItems.indexWhere((item) => item.id == itemId);
-    if (activeItemIndex != -1) {
-      final updatedActiveItems =
-          List<WishlistItemEntity>.from(state.activeItems);
-      final oldItem = updatedActiveItems[activeItemIndex];
-      updatedActiveItems.removeAt(activeItemIndex);
-      state = state.copyWith(activeItems: updatedActiveItems);
-      return;
-    }
-
-    final endedItemIndex =
-        state.endedItems.indexWhere((item) => item.id == itemId);
-    if (endedItemIndex != -1) {
-      final updatedEndedItems = List<WishlistItemEntity>.from(state.endedItems);
-      final oldItem = updatedEndedItems[endedItemIndex];
-      updatedEndedItems.removeAt(endedItemIndex);
-      state = state.copyWith(endedItems: updatedEndedItems);
-      return;
+  /// 낙관적 업데이트 (UI 즉시 반영)
+  void _optimisticUpdateWishStatus(int itemId, bool isInWishlist) {
+    if (isInWishlist) {
+      if (!state.activeItems.any((item) => item.id == itemId)) {
+        // WishlistItemEntity 생성 시 필수 파라미터를 가진 더미 데이터를 추가
+        // 실제 데이터는 loadWishlistItems()에서 갱신됨
+        state = state.copyWith(activeItems: [
+          ...state.activeItems,
+          WishlistItemEntity(
+            id: itemId,
+            title: '로딩 중...',
+            imageUrl: '',
+            rate: 0,
+            remainingDays: 0,
+            amountGap: 0,
+            sellerName: '',
+          )
+        ]);
+      }
+    } else {
+      state = state.copyWith(
+          activeItems:
+              state.activeItems.where((item) => item.id != itemId).toList());
     }
   }
 
   /// 에러 메시지 초기화
   void clearError() {
+    clearErrorState(); // Mixin의 오류 상태 초기화 메서드 사용
     if (state.error != null) {
       state = state.copyWith(error: null);
     }
@@ -180,11 +372,12 @@ class WishlistViewModel extends StateNotifier<WishlistState> {
 }
 
 /// 위시리스트 레포지토리 프로바이더
-final wishlistRepositoryProvider = Provider<WishlistRepository>((ref) {
-  // 여기에서 레포지토리 구현체를 반환
-  // 프로젝트 내에서 이미 정의된 레포지토리가 있다면 그것을 사용
-  throw UnimplementedError('Provider must be overridden');
-});
+// 이미 lib/features/wishlist/data/repositories/wishlist_repository_impl.dart에 정의되어 있으므로 주석 처리
+//
+// final wishlistRepositoryProvider = Provider<WishlistRepository>((ref) {
+//   final wishlistService = ref.watch(wishlistServiceProvider);
+//   return WishlistRepositoryImpl(wishlistService: wishlistService);
+// });
 
 /// 유스케이스 프로바이더들
 final getActiveWishlistItemsUseCaseProvider =

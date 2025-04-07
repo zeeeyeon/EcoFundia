@@ -66,6 +66,7 @@ final checkLoginStatusUseCaseProvider =
 final authProvider = StateNotifierProvider<AuthViewModel, AuthState>((ref) {
   final router = ref.watch(routerProvider);
   return AuthViewModel(
+    ref: ref,
     appStateViewModel: ref.watch(appStateProvider.notifier),
     authRepository: ref.watch(authRepositoryProvider),
     checkLoginStatusUseCase: ref.watch(checkLoginStatusUseCaseProvider),

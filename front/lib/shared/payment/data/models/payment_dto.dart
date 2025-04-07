@@ -31,6 +31,12 @@ class PaymentDTO extends Equatable {
     this.isDefaultAddress = false,
   });
 
+  // 총 상품 금액 계산
+  int get totalProductPrice => price * quantity;
+
+  // 최종 결제 금액 계산
+  int get finalAmount => totalProductPrice - couponDiscount;
+
   /// JSON에서 PaymentDTO 생성
   factory PaymentDTO.fromJson(Map<String, dynamic> json) {
     return PaymentDTO(

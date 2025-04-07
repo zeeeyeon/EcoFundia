@@ -6,82 +6,70 @@ class WishlistItemModel extends WishlistItemEntity {
   const WishlistItemModel({
     required int id,
     required String title,
-    required String description,
-    required String companyName,
     required String imageUrl,
-    required double fundingPercentage,
-    required String fundingAmount,
-    required String remainingDays,
-    required bool isActive,
+    required double rate,
+    required int remainingDays,
+    required int amountGap,
+    required String sellerName,
     bool isLiked = true,
   }) : super(
           id: id,
           title: title,
-          description: description,
-          companyName: companyName,
           imageUrl: imageUrl,
-          fundingPercentage: fundingPercentage,
-          fundingAmount: fundingAmount,
+          rate: rate,
           remainingDays: remainingDays,
-          isActive: isActive,
+          amountGap: amountGap,
+          sellerName: sellerName,
           isLiked: isLiked,
         );
 
   /// API JSON 응답으로부터 모델 객체 생성
   factory WishlistItemModel.fromJson(Map<String, dynamic> json) {
     return WishlistItemModel(
-      id: json['id'] as int,
+      id: json['fundingId'] as int,
       title: json['title'] as String,
-      description: json['description'] as String,
-      companyName: json['companyName'] as String,
       imageUrl: json['imageUrl'] as String,
-      fundingPercentage: (json['fundingPercentage'] as num).toDouble(),
-      fundingAmount: json['fundingAmount'] as String,
-      remainingDays: json['remainingDays'] as String,
-      isActive: json['isActive'] as bool,
-      isLiked: json['isLiked'] as bool? ?? true,
+      rate: (json['rate'] as num).toDouble(),
+      remainingDays: json['remainingDays'] as int,
+      amountGap: json['amountGap'] as int,
+      sellerName: json['sellerName'] as String,
+      isLiked: true, // 위시리스트 목록이므로 항상 true
     );
   }
 
   /// 모델 객체를 JSON으로 변환
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
+      'fundingId': id,
       'title': title,
-      'description': description,
-      'companyName': companyName,
       'imageUrl': imageUrl,
-      'fundingPercentage': fundingPercentage,
-      'fundingAmount': fundingAmount,
+      'rate': rate,
       'remainingDays': remainingDays,
-      'isActive': isActive,
-      'isLiked': isLiked,
+      'amountGap': amountGap,
+      'sellerName': sellerName,
     };
   }
 
   /// 복사본 생성
+  @override
   WishlistItemModel copyWith({
     int? id,
     String? title,
-    String? description,
-    String? companyName,
     String? imageUrl,
-    double? fundingPercentage,
-    String? fundingAmount,
-    String? remainingDays,
-    bool? isActive,
+    double? rate,
+    int? remainingDays,
+    int? amountGap,
+    String? sellerName,
     bool? isLiked,
   }) {
     return WishlistItemModel(
       id: id ?? this.id,
       title: title ?? this.title,
-      description: description ?? this.description,
-      companyName: companyName ?? this.companyName,
       imageUrl: imageUrl ?? this.imageUrl,
-      fundingPercentage: fundingPercentage ?? this.fundingPercentage,
-      fundingAmount: fundingAmount ?? this.fundingAmount,
+      rate: rate ?? this.rate,
       remainingDays: remainingDays ?? this.remainingDays,
-      isActive: isActive ?? this.isActive,
+      amountGap: amountGap ?? this.amountGap,
+      sellerName: sellerName ?? this.sellerName,
       isLiked: isLiked ?? this.isLiked,
     );
   }

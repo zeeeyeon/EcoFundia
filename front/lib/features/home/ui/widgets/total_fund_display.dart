@@ -18,15 +18,33 @@ class TotalFundDisplay extends ConsumerStatefulWidget {
 
 class _TotalFundDisplayState extends ConsumerState<TotalFundDisplay>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _animationController;
+  late AnimationController _animationController;
   final Logger _logger = Logger();
   int _currentAmount = 0;
   int _previousAmount = 0;
   final NumberFormat _formatter = NumberFormat('#,##0');
 
+  // didChangeDependencies 동작 여부를 추적하는 플래그
+  bool _isFirstLoad = true;
+  bool _isControllerInitialized = false;
+
   @override
   void initState() {
     super.initState();
+
+    // 애니메이션 컨트롤러 초기화를 delayed로 실행
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      _initAnimationController();
+    });
+
+    // TotalFundDisplay 위젯에서는 fetchTotalFund 직접 호출 제거
+    // HomeViewModel에서 이미 호출하고 있음
+  }
+
+  void _initAnimationController() {
+    if (_isControllerInitialized) return;
 
     // 애니메이션 컨트롤러 초기화
     _animationController = AnimationController(
@@ -41,11 +59,31 @@ class _TotalFundDisplayState extends ConsumerState<TotalFundDisplay>
         if (mounted) setState(() {});
       }
     });
+
+    _isControllerInitialized = true;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // 최초 한 번만 타이머를 재시작하도록 설정
+    if (_isFirstLoad) {
+      _isFirstLoad = false;
+      // Future.microtask를 사용하여 위젯 빌드 사이클 이후에 실행
+      Future.microtask(() {
+        // 타이머만 재시작 (fetchTotalFund 호출 없이)
+        ref.read(homeViewModelProvider.notifier).restartTimerOnly();
+      });
+    }
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    if (_isControllerInitialized) {
+      _animationController.stop();
+      _animationController.dispose();
+    }
     super.dispose();
   }
 
@@ -138,8 +176,19 @@ class _TotalFundDisplayState extends ConsumerState<TotalFundDisplay>
     // HomeViewModel에서 totalFund 값 가져오기
     final homeState = ref.watch(homeViewModelProvider);
 
+    // 디버그 로깅 추가
+    _logger.d('TotalFundDisplay build: isLoading=${homeState.isLoading}, '
+        'error=${homeState.error}, totalFund=${homeState.totalFund}');
+
+    // 애니메이션 컨트롤러가 초기화되지 않았다면 초기화
+    if (!_isControllerInitialized) {
+      _initAnimationController();
+    }
+
     // 금액이 변경되었을 때만 애니메이션 실행
-    if (homeState.totalFund != _currentAmount && !homeState.isLoading) {
+    if (_isControllerInitialized &&
+        homeState.totalFund != _currentAmount &&
+        !homeState.isLoading) {
       _previousAmount = _currentAmount;
       _currentAmount = homeState.totalFund;
 
@@ -163,15 +212,15 @@ class _TotalFundDisplayState extends ConsumerState<TotalFundDisplay>
         const SizedBox(height: 2),
 
         // 총 펀드 금액 표시
-        homeState.isLoading
-            ? const CircularProgressIndicator.adaptive()
-            : homeState.error != null
-                ? Text(
-                    homeState.error!,
-                    style:
-                        AppTextStyles.caption.copyWith(color: AppColors.error),
-                  )
-                : _buildSlotMachine(),
+        if (homeState.isLoading)
+          const CircularProgressIndicator.adaptive()
+        else if (homeState.error != null && homeState.totalFund == 0)
+          Text(
+            homeState.error!,
+            style: AppTextStyles.caption.copyWith(color: AppColors.error),
+          )
+        else
+          _buildSlotMachine(),
       ],
     );
   }

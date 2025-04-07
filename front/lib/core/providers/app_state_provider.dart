@@ -94,25 +94,37 @@ final isLoggedInProvider = Provider<bool>((ref) {
 
 /// 로그인 상태 체크 Provider (비동기)
 final isAuthenticatedProvider = FutureProvider<bool>((ref) async {
-  final hasValidToken = await StorageService.isAuthenticated();
-  // 상태 업데이트
-  ref.read(appStateProvider.notifier).setLoggedIn(hasValidToken);
-  return hasValidToken;
+  try {
+    final hasValidToken = await StorageService.isAuthenticated();
+
+    // 상태 업데이트 - 앱 전체 상태 동기화
+    ref.read(appStateProvider.notifier).setLoggedIn(hasValidToken);
+
+    if (!hasValidToken) {
+      LoggerUtil.d('🔑 인증 상태 체크: 유효한 토큰 없음');
+    }
+
+    return hasValidToken;
+  } catch (e) {
+    LoggerUtil.e('인증 상태 체크 중 오류 발생', e);
+    // 오류 발생 시 로그아웃 상태로 처리
+    ref.read(appStateProvider.notifier).setLoggedIn(false);
+    return false;
+  }
 });
 
 /// 특정 기능에 인증이 필요한지 확인하는 Provider
 final requiresAuthProvider =
     Provider.family<bool, AuthRequiredFeature>((ref, feature) {
-  // 모든 기능에 인증이 필요한 경우 true 반환
-  // 특정 기능만 인증이 필요한 경우 조건 추가
+  // 모든 기능을 엄격하게 인증 필요한 것으로 처리
   switch (feature) {
     case AuthRequiredFeature.purchase:
-    case AuthRequiredFeature.like:
+    case AuthRequiredFeature.like: // 좋아요(하트) 버튼
     case AuthRequiredFeature.comment:
     case AuthRequiredFeature.funding:
     case AuthRequiredFeature.profile:
       return true;
     default:
-      return false;
+      return true; // 기본값도 인증 필요로 설정 (안전하게)
   }
 });

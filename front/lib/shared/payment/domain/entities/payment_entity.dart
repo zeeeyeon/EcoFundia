@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:front/features/home/domain/entities/project_entity.dart';
 
 /// 결제 정보를 담는 Entity
 class PaymentEntity extends Equatable {
@@ -63,6 +64,32 @@ class PaymentEntity extends Equatable {
       address: address ?? this.address,
       phoneNumber: phoneNumber ?? this.phoneNumber,
       isDefaultAddress: isDefaultAddress ?? this.isDefaultAddress,
+    );
+  }
+
+  /// 프로젝트 엔티티에서 결제 엔티티 생성 (상세 페이지에서 결제 페이지로 데이터 전달 용)
+  factory PaymentEntity.fromProjectEntity(
+    ProjectEntity project, {
+    String recipientName = '',
+    String address = '',
+    String phoneNumber = '',
+    bool isDefaultAddress = false,
+    int quantity = 1,
+    int couponDiscount = 0,
+  }) {
+    return PaymentEntity(
+      id: 'PAYMENT_${DateTime.now().millisecondsSinceEpoch}',
+      productId: project.id.toString(),
+      productName: project.title,
+      sellerName: project.sellerName,
+      imageUrl: project.imageUrl,
+      price: project.priceValue,
+      quantity: quantity,
+      couponDiscount: couponDiscount,
+      recipientName: recipientName,
+      address: address,
+      phoneNumber: phoneNumber,
+      isDefaultAddress: isDefaultAddress,
     );
   }
 

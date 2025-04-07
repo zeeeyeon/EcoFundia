@@ -1,6 +1,7 @@
 import 'package:front/features/auth/domain/entities/auth_result_entity.dart';
 import 'package:front/features/auth/domain/entities/sign_up_entity.dart';
 import 'package:front/features/auth/data/models/auth_response_model.dart';
+import 'package:dio/dio.dart';
 
 /// 인증 관련 작업을 처리하는 저장소 인터페이스
 /// 도메인 계층에서는 도메인 엔티티만 사용
@@ -12,7 +13,7 @@ abstract class AuthRepository {
   Future<AuthResultEntity> completeSignUp(SignUpEntity signUpData);
 
   /// 로그아웃
-  Future<void> signOut();
+  Future<void> signOut({CancelToken? cancelToken});
 
   /// 로그인 상태 확인
   Future<bool> isLoggedIn();
