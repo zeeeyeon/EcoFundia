@@ -1,10 +1,7 @@
 package com.ssafy.funding.controller;
 
 import com.ssafy.funding.common.response.Response;
-import com.ssafy.funding.dto.funding.request.FundingCreateRequestDto;
-import com.ssafy.funding.dto.funding.request.FundingCreateSendDto;
-import com.ssafy.funding.dto.funding.request.FundingUpdateRequestDto;
-import com.ssafy.funding.dto.funding.request.FundingUpdateSendDto;
+import com.ssafy.funding.dto.funding.request.*;
 import com.ssafy.funding.dto.funding.response.FundingResponseDto;
 import com.ssafy.funding.dto.funding.response.FundingWishCountResponseDto;
 import com.ssafy.funding.dto.funding.response.GetFundingResponseDto;
@@ -244,5 +241,10 @@ public class FundingController {
     @GetMapping("/seller/settlements/expected-fundings/{sellerId}")
     public GetExpectedSettlementsResponseDto getExpectedSettlements(@PathVariable("sellerId") int sellerId) {
         return productService.getExpectedSettlements(sellerId);
+    }
+
+    @PostMapping("/current/amount")
+    void addCurrentAmount(@RequestBody AddCurrentAmountRequestDto addCurrentAmountRequestDto) {
+        productService.addCurrentAmount(addCurrentAmountRequestDto.getFundingId(),addCurrentAmountRequestDto.getAmount());
     }
 }

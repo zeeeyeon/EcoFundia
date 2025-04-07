@@ -13,6 +13,7 @@ import com.ssafy.funding.dto.seller.SellerDetailResponseDto;
 import com.ssafy.funding.dto.seller.response.*;
 import com.ssafy.funding.entity.Funding;
 import com.ssafy.funding.entity.enums.Status;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -81,4 +82,7 @@ public interface ProductService {
     List<GetCompletedFundingsResponseDto> getCompletedFundings(int sellerId);
 
     GetExpectedSettlementsResponseDto getExpectedSettlements(int sellerId);
+
+    // 주문시 currentAmount 반영 API
+    void addCurrentAmount(int fundingId, int amount);
 }
