@@ -33,13 +33,13 @@ public class CouponController {
     @GetMapping("/count")
     public ResponseEntity<?> countCoupon(@RequestHeader("X-User-Id") int userId) throws IOException {
         int count = couponService.countCoupon(userId);
-        return new ResponseEntity<>(Response.create(GET_COUNT_COUPON, count), ISSUED_COUPON.getHttpStatus());
+        return new ResponseEntity<>(Response.create(GET_COUNT_COUPON, count), GET_COUNT_COUPON.getHttpStatus());
     }
 
     @GetMapping
     public ResponseEntity<?> getCoupons(@RequestHeader("X-User-Id") int userId) throws IOException {
         List<CouponResponseDto> coupons = couponService.getCoupons(userId);
         log.info("응답 coupon dto: {}", coupons);
-        return new ResponseEntity<>(Response.create(GET_COUPONS, coupons), ISSUED_COUPON.getHttpStatus());
+        return new ResponseEntity<>(Response.create(GET_COUPONS, coupons), GET_COUPONS.getHttpStatus());
     }
 }
