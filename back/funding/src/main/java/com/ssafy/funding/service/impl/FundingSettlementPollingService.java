@@ -21,21 +21,20 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FundingSettlementPollingService {
 
-    // 정산 지연 시간
-    private static final int SETTLEMENT_DELAY_HOURS = 10;
+//    // 정산 지연 시간
+//    private static final int SETTLEMENT_DELAY_HOURS = 10;
 
     private final ProductService fundingService;
 
     private final FundingEventProducer fundingEventProducer;
 
     // 매일 자정 00:00:05에 실행 (cron 표현식: "초 분 시 일 월 요일")
-    @Scheduled(cron = "5 0 0 * * ?")
+    @Scheduled(cron = "0 30 11 * * ?")
     public void triggerSettlementEvents() {
         // SUCCESS 상태이며 아직 settlementCompleted가 false인 Funding 목록 조회
         List<Funding> fundingList = fundingService.getSuccessFundingsNotSent();
         for (Funding funding : fundingList) {
-            // 펀딩 종료시간에 정산 지연 시간(예: 2시간)을 더하여 정산 실행 예약 시각 계산
-            LocalDateTime settlementTime = funding.getEndDate().plusHours(SETTLEMENT_DELAY_HOURS);
+            LocalDateTime settlementTime = funding.getEndDate();
             FundingCompletedEvent event = new FundingCompletedEvent(funding.getFundingId(),funding.getSellerId(), settlementTime);
             // Kafka에 FundingCompletedEvent 전송
             fundingEventProducer.sendFundingCompletedEvent(event);
