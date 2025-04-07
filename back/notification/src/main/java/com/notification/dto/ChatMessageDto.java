@@ -1,13 +1,21 @@
 package com.notification.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 
-public record ChatMessageDto (
+@Builder
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class ChatMessageDto {
 
-    int fundingId,
-    int senderId,
-    String nickname,
-    String content,
-    LocalDateTime createdAt
-
-) {}
+    private int fundingId;
+    private int senderId;
+    private String nickname;
+    private String content;
+    private LocalDateTime createdAt;
+}
