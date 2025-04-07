@@ -41,7 +41,8 @@ public class StompSubscribeListener {
                 // 2. 채팅방에 참여자로 추가
                 int userId = Integer.parseInt( accessor.getFirstNativeHeader("userId") );
                 log.info("📨 클라이언트로부터 받은 userId: userId={}", userId );
-                AddParticipantRequest request = new AddParticipantRequest(userId);
+                AddParticipantRequest request = AddParticipantRequest.builder()
+                        .userId(userId).build();
                 chatClient.addParticipant(fundingId, request);
 
                 // 2. 버퍼에서 아직 저장되지 않은 메시지 조회 + 전송

@@ -34,7 +34,7 @@ public class ChatRoomController {
     @PostMapping("/{fundingId}/participants")
     public ResponseEntity<?> addParticipant(@PathVariable int fundingId,
                                @RequestBody AddParticipantRequest request) {
-        chatRoomService.addParticipantIfNotExists(fundingId, request.userId());
+        chatRoomService.addParticipantIfNotExists(fundingId, request.getUserId());
         return new ResponseEntity<>(Response.create(PARTICIPANT_CHATROOM,null),PARTICIPANT_CHATROOM.getHttpStatus());
     }
 

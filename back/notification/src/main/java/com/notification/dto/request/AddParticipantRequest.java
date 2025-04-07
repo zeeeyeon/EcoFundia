@@ -1,9 +1,13 @@
 package com.notification.dto.request;
 
-public record AddParticipantRequest(
-        int userId
-) {
-    public static AddParticipantRequest from(int userId) {
-        return new AddParticipantRequest(userId);
-    }
+import lombok.Builder;
+import lombok.Data;
+
+@Builder
+@Data
+public class AddParticipantRequest {
+
+    private int userId;
+
+
 }
