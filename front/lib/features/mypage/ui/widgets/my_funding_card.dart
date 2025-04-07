@@ -1,18 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // ✅ 리뷰 상태 가져오기 위해 추가
 import 'package:front/utils/funding_status.dart';
 import 'package:go_router/go_router.dart';
 import 'package:front/core/themes/app_colors.dart';
 import 'package:front/features/mypage/data/models/my_funding_model.dart';
 import 'package:front/utils/status_helper.dart';
 import 'package:intl/intl.dart';
+import '../view_model/my_review_view_model.dart'; // ✅ 리뷰 리스트 Provider 접근을 위해 import
 
-class MyFundingCard extends StatelessWidget {
+class MyFundingCard extends ConsumerWidget {
+  // ✅ Stateless → ConsumerWidget으로 변경
   final MyFundingModel funding;
 
   const MyFundingCard({Key? key, required this.funding}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // ✅ WidgetRef 추가
+    final myReviews = ref.watch(myReviewProvider); // ✅ 리뷰 목록 상태
+
+    final alreadyReviewed = myReviews.maybeWhen(
+      data: (reviews) => reviews.any((r) => r.fundingId == funding.fundingId),
+      orElse: () => false,
+    );
+
     final remainingDays = funding.endDate.difference(DateTime.now()).inDays;
     final isActive = remainingDays > 0;
 
@@ -127,14 +138,16 @@ class MyFundingCard extends StatelessWidget {
                   ),
                 ),
 
-                // 리뷰 작성 UI (status == SUCCESS)
+                // 리뷰 작성 or 수정 버튼 (status == SUCCESS)
                 if (funding.status == FundingStatus.success) ...[
                   const SizedBox(height: 16),
                   const Divider(height: 1, color: Color(0xFFE0E0E0)),
                   const SizedBox(height: 12),
-                  const Text(
-                    '이 펀딩은 종료되었어요!\n후기를 남겨보시는 건 어떨까요?',
-                    style: TextStyle(
+                  Text(
+                    alreadyReviewed
+                        ? '이 펀딩에 이미 후기를 남기셨어요.\n수정하시겠어요?'
+                        : '이 펀딩은 종료되었어요!\n후기를 남겨보시는 건 어떨까요?',
+                    style: const TextStyle(
                       fontSize: 14,
                       color: Colors.black87,
                       fontWeight: FontWeight.w500,
@@ -149,19 +162,38 @@ class MyFundingCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                       onPressed: () {
-                        context.push(
-                          '/review/${funding.fundingId}',
-                          extra: {
-                            'title': funding.title,
-                            'description': funding.description,
-                            'totalPrice': funding.totalPrice,
-                          },
-                        );
+                        if (alreadyReviewed) {
+                          final review = myReviews.asData!.value.firstWhere(
+                              (r) => r.fundingId == funding.fundingId);
+
+                          context.push(
+                            '/review/edit/${review.reviewId}',
+                            extra: {
+                              'rating': review.rating,
+                              'content': review.content,
+                              'title': funding.title,
+                              'description': funding.description,
+                              'totalPrice': funding.totalPrice,
+                            },
+                          );
+                        } else {
+                          context.push(
+                            '/review/${funding.fundingId}',
+                            extra: {
+                              'title': funding.title,
+                              'description': funding.description,
+                              'totalPrice': funding.totalPrice,
+                            },
+                          );
+                        }
                       },
-                      icon: const Icon(Icons.edit, size: 18),
-                      label: const Text(
-                        '리뷰 작성',
-                        style: TextStyle(
+                      icon: Icon(
+                        alreadyReviewed ? Icons.edit : Icons.rate_review,
+                        size: 18,
+                      ),
+                      label: Text(
+                        alreadyReviewed ? '리뷰 수정' : '리뷰 작성',
+                        style: const TextStyle(
                             fontSize: 14, fontWeight: FontWeight.bold),
                       ),
                     ),

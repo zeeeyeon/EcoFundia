@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/features/chat/ui/pages/chat_room_screen.dart';
+import 'package:front/features/chat/ui/pages/chat_screen.dart';
 import 'package:front/features/funding/ui/pages/search_screen.dart';
 import 'package:front/features/mypage/ui/pages/coupon_screen.dart';
 import 'package:front/features/mypage/ui/pages/edit_review_screen.dart';
@@ -220,6 +222,33 @@ final routerProvider = Provider<GoRouter>((ref) {
             navigatorKey: AppNavigatorKeys.instance.mypageTabKey, // ✅ 싱글턴 키 사용
             routes: [
               GoRoute(
+                path: '/chat',
+                pageBuilder: (context, state) {
+                  return const NoTransitionPage(
+                    key: ValueKey('chat'),
+                    child: ChatScreen(),
+                  );
+                },
+              ),
+              GoRoute(
+                path: '/chat/room/:fundingId',
+                name: 'chatRoom',
+                builder: (context, state) {
+                  final fundingId =
+                      int.parse(state.pathParameters['fundingId']!);
+                  final extra = state.extra as Map<String, dynamic>?;
+
+                  return ChatRoomScreen(
+                    fundingId: fundingId,
+                    fundingTitle: extra?['title'] ?? '펀딩',
+                  );
+                },
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
                 path: '/mypage',
                 pageBuilder: (context, state) {
                   return const NoTransitionPage(
@@ -360,10 +389,26 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
               });
             },
             destinations: const [
-              NavigationDestination(icon: Icon(Icons.store), label: '펀딩'),
-              NavigationDestination(icon: Icon(Icons.home), label: '홈'),
-              NavigationDestination(icon: Icon(Icons.favorite), label: '찜'),
-              NavigationDestination(icon: Icon(Icons.person), label: '마이페이지'),
+              NavigationDestination(
+                icon: Icon(Icons.store),
+                label: '펀딩',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.favorite),
+                label: '찜',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.home),
+                label: '홈',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.chat),
+                label: '채팅',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.person),
+                label: '마이페이지',
+              ),
             ],
           ),
         );

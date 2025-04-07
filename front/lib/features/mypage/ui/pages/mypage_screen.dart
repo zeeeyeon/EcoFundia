@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/core/ui/widgets/loading_overlay.dart';
 import 'package:front/features/mypage/ui/view_model/total_funding_provider.dart';
 import 'package:front/features/mypage/ui/widgets/funding_status_card.dart';
 import 'package:front/features/mypage/ui/widgets/mypage_support_section.dart';
@@ -35,26 +36,29 @@ class MypageScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: profileState.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text("오류 발생: $err")),
-        data: (profile) => totalFundingState.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, st) => Center(child: Text("펀딩 금액 로딩 실패: $e")),
-          data: (totalAmount) => SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                GreetingMessage(profile: profile),
-                const SizedBox(height: 8),
-                ProfileCard(profile: profile),
-                FundingStatusCard(
-                  totalFundingAmount: totalAmount,
-                  couponCount: 5,
-                ),
-                const CustomerSupportSection(),
-                const SizedBox(height: 16),
-              ],
+      body: LoadingOverlay(
+        isLoading: profileState.isLoading || totalFundingState.isLoading,
+        child: profileState.when(
+          loading: () => const SizedBox.shrink(), // 화면은 안 보이고 로딩만
+          error: (err, _) => Center(child: Text("오류 발생: $err")),
+          data: (profile) => totalFundingState.when(
+            loading: () => const SizedBox.shrink(),
+            error: (e, _) => Center(child: Text("펀딩 금액 로딩 실패: $e")),
+            data: (totalAmount) => SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  GreetingMessage(profile: profile),
+                  const SizedBox(height: 8),
+                  ProfileCard(profile: profile),
+                  FundingStatusCard(
+                    totalFundingAmount: totalAmount,
+                    couponCount: 5,
+                  ),
+                  const CustomerSupportSection(),
+                  const SizedBox(height: 16),
+                ],
+              ),
             ),
           ),
         ),
