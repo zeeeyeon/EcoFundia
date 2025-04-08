@@ -10,6 +10,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:front/utils/auth_utils.dart';
 import 'package:front/core/providers/app_state_provider.dart';
 import 'package:front/utils/logger_util.dart';
+import 'package:front/core/constants/app_sizes.dart';
 
 /// 프로젝트 카드 위젯
 class ProjectCard extends ConsumerStatefulWidget {
@@ -133,12 +134,11 @@ class _ProjectCardState extends ConsumerState<ProjectCard> {
 
         // 기본 카드 크기 설정
         const double baseCardHeight = 460;
-        const double baseImageRatio = 0.55;
+        const double baseImageRatio = 0.52;
         final scaleFactor = isSmallScreen ? 0.85 : 1.0;
 
         final cardWidth = constraints.maxWidth;
-        final cardHeight = baseCardHeight * scaleFactor;
-        final imageHeight = cardHeight * baseImageRatio;
+        final imageHeight = cardWidth * baseImageRatio;
 
         // 글꼴 크기 계산
         final titleSize = 18.0 * scaleFactor;
@@ -151,7 +151,6 @@ class _ProjectCardState extends ConsumerState<ProjectCard> {
           },
           child: Container(
             width: cardWidth,
-            height: cardHeight,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
               color: AppColors.white,
@@ -165,6 +164,7 @@ class _ProjectCardState extends ConsumerState<ProjectCard> {
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 // 프로젝트 이미지
                 ClipRRect(
@@ -205,13 +205,13 @@ class _ProjectCardState extends ConsumerState<ProjectCard> {
                     ),
                   ),
                 ),
-                SizedBox(height: 10 * scaleFactor),
+                SizedBox(height: 8 * scaleFactor),
 
                 // 프로젝트 정보
                 Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: 16 * scaleFactor,
-                    vertical: 6 * scaleFactor,
+                    vertical: 4 * scaleFactor,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -228,7 +228,7 @@ class _ProjectCardState extends ConsumerState<ProjectCard> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      SizedBox(height: 8 * scaleFactor),
+                      SizedBox(height: 6 * scaleFactor),
 
                       // 프로젝트 설명
                       Text(
@@ -245,15 +245,15 @@ class _ProjectCardState extends ConsumerState<ProjectCard> {
                   ),
                 ),
 
-                // 공간 확보
-                const Spacer(),
+                // 프로젝트 설명과 하단 정보 사이에 고정된 간격 추가
+                SizedBox(height: AppSizes.spacingM * scaleFactor),
 
                 // 하단 정보 및 버튼
                 Padding(
                   padding: EdgeInsets.only(
                     left: 16 * scaleFactor,
                     right: 16 * scaleFactor,
-                    bottom: 12 * scaleFactor,
+                    bottom: 10 * scaleFactor,
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -291,7 +291,7 @@ class _ProjectCardState extends ConsumerState<ProjectCard> {
                                 ),
                               ],
                             ),
-                            SizedBox(height: 5 * scaleFactor),
+                            SizedBox(height: 4 * scaleFactor),
 
                             // 남은 시간
                             Text(

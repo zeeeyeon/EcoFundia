@@ -51,6 +51,7 @@ class _CurrentTimeDisplayState extends State<CurrentTimeDisplay> {
       child: Text(
         _currentTime,
         style: AppTextStyles.body1.copyWith(
+          fontSize: 22,
           color: AppColors.grey,
           fontWeight: FontWeight.w600,
         ),

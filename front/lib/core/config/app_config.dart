@@ -57,7 +57,7 @@ class AuthConfig {
 
   /// 모바일 환경에서 서버 인증에 사용하는 Google 클라이언트 ID
   final String serverClientId =
-      '609004819005-m2h2elam67hkc5f6r7oajvhpc5555du8.apps.googleusercontent.com';
+      '609004819005-h718agaqj9pgv1t7ja6sr8rq3n0ffeqv.apps.googleusercontent.com';
 
   const AuthConfig();
 }

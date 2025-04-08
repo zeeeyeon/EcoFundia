@@ -53,6 +53,17 @@ class LoginScreen extends ConsumerWidget {
       isLoading: appState.isLoading,
       message: '인증 처리 중...',
       child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: AppColors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios, color: AppColors.darkGrey),
+            onPressed: () {
+              context.go('/');
+            },
+            tooltip: '홈으로 돌아가기',
+          ),
+        ),
         backgroundColor: AppColors.white,
         body: SafeArea(
           child: LayoutBuilder(

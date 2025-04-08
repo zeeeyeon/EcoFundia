@@ -1,6 +1,6 @@
 class AppStrings {
   // 공통
-  static const String appName = 'SIMPLE';
+  static const String appName = 'Eco Fundia';
 
   // 로그인/회원가입
   static const String signUpWithGoogle = '구글 로그인';

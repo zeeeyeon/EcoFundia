@@ -500,8 +500,12 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                       ),
                       child: LayoutBuilder(
                         builder: (context, constraints) {
+                          // 펀딩률(0.0 ~ 1.0)을 계산하고 0과 1 사이로 제한(clamp)합니다.
+                          // 이렇게 하면 100%를 초과해도 시각적으로는 100%까지만 표시됩니다.
+                          final clampedPercentage =
+                              (project.percentage / 100).clamp(0.0, 1.0);
                           final width =
-                              constraints.maxWidth * (project.percentage / 100);
+                              constraints.maxWidth * clampedPercentage;
                           return Row(
                             children: [
                               Container(
@@ -684,26 +688,26 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                                     color: AppColors.primary,
                                   ),
                                 ),
-                                if (_isStoryExpanded)
-                                  TextButton.icon(
-                                    onPressed: () {
-                                      setState(() {
-                                        _isStoryExpanded = false;
-                                      });
-                                    },
-                                    icon: const Icon(
-                                      Icons.arrow_upward,
-                                      size: 16,
-                                      color: AppColors.primary,
-                                    ),
-                                    label: Text(
-                                      '처음으로',
-                                      style: AppTextStyles.body2.copyWith(
-                                        color: AppColors.primary,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
+                                // if (_isStoryExpanded) // 확장 시 상단 '처음으로' 버튼 제거
+                                //   TextButton.icon(
+                                //     onPressed: () {
+                                //       setState(() {
+                                //         _isStoryExpanded = false;
+                                //       });
+                                //     },
+                                //     icon: const Icon(
+                                //       Icons.arrow_upward,
+                                //       size: 16,
+                                //       color: AppColors.primary,
+                                //     ),
+                                //     label: Text(
+                                //       '처음으로',
+                                //       style: AppTextStyles.body2.copyWith(
+                                //         color: AppColors.primary,
+                                //         fontWeight: FontWeight.bold,
+                                //       ),
+                                //     ),
+                                //   ),
                               ],
                             ),
                             const SizedBox(height: 2),
@@ -734,7 +738,8 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                                     child: CachedNetworkImage(
                                       imageUrl: project.storyFileUrl!,
                                       width: double.infinity,
-                                      fit: BoxFit.contain,
+                                      fit: BoxFit.cover,
+                                      alignment: Alignment.topCenter,
                                       memCacheWidth: 1024,
                                       memCacheHeight: 2048,
                                       fadeInDuration:
@@ -791,11 +796,14 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                                             '스토리 이미지 오류 세부 정보: ${error.toString()}');
                                         final errorString =
                                             error.toString().toLowerCase();
+                                        // WebGL 텍스처 크기 제한 또는 기타 렌더링 관련 오류 감지
                                         final isWebGLError = errorString
                                                 .contains('webgl') ||
                                             errorString.contains('texture') ||
                                             errorString.contains('range');
 
+                                        // 참고: 이미지 로드 실패의 근본 원인이 URL 자체(잘못된 주소, 서버 문제, CORS 등)일 수도 있습니다.
+                                        // URL이 올바른지 확인하는 것이 중요합니다.
                                         return Container(
                                           height: 200,
                                           color: AppColors.lightGrey
@@ -926,7 +934,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                               ),
                             ),
 
-                            // 확장된 상태에서 스크롤 위치가 내려가면 상단으로 이동 버튼 표시 (처음으로 버튼 대체)
+                            // 확장된 상태에서 하단 버튼 표시 (기능: 이미지 접기)
                             if (_isStoryExpanded)
                               Container(
                                 margin: const EdgeInsets.only(top: 16),
@@ -934,12 +942,14 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                                   child: ElevatedButton.icon(
                                     onPressed: () {
                                       setState(() {
-                                        _isStoryExpanded = false;
+                                        _isStoryExpanded = false; // 이미지 접기
                                       });
                                     },
-                                    icon: const Icon(Icons.arrow_upward,
+                                    icon: const Icon(
+                                        Icons
+                                            .arrow_upward, // 아이콘은 유지하거나 변경 고려 (e.g., Icons.unfold_less)
                                         size: 16),
-                                    label: const Text('처음으로'),
+                                    label: const Text('접기'), // 버튼 텍스트를 '접기'로 변경
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: AppColors.primary,
                                       foregroundColor: Colors.white,

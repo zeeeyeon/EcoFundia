@@ -116,7 +116,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 _buildTopInfoContainer(),
 
                 // 간격 추가
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSizes.spacingM),
 
                 // 프로젝트 캐러셀
                 SizedBox(
@@ -178,11 +178,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           // 로고 텍스트
           Text(
             AppStrings.appName,
-            style: AppTextStyles.heading2.copyWith(
+            style: AppTextStyles.heading1.copyWith(
               letterSpacing: 3,
               color: AppColors.primary,
             ),
           ),
+          // 타이틀과 시간 표시 사이 간격 추가 (가장 작은 패딩 값 사용)
+          // const SizedBox(height: AppSizes.paddingXXS),
+          const SizedBox(height: AppSizes.paddingXS),
 
           // 현재 시간 표시
           const CurrentTimeDisplay(),

@@ -25,7 +25,7 @@ final authServiceProvider = Provider<AuthService>((ref) {
         )
       : GoogleSignIn(
           scopes: ['email', 'profile'],
-          serverClientId: AppConfig.authConfig.serverClientId,
+          serverClientId: AppConfig.authConfig.webClientId,
         );
 
   // ApiService 주입 (중앙화된 Dio 인스턴스 사용)
