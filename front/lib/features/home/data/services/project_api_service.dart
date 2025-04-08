@@ -23,9 +23,6 @@ class ProjectApiService extends ProjectService {
       if (response.statusCode == 200) {
         final data = response.data;
 
-        // 전체 응답 구조 로깅
-        _logger.d('TOP 펀딩 API 응답 구조: $data');
-
         if (data['content'] != null && data['content'] is List) {
           final List<dynamic> projectsList = data['content'];
 
@@ -133,22 +130,15 @@ class ProjectApiService extends ProjectService {
 
       if (response.statusCode == 200) {
         final data = response.data;
-        _logger.d('Project detail API response: $data');
 
         if (data['content'] != null) {
           // API 응답 구조 처리
           final content = data['content'];
-          _logger.d('Project detail content: $content');
 
           // fundingInfo와 sellerInfo를 병합하여 단일 맵으로 만듦
           if (content['fundingInfo'] != null && content['sellerInfo'] != null) {
             final fundingInfo = content['fundingInfo'] as Map<String, dynamic>;
             final sellerInfo = content['sellerInfo'] as Map<String, dynamic>;
-
-            _logger.d('fundingInfo: $fundingInfo');
-            _logger.d('sellerInfo: $sellerInfo');
-            _logger.d(
-                'storyFileUrl from fundingInfo: ${fundingInfo['storyFileUrl']}');
 
             // 두 객체를 병합
             final projectData = {

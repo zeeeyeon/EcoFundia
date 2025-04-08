@@ -48,7 +48,7 @@ class FundingWebSocketService {
     }
   }
 
-  /// WebSocket 연결 시작 (토큰 없이도 연결 가능)
+  /// WebSocket 연결 초기화 및 구독 처리
   Future<void> connect() async {
     if (_isConnected) {
       LoggerUtil.d('WebSocket 이미 연결되어 있음');
@@ -56,34 +56,37 @@ class FundingWebSocketService {
     }
 
     if (_isReconnecting) {
-      LoggerUtil.d('WebSocket 재연결 중...');
+      LoggerUtil.d('WebSocket 재연결 중..');
       return;
     }
 
-    LoggerUtil.i('🔌 펀딩 WebSocket 연결 시작');
+    LoggerUtil.i('🔸 총액 펀딩 WebSocket 연결 시작');
 
     try {
-      // 토큰 없이 연결 (토탈 펀딩 구독에는 토큰이 필요 없음)
+      // 토큰 없이 연결 (총액 구독에는 토큰이 필요 없음)
       _webSocketManager.connect(
         onConnectCallback: _handleConnection,
         onError: _handleError,
       );
     } catch (e) {
-      LoggerUtil.e('❌ WebSocket 연결 시도 중 오류: $e');
+      LoggerUtil.e('🔺 WebSocket 연결 시도 중 오류: $e');
       _handleError(e);
     }
   }
 
   /// 연결 성공 시 호출되는 콜백
   void _handleConnection(StompFrame frame) {
-    LoggerUtil.i('✅ 펀딩 WebSocket 연결 성공');
+    LoggerUtil.i('🔹 총액 펀딩 WebSocket 연결 성공');
     _isConnected = true;
     _reconnectAttempts = 0; // 재연결 시도 횟수 초기화
 
+    // 연결 상태 콜백 호출
     if (onConnectionStatusChanged != null) {
       onConnectionStatusChanged!(_isConnected);
     }
 
+    // 중요: 연결이 완료된 이후에만 구독 시도
+    // 이전 구독 시도가 있었다면 정리
     _subscribeToFundingUpdates();
   }
 
@@ -100,44 +103,24 @@ class FundingWebSocketService {
     _scheduleReconnect();
   }
 
-  /// 자동 재연결 스케줄링
-  void _scheduleReconnect() {
-    if (_isReconnecting || _reconnectAttempts >= _maxReconnectAttempts) {
-      if (_reconnectAttempts >= _maxReconnectAttempts) {
-        LoggerUtil.w('⚠️ 최대 재연결 시도 횟수($_maxReconnectAttempts)에 도달했습니다.');
-      }
+  /// 펀딩 업데이트 구독
+  void _subscribeToFundingUpdates() {
+    // 연결 상태 확인
+    if (!_isConnected || _webSocketManager.stompClient == null) {
+      LoggerUtil.w('⚠️ WebSocket이 연결되지 않아 구독을 연기합니다');
       return;
     }
 
-    _isReconnecting = true;
-    _reconnectAttempts++;
-
-    LoggerUtil.d(
-        '🔄 WebSocket 재연결 스케줄링... (시도 $_reconnectAttempts/$_maxReconnectAttempts)');
-
-    // 기존 타이머 취소
-    _reconnectTimer?.cancel();
-
-    // 새 타이머 설정
-    _reconnectTimer =
-        Timer(const Duration(seconds: _reconnectIntervalSeconds), () async {
-      LoggerUtil.d('🔄 WebSocket 재연결 시도 $_reconnectAttempts...');
-      _isReconnecting = false;
-      await connect();
-    });
-  }
-
-  /// 펀딩 업데이트 구독
-  void _subscribeToFundingUpdates() {
     // 서버에서 지정한 토픽 주소를 사용
     const destination = '/topic/totalAmount';
 
-    _webSocketManager.stompClient?.subscribe(
+    // 안전한 구독 메서드 사용
+    _webSocketManager.safeSubscribe(
       destination: destination,
       callback: _handleFundingUpdate,
     );
 
-    LoggerUtil.d('🔄 펀딩 업데이트 구독 시작: $destination');
+    LoggerUtil.d('🔸 펀딩 총액 업데이트 구독 완료: $destination');
   }
 
   /// 펀딩 업데이트 처리
@@ -214,6 +197,38 @@ class FundingWebSocketService {
     await Future.delayed(const Duration(milliseconds: 500));
     _reconnectAttempts = 0;
     await connect();
+  }
+
+  /// 자동 재연결 스케줄링
+  void _scheduleReconnect() {
+    if (_isReconnecting || _reconnectAttempts >= _maxReconnectAttempts) {
+      if (_reconnectAttempts >= _maxReconnectAttempts) {
+        LoggerUtil.w('⚠️ 최대 재연결 시도 횟수($_maxReconnectAttempts)에 도달했습니다.');
+      }
+      return;
+    }
+
+    _isReconnecting = true;
+    _reconnectAttempts++;
+
+    LoggerUtil.d(
+        '🔄 WebSocket 재연결 스케줄링... (시도 $_reconnectAttempts/$_maxReconnectAttempts)');
+
+    // 기존 타이머 취소
+    _reconnectTimer?.cancel();
+
+    // 새로운 타이머 설정 (지수 백오프 적용)
+    final delay = _reconnectIntervalSeconds * _reconnectAttempts;
+    _reconnectTimer = Timer(Duration(seconds: delay), () async {
+      LoggerUtil.d('🔄 WebSocket 재연결 시도 $_reconnectAttempts...');
+      _isReconnecting = false;
+
+      // 재연결 시도 전 기존 연결 정리
+      _webSocketManager.disconnect();
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      await connect(); // 재연결 시도
+    });
   }
 }
 

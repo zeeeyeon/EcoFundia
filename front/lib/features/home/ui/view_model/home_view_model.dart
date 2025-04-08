@@ -116,10 +116,15 @@ class HomeViewModel extends StateNotifier<HomeState> {
       // WebSocket 펀딩 금액 업데이트 콜백 설정
       _webSocketService.onTotalFundUpdated = _handleWebSocketUpdate;
 
+      // 연결 상태 정보 갱신
+      state =
+          state.copyWith(isWebSocketConnected: _webSocketService.isConnected);
+
       // WebSocket 연결 시작
+      // 중요: connect 내부에서 onConnect 이후에 구독이 수행됨
       await _webSocketService.connect();
 
-      LoggerUtil.i('🔌 WebSocket 실시간 업데이트 시작됨');
+      LoggerUtil.i('🔌 WebSocket 실시간 업데이트 초기화 완료');
     } catch (e) {
       LoggerUtil.e('❌ WebSocket 초기화 오류: $e');
 
@@ -147,8 +152,23 @@ class HomeViewModel extends StateNotifier<HomeState> {
         // WebSocket 연결 끊김 시 폴링 시작
         LoggerUtil.d('❌ WebSocket 연결 끊김 - 폴링 시작');
         _startPeriodicRefresh();
+
+        // 일정 시간 후 자동 재연결 시도
+        _scheduleWebSocketReconnect();
       }
     }
+  }
+
+  // 자동 WebSocket 재연결 시도
+  void _scheduleWebSocketReconnect() {
+    if (_webSocketService.isConnected) return;
+
+    Future.delayed(const Duration(seconds: 10), () {
+      if (!_webSocketService.isConnected && mounted) {
+        LoggerUtil.i('🔄 ViewModel에서 WebSocket 재연결 시도');
+        _webSocketService.reconnect();
+      }
+    });
   }
 
   /// WebSocket 업데이트 핸들러
@@ -263,7 +283,18 @@ class HomeViewModel extends StateNotifier<HomeState> {
   Future<void> reconnectWebSocket() async {
     try {
       LoggerUtil.i('🔄 WebSocket 수동 재연결 시도');
-      await _webSocketService.reconnect();
+
+      // 기존 연결 정리
+      _webSocketService.disconnect();
+
+      // 상태 업데이트
+      state = state.copyWith(isWebSocketConnected: false);
+
+      // 잠시 대기 후 재연결
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      // 재연결 시작 (내부에서 onConnect 후 구독함)
+      await _webSocketService.connect();
     } catch (e) {
       LoggerUtil.e('❌ WebSocket 재연결 실패: $e');
       // 연결 실패 시 폴링 확인
