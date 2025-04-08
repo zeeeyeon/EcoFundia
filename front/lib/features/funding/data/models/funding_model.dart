@@ -35,21 +35,26 @@ class FundingModel {
 
   factory FundingModel.fromJson(Map<String, dynamic> json) {
     return FundingModel(
-      fundingId: json['fundingId'],
-      sellerId: json['sellerId'],
-      title: json['title'],
-      description: json['description'],
-      storyFileUrl: json['storyFileUrl'],
-      imageUrls: List<String>.from(json['imageUrls']),
-      price: json['price'],
-      quantity: json['quantity'],
-      targetAmount: json['targetAmount'],
-      currentAmount: json['currentAmount'],
-      startDate: DateTime.parse(json['startDate']),
-      endDate: DateTime.parse(json['endDate']),
-      status: json['status'],
-      category: json['category'],
-      rate: json['rate'],
+      fundingId: json['fundingId'] ?? 0,
+      sellerId: json['sellerId'] ?? 0,
+      title: json['title'] ?? '',
+      description: json['description'] ?? '',
+      storyFileUrl: json['storyFileUrl'] ?? '',
+      imageUrls:
+          json['imageUrls'] != null ? List<String>.from(json['imageUrls']) : [],
+      price: json['price'] ?? 0,
+      quantity: json['quantity'] ?? 0,
+      targetAmount: json['targetAmount'] ?? 0,
+      currentAmount: json['currentAmount'] ?? 0,
+      startDate: json['startDate'] != null
+          ? DateTime.parse(json['startDate'])
+          : DateTime.now(),
+      endDate: json['endDate'] != null
+          ? DateTime.parse(json['endDate'])
+          : DateTime.now(),
+      status: json['status'] ?? '',
+      category: json['category'] ?? '',
+      rate: json['rate'] ?? 0,
     );
   }
 }

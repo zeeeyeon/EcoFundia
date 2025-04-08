@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../data/models/funding_model.dart';
 
 class FundingCard extends StatelessWidget {
@@ -18,21 +19,28 @@ class FundingCard extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                funding.imageUrls.first,
-                width: 120,
-                height: 90,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    width: 120,
-                    height: 90,
-                    color: Colors.grey.shade200,
-                    child: const Icon(Icons.image_not_supported,
-                        color: Colors.grey),
-                  );
-                },
-              ),
+              child: funding.imageUrls.isNotEmpty
+                  ? Image.network(
+                      funding.imageUrls.first,
+                      width: 120,
+                      height: 90,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          width: 120,
+                          height: 90,
+                          color: Colors.grey.shade200,
+                          child: const Icon(Icons.image_not_supported,
+                              color: Colors.grey),
+                        );
+                      },
+                    )
+                  : Container(
+                      width: 120,
+                      height: 90,
+                      color: Colors.grey.shade200,
+                      child: const Icon(Icons.image, color: Colors.grey),
+                    ),
             ),
             const SizedBox(height: 10),
             Text(

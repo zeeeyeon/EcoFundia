@@ -1,10 +1,14 @@
+import 'dart:async'; // ✅ debounce용 Timer 추가
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/core/ui/widgets/custom_app_bar.dart';
+import 'package:front/features/funding/ui/view_model/search_special_view_model.dart';
+import 'package:front/features/funding/ui/view_model/search_suggest_view_model.dart'; // ✅ 자동완성 ViewModel
+import 'package:front/features/funding/ui/view_model/search_view_model.dart';
 import 'package:front/features/funding/ui/widgets/search_category_chip.dart';
 import 'package:front/features/funding/ui/widgets/search_funding_list.dart';
-import 'package:front/features/funding/ui/view_model/search_view_model.dart';
-import 'package:front/features/funding/ui/view_model/search_special_view_model.dart';
+import 'package:front/features/funding/ui/widgets/search_suggestion_list.dart'; // ✅ 자동완성 리스트 위젯
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
@@ -17,6 +21,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   String? _selectedTopic;
+  Timer? _debounce; // ✅ debounce 타이머 추가
 
   @override
   void initState() {
@@ -46,6 +51,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   void dispose() {
     _scrollController.dispose();
     _searchController.dispose();
+    _debounce?.cancel(); // ✅ debounce 해제
     super.dispose();
   }
 
@@ -55,6 +61,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         ? ref.watch(specialFundingProvider(_selectedTopic!))
         : null;
     final resultState = ref.watch(searchResultProvider);
+    final suggestions = ref.watch(searchSuggestProvider); // ✅ 자동완성 state
 
     return Scaffold(
       appBar: CustomAppBar(
@@ -63,12 +70,33 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         isSearchEnabled: true,
         searchController: _searchController,
         onSearchChanged: (value) {
-          ref.read(searchResultProvider.notifier).search(value);
+          _debounce?.cancel();
+          _debounce = Timer(const Duration(milliseconds: 300), () {
+            ref.read(searchSuggestProvider.notifier).fetch(value);
+            ref
+                .read(searchResultProvider.notifier)
+                .search(value); // ✅ 기존 검색도 유지
+          });
         },
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const SizedBox(height: 12),
+          // ✅ 자동완성 리스트 추가
+          if (suggestions.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: SearchSuggestionList(
+                suggestions: suggestions,
+                onTap: (selected) {
+                  _searchController.text = selected;
+                  ref.read(searchResultProvider.notifier).search(selected);
+                  ref.read(searchSuggestProvider.notifier).clear();
+                  FocusScope.of(context).unfocus(); // 키보드 내리기
+                },
+              ),
+            ),
           const SizedBox(height: 12),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),

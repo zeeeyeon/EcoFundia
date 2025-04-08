@@ -1,6 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:front/core/services/chat_room_storage_service.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/themes/app_colors.dart';
@@ -325,27 +324,10 @@ class _FundingDetailCardState extends State<FundingDetailCard> {
       width: double.infinity,
       child: ElevatedButton.icon(
         onPressed: () async {
-          // 1️⃣ 채팅방 로컬 저장
-          await ChatRoomStorageService.addJoinedFunding(
-            fundingId,
-            fundingTitle,
-          );
-          print('✅ 채팅방 추가 저장 완료: $fundingId - $fundingTitle');
-
-          // 2️⃣ 채팅방으로 이동 & 결과 대기
-          final result = await context.push(
+          await context.push(
             '/chat/room/$fundingId',
-            extra: {'title': fundingTitle}, // ✅ 여전히 title은 넘김!
+            // extra: {'title': fundingTitle}, // ✅ 여전히 title은 넘김!
           );
-
-          // 3️⃣ 채팅방에서 돌아왔을 때 새로고침
-          if (result == 'refresh') {
-            if (context.mounted) {
-              // chat_screen.dart 내에서 _loadChatRooms() 호출 필요
-              // 예: ref.read(chatRoomsNotifierProvider.notifier).load()
-              print('🔁 채팅방 목록 새로고침 필요!');
-            }
-          }
         },
         icon: const Icon(Icons.chat_bubble_outline),
         label: const Text(
