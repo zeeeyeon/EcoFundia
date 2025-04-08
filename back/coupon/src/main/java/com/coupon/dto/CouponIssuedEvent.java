@@ -8,12 +8,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDateTime;
 
 public record CouponIssuedEvent(
-        @JsonProperty("userId") Long userId,
-        @JsonProperty("couponCode") Long couponCode,
+        @JsonProperty("userId") Integer userId,
+        @JsonProperty("couponCode") Integer couponCode,
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
         @JsonProperty("issuedAt") LocalDateTime issuedAt
 ) {
-    public static CouponIssuedEvent of(Long userId, Long couponCode, LocalDateTime issuedAt) {
+    public static CouponIssuedEvent of(Integer userId, Integer couponCode, LocalDateTime issuedAt) {
         return new CouponIssuedEvent(userId, couponCode, issuedAt);
     }
 
