@@ -31,7 +31,6 @@ public class CouponKafkaConsumer {
                 log.warn("이미 발급된 쿠폰입니다 - userId: {}, couponCode: {}", event.userId(), event.couponCode());
                 return;
             }
-
             CouponIssued issued = event.toEntity(coupon);
             couponIssuedRepository.save(issued);
             log.info("쿠폰 DB 저장 완료 - userId: {}, couponCode: {}", event.userId(), event.couponCode());
