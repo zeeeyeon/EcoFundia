@@ -35,6 +35,24 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
     super.initState();
     _wsManager = ref.read(websocketManagerProvider);
     _initializeChatRoom();
+
+    // ✅ 메시지 조회 요청
+    Future.microtask(() {
+      ref
+          .read(chatRoomViewModelProvider(widget.fundingId).notifier)
+          .fetchMessages();
+    });
+
+    // ✅ 스크롤 리스너 등록
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels <=
+          _scrollController.position.minScrollExtent + 50) {
+        // 거의 맨 위에 닿았을 때
+        ref
+            .read(chatRoomViewModelProvider(widget.fundingId).notifier)
+            .fetchMoreMessages();
+      }
+    });
   }
 
   Future<void> _initializeChatRoom() async {

@@ -6,11 +6,16 @@ class ChatService {
 
   ChatService(this._apiService);
 
-  /// 채팅 메시지 조회
-  Future<List<ChatMessage>> fetchMessages(int fundingId) async {
+  /// 채팅 메시지 조회 (before: 가장 오래된 메시지 이전)
+  Future<List<ChatMessage>> fetchMessages({
+    required int fundingId,
+    required DateTime before,
+  }) async {
     try {
-      final response =
-          await _apiService.get('/api/user/chat/$fundingId/messages');
+      final response = await _apiService.get(
+        '/chat/$fundingId/messages',
+        queryParameters: {'before': before.toIso8601String()},
+      );
 
       if (response.statusCode == 200) {
         final content = response.data['content'] as List<dynamic>;

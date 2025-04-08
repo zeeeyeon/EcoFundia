@@ -8,8 +8,11 @@ class ChatRepository {
 
   ChatRepository(this._chatService, this._wsManager);
 
-  /// 채팅 메시지 가져오기 (ViewModel에서 호출)
-  Future<List<ChatMessage>> getMessages(int fundingId) {
-    return _chatService.fetchMessages(fundingId);
+  /// 채팅 메시지 가져오기 (before 시간 기준 이전 메시지)
+  Future<List<ChatMessage>> getMessages({
+    required int fundingId,
+    required DateTime before,
+  }) {
+    return _chatService.fetchMessages(fundingId: fundingId, before: before);
   }
 }
