@@ -83,4 +83,15 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 
     }
 
+    @Override
+    public void updateLastMessage(int fundingId, String message, LocalDateTime at) {
+        Query query = new Query(Criteria.where("fundingId").is(fundingId));
+
+        Update update = new Update()
+                .set("lastMessage", message)
+                .set("lastMessageAt", at);
+
+        mongoTemplate.updateFirst(query, update, ChatRoom.class);
+    }
+
 }
