@@ -2,10 +2,12 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/core/providers/websocket_provider.dart';
 import 'package:front/core/services/storage_service.dart';
 import 'package:front/core/services/websocket_manager.dart';
 import 'package:front/core/themes/app_colors.dart';
-import 'package:front/core/providers/websocket_provider.dart';
+import 'package:front/features/chat/data/models/chat_model.dart';
+import 'package:front/features/chat/ui/view_model/chat_view_model.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
 
 class ChatRoomScreen extends ConsumerStatefulWidget {
@@ -25,42 +27,41 @@ class ChatRoomScreen extends ConsumerStatefulWidget {
 class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final List<Map<String, dynamic>> _messages = [];
-
   late final WebSocketManager _wsManager;
+  late int _userId;
 
   @override
   void initState() {
     super.initState();
     _wsManager = ref.read(websocketManagerProvider);
-    _subscribeToChatRoom();
+    _initializeChatRoom();
   }
 
-  Future<void> _subscribeToChatRoom() async {
+  Future<void> _initializeChatRoom() async {
     final token = await StorageService.getToken();
     final userIdStr = await StorageService.getUserId();
-    final userId = int.tryParse(userIdStr ?? '0') ?? 0;
+    _userId = int.tryParse(userIdStr ?? '0') ?? 0;
 
     if (!_wsManager.isConnected) {
       _wsManager.connect(
         userToken: token!,
         onConnectCallback: (_) {
           if (!mounted) return;
-          _subscribe(userId);
+          _subscribe();
         },
       );
     } else {
-      _subscribe(userId);
+      _subscribe();
     }
   }
 
-  void _subscribe(int userId) {
+  void _subscribe() {
     final destination = '/sub/chat/${widget.fundingId}';
-    debugPrint('📡 채팅방 구독 요청 → $destination (userId: $userId)');
+    debugPrint('📡 채팅방 구독 요청 → $destination (userId: $_userId)');
 
     _wsManager.subscribeToRoom(
       fundingId: widget.fundingId,
-      userId: userId,
+      userId: _userId,
       onMessage: (StompFrame frame) {
         if (frame.body == null) {
           debugPrint('⚠️ 수신된 메시지 body가 null입니다.');
@@ -76,22 +77,20 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
           final nickname = data['nickname'] ?? '익명';
           final content = data['content'];
           final createdAtString = data['createdAt'];
-          final fromMe = senderId == userId;
-
-          // ✅ createdAt 파싱
           final createdAt = createdAtString != null
               ? DateTime.tryParse(createdAtString)
-              : null;
+              : DateTime.now();
 
-          if (!mounted) return;
-          setState(() {
-            _messages.add({
-              'fromMe': fromMe,
-              'nickname': nickname,
-              'text': content,
-              'createdAt': createdAt, // ⏱️ 시간 정보 추가
-            });
-          });
+          final newMessage = ChatMessage(
+            senderId: senderId,
+            nickname: nickname,
+            content: content,
+            createdAt: createdAt!,
+          );
+
+          ref
+              .read(chatRoomViewModelProvider(widget.fundingId).notifier)
+              .addMessage(newMessage);
         } catch (e) {
           debugPrint('❌ JSON 파싱 오류: $e');
         }
@@ -103,22 +102,18 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
 
-    final userIdStr = await StorageService.getUserId();
-    final nickname = await StorageService.getNickname(); // 닉네임 가져오기
-    final userId = int.tryParse(userIdStr ?? '0') ?? 0;
+    final nickname = await StorageService.getNickname();
 
-    // 서버에 전송
     _wsManager.sendMessageToRoom(
       fundingId: widget.fundingId,
-      senderId: userId,
+      senderId: _userId,
       nickname: nickname ?? '익명',
       content: text,
-      createdAt: DateTime.now(), // 현재 시간 전송
+      createdAt: DateTime.now(),
     );
 
     _messageController.clear();
 
-    // 스크롤 아래로
     Future.delayed(const Duration(milliseconds: 100), () {
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
@@ -137,6 +132,8 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final messages = ref.watch(chatRoomViewModelProvider(widget.fundingId));
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -152,18 +149,13 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
             child: ListView.builder(
               controller: _scrollController,
               padding: const EdgeInsets.all(16),
-              itemCount: _messages.length,
+              itemCount: messages.length,
               itemBuilder: (context, index) {
-                final msg = _messages[index];
-                final fromMe = msg['fromMe'] as bool;
-                final text = msg['text'] as String;
-                final nickname = msg['nickname'] as String?;
-                final createdAt = msg['createdAt'] as DateTime?;
+                final msg = messages[index];
+                final fromMe = msg.senderId == _userId;
 
-                // 시간 포맷팅 (예: 오후 3:24)
-                final formattedTime = createdAt != null
-                    ? TimeOfDay.fromDateTime(createdAt).format(context)
-                    : null;
+                final formattedTime =
+                    TimeOfDay.fromDateTime(msg.createdAt).format(context);
 
                 return Align(
                   alignment:
@@ -173,11 +165,11 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                         ? CrossAxisAlignment.end
                         : CrossAxisAlignment.start,
                     children: [
-                      if (!fromMe && nickname != null)
+                      if (!fromMe && msg.nickname.isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.only(left: 4, bottom: 2),
                           child: Text(
-                            nickname,
+                            msg.nickname,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.grey[700],
@@ -201,25 +193,24 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                           ),
                         ),
                         child: Text(
-                          text,
+                          msg.content,
                           style: TextStyle(
                             color: fromMe ? Colors.white : Colors.black87,
                             fontSize: 14,
                           ),
                         ),
                       ),
-                      if (formattedTime != null)
-                        Padding(
-                          padding:
-                              const EdgeInsets.only(top: 2, left: 8, right: 8),
-                          child: Text(
-                            formattedTime,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.grey[500],
-                            ),
+                      Padding(
+                        padding:
+                            const EdgeInsets.only(top: 2, left: 8, right: 8),
+                        child: Text(
+                          formattedTime,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey[500],
                           ),
                         ),
+                      ),
                     ],
                   ),
                 );

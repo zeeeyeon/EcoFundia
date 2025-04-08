@@ -63,7 +63,7 @@ class WebSocketManager {
   }) {
     final destination = '/sub/chat/$fundingId';
 
-    // ✅ 기존 구독이 있다면 해제
+    // ✅ 기존 구독이 있다면 해제 후 새로 등록하여 중복 구독 방지
     if (_unsubscribeMap.containsKey(fundingId)) {
       print('🔁 기존 구독 해제: $destination');
       _unsubscribeMap[fundingId]?.call();
@@ -106,16 +106,6 @@ class WebSocketManager {
       }),
       headers: {'content-type': 'application/json'},
     );
-  }
-
-  void leaveLocalSubscription(int fundingId) {
-    final destination = '/sub/chat/$fundingId';
-
-    if (_unsubscribeMap.containsKey(fundingId)) {
-      print('👋 구독 해제: $destination');
-      _unsubscribeMap[fundingId]?.call();
-      _unsubscribeMap.remove(fundingId);
-    }
   }
 
   /// 전체 구독 해제 및 WebSocket 연결 종료

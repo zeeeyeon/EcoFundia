@@ -5,7 +5,6 @@ import 'package:front/core/services/chat_room_storage_service.dart';
 import 'package:front/core/services/storage_service.dart';
 import 'package:front/core/themes/app_colors.dart';
 import 'package:front/core/ui/widgets/custom_app_bar.dart';
-import 'package:front/features/chat/providers/chat_repository_provider.dart';
 import 'package:go_router/go_router.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
@@ -65,20 +64,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     setState(() {
       _chatRooms = rooms;
     });
-  }
-
-  Future<void> _leaveRoom(int fundingId) async {
-    final repo = ref.read(chatRepositoryProvider);
-
-    final success = await repo.leaveChat(fundingId);
-    if (success) {
-      await ChatRoomStorageService.removeJoinedFunding(fundingId);
-      await _loadChatRooms();
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('채팅방 나가기에 실패했습니다.')),
-      );
-    }
   }
 
   @override
@@ -141,10 +126,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                       ],
                                     ),
                                   );
-
-                                  if (confirm == true) {
-                                    await _leaveRoom(room['fundingId']);
-                                  }
                                 },
                               ),
                               const Icon(Icons.chevron_right,
