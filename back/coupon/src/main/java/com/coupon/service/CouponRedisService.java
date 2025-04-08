@@ -2,9 +2,11 @@ package com.coupon.service;
 
 import com.coupon.common.exception.CustomException;
 import com.coupon.dto.CouponIssuedEvent;
+import com.coupon.entity.Coupon;
 import com.coupon.entity.constants.CouponPolicy;
 import com.coupon.kafka.CouponKafkaProducer;
 import com.coupon.repository.CouponIssuedRepository;
+import com.coupon.repository.CouponRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,8 +26,17 @@ public class CouponRedisService {
 
     private final CouponExecutor couponExecutor;
     private final CouponKafkaProducer couponKafkaProducer;
+    private final CouponRepository couponRepository;
+    private final CouponIssuedRepository couponIssuedRepository;
 
     public void issueCoupon(int userId, int couponCode) throws IOException {
+        Coupon coupon = couponRepository.findByCouponCode(couponCode)
+                .orElseThrow(() -> new CustomException(COUPON_NOT_FOUND));
+
+        coupon.validateIssuable();
+
+        if (couponIssuedRepository.existsByUserIdAndCoupon(userId, coupon)) throw new CustomException(COUPON_ALREADY_ISSUED);
+
         LocalTime now = LocalTime.now(ZoneId.of("Asia/Seoul"));
         if (now.isBefore(LocalTime.of(10, 0))) throw new CustomException(COUPON_NOT_YET_TIME);
 
