@@ -1,5 +1,6 @@
 import 'package:front/core/services/websocket_manager.dart';
 import 'package:front/features/chat/data/models/chat_model.dart';
+import 'package:front/features/chat/data/models/chat_room_model.dart';
 import 'package:front/features/chat/data/services/chat_service.dart';
 
 class ChatRepository {
@@ -14,5 +15,9 @@ class ChatRepository {
     required DateTime before,
   }) {
     return _chatService.fetchMessages(fundingId: fundingId, before: before);
+  }
+
+  Future<List<ChatRoom>> getChatRooms() {
+    return _chatService.fetchChatRooms();
   }
 }

@@ -1,5 +1,6 @@
 import 'package:front/core/services/api_service.dart';
 import 'package:front/features/chat/data/models/chat_model.dart';
+import 'package:front/features/chat/data/models/chat_room_model.dart';
 
 class ChatService {
   final ApiService _apiService;
@@ -25,6 +26,22 @@ class ChatService {
       }
     } catch (e) {
       print('❌ [ChatService] 메시지 조회 실패: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<ChatRoom>> fetchChatRooms() async {
+    try {
+      final response = await _apiService.get('/notification/chat/user');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> content = response.data['content'];
+        return content.map((json) => ChatRoom.fromJson(json)).toList();
+      } else {
+        throw Exception('채팅방 리스트 조회 실패: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ [ChatService] 채팅방 리스트 조회 실패: $e');
       rethrow;
     }
   }
