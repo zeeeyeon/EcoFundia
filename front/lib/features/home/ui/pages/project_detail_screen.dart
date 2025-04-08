@@ -236,8 +236,53 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
   Widget _buildContent(
       BuildContext context, Size screenSize, ProjectEntity project) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.white,
+      persistentFooterButtons: [
+        Container(
+          color: AppColors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: ElevatedButton(
+            onPressed: () async {
+              final isLoggedIn = ref.read(isLoggedInProvider);
+              if (!isLoggedIn) {
+                LoggerUtil.d('💰 하단 펀딩하기 버튼: 로그인 필요');
+              }
+              final isAuthenticated = await AuthUtils.checkAuthAndShowModal(
+                context,
+                ref,
+                AuthRequiredFeature.funding,
+              );
+              if (!isAuthenticated) {
+                LoggerUtil.d('💰 하단 펀딩하기 버튼: 인증 필요 → 모달 표시됨');
+                return;
+              }
+              LoggerUtil.d('💰 하단 펀딩하기 버튼: 인증 성공 → 펀딩 페이지 이동');
+              if (context.mounted) {
+                context.push('/payment/${project.id}', extra: project);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text('펀딩 페이지로 이동합니다.'),
+                      duration: Duration(seconds: 2)),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(double.infinity, 50),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              elevation: 2,
+            ),
+            child: const Text(
+              '펀딩하기',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+      ],
       body: SafeArea(
+        bottom: false,
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
@@ -533,90 +578,31 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    // 펀딩 금액 및 버튼
+                    // 펀딩 금액 및 버튼 -> 펀딩 금액 오른쪽 정렬
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.end, // 오른쪽 정렬
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        Row(
+                          // 가로 배치를 위해 Row 추가
                           children: [
                             Text(
-                              '펀딩 금액',
-                              style: AppTextStyles.caption.copyWith(
-                                color: AppColors.grey,
+                              '펀딩 금액', // 레이블
+                              style: AppTextStyles.body1.copyWith(
+                                color: AppColors.darkGrey,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(width: 8), // 레이블과 금액 사이 간격
                             Text(
-                              project.price,
+                              project.price, // 금액
                               style: AppTextStyles.heading3.copyWith(
                                 color: AppColors.primary,
                                 fontWeight: FontWeight.bold,
+                                fontSize: 22, // 금액 폰트 크기 조정 가능
                               ),
                             ),
                           ],
-                        ),
-                        ElevatedButton(
-                          onPressed: () async {
-                            // 로그인 상태 체크
-                            // 동기 Provider로 로그인 상태 먼저 확인
-                            final isLoggedIn = ref.read(isLoggedInProvider);
-
-                            if (!isLoggedIn) {
-                              LoggerUtil.d('💰 펀딩하기 버튼: 로그인 필요 (동기 상태 체크)');
-                            }
-
-                            // 로그인 모달 표시 로직 (필요시)
-                            final isAuthenticated =
-                                await AuthUtils.checkAuthAndShowModal(
-                              context,
-                              ref,
-                              AuthRequiredFeature.funding,
-                            );
-
-                            if (!isAuthenticated) {
-                              LoggerUtil.d('💰 펀딩하기 버튼: 인증 필요 → 로그인 모달 표시됨');
-                              return; // 인증되지 않으면 펀딩 기능 실행하지 않음
-                            }
-
-                            // 인증된 경우 펀딩 로직 실행
-                            LoggerUtil.d('💰 펀딩하기 버튼: 인증 성공 → 펀딩 페이지로 이동');
-
-                            // 펀딩 페이지로 이동 (프로젝트 데이터 전달)
-                            if (context.mounted) {
-                              context.push(
-                                '/payment/${project.id}',
-                                extra: project, // ProjectEntity 객체 전달
-                              );
-
-                              // 스낵바로 안내
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('펀딩 페이지로 이동합니다.'),
-                                  duration: Duration(seconds: 2),
-                                ),
-                              );
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 16,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 2,
-                          ),
-                          child: const Text(
-                            '펀딩하기',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
                         ),
                       ],
                     ),
@@ -633,6 +619,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
               ),
             ),
 
+            // Project Introduction section
             SliverToBoxAdapter(
               child: Container(
                 margin: const EdgeInsets.symmetric(vertical: 12),
@@ -665,10 +652,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    Text(
-                      '이 프로젝트는 ${project.title}로, 혁신적인 아이디어와 기술을 통해 사용자들에게 새로운 가치를 제공합니다. 저희 팀은 열정과 전문성을 바탕으로 이 프로젝트를 성공적으로 완수하기 위해 최선을 다하고 있습니다.\n\n여러분의 지원과 관심이 이 프로젝트의 성공에 큰 힘이 됩니다. 함께해 주셔서 감사합니다!',
-                      style: AppTextStyles.body1,
-                    ),
+                    // 고정된 프로젝트 소개 문구 제거
 
                     // 스토리 이미지 표시 부분 - 로깅 추가
                     if (project.storyFileUrl != null &&
@@ -688,38 +672,13 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                                     color: AppColors.primary,
                                   ),
                                 ),
-                                // if (_isStoryExpanded) // 확장 시 상단 '처음으로' 버튼 제거
-                                //   TextButton.icon(
-                                //     onPressed: () {
-                                //       setState(() {
-                                //         _isStoryExpanded = false;
-                                //       });
-                                //     },
-                                //     icon: const Icon(
-                                //       Icons.arrow_upward,
-                                //       size: 16,
-                                //       color: AppColors.primary,
-                                //     ),
-                                //     label: Text(
-                                //       '처음으로',
-                                //       style: AppTextStyles.body2.copyWith(
-                                //         color: AppColors.primary,
-                                //         fontWeight: FontWeight.bold,
-                                //       ),
-                                //     ),
-                                //   ),
                               ],
                             ),
                             const SizedBox(height: 2),
-                            // URL 디버깅 표시
-                            Text(
-                              '디버그 URL: ${project.storyFileUrl}',
-                              style: AppTextStyles.caption.copyWith(
-                                color: AppColors.grey,
-                                fontSize: 10,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
+                            // Debug URL removed
+                            const SizedBox(
+                                height:
+                                    8), // Adjusted spacing after removing debug URL
                             ClipRRect(
                               borderRadius: BorderRadius.circular(8),
                               child: Column(
@@ -737,15 +696,17 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                                     clipBehavior: Clip.hardEdge,
                                     child: CachedNetworkImage(
                                       imageUrl: project.storyFileUrl!,
-                                      width: double.infinity,
-                                      fit: BoxFit.cover,
+                                      imageBuilder: (context, imageProvider) =>
+                                          Image(
+                                        image: imageProvider,
+                                        fit: BoxFit.cover,
+                                        alignment: Alignment.topCenter,
+                                        filterQuality: FilterQuality.high,
+                                        width: double.infinity,
+                                      ),
                                       alignment: Alignment.topCenter,
-                                      memCacheWidth: 1024,
-                                      memCacheHeight: 2048,
                                       fadeInDuration:
                                           const Duration(milliseconds: 300),
-                                      maxWidthDiskCache: 1024,
-                                      maxHeightDiskCache: 2048,
                                       httpHeaders: const {
                                         'Accept':
                                             'image/webp,image/*,*/*;q=0.8',
@@ -1037,7 +998,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
           ),
           const SizedBox(height: 20),
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // 판매자 프로필 이미지
               CircleAvatar(
@@ -1062,111 +1023,88 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      project.sellerName ?? '판매자 정보 없음',
-                      style: AppTextStyles.heading4.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    if (project.sellerDescription != null &&
-                        project.sellerDescription!.isNotEmpty)
-                      Text(
-                        project.sellerDescription!,
-                        style: AppTextStyles.body2.copyWith(
-                          color: AppColors.darkGrey,
-                        ),
-                      ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.location_on_outlined,
-                          size: 16,
-                          color: AppColors.grey,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          project.location ?? '위치 정보 없음',
-                          style: AppTextStyles.caption.copyWith(
-                            color: AppColors.grey,
+                    // 판매자 이름 + 아이콘 Row로 감싸고 InkWell 추가
+                    InkWell(
+                      onTap: () {
+                        // 판매자 상세 페이지로 이동
+                        context.push('/seller/${project.sellerId}');
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                                '${project.sellerName ?? '판매자'} 페이지로 이동합니다.'),
+                            duration: const Duration(seconds: 1),
                           ),
-                        ),
-                      ],
+                        );
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min, // Row 크기를 내용에 맞춤
+                        children: [
+                          Flexible(
+                            child: Text(
+                              project.sellerName ?? '판매자 정보 없음',
+                              style: AppTextStyles.heading4.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                              overflow: TextOverflow.ellipsis, // 이름 길 경우 대비
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
-              // 판매자 문의 버튼
-              ElevatedButton.icon(
-                onPressed: () {
-                  // 판매자 문의 기능
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('판매자 문의 기능은 준비 중입니다.'),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                },
-                icon: const Icon(
-                  Icons.message_outlined,
-                  size: 18,
-                ),
-                label: const Text('문의하기'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.white,
-                  foregroundColor: AppColors.primary,
-                  elevation: 0,
-                  side: const BorderSide(
-                    color: AppColors.primary,
-                    width: 1,
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 16),
-            child: OutlinedButton(
-              onPressed: () {
-                // 판매자 상세 페이지로 이동
-                context.push('/seller/${project.sellerId}');
-
-                // 스낵바로 이동 알림
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('${project.sellerName} 판매자 페이지로 이동합니다.'),
-                    duration: const Duration(seconds: 1),
-                  ),
-                );
-              },
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.grey,
-                side: const BorderSide(color: AppColors.lightGrey),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.info_outline,
+              // 채팅하기 버튼 -> 오른쪽 상단으로 이동
+              Align(
+                alignment: Alignment.topRight,
+                child: OutlinedButton.icon(
+                  onPressed: () async {
+                    // (채팅하기 버튼 로직은 동일)
+                    final isLoggedIn = ref.read(isLoggedInProvider);
+                    if (!isLoggedIn) {
+                      LoggerUtil.d('💬 채팅방 참여 버튼: 로그인 필요');
+                    }
+                    final isAuthenticated =
+                        await AuthUtils.checkAuthAndShowModal(
+                      context,
+                      ref,
+                      AuthRequiredFeature.comment,
+                    );
+                    if (!isAuthenticated) {
+                      LoggerUtil.d('💬 채팅방 참여 버튼: 인증 필요 → 모달 표시됨');
+                      return;
+                    }
+                    LoggerUtil.d('💬 채팅방 참여 버튼: 인증 성공 → 채팅방 이동');
+                    if (context.mounted) {
+                      context.push(
+                        '/chat/room/${project.id}',
+                        extra: {'title': project.title},
+                      );
+                    }
+                  },
+                  icon: const Icon(
+                    Icons.chat_bubble_outline,
                     size: 16,
+                    color: AppColors.primary,
                   ),
-                  SizedBox(width: 8),
-                  Text('판매자 정보 더보기'),
-                  SizedBox(width: 4),
-                  Icon(
-                    Icons.arrow_forward_ios,
-                    size: 12,
+                  label: Text(
+                    '채팅하기',
+                    style: AppTextStyles.caption
+                        .copyWith(color: AppColors.primary),
                   ),
-                ],
-              ),
-            ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    side: const BorderSide(color: AppColors.primary, width: 1),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20)), // 좀 더 둥글게
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 6), // 패딩 조정
+                    tapTargetSize:
+                        MaterialTapTargetSize.shrinkWrap, // 버튼 영역 최소화
+                  ),
+                ),
+              )
+            ],
           ),
         ],
       ),

@@ -113,6 +113,19 @@ class AppTextStyles {
         fontWeight: FontWeight.w400,
         color: AppColors.black,
       );
+
+  // Add styles from WishlistTextStyles for consistency
+  static TextStyle get itemTitle => const TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.bold,
+        color: AppColors.textDark, // Use textDark or adjust as needed
+      );
+
+  static TextStyle get badge => const TextStyle(
+        color: AppColors.white,
+        fontSize: 10,
+        fontWeight: FontWeight.bold,
+      );
 }
 
 /// 홈/메인 화면 텍스트 스타일

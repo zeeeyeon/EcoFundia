@@ -93,7 +93,7 @@ class _SplashPageState extends State<SplashPage> {
                 duration: const Duration(milliseconds: 500), // ✅ 빠르게 등장
                 opacity: _secondTextOpacity,
                 child: Text(
-                  'SIMPLE',
+                  'Eco Fundia',
                   style: SplashTextStyles.text.copyWith(
                     fontSize: screenSize.width * 0.12,
                     color: AppColors.primary,

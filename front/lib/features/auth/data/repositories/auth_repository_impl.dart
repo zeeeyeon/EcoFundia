@@ -152,8 +152,6 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> signOut({CancelToken? cancelToken}) async {
     try {
-      // 서버 로그아웃 요청 (토큰이 있는 상태에서 요청해야 함)
-      LoggerUtil.i('🔄 서버 로그아웃 API 요청');
       await _apiService.logout(cancelToken: cancelToken);
       LoggerUtil.i('✅ 서버 로그아웃 성공');
 

@@ -208,9 +208,6 @@ class StorageService {
 
   /// 저장된 데이터 모두 삭제
   static Future<void> clearAll() async {
-    // 로그 추가
-    LoggerUtil.i('🔒 사용자 데이터 및 인증 정보 초기화 (로그아웃)');
-
     try {
       await _storage.deleteAll();
       // 추가적으로 토큰 관련 키를 개별적으로 확실히 삭제

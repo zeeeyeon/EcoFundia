@@ -4,6 +4,7 @@ import 'storage_service.dart';
 import 'token_service.dart';
 import 'package:front/utils/logger_util.dart';
 import 'package:front/core/config/app_config.dart';
+import 'package:front/core/providers/app_state_provider.dart';
 
 /// API 서비스 Provider
 final apiServiceProvider = Provider<ApiService>((ref) {
@@ -14,6 +15,7 @@ final apiServiceProvider = Provider<ApiService>((ref) {
 class ApiService {
   static ApiService? _instance;
   late final Dio _dio;
+  late final ProviderContainer _container;
 
   // dio getter 추가
   Dio get dio => _dio;
@@ -45,6 +47,8 @@ class ApiService {
         return true;
       },
     ));
+
+    _container = ProviderContainer();
 
     _setupInterceptors();
 
@@ -141,17 +145,17 @@ class ApiService {
           if (error.response?.statusCode == 401) {
             try {
               LoggerUtil.i('🔄 토큰 갱신 시도 (API 인터셉터)');
-
-              // 리프레시 토큰 가져오기
               final refreshToken = await StorageService.getRefreshToken();
               if (refreshToken == null) {
-                LoggerUtil.w('⚠️ 리프레시 토큰 없음');
-                throw DioException(
+                LoggerUtil.w('⚠️ 리프레시 토큰 없음, 강제 로그아웃 실행');
+                // 전역 로그아웃 처리 호출
+                await _container.read(appStateProvider.notifier).logout();
+                return handler.reject(DioException(
                     requestOptions: error.requestOptions,
-                    error: '리프레시 토큰이 없습니다.');
+                    error: '리프레시 토큰 없음, 로그아웃됨',
+                    response: error.response));
               }
 
-              // TokenService를 통한 토큰 갱신
               final newTokens = await TokenService.refreshTokens(refreshToken);
               if (newTokens != null) {
                 // 새 토큰 저장
@@ -167,14 +171,24 @@ class ApiService {
                 return handler.resolve(retryResponse);
               } else {
                 // 토큰 갱신 실패 시 로그아웃 처리
-                await StorageService.clearAll();
-                LoggerUtil.i('👋 로그아웃 처리 (인증 실패)');
+                LoggerUtil.w('❌ 토큰 갱신 실패, 강제 로그아웃 실행');
+                // 전역 로그아웃 처리 호출
+                await _container.read(appStateProvider.notifier).logout();
+                return handler.reject(DioException(
+                    requestOptions: error.requestOptions,
+                    error: '토큰 갱신 실패, 로그아웃됨',
+                    response: error.response));
               }
             } catch (e) {
-              LoggerUtil.e('❌ 토큰 갱신 실패', e);
+              LoggerUtil.e('❌ 토큰 갱신 중 오류 발생, 강제 로그아웃 실행', e);
               // 토큰 갱신 실패 시 로그아웃 처리
-              await StorageService.clearAll();
-              LoggerUtil.i('👋 로그아웃 처리 (인증 실패)');
+              // await StorageService.clearAll(); // logout() 내부에서 처리됨
+              // 전역 로그아웃 처리 호출
+              await _container.read(appStateProvider.notifier).logout();
+              return handler.reject(DioException(
+                  requestOptions: error.requestOptions,
+                  error: '토큰 갱신 중 오류, 로그아웃됨: $e',
+                  response: error.response));
             }
           }
           return handler.next(error);

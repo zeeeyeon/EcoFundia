@@ -39,7 +39,7 @@ class WishlistItemCard extends StatelessWidget {
       child: Opacity(
         opacity: isActive ? 1.0 : 0.8,
         child: Container(
-          margin: const EdgeInsets.symmetric(vertical: 6),
+          margin: const EdgeInsets.symmetric(vertical: 2),
           decoration: BoxDecoration(
             border: Border.all(color: AppColors.border),
             borderRadius: BorderRadius.circular(10),
@@ -55,20 +55,18 @@ class WishlistItemCard extends StatelessWidget {
                     // 제품 이미지 & 좋아요 버튼
                     Stack(
                       children: [
-                        // 제품 이미지
+                        // 제품 이미지 - 간소화된 로직
                         ClipRRect(
                           borderRadius: BorderRadius.circular(10),
-                          child: item.imageUrl.isNotEmpty &&
-                                  item.imageUrl !=
-                                      "https://example.com/default_image.jpg"
+                          child: item.imageUrl.isNotEmpty
                               ? CachedNetworkImage(
                                   imageUrl: item.imageUrl,
-                                  width: 200,
-                                  height: 150,
+                                  width: 160,
+                                  height: 120,
                                   fit: BoxFit.cover,
                                   placeholder: (context, url) => Container(
-                                    width: 200,
-                                    height: 150,
+                                    width: 160,
+                                    height: 120,
                                     color: Colors.grey.shade200,
                                     child: const Center(
                                       child: CircularProgressIndicator(
@@ -79,55 +77,10 @@ class WishlistItemCard extends StatelessWidget {
                                   ),
                                   errorWidget: (context, url, error) {
                                     LoggerUtil.e('❌ 이미지 로드 실패: $url', error);
-                                    return Image.asset(
-                                      'assets/images/test01.png',
-                                      width: 200,
-                                      height: 150,
-                                      fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                        return Container(
-                                          width: 200,
-                                          height: 150,
-                                          color: Colors.grey.shade200,
-                                          child: const Center(
-                                            child: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Icon(Icons.image_not_supported,
-                                                    color: AppColors.grey,
-                                                    size: 40),
-                                                SizedBox(height: 5),
-                                                Text('이미지를 불러올 수 없습니다',
-                                                    style: TextStyle(
-                                                      color: AppColors.grey,
-                                                      fontSize: 12,
-                                                    )),
-                                              ],
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    );
+                                    return _buildDefaultImage();
                                   },
                                 )
-                              : Image.asset(
-                                  'assets/images/test01.png',
-                                  width: 200,
-                                  height: 150,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    LoggerUtil.e('❌ 기본 이미지 로드 실패', error);
-                                    return Container(
-                                      width: 200,
-                                      height: 150,
-                                      color: Colors.grey.shade200,
-                                      child: const Icon(
-                                          Icons.image_not_supported,
-                                          color: AppColors.grey),
-                                    );
-                                  },
-                                ),
+                              : _buildDefaultImage(),
                         ),
                         // 좋아요 버튼
                         Positioned(
@@ -281,6 +234,39 @@ class WishlistItemCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  /// 기본 이미지 위젯 반환
+  Widget _buildDefaultImage() {
+    return Image.asset(
+      'assets/images/test01.png',
+      width: 180,
+      height: 130,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        LoggerUtil.e('❌ 기본 이미지 로드 실패', error);
+        return Container(
+          width: 180,
+          height: 130,
+          color: Colors.grey.shade200,
+          child: const Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.image_not_supported,
+                    color: AppColors.grey, size: 40),
+                SizedBox(height: 5),
+                Text('이미지를 불러올 수 없습니다',
+                    style: TextStyle(
+                      color: AppColors.grey,
+                      fontSize: 12,
+                    )),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

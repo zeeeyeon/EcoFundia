@@ -53,7 +53,7 @@ class _ProjectCarouselState extends ConsumerState<ProjectCarousel>
     final scaleFactor = isSmallScreen ? 0.85 : 1.0;
 
     // 카드와 동일한 크기로 캐러셀 높이 설정
-    final double carouselHeight = 460 * scaleFactor;
+    final double carouselHeight = 380 * scaleFactor;
 
     // 반응형 UI 요소 계산
     final horizontalPadding = 20.0 * scaleFactor;
@@ -77,33 +77,12 @@ class _ProjectCarouselState extends ConsumerState<ProjectCarousel>
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              // 불꽃 애니메이션 아이콘
-              AnimatedBuilder(
-                animation: _fireAnimationController,
-                builder: (context, child) {
-                  return Transform.translate(
-                    offset: Offset(0, 2 * _fireAnimationController.value),
-                    child: ShaderMask(
-                      shaderCallback: (bounds) => const LinearGradient(
-                        colors: [
-                          Color(0xFFFF0000),
-                          Color(0xFFFF4500),
-                          Color(0xFFFFD700),
-                        ],
-                        begin: Alignment.bottomCenter,
-                        end: Alignment.topCenter,
-                      ).createShader(bounds),
-                      child: Text(
-                        ' 🔥',
-                        style: TextStyle(
-                          fontSize: titleFontSize,
-                          height: 1,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  );
-                },
+              // 불꽃 애니메이션 아이콘 -> whatshot 아이콘으로 변경
+              const SizedBox(width: 6), // 아이콘과 텍스트 간격
+              Icon(
+                Icons.whatshot,
+                color: AppColors.primary,
+                size: titleFontSize * 1.1, // 텍스트 크기와 유사하게 조정
               ),
             ],
           ),

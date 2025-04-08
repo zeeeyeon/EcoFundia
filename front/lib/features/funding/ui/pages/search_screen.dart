@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/core/themes/app_colors.dart';
 import 'package:front/core/ui/widgets/custom_app_bar.dart';
-import 'package:front/features/funding/ui/widgets/search_category_chip.dart';
-import 'package:front/features/funding/ui/widgets/search_funding_list.dart';
 import 'package:front/features/funding/ui/view_model/search_view_model.dart';
 import 'package:front/features/funding/ui/view_model/search_special_view_model.dart';
+import 'package:front/features/funding/ui/widgets/funding_card.dart';
+import 'package:front/features/funding/data/models/funding_model.dart';
+import 'package:front/core/constants/app_strings.dart';
+import 'package:go_router/go_router.dart';
+import 'package:front/utils/logger_util.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
@@ -55,8 +59,16 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         ? ref.watch(specialFundingProvider(_selectedTopic!))
         : null;
     final resultState = ref.watch(searchResultProvider);
+    final isFetchingSpecial = _selectedTopic != null
+        ? ref.watch(specialFundingProvider(_selectedTopic!).notifier).isFetching
+        : false;
+    final isFetchingSearch =
+        ref.watch(searchResultProvider.notifier).isFetching;
+
+    final bool isFetchingMore = isFetchingSpecial || isFetchingSearch;
 
     return Scaffold(
+      backgroundColor: AppColors.white,
       appBar: CustomAppBar(
         showBackButton: true,
         showSearchField: true,
@@ -73,55 +85,110 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Wrap(
-              spacing: 8,
+              spacing: 12,
+              runSpacing: 8,
               children: [
-                SearchCategoryChip(
-                  label: "⭐ 베스트펀딩",
-                  isSelected: _selectedTopic == "best",
-                  onTap: () => setState(() {
-                    _selectedTopic = (_selectedTopic == "best") ? null : "best";
-                  }),
-                ),
-                SearchCategoryChip(
-                  label: "⏰ 마감임박",
-                  isSelected: _selectedTopic == "soon",
-                  onTap: () => setState(() {
-                    _selectedTopic = (_selectedTopic == "soon") ? null : "soon";
-                  }),
-                ),
+                _buildSearchChip("⭐ 베스트펀딩", "best"),
+                _buildSearchChip("⏰ 마감임박", "soon"),
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Expanded(
             child: _selectedTopic != null
                 ? specialState!.when(
-                    loading: () =>
-                        const Center(child: CircularProgressIndicator()),
+                    loading: () => specialState.hasValue &&
+                            specialState.value!.isNotEmpty
+                        ? _buildSearchResults(
+                            specialState.value!, isFetchingMore)
+                        : const Center(
+                            child: CircularProgressIndicator(
+                                color: AppColors.primary)),
                     error: (err, _) => Center(child: Text("검색 오류: $err")),
-                    data: (results) => SearchFundingList(
-                      fundingList: results,
-                      scrollController: _scrollController,
-                      isFetching: ref
-                          .read(
-                              specialFundingProvider(_selectedTopic!).notifier)
-                          .isFetching,
-                    ),
-                  )
+                    data: (results) {
+                      if (results.isEmpty && !isFetchingMore) {
+                        return const Center(
+                            child: Text(SearchStrings.noResults));
+                      }
+                      return _buildSearchResults(results, isFetchingMore);
+                    })
                 : resultState.when(
                     loading: () =>
-                        const Center(child: CircularProgressIndicator()),
+                        resultState.hasValue && resultState.value!.isNotEmpty
+                            ? _buildSearchResults(
+                                resultState.value!, isFetchingMore)
+                            : const Center(
+                                child: CircularProgressIndicator(
+                                    color: AppColors.primary)),
                     error: (err, _) => Center(child: Text("에러 발생: $err")),
-                    data: (results) => SearchFundingList(
-                      fundingList: results,
-                      scrollController: _scrollController,
-                      isFetching:
-                          ref.read(searchResultProvider.notifier).isFetching,
-                    ),
-                  ),
+                    data: (results) {
+                      if (results.isEmpty && !isFetchingMore) {
+                        return const Center(
+                            child: Text(SearchStrings.noResults));
+                      }
+                      return _buildSearchResults(results, isFetchingMore);
+                    }),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildSearchChip(String label, String topicKey) {
+    final isSelected = _selectedTopic == topicKey;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedTopic = isSelected ? null : topicKey;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : AppColors.extraLightGrey,
+          borderRadius: BorderRadius.circular(32),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : AppColors.lightGrey,
+            width: 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontFamily: 'SpaceGrotesk',
+            fontSize: 12,
+            fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
+            color: isSelected ? AppColors.white : AppColors.grey,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchResults(
+      List<FundingModel> fundingList, bool isFetchingMore) {
+    return ListView.builder(
+      controller: _scrollController,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: fundingList.length + (isFetchingMore ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index < fundingList.length) {
+          final funding = fundingList[index];
+          return GestureDetector(
+            onTap: () {
+              LoggerUtil.d('펀딩 검색 결과 클릭: ${funding.fundingId}');
+              context.push('/project/${funding.fundingId}');
+            },
+            child: FundingCard(funding: funding),
+          );
+        } else {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Center(
+                child: CircularProgressIndicator(color: AppColors.primary)),
+          );
+        }
+      },
     );
   }
 }

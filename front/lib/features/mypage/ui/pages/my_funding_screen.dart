@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/core/ui/widgets/custom_app_bar.dart';
 import 'package:front/utils/funding_status.dart';
+import 'package:front/core/themes/app_colors.dart';
 import '../view_model/my_funding_view_model.dart';
 import '../widgets/my_funding_card.dart';
 import '../widgets/my_funding_tab_bar.dart';
@@ -37,6 +38,7 @@ class _MyFundingScreenState extends ConsumerState<MyFundingScreen>
     final myFundingsState = ref.watch(myFundingViewModelProvider);
 
     return Scaffold(
+      backgroundColor: AppColors.white,
       appBar: const CustomAppBar(
         title: 'My Funding',
         showBackButton: true,

@@ -251,24 +251,6 @@ class _WishlistScreenState extends ConsumerState<WishlistScreen>
           AppBarStrings.myWishList,
           style: AppTextStyles.appBarTitle,
         ),
-        actions: [
-          // 장바구니 아이콘
-          IconButton(
-            icon: const Icon(Icons.shopping_cart_outlined,
-                color: AppColors.black),
-            onPressed: () {
-              context.go('/cart');
-            },
-          ),
-          // 알림 아이콘
-          IconButton(
-            icon: const Icon(Icons.notifications_none_outlined,
-                color: AppColors.black),
-            onPressed: () {
-              context.go('/notification');
-            },
-          ),
-        ],
       ),
       body: Column(
         children: [

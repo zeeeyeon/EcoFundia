@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/core/constants/app_strings.dart';
+import 'package:front/core/themes/app_colors.dart';
 import 'package:front/core/ui/widgets/custom_app_bar.dart';
 import 'package:front/core/ui/widgets/loading_overlay.dart';
 import 'package:front/features/funding/ui/widgets/category_filter_widget.dart';
 import 'package:front/features/funding/ui/widgets/sort_dropdown_widget.dart';
 import 'package:go_router/go_router.dart';
-import '../../ui/view_model/funding_list_view_model.dart';
-import '../../ui/widgets/funding_card.dart';
+import 'package:front/features/funding/ui/view_model/funding_list_view_model.dart';
+import 'package:front/features/funding/ui/widgets/funding_card.dart';
+import 'package:front/features/funding/data/models/funding_model.dart';
+import 'package:front/utils/logger_util.dart';
 
 class FundingListScreen extends ConsumerStatefulWidget {
   const FundingListScreen({super.key});
@@ -17,9 +20,7 @@ class FundingListScreen extends ConsumerStatefulWidget {
 }
 
 class _FundingListScreenState extends ConsumerState<FundingListScreen> {
-  final TextEditingController searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  bool showFilteredResults = false;
 
   @override
   void initState() {
@@ -37,7 +38,6 @@ class _FundingListScreenState extends ConsumerState<FundingListScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
-    searchController.dispose();
     super.dispose();
   }
 
@@ -48,60 +48,79 @@ class _FundingListScreenState extends ConsumerState<FundingListScreen> {
     final isFetchingMore = notifier.isFetching;
 
     return LoadingOverlay(
-      isLoading: fundingState is AsyncLoading,
+      isLoading: fundingState is AsyncLoading &&
+          !(fundingState.hasValue && fundingState.value!.isNotEmpty),
       message: '펀딩 정보를 불러오는 중...',
       child: Scaffold(
+        backgroundColor: AppColors.white,
         appBar: CustomAppBar(
-          showHomeButton: true,
           showSearchField: true,
           onSearchTap: () {
-            context.push('/funding/search'); // 검색 필드 or 아이콘 누르면 이동
+            context.push('/funding/search');
           },
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.home, color: AppColors.textDark),
+              onPressed: () => context.go('/'),
+            ),
+            const SizedBox(width: 8),
+          ],
         ),
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             const CategoryFilterWidget(),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             const SortDropdownWidget(),
-            const SizedBox(height: 8),
+            const SizedBox(height: 16),
             Expanded(
               child: fundingState.when(
-                loading: () => const SizedBox.shrink(),
+                loading: () =>
+                    fundingState.hasValue && fundingState.value!.isNotEmpty
+                        ? _buildFundingList(fundingState.value!, isFetchingMore)
+                        : const Center(
+                            child: CircularProgressIndicator(
+                                color: AppColors.primary)),
                 error: (err, _) => Center(child: Text("오류 발생: $err")),
                 data: (fundingList) {
-                  if (fundingList.isEmpty) {
+                  if (fundingList.isEmpty && !isFetchingMore) {
                     return const Center(child: Text(SearchStrings.noResults));
                   }
-
-                  return ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.all(16),
-                    itemCount: fundingList.length + (isFetchingMore ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index < fundingList.length) {
-                        final funding = fundingList[index];
-                        return GestureDetector(
-                          onTap: () {
-                            context.push('/funding/detail', extra: funding);
-                          },
-                          child: FundingCard(funding: funding),
-                        );
-                      } else {
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          child: Center(child: CircularProgressIndicator()),
-                        );
-                      }
-                    },
-                  );
+                  return _buildFundingList(fundingList, isFetchingMore);
                 },
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildFundingList(
+      List<FundingModel> fundingList, bool isFetchingMore) {
+    return ListView.builder(
+      controller: _scrollController,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: fundingList.length + (isFetchingMore ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index < fundingList.length) {
+          final funding = fundingList[index];
+          return GestureDetector(
+            onTap: () {
+              LoggerUtil.d('펀딩 목록 아이템 클릭: ${funding.fundingId}');
+              context.push('/project/${funding.fundingId}');
+            },
+            child: FundingCard(funding: funding),
+          );
+        } else {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Center(
+                child: CircularProgressIndicator(color: AppColors.primary)),
+          );
+        }
+      },
     );
   }
 }

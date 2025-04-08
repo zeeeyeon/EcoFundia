@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:front/core/themes/app_colors.dart';
+import 'package:front/core/themes/app_text_styles.dart';
 import 'package:front/utils/logger_util.dart';
 import 'package:front/features/mypage/ui/view_model/coupon_view_model.dart';
 import 'package:front/shared/widgets/dialogs/coupon_info_dialog.dart';
 import 'package:front/core/providers/app_state_provider.dart';
 import 'package:front/utils/auth_utils.dart';
+import 'package:intl/intl.dart';
 
 /// 쿠폰 초기화 상태 관리를 위한 Provider
 final couponInitializedProvider = StateProvider<bool>((ref) => false);
@@ -82,36 +84,6 @@ class _FundingStatusCardState extends ConsumerState<FundingStatusCard> {
       LoggerUtil.e('🎫 FundingStatusCard: 쿠폰 개수 로드 실패', e);
       // 오류가 발생해도 UI 처리는 AsyncValue를 통해 자동으로 처리됨
     }
-  }
-
-  Widget _buildStatusItem(
-    BuildContext context,
-    String title,
-    String value, {
-    bool highlight = false,
-  }) {
-    final textStyle = TextStyle(
-      fontSize: 14,
-      fontWeight: highlight ? FontWeight.bold : FontWeight.normal,
-      color: highlight ? Colors.black : Colors.grey,
-    );
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(title,
-              style: textStyle.copyWith(
-                  fontWeight: FontWeight.normal, color: Colors.grey[600])),
-          const SizedBox(height: 4),
-          GestureDetector(
-            onTap: title == "쿠폰" ? () => context.push('/coupons') : null,
-            child: Text(value, style: textStyle),
-          ),
-        ],
-      ),
-    );
   }
 
   // 쿠폰 발급 처리
@@ -244,7 +216,7 @@ class _FundingStatusCardState extends ConsumerState<FundingStatusCard> {
   }
 
   // 쿠폰 버튼 초기화 함수 (버튼 활성화)
-  void _resetCouponButton() {
+  void _resetCouponButton() async {
     if (!mounted) return;
 
     setState(() {
@@ -252,17 +224,18 @@ class _FundingStatusCardState extends ConsumerState<FundingStatusCard> {
     });
 
     // 최신 쿠폰 개수 정보 갱신
-    ref.refresh(couponCountProvider);
+    final updatedCount = await ref.refresh(couponCountProvider.future);
+    LoggerUtil.d('🎫 쿠폰 버튼 활성화됨, 현재 쿠폰 개수: $updatedCount장');
+  }
 
-    LoggerUtil.d('🎫 쿠폰 버튼 활성화됨');
+  // Helper to format currency consistently
+  String _formatAmount(int amount) {
+    return NumberFormat('#,###').format(amount);
   }
 
   @override
   Widget build(BuildContext context) {
-    // 쿠폰 개수 가져오기 (FutureProvider 사용)
     final couponCountAsync = ref.watch(couponCountProvider);
-
-    // 쿠폰 상태 모니터링
     final isApplying = ref.watch(
       couponViewModelProvider.select((state) => state.isApplying),
     );
@@ -293,105 +266,144 @@ class _FundingStatusCardState extends ConsumerState<FundingStatusCard> {
       });
     });
 
-    // 쿠폰 개수를 표시하는 위젯
-    Widget buildCouponCount() {
-      return couponCountAsync.when(
+    // Build Coupon Count Text with consistent style
+    Widget buildCouponCountText(AsyncValue<int> countAsync) {
+      return countAsync.when(
         data: (count) => Text(
           "$count장",
-          style: TextStyle(
-            fontSize: 16,
+          style: AppTextStyles.heading4.copyWith(
             fontWeight: FontWeight.bold,
-            color: count > 0 ? AppColors.primary : Colors.black,
+            color: count > 0 ? AppColors.primary : AppColors.textDark,
+            height: 1.2,
           ),
         ),
-        error: (_, __) => const Text(
+        error: (_, __) => Text(
           "0장",
-          style: TextStyle(
-            fontSize: 16,
+          style: AppTextStyles.heading4.copyWith(
             fontWeight: FontWeight.bold,
-            color: Colors.black,
+            color: AppColors.textDark,
+            height: 1.2,
           ),
         ),
         loading: () => const SizedBox(
           width: 15,
           height: 15,
           child: CircularProgressIndicator(
-            strokeWidth: 2,
-          ),
+              strokeWidth: 2, color: AppColors.primary),
         ),
       );
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Container(
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(10),
-          color: Colors.white,
+          // Use consistent border radius and color
+          borderRadius: BorderRadius.circular(12.0),
+          border:
+              Border.all(color: AppColors.lightGrey.withOpacity(0.5), width: 1),
+          color: AppColors.white,
           boxShadow: [
+            // Use subtle shadow
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              spreadRadius: 1,
-              blurRadius: 5,
+              color: AppColors.shadowColor.withOpacity(0.08),
+              blurRadius: 10,
               offset: const Offset(0, 2),
             ),
           ],
         ),
         child: Column(
           children: [
-            // 펀딩현황, 쿠폰 개수 표시 영역
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStatusItem(
-                    context,
-                    "펀딩현황",
-                    "${widget.totalFundingAmount}원",
-                    highlight: true,
-                  ),
-                ),
-                // 세로 구분선
-                Container(
-                  height: 60,
-                  width: 1,
-                  color: Colors.grey.shade300,
-                ),
-                Expanded(
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "쿠폰",
-                          style: TextStyle(
-                            fontWeight: FontWeight.normal,
-                            color: Colors.grey[600],
-                            fontSize: 14,
-                          ),
+            // Top section with Funding Status and Coupons
+            IntrinsicHeight(
+              // Make sure divider height matches content
+              child: Row(
+                children: [
+                  // Funding Status Item
+                  Expanded(
+                    child: InkWell(
+                      // Optional: Add onTap navigation if needed
+                      // onTap: () => context.push('/my-funding'),
+                      borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(12.0)),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 16, horizontal: 12),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text("펀딩현황",
+                                style: AppTextStyles.body2
+                                    .copyWith(color: AppColors.grey)),
+                            const SizedBox(height: 6),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.baseline,
+                              textBaseline: TextBaseline.alphabetic,
+                              children: [
+                                Text(
+                                  _formatAmount(widget
+                                      .totalFundingAmount), // Formatted amount
+                                  style: AppTextStyles.heading4.copyWith(
+                                    color: AppColors
+                                        .primary, // Primary color for amount
+                                    fontWeight: FontWeight.bold,
+                                    height: 1.2,
+                                  ),
+                                ),
+                                Text("원",
+                                    style: AppTextStyles.body2.copyWith(
+                                        color: AppColors.primary,
+                                        fontSize: 14)), // Unit
+                              ],
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 4),
-                        GestureDetector(
-                          onTap: () {
-                            // 쿠폰 목록 페이지로 이동하기 전에 상태 완전 초기화
-                            _couponViewModel.resetState();
-                            context.push('/coupons');
-                          },
-                          child: buildCouponCount(),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                  // Vertical Divider
+                  Container(
+                    width: 1,
+                    color: AppColors.lightGrey.withOpacity(0.5),
+                  ),
+                  // Coupon Item
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        _couponViewModel.resetState();
+                        context.push('/coupons');
+                      },
+                      borderRadius: const BorderRadius.only(
+                          topRight: Radius.circular(12.0)),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 16, horizontal: 12),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text("쿠폰",
+                                style: AppTextStyles.body2
+                                    .copyWith(color: AppColors.grey)),
+                            const SizedBox(height: 6),
+                            buildCouponCountText(
+                                couponCountAsync), // Use helper
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-
-            // 가로 구분선 및 쿠폰 받기 버튼 영역
-            const Divider(height: 1, thickness: 1, color: Colors.grey),
+            // Restore Divider and Coupon Button Area
+            Container(
+                height: 1,
+                color: AppColors.lightGrey.withOpacity(0.5),
+                margin: const EdgeInsets.symmetric(
+                    horizontal: 16)), // Add horizontal margin
             Padding(
-              padding: const EdgeInsets.all(18.0),
+              padding: const EdgeInsets.all(16.0),
               child: ElevatedButton.icon(
                 onPressed: _canClickCouponButton && !isApplying
                     ? _handleCouponApply
@@ -401,26 +413,34 @@ class _FundingStatusCardState extends ConsumerState<FundingStatusCard> {
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
-                        ))
-                    : const Icon(Icons.card_giftcard, size: 24),
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(AppColors.white)))
+                    : const Icon(Icons.card_giftcard_outlined,
+                        size: 24,
+                        color: AppColors.white), // Ensure icon color is white
                 label: Text(
-                  isApplying ? '쿠폰 처리 중...' : '선착순 쿠폰 받기!',
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold),
+                  isApplying
+                      ? '쿠폰 처리 중...'
+                      : '선착순 쿠폰 받기!', // Restore button text
+                  style: AppTextStyles.buttonText.copyWith(
+                      color: AppColors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold), // Apply button style
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isApplying || !_canClickCouponButton
-                      ? AppColors.primary.withOpacity(0.7)
-                      : AppColors.primary,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(double.infinity, 52),
+                  backgroundColor: _canClickCouponButton && !isApplying
+                      ? AppColors.primary
+                      : AppColors.primary.withOpacity(0.7),
+                  foregroundColor: AppColors.white,
+                  minimumSize:
+                      const Size(double.infinity, 50), // Consistent height
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  elevation: 3,
+                      borderRadius:
+                          BorderRadius.circular(12)), // Consistent radius
+                  elevation: 2,
+                  disabledBackgroundColor: AppColors.primary
+                      .withOpacity(0.5), // Style for disabled state
                 ),
               ),
             ),

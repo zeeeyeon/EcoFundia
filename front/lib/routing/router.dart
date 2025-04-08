@@ -1,24 +1,20 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/core/ui/page/coming_soon_screen.dart';
 import 'package:front/features/chat/ui/pages/chat_room_screen.dart';
 import 'package:front/features/chat/ui/pages/chat_screen.dart';
 import 'package:front/features/funding/ui/pages/search_screen.dart';
 import 'package:front/features/mypage/ui/pages/coupons_screen.dart';
 import 'package:front/features/mypage/ui/pages/edit_review_screen.dart';
 import 'package:front/features/mypage/ui/pages/my_review_screen.dart';
-import 'package:front/features/mypage/ui/pages/profile_edit_screen.dart';
-import 'package:front/features/mypage/ui/pages/support/faq_screen.dart';
-import 'package:front/features/mypage/ui/pages/support/guide_screen.dart';
-import 'package:front/features/mypage/ui/pages/support/notice_screen.dart';
-import 'package:front/features/mypage/ui/pages/support/policy_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:front/features/auth/ui/pages/login_screen.dart';
 import 'package:front/features/auth/ui/pages/sign_up_screen.dart';
 import 'package:front/features/splash/ui/pages/splash_screen.dart';
-import 'package:front/features/funding/data/models/funding_model.dart';
+
 import 'package:front/features/funding/ui/pages/funding_list_screen.dart';
-import 'package:front/features/funding/ui/pages/funding_detail_screen.dart';
+
 import 'package:front/features/home/ui/pages/home_screen.dart';
 import 'package:front/features/mypage/ui/pages/mypage_screen.dart';
 import 'package:front/features/mypage/ui/pages/my_funding_screen.dart';
@@ -42,6 +38,12 @@ import 'package:front/features/mypage/ui/view_model/my_funding_view_model.dart';
 import 'package:front/features/mypage/ui/view_model/my_review_view_model.dart';
 import 'package:front/features/wishlist/ui/view_model/wishlist_provider.dart';
 import 'package:front/features/mypage/ui/view_model/coupon_view_model.dart';
+// import '../features/chat/ui/view_models/chat_view_model.dart'; // Removed problematic import
+
+// Import AppColors and AppTextStyles
+import '../core/themes/app_colors.dart';
+import '../core/themes/app_text_styles.dart';
+import '../core/themes/app_shadows.dart';
 
 // 정적으로 선언된 GlobalKey - 싱글턴으로 관리
 class AppNavigatorKeys {
@@ -88,43 +90,56 @@ class TabLoadState {
 final _tabLoadState = TabLoadState();
 
 final routerProvider = Provider<GoRouter>((ref) {
-  // 인증 상태 변경을 감지하는 ValueNotifier
-  final authStateListenable = ValueNotifier<bool>(false); // 초기값 설정
+  // isLoggedInProvider의 변경을 감지하는 ValueNotifier
+  final authStateListenable = ValueNotifier<bool>(ref.read(isLoggedInProvider));
 
-  // isAuthenticatedProvider의 변경 감지
-  ref.listen<AsyncValue<bool>>(isAuthenticatedProvider, (_, next) {
-    // 상태가 로딩 중이 아니고 데이터가 있는 경우에만 업데이트
-    if (!next.isLoading && next.hasValue) {
-      authStateListenable.value = next.value!;
-      LoggerUtil.d('🔑 인증 상태 변경 감지: ${next.value}');
-    }
+  // isLoggedInProvider의 변경 감지하여 ValueNotifier 업데이트
+  ref.listen<bool>(isLoggedInProvider, (_, isLoggedIn) {
+    authStateListenable.value = isLoggedIn;
+    LoggerUtil.d('🔑 [Router Listen] 로그인 상태 변경 감지: $isLoggedIn');
   });
 
+  // isAuthenticatedProvider는 초기 상태 확인 용도로만 사용 가능 (옵션)
+  // ref.listen<AsyncValue<bool>>(isAuthenticatedProvider, (_, next) {
+  //   if (!next.isLoading && next.hasValue) {
+  //     // 초기 로드 시 isLoggedInProvider와 동기화할 수 있으나,
+  //     // 실시간 변경 감지는 isLoggedInProvider를 통하는 것이 더 안정적
+  //   }
+  // });
+
   return GoRouter(
-    navigatorKey: AppNavigatorKeys.instance.rootNavigatorKey, // 싱글턴 인스턴스의 키 사용
-    initialLocation: '/splash', // ✅ 앱 실행 시 먼저 스플래시 화면 표시
-    refreshListenable: authStateListenable, // ✅ 인증 상태 변경 감지 리스너 추가
-    redirect: (context, state) async {
-      // 현재 경로가 로그인/스플래시 페이지인 경우 리디렉션 로직 건너뜀
-      if (state.uri.toString() == '/login' ||
-          state.uri.toString() == '/splash') {
+    navigatorKey: AppNavigatorKeys.instance.rootNavigatorKey,
+    initialLocation: '/splash',
+    refreshListenable: authStateListenable, // isLoggedInProvider 변경 감지 리스너
+    redirect: (context, state) {
+      final isLoggedIn = ref.read(isLoggedInProvider); // 최신 동기 상태 읽기
+      final location = state.uri.toString();
+
+      LoggerUtil.d(
+          '🔄 [Router Redirect] 현재 위치: $location, 로그인 상태: $isLoggedIn');
+
+      // 스플래시 화면은 항상 허용
+      if (location == '/splash') {
+        LoggerUtil.d('🔄 [Router Redirect] 스플래시 화면 -> 통과');
         return null;
       }
 
-      // 인증이 필요한 경로인지 확인
-      final currentPath = state.uri.toString();
-      if (AuthUtils.isAuthRequiredPath(currentPath)) {
-        // 로그인 상태 확인
-        final isLoggedIn = ref.read(isLoggedInProvider);
-
-        if (!isLoggedIn) {
-          LoggerUtil.d('🔒 라우트 권한 체크: 인증 필요 ($currentPath) → 로그인 페이지로 리다이렉션');
-          return '/login';
-        }
+      // 로그인 페이지 관련 처리
+      final isLoggingIn = location == '/login' ||
+          location == '/signup' ||
+          location == '/signup-complete';
+      if (!isLoggedIn && !isLoggingIn) {
+        LoggerUtil.d('🔒 [Router Redirect] 로그아웃 상태 & 로그인 경로 아님 -> /login 이동');
+        return '/login';
+      }
+      if (isLoggedIn && isLoggingIn) {
+        LoggerUtil.d('🔒 [Router Redirect] 로그인 상태 & 로그인 경로 -> / 이동');
+        return '/';
       }
 
-      // 기존 체크 로직도 유지
-      return await AuthUtils.checkAuthForRoute(context, ref, state);
+      // 그 외 경우는 리디렉션 없음
+      LoggerUtil.d('🔄 [Router Redirect] 리디렉션 필요 없음 ($location)');
+      return null;
     },
     routes: [
       // 인증 관련 라우트
@@ -212,17 +227,6 @@ final routerProvider = Provider<GoRouter>((ref) {
                     const SearchScreen(), // 🔍 검색 화면 추가
               ),
               GoRoute(
-                path: '/funding/detail',
-                name: 'FundingDetail',
-                pageBuilder: (context, state) {
-                  final funding = state.extra as FundingModel;
-
-                  return MaterialPage(
-                    child: FundingDetailScreen(fundingId: funding.fundingId),
-                  );
-                },
-              ),
-              GoRoute(
                 path: '/seller/:sellerId', // sellerId를 파라미터로 받음
                 name: 'sellerDetail',
                 builder: (context, state) {
@@ -262,7 +266,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
           StatefulShellBranch(
-            navigatorKey: AppNavigatorKeys.instance.mypageTabKey, // ✅ 싱글턴 키 사용
+            navigatorKey: AppNavigatorKeys.instance.chatTabKey,
             routes: [
               GoRoute(
                 path: '/chat',
@@ -278,9 +282,9 @@ final routerProvider = Provider<GoRouter>((ref) {
                 name: 'chatRoom',
                 builder: (context, state) {
                   final fundingId =
-                      int.parse(state.pathParameters['fundingId']!);
+                      int.tryParse(state.pathParameters['fundingId'] ?? '');
                   final extra = state.extra as Map<String, dynamic>?;
-
+                  if (fundingId == null) return const ComingSoonScreen();
                   return ChatRoomScreen(
                     fundingId: fundingId,
                     fundingTitle: extra?['title'] ?? '펀딩',
@@ -341,7 +345,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
               GoRoute(
                 path: '/profile-edit',
-                builder: (context, state) => const ProfileEditScreen(),
+                builder: (context, state) => const ComingSoonScreen(),
               ),
               GoRoute(
                 path: '/coupons',
@@ -349,23 +353,41 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
               GoRoute(
                 path: '/support/faq',
-                builder: (context, state) => const FaqScreen(),
+                builder: (context, state) => const ComingSoonScreen(),
               ),
               GoRoute(
                 path: '/support/notice',
-                builder: (context, state) => const NoticeScreen(),
+                builder: (context, state) => const ComingSoonScreen(),
               ),
               GoRoute(
                 path: '/support/guide',
-                builder: (context, state) => const GuideScreen(),
+                builder: (context, state) => const ComingSoonScreen(),
               ),
               GoRoute(
                 path: '/support/policy',
-                builder: (context, state) => const PolicyScreen(),
+                builder: (context, state) => const ComingSoonScreen(),
+              ),
+              GoRoute(
+                path: '/support/inquiry',
+                builder: (context, state) => const ComingSoonScreen(),
+              ),
+              GoRoute(
+                path: '/notifications',
+                builder: (context, state) => const ComingSoonScreen(),
+              ),
+              GoRoute(
+                path: '/settings',
+                builder: (context, state) => const ComingSoonScreen(),
               ),
             ],
           ),
         ],
+      ),
+      // Root level routes (ensure they don't duplicate shell routes)
+      // Add Cart route if needed at root level
+      GoRoute(
+        path: '/cart', // Example cart route
+        builder: (context, state) => const ComingSoonScreen(),
       ),
     ],
   );
@@ -421,46 +443,77 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
             key: _shellContainerKey,
             child: widget.navigationShell,
           ),
-          bottomNavigationBar: NavigationBar(
-            selectedIndex: currentIndex,
-            onDestinationSelected: (index) {
-              // 디바운싱: 짧은 시간 내 중복 탭 방지
-              if (_debounce?.isActive ?? false) _debounce!.cancel();
-              _debounce = Timer(const Duration(milliseconds: 200), () {
-                final previousIndex = currentIndex; // 이전 인덱스 저장
-
-                // 다른 탭으로 이동하거나 같은 탭을 다시 눌렀을 때
-                widget.navigationShell.goBranch(
-                  index,
-                  initialLocation: index == previousIndex, // 같은 탭이면 초기 위치로
-                );
-
-                // 선택된 탭에 따라 해당 ViewModel 데이터 새로고침
-                _refreshTabData(ref, index, previousIndex);
-              });
-            },
-            destinations: const [
-              NavigationDestination(
-                icon: Icon(Icons.store),
-                label: '펀딩',
+          bottomNavigationBar: NavigationBarTheme(
+            data: NavigationBarThemeData(
+              backgroundColor: AppColors.white,
+              height: 65,
+              indicatorColor: Colors.transparent,
+              iconTheme: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return const IconThemeData(
+                      color: AppColors.primary, size: 26);
+                }
+                return const IconThemeData(color: AppColors.grey, size: 24);
+              }),
+              labelTextStyle: WidgetStateProperty.resolveWith((states) {
+                final style = AppTextStyles.caption.copyWith(fontSize: 10);
+                if (states.contains(WidgetState.selected)) {
+                  return style.copyWith(
+                      color: AppColors.primary, fontWeight: FontWeight.w600);
+                }
+                return style.copyWith(color: AppColors.grey);
+              }),
+            ),
+            child: Container(
+              // 그림자 효과를 위해 Container로 감쌈
+              decoration: const BoxDecoration(
+                color: AppColors.white,
+                boxShadow: [AppShadows.card],
               ),
-              NavigationDestination(
-                icon: Icon(Icons.favorite),
-                label: '찜',
+              child: NavigationBar(
+                selectedIndex: currentIndex,
+                onDestinationSelected: (index) {
+                  // 디바운싱: 짧은 시간 내 중복 탭 방지
+                  if (_debounce?.isActive ?? false) _debounce!.cancel();
+                  _debounce = Timer(const Duration(milliseconds: 200), () {
+                    final previousIndex = currentIndex;
+                    widget.navigationShell.goBranch(
+                      index,
+                      initialLocation: index == previousIndex,
+                    );
+                    _refreshTabData(ref, index, previousIndex);
+                  });
+                },
+                destinations: const [
+                  NavigationDestination(
+                    icon: Icon(Icons.store_outlined),
+                    selectedIcon:
+                        Icon(Icons.store), // selectedIcon 색상은 Theme에서 관리
+                    label: '펀딩',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(Icons.favorite_border),
+                    selectedIcon: Icon(Icons.favorite),
+                    label: '찜',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(Icons.home_outlined),
+                    selectedIcon: Icon(Icons.home),
+                    label: '홈',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(Icons.chat_bubble_outline),
+                    selectedIcon: Icon(Icons.chat_bubble),
+                    label: '채팅',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(Icons.person_outline),
+                    selectedIcon: Icon(Icons.person),
+                    label: '마이페이지',
+                  ),
+                ],
               ),
-              NavigationDestination(
-                icon: Icon(Icons.home),
-                label: '홈',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.chat),
-                label: '채팅',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.person),
-                label: '마이페이지',
-              ),
-            ],
+            ),
           ),
         );
       },

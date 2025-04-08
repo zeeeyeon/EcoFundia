@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/core/themes/app_colors.dart'; // Import AppColors
 import '../../ui/view_model/funding_list_view_model.dart'; // selectedCategoriesProvider 위치
 
 // UI 텍스트 → API 값 매핑
@@ -19,12 +20,13 @@ class CategoryFilterWidget extends ConsumerWidget {
     final selected = ref.watch(selectedCategoriesProvider);
 
     return SizedBox(
-      height: 40,
+      height: 36, // Figma height: 36px (based on frame height)
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: categoryMap.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        separatorBuilder: (_, __) =>
+            const SizedBox(width: 12), // Figma gap: 12px
         itemBuilder: (context, index) {
           final uiText = categoryMap.keys.elementAt(index);
           final apiValue = categoryMap[uiText]!;
@@ -58,17 +60,37 @@ class CategoryFilterWidget extends ConsumerWidget {
               );
             },
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              // Figma padding: 9px 16px (selected), 9px 12px (unselected)
+              // Using consistent padding for simplicity unless specified otherwise
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
               decoration: BoxDecoration(
-                color: isSelected ? Colors.green : Colors.grey[200],
-                borderRadius: BorderRadius.circular(20),
+                color: isSelected
+                    ? AppColors.primary
+                    : AppColors.extraLightGrey, // Changed to white
+                borderRadius: BorderRadius.circular(32), // Figma: 32px
+                border: Border.all(
+                  color: isSelected
+                      ? AppColors.primary
+                      : AppColors
+                          .white, // Figma: #A3D80D / #F0F0F0 (Using lightGrey)
+                  width: 1,
+                ),
               ),
-              child: Text(
-                uiText,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: isSelected ? Colors.white : Colors.grey[600],
+              child: Center(
+                // Center text vertically
+                child: Text(
+                  uiText,
+                  // Figma: Space Grotesk, 500, 12 (Selected, white assumed) / 400, 12 (Unselected, #979796)
+                  style: TextStyle(
+                    fontFamily: 'SpaceGrotesk',
+                    fontSize: 12,
+                    fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
+                    color: isSelected
+                        ? AppColors.white
+                        : AppColors.grey, // Figma: White / #979796
+                    letterSpacing: 0.005 * 12, // Figma: 0.5%
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ),
             ),

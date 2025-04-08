@@ -78,6 +78,7 @@ class _CouponsScreenState extends ConsumerState<CouponsScreen> {
         .watch(couponViewModelProvider.select((state) => state.errorMessage));
 
     return Scaffold(
+      backgroundColor: AppColors.white,
       appBar: AppBar(
         title: const Text('내 쿠폰함'),
         centerTitle: true,

@@ -102,7 +102,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final carouselContainerHeight = baseCarouselHeight * scaleFactor * 0.97;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.white,
       body: SafeArea(
         bottom: false, // 바텀 오버플로우 방지
         child: RefreshIndicator(

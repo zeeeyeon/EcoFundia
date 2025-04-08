@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/ui/widgets/custom_app_bar.dart';
+import 'package:front/core/themes/app_colors.dart';
 import '../view_model/my_review_view_model.dart';
 import 'package:go_router/go_router.dart';
 
@@ -12,6 +13,7 @@ class MyReviewScreen extends ConsumerWidget {
     final reviewState = ref.watch(myReviewProvider);
 
     return Scaffold(
+      backgroundColor: AppColors.white,
       appBar: const CustomAppBar(
         title: '내 리뷰',
         showBackButton: true,

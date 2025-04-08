@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // ✅ 리뷰 상태 가져오기 위해 추가
-import 'package:front/utils/funding_status.dart';
 import 'package:go_router/go_router.dart';
 import 'package:front/core/themes/app_colors.dart';
+import 'package:front/core/themes/app_text_styles.dart';
 import 'package:front/features/mypage/data/models/my_funding_model.dart';
-import 'package:front/utils/status_helper.dart';
 import 'package:intl/intl.dart';
 import '../view_model/my_review_view_model.dart'; // ✅ 리뷰 리스트 Provider 접근을 위해 import
+import 'package:cached_network_image/cached_network_image.dart';
 
 class MyFundingCard extends ConsumerWidget {
   // ✅ Stateless → ConsumerWidget으로 변경
@@ -27,182 +27,127 @@ class MyFundingCard extends ConsumerWidget {
     final remainingDays = funding.endDate.difference(DateTime.now()).inDays;
     final isActive = remainingDays > 0;
 
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
-      decoration: BoxDecoration(
-        border: Border.all(color: AppColors.border),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        children: [
-          // 상단 영역: 이미지 + 설명
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 이미지
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.network(
-                    funding.imageUrls.first,
-                    width: 120,
-                    height: 90,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        width: 120,
-                        height: 90,
+    return InkWell(
+      onTap: () {
+        // 홈의 프로젝트 상세 페이지로 이동하도록 경로 수정
+        context.push('/project/${funding.fundingId}');
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          border: Border.all(
+              color: AppColors.lightGrey
+                  .withOpacity(0.5)), // Match Wishlist border
+          borderRadius: BorderRadius.circular(12), // Match Wishlist radius
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.shadowColor.withOpacity(0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            // Top section: Image and Basic Info
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Image
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: CachedNetworkImage(
+                      imageUrl: funding.imageUrls.isNotEmpty
+                          ? funding.imageUrls.first
+                          : '', // Provide a placeholder URL or handle empty list
+                      width: 100, // Adjust size as needed
+                      height: 100,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(
+                        width: 100,
+                        height: 100,
+                        color: Colors.grey.shade200,
+                        child: const Center(
+                            child: CircularProgressIndicator(strokeWidth: 2)),
+                      ),
+                      errorWidget: (context, url, error) => Container(
+                        width: 100,
+                        height: 100,
                         color: Colors.grey.shade200,
                         child: const Icon(Icons.image_not_supported,
-                            color: Colors.grey),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(width: 15),
-                // 텍스트 설명
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        funding.title,
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
+                            color: AppColors.grey),
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        funding.description,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            color: Colors.black87, fontSize: 13),
-                      ),
-                      const SizedBox(height: 10),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: isActive ? AppColors.primary : AppColors.grey,
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        child: Text(
-                          isActive ? 'D-$remainingDays' : '마감',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // 하단 영역 전체 Column으로 변경
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              border: Border(
-                top: BorderSide(color: Color.fromARGB(255, 236, 234, 234)),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 달성률 & 후원금
-                Text(
-                  '${funding.rate}% 달성',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '내 후원금: ${NumberFormat.decimalPattern().format(funding.totalPrice)}원',
-                  style: const TextStyle(fontSize: 13, color: Colors.black87),
-                ),
-
-                // 상태 텍스트 (우측 정렬)
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    getStatusLabel(funding.status),
-                    style: const TextStyle(fontSize: 13, color: Colors.black54),
-                  ),
-                ),
-
-                // 리뷰 작성 or 수정 버튼 (status == SUCCESS)
-                if (funding.status == FundingStatus.success) ...[
-                  const SizedBox(height: 16),
-                  const Divider(height: 1, color: Color(0xFFE0E0E0)),
-                  const SizedBox(height: 12),
-                  Text(
-                    alreadyReviewed
-                        ? '이 펀딩에 이미 후기를 남기셨어요.\n수정하시겠어요?'
-                        : '이 펀딩은 종료되었어요!\n후기를 남겨보시는 건 어떨까요?',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.black87,
-                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      onPressed: () {
-                        if (alreadyReviewed) {
-                          final review = myReviews.asData!.value.firstWhere(
-                              (r) => r.fundingId == funding.fundingId);
-
-                          context.push(
-                            '/review/edit/${review.reviewId}',
-                            extra: {
-                              'rating': review.rating,
-                              'content': review.content,
-                              'title': funding.title,
-                              'description': funding.description,
-                              'totalPrice': funding.totalPrice,
-                            },
-                          );
-                        } else {
-                          context.push(
-                            '/review/${funding.fundingId}',
-                            extra: {
-                              'title': funding.title,
-                              'description': funding.description,
-                              'totalPrice': funding.totalPrice,
-                            },
-                          );
-                        }
-                      },
-                      icon: Icon(
-                        alreadyReviewed ? Icons.edit : Icons.rate_review,
-                        size: 18,
-                      ),
-                      label: Text(
-                        alreadyReviewed ? '리뷰 수정' : '리뷰 작성',
-                        style: const TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.bold),
-                      ),
+                  const SizedBox(width: 12),
+                  // Info Column
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          funding.title,
+                          style: AppTextStyles.itemTitle, // Use AppTextStyles
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          funding.description,
+                          style: AppTextStyles.body2
+                              .copyWith(color: AppColors.grey, fontSize: 13),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 8),
+                        // Status Badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color:
+                                isActive ? AppColors.primary : AppColors.grey,
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: Text(
+                            isActive ? 'D-$remainingDays' : '마감',
+                            style: AppTextStyles.badge, // Use AppTextStyles
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
-              ],
+              ),
             ),
-          ),
-        ],
+            // Bottom section: My Investment Info
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: AppColors.extraLightGrey.withOpacity(0.5),
+                border: Border(
+                    top: BorderSide(
+                        color: AppColors.lightGrey.withOpacity(0.5))),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('나의 후원금',
+                      style: AppTextStyles.body2
+                          .copyWith(fontWeight: FontWeight.w600)),
+                  Text(
+                    '${NumberFormat.decimalPattern().format(funding.totalPrice)}원',
+                    style: AppTextStyles.body1.copyWith(
+                        fontWeight: FontWeight.bold, color: AppColors.primary),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

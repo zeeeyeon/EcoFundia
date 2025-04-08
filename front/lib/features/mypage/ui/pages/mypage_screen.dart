@@ -9,6 +9,8 @@ import 'package:front/features/mypage/ui/widgets/funding_status_card.dart';
 import 'package:front/features/mypage/ui/widgets/mypage_support_section.dart';
 import 'package:front/utils/logger_util.dart';
 import 'package:go_router/go_router.dart';
+import 'package:front/core/themes/app_colors.dart';
+import 'package:front/core/themes/app_text_styles.dart';
 import '../../../../core/ui/widgets/custom_app_bar.dart';
 import '../view_model/profile_view_model.dart';
 import '../widgets/profile_card.dart';
@@ -100,21 +102,41 @@ class _MypageScreenState extends ConsumerState<MypageScreen> {
     final totalFundingState = ref.watch(totalFundingAmountProvider);
 
     return Scaffold(
-      appBar: CustomAppBar(
-        title: "My Page",
+      backgroundColor: AppColors.white,
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: Text(
+          "My Page",
+          style: AppTextStyles.appBarTitle.copyWith(color: AppColors.textDark),
+        ),
+        backgroundColor: AppColors.white,
+        surfaceTintColor: AppColors.white,
+        elevation: 1,
+        shadowColor: AppColors.shadowColor.withOpacity(0.1),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications),
+            icon: const Icon(Icons.shopping_bag_outlined,
+                color: AppColors.textDark),
+            onPressed: () {
+              // TODO: Navigate to cart or related page
+              // context.push('/cart');
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.notifications_none_outlined,
+                color: AppColors.textDark),
             onPressed: () {
               context.push('/notifications');
             },
           ),
           IconButton(
-            icon: const Icon(Icons.settings),
+            icon:
+                const Icon(Icons.settings_outlined, color: AppColors.textDark),
             onPressed: () {
               context.push('/settings');
             },
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: LoadingOverlay(
@@ -129,8 +151,6 @@ class _MypageScreenState extends ConsumerState<MypageScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  GreetingMessage(profile: profile),
-                  const SizedBox(height: 8),
                   ProfileCard(profile: profile),
                   FundingStatusCard(
                     totalFundingAmount: totalAmount,

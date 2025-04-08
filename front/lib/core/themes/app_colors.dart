@@ -14,6 +14,9 @@ class AppColors {
   static const lightGrey = Color(0xFFCCCCCC);
   static const extraLightGrey = Color(0xFFF5F5F5);
 
+  // 추가: Figma에서 자주 사용되는 텍스트 색상 (#171816)
+  static const textDark = Color(0xFF171816);
+
   // 테마 색상
   static const mainColor = Color(0x009db2ce);
   static const error = Colors.red;

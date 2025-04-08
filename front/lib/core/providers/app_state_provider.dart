@@ -38,7 +38,9 @@ class AppState {
 
 /// 앱의 전역 상태를 관리하는 ViewModel
 class AppStateViewModel extends StateNotifier<AppState> {
-  AppStateViewModel() : super(const AppState());
+  final Ref _ref;
+
+  AppStateViewModel(this._ref) : super(const AppState());
 
   /// 로딩 상태 설정
   void setLoading(bool isLoading) {
@@ -65,6 +67,32 @@ class AppStateViewModel extends StateNotifier<AppState> {
     LoggerUtil.d('👤 로그인 상태 변경: $isLoggedIn');
   }
 
+  /// 로그아웃 처리 (토큰 삭제, 상태 변경, 로그인 페이지 이동)
+  Future<void> logout() async {
+    LoggerUtil.i('🚪 로그아웃 처리 시작');
+    try {
+      // 1. 토큰 삭제
+      await StorageService.clearAll();
+      LoggerUtil.d('🔑 저장된 모든 토큰 삭제 완료');
+
+      // 2. 로그인 상태 변경
+      setLoggedIn(false);
+
+      // 3. 로그인 페이지 리디렉션 -> GoRouter redirect에서 처리하도록 제거
+      // _ref.read(routerProvider).go('/login');
+      LoggerUtil.i('✅ 로그아웃 상태 변경 완료');
+    } catch (e) {
+      LoggerUtil.e('❌ 로그아웃 처리 중 오류 발생', e);
+      state = state.copyWith(isLoggedIn: false); // 상태는 확실히 false로
+      // 오류 시 라우팅 시도 제거
+      // try {
+      //   _ref.read(routerProvider).go('/login');
+      // } catch (routerError) {
+      //   LoggerUtil.e('❌ 로그아웃 후 라우팅 오류', routerError);
+      // }
+    }
+  }
+
   /// 상태 초기화
   void resetState() {
     state = const AppState();
@@ -74,7 +102,7 @@ class AppStateViewModel extends StateNotifier<AppState> {
 /// 앱 상태 Provider
 final appStateProvider =
     StateNotifierProvider<AppStateViewModel, AppState>((ref) {
-  return AppStateViewModel();
+  return AppStateViewModel(ref);
 });
 
 /// 로딩 상태 Provider
