@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'storage_service.dart';
+import 'token_service.dart';
 import 'package:front/utils/logger_util.dart';
 import 'package:front/core/config/app_config.dart';
 
@@ -139,7 +140,9 @@ class ApiService {
 
           if (error.response?.statusCode == 401) {
             try {
-              LoggerUtil.i('🔄 토큰 갱신 시도');
+              LoggerUtil.i('🔄 토큰 갱신 시도 (API 인터셉터)');
+
+              // 리프레시 토큰 가져오기
               final refreshToken = await StorageService.getRefreshToken();
               if (refreshToken == null) {
                 LoggerUtil.w('⚠️ 리프레시 토큰 없음');
@@ -148,29 +151,24 @@ class ApiService {
                     error: '리프레시 토큰이 없습니다.');
               }
 
-              // 토큰 갱신 시도
-              final response = await _dio.post(
-                apiEndpoints.reissue,
-                data: {'refreshToken': refreshToken},
-                options: Options(headers: {'X-Skip-Token-Refresh': 'true'}),
-              );
-
-              if (response.data != null) {
-                final newAccessToken = response.data['content']['accessToken'];
-                final newRefreshToken =
-                    response.data['content']['refreshToken'];
-
+              // TokenService를 통한 토큰 갱신
+              final newTokens = await TokenService.refreshTokens(refreshToken);
+              if (newTokens != null) {
                 // 새 토큰 저장
-                await StorageService.saveToken(newAccessToken);
-                await StorageService.saveRefreshToken(newRefreshToken);
-                LoggerUtil.i('✅ 토큰 갱신 성공');
+                await StorageService.saveToken(newTokens['accessToken']!);
+                await StorageService.saveRefreshToken(
+                    newTokens['refreshToken']!);
 
                 // 실패한 요청 재시도
                 error.requestOptions.headers['Authorization'] =
-                    'Bearer $newAccessToken';
+                    'Bearer ${newTokens['accessToken']}';
                 LoggerUtil.i('🔄 실패한 요청 재시도: ${error.requestOptions.path}');
                 final retryResponse = await _dio.fetch(error.requestOptions);
                 return handler.resolve(retryResponse);
+              } else {
+                // 토큰 갱신 실패 시 로그아웃 처리
+                await StorageService.clearAll();
+                LoggerUtil.i('👋 로그아웃 처리 (인증 실패)');
               }
             } catch (e) {
               LoggerUtil.e('❌ 토큰 갱신 실패', e);
@@ -237,13 +235,9 @@ class ApiService {
       CancelToken? cancelToken,
       ProgressCallback? onSendProgress,
       ProgressCallback? onReceiveProgress}) async {
-    LoggerUtil.d('📤 POST 요청 시작: $path');
-
     // 쿠폰 관련 API 호출 특별 로깅
     if (path.contains('coupons')) {
       LoggerUtil.i('🎫 쿠폰 API 호출: POST $path');
-      LoggerUtil.i('🎫 요청 데이터: $data');
-      LoggerUtil.i('🎫 요청 옵션: ${options?.toString()}');
     }
 
     try {
@@ -260,7 +254,6 @@ class ApiService {
       // 쿠폰 관련 API 응답 특별 로깅
       if (path.contains('coupons')) {
         LoggerUtil.i('🎫 쿠폰 API 응답: ${response.statusCode}');
-        LoggerUtil.i('🎫 응답 데이터: ${response.data}');
       }
 
       return response;
@@ -313,8 +306,6 @@ class ApiService {
   /// 로그아웃 처리
   Future<bool> logout({CancelToken? cancelToken}) async {
     try {
-      LoggerUtil.i('🔄 서버에 로그아웃 요청 시작');
-
       // 토큰 얻기 (요청 전 토큰 유효성 확인)
       final token = await StorageService.getToken();
       if (token == null) {
@@ -332,8 +323,6 @@ class ApiService {
         }),
         cancelToken: cancelToken,
       );
-
-      LoggerUtil.i('✅ 서버 로그아웃 요청 성공');
 
       // 서버 요청 성공 후 로컬 스토리지에서 토큰 및 사용자 정보 삭제
       await StorageService.clearAll();
@@ -392,9 +381,6 @@ String getProxiedImageUrl(String originalUrl, {int? maxWidth, int? maxHeight}) {
   }
 
   try {
-    LoggerUtil.d(
-        '이미지 URL 처리 시작: $originalUrl (maxWidth: $maxWidth, maxHeight: $maxHeight)');
-
     // 이미 프록시된 URL인 경우
     if (originalUrl.startsWith('http://') ||
         originalUrl.startsWith('https://')) {
@@ -424,15 +410,13 @@ String getProxiedImageUrl(String originalUrl, {int? maxWidth, int? maxHeight}) {
     // 상대 URL인 경우 (서버 호스트 주소로 변환 필요)
     // 예시: /images/photo.jpg -> https://api.example.com/images/photo.jpg
     if (originalUrl.startsWith('/')) {
-      const baseUrl = 'https://api.simple.com'; // 실제 API 기본 URL로 교체 필요
+      const baseUrl = 'https://j12e206.p.ssafy.io'; // 실제 API 기본 URL로 교체 필요
       final fullUrl = '$baseUrl$originalUrl';
 
       LoggerUtil.d('상대 URL을 절대 URL로 변환: $fullUrl');
       return fullUrl;
     }
 
-    // 그 외의 경우 (데이터 URL 등) 원본 반환
-    LoggerUtil.d('특별한 처리 없이 원본 URL 반환: $originalUrl');
     return originalUrl;
   } catch (e) {
     LoggerUtil.e('이미지 URL 처리 중 오류 발생: $e, URL: $originalUrl');

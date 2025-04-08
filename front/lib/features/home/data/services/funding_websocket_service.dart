@@ -1,7 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/core/providers/websocket_provider.dart';
-import 'package:front/core/services/storage_service.dart';
 import 'package:front/core/services/websocket_manager.dart';
 import 'package:front/utils/logger_util.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
@@ -10,36 +10,80 @@ import 'package:stomp_dart_client/stomp_dart_client.dart';
 class FundingWebSocketService {
   final WebSocketManager _webSocketManager;
   bool _isConnected = false;
+  Timer? _reconnectTimer;
+  bool _isReconnecting = false;
+
+  // 재연결 시도 간격 (초)
+  static const int _reconnectIntervalSeconds = 5;
+  // 최대 재연결 시도 횟수
+  static const int _maxReconnectAttempts = 5;
+  // 현재 재연결 시도 횟수
+  int _reconnectAttempts = 0;
 
   // 펀딩 금액 업데이트 콜백
   Function(int totalFund)? onTotalFundUpdated;
 
-  FundingWebSocketService(this._webSocketManager);
+  // 연결 상태 변경 콜백
+  Function(bool isConnected)? onConnectionStatusChanged;
 
-  /// WebSocket 연결 시작
+  FundingWebSocketService(this._webSocketManager) {
+    // WebSocketManager의 연결 상태 변경 이벤트 구독
+    _webSocketManager.onConnectionStatusChanged = _handleConnectionStatusChange;
+  }
+
+  // 연결 상태 변경 핸들러
+  void _handleConnectionStatusChange(bool connected) {
+    if (_isConnected != connected) {
+      _isConnected = connected;
+
+      // 연결 상태 콜백 호출
+      if (onConnectionStatusChanged != null) {
+        onConnectionStatusChanged!(_isConnected);
+      }
+
+      // 연결이 끊어졌을 때 자동 재연결 시도
+      if (!connected && !_isReconnecting) {
+        _scheduleReconnect();
+      }
+    }
+  }
+
+  /// WebSocket 연결 시작 (토큰 없이도 연결 가능)
   Future<void> connect() async {
     if (_isConnected) {
       LoggerUtil.d('WebSocket 이미 연결되어 있음');
       return;
     }
 
-    final token = await StorageService.getToken();
-    if (token == null) {
-      LoggerUtil.w('⚠️ WebSocket 연결 실패: 토큰 없음');
+    if (_isReconnecting) {
+      LoggerUtil.d('WebSocket 재연결 중...');
       return;
     }
 
-    _webSocketManager.connect(
-      userToken: token,
-      onConnectCallback: _handleConnection,
-      onError: _handleError,
-    );
+    LoggerUtil.i('🔌 펀딩 WebSocket 연결 시작');
+
+    try {
+      // 토큰 없이 연결 (토탈 펀딩 구독에는 토큰이 필요 없음)
+      _webSocketManager.connect(
+        onConnectCallback: _handleConnection,
+        onError: _handleError,
+      );
+    } catch (e) {
+      LoggerUtil.e('❌ WebSocket 연결 시도 중 오류: $e');
+      _handleError(e);
+    }
   }
 
   /// 연결 성공 시 호출되는 콜백
   void _handleConnection(StompFrame frame) {
     LoggerUtil.i('✅ 펀딩 WebSocket 연결 성공');
     _isConnected = true;
+    _reconnectAttempts = 0; // 재연결 시도 횟수 초기화
+
+    if (onConnectionStatusChanged != null) {
+      onConnectionStatusChanged!(_isConnected);
+    }
+
     _subscribeToFundingUpdates();
   }
 
@@ -47,6 +91,40 @@ class FundingWebSocketService {
   void _handleError(dynamic error) {
     LoggerUtil.e('❌ 펀딩 WebSocket 연결 오류: $error');
     _isConnected = false;
+
+    if (onConnectionStatusChanged != null) {
+      onConnectionStatusChanged!(_isConnected);
+    }
+
+    // 에러 발생 시 자동 재연결 시도
+    _scheduleReconnect();
+  }
+
+  /// 자동 재연결 스케줄링
+  void _scheduleReconnect() {
+    if (_isReconnecting || _reconnectAttempts >= _maxReconnectAttempts) {
+      if (_reconnectAttempts >= _maxReconnectAttempts) {
+        LoggerUtil.w('⚠️ 최대 재연결 시도 횟수($_maxReconnectAttempts)에 도달했습니다.');
+      }
+      return;
+    }
+
+    _isReconnecting = true;
+    _reconnectAttempts++;
+
+    LoggerUtil.d(
+        '🔄 WebSocket 재연결 스케줄링... (시도 $_reconnectAttempts/$_maxReconnectAttempts)');
+
+    // 기존 타이머 취소
+    _reconnectTimer?.cancel();
+
+    // 새 타이머 설정
+    _reconnectTimer =
+        Timer(const Duration(seconds: _reconnectIntervalSeconds), () async {
+      LoggerUtil.d('🔄 WebSocket 재연결 시도 $_reconnectAttempts...');
+      _isReconnecting = false;
+      await connect();
+    });
   }
 
   /// 펀딩 업데이트 구독
@@ -62,115 +140,55 @@ class FundingWebSocketService {
     LoggerUtil.d('🔄 펀딩 업데이트 구독 시작: $destination');
   }
 
-  /// 펀딩 업데이트 메시지 처리
+  /// 펀딩 업데이트 처리
   void _handleFundingUpdate(StompFrame frame) {
-    LoggerUtil.d('📩 펀딩 업데이트 수신: ${frame.body}');
-
     try {
       if (frame.body == null) {
-        LoggerUtil.w('⚠️ 빈 메시지 수신됨');
+        LoggerUtil.w('⚠️ 펀딩 업데이트 수신 - 빈 메시지');
         return;
       }
 
-      final data = jsonDecode(frame.body!);
+      LoggerUtil.d('📊 펀딩 업데이트 수신: ${frame.body}');
 
-      // API 응답 형식에 맞게 파싱
-      final totalFund = _extractTotalFund(data);
-
-      // 펀딩 금액이 0인 경우 무시 (유효하지 않은 업데이트로 간주)
-      if (totalFund <= 0) {
-        LoggerUtil.w('⚠️ 유효하지 않은 펀딩 금액 수신: $totalFund (0 이하의 값은 무시됨)');
-        return;
-      }
-
-      LoggerUtil.i('💰 새로운 총 펀딩 금액: $totalFund');
-
-      // 콜백 호출
-      if (onTotalFundUpdated != null) {
-        onTotalFundUpdated!(totalFund);
+      final totalFund = _extractTotalFundFromMessage(frame.body!);
+      if (totalFund != null) {
+        LoggerUtil.i('💰 총 펀딩 금액 업데이트: $totalFund');
+        if (onTotalFundUpdated != null) {
+          onTotalFundUpdated!(totalFund);
+        }
+      } else {
+        LoggerUtil.w('⚠️ 펀딩 업데이트 파싱 실패');
       }
     } catch (e) {
-      LoggerUtil.e('❌ 펀딩 업데이트 파싱 오류: $e');
+      LoggerUtil.e('❌ 펀딩 업데이트 처리 오류: $e');
     }
   }
 
-  /// 데이터에서 totalFund 값을 추출
-  int _extractTotalFund(dynamic data) {
+  /// 메시지에서 총 펀딩 금액 추출
+  int? _extractTotalFundFromMessage(String message) {
     try {
-      // 디버그 로깅 추가
-      LoggerUtil.d('🔍 펀딩 업데이트 데이터 파싱 시작: $data');
+      final dynamic data = jsonDecode(message);
 
-      // null 체크
-      if (data == null) {
-        LoggerUtil.w('⚠️ WebSocket 메시지가 null입니다.');
-        return 0;
+      // data가 직접 int 값인 경우 (서버가 단순 숫자만 보낼 경우)
+      if (data is int) {
+        return data;
       }
 
-      // 다양한 형태의 응답을 처리하기 위한 로직
-      final content = data['content'] ?? data;
-
-      LoggerUtil.d('🧩 추출된 content: $content');
-
-      // content가 숫자인 경우 직접 반환
-      if (content is int) {
-        if (content <= 0) {
-          LoggerUtil.w('⚠️ 서버에서 받은 펀딩 금액이 0 이하입니다: $content');
-        }
-        return content > 0 ? content : 0;
-      }
-
-      // content가 맵(객체)인 경우 필드 추출
-      else if (content is Map) {
-        // 다양한 필드명 지원 (API 변경 가능성 대비)
-        final possibleFields = [
-          'totalFund',
-          'total_fund',
-          'total',
-          'amount',
-          'totalAmount'
-        ];
-
-        // 가능한 필드 중 존재하는 첫 필드 사용
-        String? foundField;
-        dynamic fund;
-
-        for (final field in possibleFields) {
-          if (content.containsKey(field)) {
-            foundField = field;
-            fund = content[field];
-            break;
-          }
-        }
-
-        if (foundField != null) {
-          LoggerUtil.d('📋 발견된 금액 필드: $foundField = $fund');
-        } else {
-          LoggerUtil.w('⚠️ 알려진 금액 필드를 찾을 수 없음: $content');
-          return 0;
-        }
-
-        // 타입에 따른 변환
-        if (fund is int) {
-          return fund > 0 ? fund : 0;
-        } else if (fund is String) {
-          final parsed = int.tryParse(fund) ?? 0;
-          return parsed > 0 ? parsed : 0;
-        } else if (fund is double) {
-          return fund > 0 ? fund.toInt() : 0;
+      // data가 Map이고 totalAmount 필드가 있는 경우
+      if (data is Map && data.containsKey('totalAmount')) {
+        final totalAmount = data['totalAmount'];
+        if (totalAmount is int) {
+          return totalAmount;
+        } else if (totalAmount is String) {
+          return int.tryParse(totalAmount);
         }
       }
 
-      // content가 문자열인 경우 숫자로 변환 시도
-      else if (content is String) {
-        final parsed = int.tryParse(content) ?? 0;
-        return parsed > 0 ? parsed : 0;
-      }
-
-      LoggerUtil.w('⚠️ 알 수 없는 응답 형식: $content');
-      return 0;
+      LoggerUtil.w('⚠️ 알 수 없는 데이터 형식: $data');
+      return null;
     } catch (e) {
-      LoggerUtil.e('❌ 펀딩 금액 추출 오류: $e');
-      return 0;
+      LoggerUtil.e('❌ JSON 파싱 오류: $e');
+      return null;
     }
   }
 
@@ -179,15 +197,27 @@ class FundingWebSocketService {
 
   /// 연결 종료
   void disconnect() {
+    _reconnectTimer?.cancel();
+    _isReconnecting = false;
+
     if (_isConnected) {
       _webSocketManager.disconnect();
       _isConnected = false;
       LoggerUtil.d('🔌 펀딩 WebSocket 연결 종료');
     }
   }
+
+  /// 수동 재연결
+  Future<void> reconnect() async {
+    LoggerUtil.d('🔄 WebSocket 수동 재연결 요청');
+    disconnect();
+    await Future.delayed(const Duration(milliseconds: 500));
+    _reconnectAttempts = 0;
+    await connect();
+  }
 }
 
-/// 펀딩 WebSocket 서비스 Provider
+/// 펀딩 WebSocket 서비스 제공자
 final fundingWebSocketServiceProvider =
     Provider<FundingWebSocketService>((ref) {
   final webSocketManager = ref.watch(websocketManagerProvider);

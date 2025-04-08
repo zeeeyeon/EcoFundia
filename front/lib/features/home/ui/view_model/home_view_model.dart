@@ -50,40 +50,74 @@ class HomeViewModel extends StateNotifier<HomeState> {
   DateTime? _lastFetchTime;
 
   // 디바운싱 설정 (초 단위)
-  static const int _debounceDurationSeconds = 3;
+  static const int _debounceDurationSeconds = 5;
 
   // 폴링 간격 (분 단위)
   static const int _pollingIntervalMinutes = 1;
 
   HomeViewModel(this._projectRepository, this._webSocketService)
       : super(const HomeState()) {
-    _initializeHomeData();
+    _initialize();
+  }
+
+  /// 홈 데이터 초기화 및 WebSocket 설정
+  Future<void> _initialize() async {
+    LoggerUtil.i('🏠 HomeViewModel 초기화 시작');
+    try {
+      // 초기 데이터 로드
+      await _initializeHomeData();
+
+      // WebSocket 연결 설정
+      await _initWebSocket();
+
+      LoggerUtil.i('🏠 HomeViewModel 초기화 완료');
+    } catch (e) {
+      LoggerUtil.e('❌ HomeViewModel 초기화 오류: $e');
+      state = state.copyWith(
+        error: '데이터 로드 중 오류가 발생했습니다.',
+        isLoading: false,
+      );
+    }
   }
 
   /// 홈 데이터 초기화 및 WebSocket 설정
   Future<void> _initializeHomeData() async {
-    // 초기 데이터 로드
-    await fetchTotalFund();
+    LoggerUtil.d('📊 홈 데이터 초기화 시작');
+    state = state.copyWith(isLoading: true);
 
-    // WebSocket 연결 설정
-    await _initWebSocket();
+    try {
+      // 첫 데이터 로드
+      await fetchTotalFund();
 
-    // 주기적 데이터 갱신 타이머 설정 (WebSocket 백업)
-    _startPeriodicRefresh();
+      // WebSocket 연결 상태에 따라 타이머 설정 여부 결정
+      if (!state.isWebSocketConnected) {
+        _startPeriodicRefresh();
+      }
+
+      LoggerUtil.d('📊 홈 데이터 초기화 완료');
+    } catch (e) {
+      LoggerUtil.e('❌ 홈 데이터 초기화 오류: $e');
+      state = state.copyWith(
+        error: '데이터 로드 중 오류가 발생했습니다.',
+        isLoading: false,
+      );
+    }
   }
 
   /// WebSocket 연결 초기화
   Future<void> _initWebSocket() async {
     try {
-      // WebSocket 업데이트 콜백 설정
+      LoggerUtil.d('🔌 WebSocket 초기화 시작');
+
+      // WebSocket 연결 상태 변경 콜백 설정
+      _webSocketService.onConnectionStatusChanged =
+          _handleWebSocketConnectionChange;
+
+      // WebSocket 펀딩 금액 업데이트 콜백 설정
       _webSocketService.onTotalFundUpdated = _handleWebSocketUpdate;
 
       // WebSocket 연결 시작
       await _webSocketService.connect();
-
-      // 연결 상태 업데이트
-      state =
-          state.copyWith(isWebSocketConnected: _webSocketService.isConnected);
 
       LoggerUtil.i('🔌 WebSocket 실시간 업데이트 시작됨');
     } catch (e) {
@@ -91,6 +125,29 @@ class HomeViewModel extends StateNotifier<HomeState> {
 
       // WebSocket 연결 실패 시 폴백으로 HTTP 폴링 유지
       state = state.copyWith(isWebSocketConnected: false);
+
+      // 연결 실패 시 폴링 시작
+      _startPeriodicRefresh();
+    }
+  }
+
+  /// WebSocket 연결 상태 변경 핸들러
+  void _handleWebSocketConnectionChange(bool isConnected) {
+    LoggerUtil.i('🔌 WebSocket 연결 상태 변경: $isConnected');
+
+    if (isConnected != state.isWebSocketConnected) {
+      state = state.copyWith(isWebSocketConnected: isConnected);
+
+      // 연결 상태에 따라 폴링 설정 변경
+      if (isConnected) {
+        // WebSocket 연결 성공 시 폴링 중지
+        LoggerUtil.d('✅ WebSocket 연결됨 - 폴링 중지');
+        _refreshTimer?.cancel();
+      } else {
+        // WebSocket 연결 끊김 시 폴링 시작
+        LoggerUtil.d('❌ WebSocket 연결 끊김 - 폴링 시작');
+        _startPeriodicRefresh();
+      }
     }
   }
 
@@ -146,10 +203,18 @@ class HomeViewModel extends StateNotifier<HomeState> {
     // 기존 타이머가 있다면 취소
     _refreshTimer?.cancel();
 
+    // WebSocket이 연결된 상태에서는 폴링 불필요
+    if (state.isWebSocketConnected) {
+      LoggerUtil.d('🔌 WebSocket 연결됨 - 폴링 스킵');
+      return;
+    }
+
     // 주기적 HTTP 폴링 (WebSocket 백업)
     _refreshTimer = Timer.periodic(
         const Duration(minutes: _pollingIntervalMinutes),
         (_) => fetchTotalFund());
+
+    LoggerUtil.d('⏱️ 주기적 폴링 타이머 시작 ($_pollingIntervalMinutes분 간격)');
   }
 
   /// 총 펀딩 금액 조회 API 호출
@@ -187,24 +252,24 @@ class HomeViewModel extends StateNotifier<HomeState> {
   /// 타이머와 데이터 새로고침
   Future<void> refreshData() async {
     await fetchTotalFund();
-    _startPeriodicRefresh();
-  }
 
-  /// 데이터 재로드 없이 타이머만 재시작
-  void restartTimerOnly() {
-    _startPeriodicRefresh();
+    // WebSocket 연결 상태에 따라 폴링 재설정
+    if (!state.isWebSocketConnected) {
+      _startPeriodicRefresh();
+    }
   }
 
   /// WebSocket 재연결
   Future<void> reconnectWebSocket() async {
     try {
-      state = state.copyWith(isWebSocketConnected: false);
-      _webSocketService.disconnect();
-
-      await Future.delayed(const Duration(milliseconds: 500)); // 연결 해제 대기
-      await _initWebSocket();
+      LoggerUtil.i('🔄 WebSocket 수동 재연결 시도');
+      await _webSocketService.reconnect();
     } catch (e) {
       LoggerUtil.e('❌ WebSocket 재연결 실패: $e');
+      // 연결 실패 시 폴링 확인
+      if (!state.isWebSocketConnected) {
+        _startPeriodicRefresh();
+      }
     }
   }
 

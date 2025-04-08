@@ -76,7 +76,7 @@ class _TotalFundDisplayState extends ConsumerState<TotalFundDisplay>
       // 빌드 사이클 이후에 실행하여 빌드 중 상태 변경 방지
       Future.microtask(() {
         if (!mounted) return;
-        ref.read(homeViewModelProvider.notifier).restartTimerOnly();
+        ref.read(homeViewModelProvider.notifier).refreshData();
       });
     }
   }

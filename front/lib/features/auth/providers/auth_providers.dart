@@ -3,7 +3,7 @@ import 'package:front/features/auth/domain/entities/auth_state.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:front/core/services/api_service.dart';
-import 'package:front/core/constants/auth_constants.dart';
+import 'package:front/core/config/app_config.dart';
 import 'package:front/core/providers/app_state_provider.dart';
 import 'package:front/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:front/features/auth/data/services/auth_service.dart';
@@ -21,11 +21,11 @@ final authServiceProvider = Provider<AuthService>((ref) {
   final googleSignIn = kIsWeb
       ? GoogleSignIn(
           scopes: ['email', 'profile'],
-          clientId: AuthConstants.webClientId,
+          clientId: AppConfig.authConfig.webClientId,
         )
       : GoogleSignIn(
           scopes: ['email', 'profile'],
-          serverClientId: AuthConstants.serverClientId,
+          serverClientId: AppConfig.authConfig.serverClientId,
         );
 
   // ApiService 주입 (중앙화된 Dio 인스턴스 사용)

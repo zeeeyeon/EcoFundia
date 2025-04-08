@@ -242,7 +242,22 @@ class ProductInfoSection extends ConsumerWidget {
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
-                onPressed: () => paymentVM.removeCoupon(),
+                onPressed: () {
+                  paymentVM.removeCoupon();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('쿠폰이 제거되었습니다.'),
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
+                  LoggerUtil.d('쿠폰 제거 버튼 클릭 - UI 상태 업데이트됨');
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.error,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  minimumSize: const Size(0, 0),
+                ),
                 child: Text(
                   '쿠폰 제거',
                   style: AppTextStyles.body2.copyWith(

@@ -136,21 +136,16 @@ class ProjectEntity extends Equatable {
     String? processedStoryFileUrl;
     if (dto.storyFileUrl != null && dto.storyFileUrl!.isNotEmpty) {
       try {
-        // 스토리 URL이 있는지 확인하고 로깅
-        print('원본 스토리 이미지 URL: ${dto.storyFileUrl}');
-
         // storyFileUrl은 보통 큰 이미지이므로 WebGL 제한을 고려하여 크기 제한 적용
         processedStoryFileUrl = getProxiedImageUrl(
           dto.storyFileUrl!,
           maxWidth: 1024, // WebGL에서 안전한 크기
           maxHeight: 2048, // WebGL에서 안전한 크기
         );
-        print('처리된 스토리 이미지 URL: $processedStoryFileUrl');
       } catch (e) {
         print('스토리 이미지 URL 처리 중 오류: $e');
         // 오류 발생시 원본 URL 그대로 사용
         processedStoryFileUrl = dto.storyFileUrl;
-        print('오류로 인해 원본 URL 사용: $processedStoryFileUrl');
       }
     } else {
       print('스토리 이미지 URL이 없거나 비어 있음: ${dto.storyFileUrl}');

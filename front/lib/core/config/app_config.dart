@@ -9,6 +9,9 @@ class AppConfig {
   /// 토큰 관련 설정
   static const tokenConfig = TokenConfig();
 
+  /// 인증 관련 설정
+  static const authConfig = AuthConfig();
+
   // 다른 환경 설정 값들은 여기에 추가
 }
 
@@ -44,4 +47,17 @@ class TokenConfig {
   final int checkExpirationIntervalMinutes = 5;
 
   const TokenConfig();
+}
+
+/// 인증 관련 설정을 관리하는 클래스
+class AuthConfig {
+  /// 웹 환경에서 사용하는 Google 클라이언트 ID
+  final String webClientId =
+      '609004819005-m2h2elam67hkc5f6r7oajvhpc5555du8.apps.googleusercontent.com';
+
+  /// 모바일 환경에서 서버 인증에 사용하는 Google 클라이언트 ID
+  final String serverClientId =
+      '609004819005-m2h2elam67hkc5f6r7oajvhpc5555du8.apps.googleusercontent.com';
+
+  const AuthConfig();
 }

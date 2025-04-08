@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/features/home/data/repositories/project_repository_impl.dart';
 import 'package:front/features/home/domain/repositories/project_repository.dart';
 import 'package:front/features/home/domain/entities/project_entity.dart';
-import 'package:logger/logger.dart';
 import 'package:front/utils/logger_util.dart';
 import 'package:front/features/wishlist/ui/view_model/wishlist_provider.dart';
 import 'package:front/core/providers/app_state_provider.dart';
@@ -35,13 +34,10 @@ class ProjectState {
 // ViewModel 정의
 class ProjectViewModel extends StateNotifier<ProjectState> {
   final ProjectRepository _projectRepository;
-  final Logger _logger;
   DateTime? _lastLoadTime; // 마지막 데이터 로드 시간 추적
   Ref? _ref; // Ref 저장 (위시리스트 업데이트를 위해)
 
-  ProjectViewModel(this._projectRepository)
-      : _logger = Logger(),
-        super(ProjectState(projects: []));
+  ProjectViewModel(this._projectRepository) : super(ProjectState(projects: []));
 
   // 프로젝트 목록이 비어있는지 확인하는 getter
   bool get hasEmptyProjects => state.projects.isEmpty;
@@ -116,13 +112,10 @@ class ProjectViewModel extends StateNotifier<ProjectState> {
           updatedProjects.map((p) => '${p.id}:${p.isLiked}').join(', ');
       LoggerUtil.d('📋 프로젝트 isLiked 최종 상태: [$isLikedStatuses]');
 
-      // 6. 단일 상태 업데이트: 로딩 완료 및 최종 프로젝트 목록 동시 적용
-      LoggerUtil.i('🔄 최종 상태 업데이트 직전 (로딩 상태 false, 프로젝트 목록 업데이트)');
       state = state.copyWith(
         projects: updatedProjects, // 위시리스트 ID와 매칭된 상태로 업데이트
         isLoading: false,
       );
-      LoggerUtil.i('✅ 최종 상태 업데이트 완료');
     } catch (e) {
       LoggerUtil.e('❌ 프로젝트 로드 실패', e);
       state = state.copyWith(

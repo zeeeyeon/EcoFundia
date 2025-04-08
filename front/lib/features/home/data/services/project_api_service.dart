@@ -192,13 +192,10 @@ class ProjectApiService extends ProjectService {
   @override
   Future<int> getTotalFund() async {
     try {
-      _logger.d('📈 총 펀딩 금액 조회 API 요청');
-
       final response = await _dio.get('/business/total-fund');
 
       if (response.statusCode == 200) {
         final data = response.data;
-        _logger.d('✅ 총 펀딩 금액 API 응답: $data');
 
         // 응답 데이터에서 content 필드 가져오기
         if (data['content'] != null) {
@@ -209,7 +206,6 @@ class ProjectApiService extends ProjectService {
               'Invalid API response format: content field is missing');
         }
       } else {
-        _logger.e('❌ 총 펀딩 금액 조회 실패: ${response.statusCode}');
         throw Exception('Failed to fetch total fund: ${response.statusCode}');
       }
     } on DioException catch (e) {

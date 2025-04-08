@@ -191,17 +191,20 @@ class CouponDialog extends ConsumerWidget {
     required CouponColorUtil colorUtil,
   }) {
     return InkWell(
-      onTap: isSelected
-          ? () {
-              // 이미 선택된 쿠폰을 다시 탭하면 선택 해제
-              final viewModel = ref.read(paymentViewModelProvider.notifier);
-              viewModel.removeCoupon();
-              Navigator.pop(context);
-            }
-          : () {
-              onCouponSelected(coupon.couponId, coupon.discountAmount);
-              Navigator.pop(context);
-            },
+      onTap: () {
+        if (isSelected) {
+          // 이미 선택된 쿠폰을 다시 탭하면 선택 해제
+          final viewModel = ref.read(paymentViewModelProvider.notifier);
+          viewModel.removeCoupon();
+          LoggerUtil.d('쿠폰 선택 취소: ID ${coupon.couponId}');
+        } else {
+          // 새 쿠폰 선택
+          onCouponSelected(coupon.couponId, coupon.discountAmount);
+          LoggerUtil.d(
+              '쿠폰 선택: ID ${coupon.couponId}, 할인금액: ${coupon.discountAmount}');
+        }
+        Navigator.pop(context);
+      },
       child: Container(
         padding: const EdgeInsets.all(16),
         // 선택된 쿠폰은 배경색 변경

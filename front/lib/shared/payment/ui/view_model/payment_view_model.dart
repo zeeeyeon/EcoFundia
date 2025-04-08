@@ -103,6 +103,9 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
   void removeCoupon() {
     if (state.payment == null) return;
 
+    LoggerUtil.d(
+        '쿠폰 제거 시작 - 이전 쿠폰 ID: ${state.payment!.appliedCouponId}, 할인금액: ${state.payment!.couponDiscount}');
+
     // 쿠폰 정보 제거
     final updatedPayment = state.payment!.copyWith(
       appliedCouponId: 0,
@@ -111,11 +114,12 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
 
     state = state.copyWith(
       payment: updatedPayment,
-      // 로컬 선택 상태도 초기화
+      // 로컬 선택 상태도 명시적으로 null로 초기화
       locallySelectedCouponId: null,
+      isApplyingCoupon: false,
     );
 
-    LoggerUtil.d('쿠폰 제거됨, 로컬 선택 상태 초기화됨');
+    LoggerUtil.d('쿠폰 제거 완료 - 로컬 선택 상태 초기화됨');
   }
 
   /// 결제 프로세스 시작

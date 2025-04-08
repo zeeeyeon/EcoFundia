@@ -1,7 +1,7 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:front/utils/logger_util.dart';
 import 'package:front/core/config/app_config.dart';
+import 'token_service.dart';
 
 /// JWT 토큰 및 사용자 정보를 안전하게 저장하는 서비스
 class StorageService {
@@ -26,7 +26,7 @@ class StorageService {
         LoggerUtil.d('🔑 저장된 토큰 발견');
 
         // 토큰 유효성 검사
-        if (!JwtDecoder.isExpired(token)) {
+        if (!TokenService.isTokenExpired(token)) {
           LoggerUtil.d('✅ 토큰 유효함');
           await checkAndRefreshTokenIfNeeded();
         } else {
@@ -46,7 +46,7 @@ class StorageService {
   static Future<void> saveToken(String token) async {
     try {
       // 토큰 유효성 검사
-      if (!_isValidToken(token)) {
+      if (!TokenService.isValidToken(token)) {
         throw Exception('유효하지 않은 토큰 형식입니다.');
       }
 
@@ -64,17 +64,6 @@ class StorageService {
     }
   }
 
-  /// 토큰 유효성 검사
-  static bool _isValidToken(String token) {
-    try {
-      final decodedToken = JwtDecoder.decode(token);
-      return decodedToken['exp'] != null && decodedToken['sub'] != null;
-    } catch (e) {
-      LoggerUtil.e('❌ 토큰 유효성 검사 실패', e);
-      return false;
-    }
-  }
-
   /// 사용자가 인증되어 있는지 확인
   static Future<bool> isAuthenticated() async {
     try {
@@ -86,18 +75,19 @@ class StorageService {
       }
 
       // 2. 토큰 유효성 검사
-      if (!_isValidToken(token)) {
+      if (!TokenService.isValidToken(token)) {
         LoggerUtil.w('⚠️ 인증 상태: 유효하지 않은 토큰');
         return false;
       }
 
       // 3. 토큰 만료 확인
-      if (JwtDecoder.isExpired(token)) {
+      if (TokenService.isTokenExpired(token)) {
         LoggerUtil.w('⚠️ 인증 상태: 만료된 토큰');
 
         // 리프레시 토큰 확인
         final refreshToken = await _storage.read(key: _refreshTokenKey);
-        if (refreshToken != null && !JwtDecoder.isExpired(refreshToken)) {
+        if (refreshToken != null &&
+            !TokenService.isTokenExpired(refreshToken)) {
           LoggerUtil.d('🔄 인증 상태: 리프레시 토큰 유효함');
           return true;
         }
@@ -117,23 +107,52 @@ class StorageService {
   static Future<bool> checkAndRefreshTokenIfNeeded() async {
     try {
       final token = await _storage.read(key: _tokenKey);
-      if (token == null) return false;
+      if (token == null) {
+        LoggerUtil.d('⚠️ 토큰 갱신 확인: 토큰이 없습니다');
+        return false;
+      }
 
       // 토큰 만료까지 남은 시간 계산 (분)
-      final decodedToken = JwtDecoder.decode(token);
-      final expirationTime = DateTime.fromMillisecondsSinceEpoch(
-        decodedToken['exp'] * 1000,
-      );
-      final now = DateTime.now();
-      final minutesToExpiration = expirationTime.difference(now).inMinutes;
+      final minutesToExpiration =
+          TokenService.calculateMinutesToExpiration(token);
+      if (minutesToExpiration == null) return false;
+
+      // 만료 시간 로깅
+      LoggerUtil.d('🔍 액세스 토큰 만료까지 남은 시간: $minutesToExpiration분');
 
       // 설정된 시간 내에 만료되는 경우 갱신 필요
       if (minutesToExpiration <=
           AppConfig.tokenConfig.refreshBeforeExpirationMinutes) {
         LoggerUtil.i('🔄 토큰 갱신 필요 (남은 시간: $minutesToExpiration분)');
-        return true;
+
+        // 리프레시 토큰 확인
+        final refreshToken = await getRefreshToken();
+        if (refreshToken == null) {
+          LoggerUtil.w('⚠️ 토큰 갱신 실패: 리프레시 토큰이 없습니다');
+          return false;
+        }
+
+        // 리프레시 토큰이 만료되었는지 확인
+        if (TokenService.isTokenExpired(refreshToken)) {
+          LoggerUtil.w('⚠️ 토큰 갱신 실패: 리프레시 토큰이 만료되었습니다');
+          return false;
+        }
+
+        // 토큰 갱신 시도
+        final newTokens = await TokenService.refreshTokens(refreshToken);
+        if (newTokens != null) {
+          // 새 토큰 저장
+          await saveToken(newTokens['accessToken']!);
+          await saveRefreshToken(newTokens['refreshToken']!);
+          LoggerUtil.i('✅ 예방적 토큰 갱신 성공');
+          return true;
+        } else {
+          LoggerUtil.w('⚠️ 토큰 갱신 실패');
+          return false;
+        }
       }
 
+      // 토큰이 아직 유효하고 갱신이 필요하지 않음
       return false;
     } catch (e) {
       LoggerUtil.e('❌ 토큰 만료 확인 중 오류', e);
