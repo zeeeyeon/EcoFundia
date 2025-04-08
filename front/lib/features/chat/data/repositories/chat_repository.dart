@@ -20,4 +20,8 @@ class ChatRepository {
   Future<List<ChatRoom>> getChatRooms() {
     return _chatService.fetchChatRooms();
   }
+
+  Future<bool> leaveChatRoom(int fundingId) async {
+    return await _chatService.leaveChatRoom(fundingId);
+  }
 }

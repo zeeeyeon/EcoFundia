@@ -59,8 +59,56 @@ class ChatScreen extends ConsumerWidget {
                                   style: TextStyle(color: Colors.grey[600]),
                                 )
                               : null,
-                          trailing: const Icon(Icons.chevron_right,
-                              color: AppColors.primary),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.logout,
+                                    color: Colors.redAccent),
+                                onPressed: () async {
+                                  final confirm = await showDialog<bool>(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: const Text("채팅방 나가기"),
+                                      content: const Text("정말로 나가시겠습니까?"),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context, false),
+                                          child: const Text("취소"),
+                                        ),
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context, true),
+                                          child: const Text("나가기"),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+
+                                  if (confirm == true) {
+                                    final success = await ref
+                                        .read(chatRoomListProvider.notifier)
+                                        .leaveChatRoom(room.fundingId);
+
+                                    if (success) {
+                                      ref
+                                          .read(chatRoomListProvider.notifier)
+                                          .refresh();
+                                    } else {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                            content: Text('채팅방 나가기에 실패했습니다.')),
+                                      );
+                                    }
+                                  }
+                                },
+                              ),
+                              const Icon(Icons.chevron_right,
+                                  color: AppColors.primary),
+                            ],
+                          ),
                           onTap: () async {
                             final result = await context.push(
                               '/chat/room/${room.fundingId}',

@@ -27,5 +27,18 @@ class ChatRoomListViewModel extends StateNotifier<AsyncValue<List<ChatRoom>>> {
     }
   }
 
+  Future<bool> leaveChatRoom(int fundingId) async {
+    try {
+      final success = await repository.leaveChatRoom(fundingId);
+      if (success) {
+        refresh(); // 리스트 다시 불러오기
+      }
+      return success;
+    } catch (e) {
+      print('❌ 채팅방 나가기 실패: $e');
+      return false;
+    }
+  }
+
   void refresh() => fetchChatRooms();
 }
