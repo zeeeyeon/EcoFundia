@@ -15,7 +15,7 @@ public class CorsGlobalConfiguration {
     public CorsWebFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true); // 인증 정보 허용
-        config.setAllowedOrigins(List.of("http://localhost:59343"));
+        config.setAllowedOrigins(List.of("http://localhost:59343, https://j12e206.p.ssafy.io"));
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
 
