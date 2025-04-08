@@ -89,6 +89,9 @@ public class CouponService {
         CouponIssued issuedCoupon = couponIssuedRepository.findValidIssuedCoupon(userId, couponId)
                 .orElseThrow(() -> new CustomException(COUPON_NOT_FOUND));
 
+        Coupon coupon = issuedCoupon.getCoupon();
+        coupon.validateIssuable();
+
         issuedCoupon.use();
 
         CouponUsage usage = new CouponUsageRequestDto(userId, fundingId, couponId)
