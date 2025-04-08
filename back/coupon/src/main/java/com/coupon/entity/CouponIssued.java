@@ -13,8 +13,8 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "coupon_issued", indexes = {
-        @Index(name = "coupon_issued_user_coupon_idx", columnList = "userId, coupon_id")
+@Table(name = "coupon_issued", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_user_coupon", columnNames = {"user_id", "coupon_id"})
 })
 public class CouponIssued {
     @Id
