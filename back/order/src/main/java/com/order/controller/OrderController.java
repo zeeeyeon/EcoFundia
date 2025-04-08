@@ -95,4 +95,6 @@ public class OrderController {
     public List<Integer> getTotalOrderCount(@RequestBody List<Integer> fundingIds) {
         return orderService.getTotalOrderCount(fundingIds);
     }
+
+
 }
