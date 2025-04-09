@@ -26,30 +26,26 @@ class ChatRoomScreen extends ConsumerStatefulWidget {
 class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+
   late final WebSocketManager _wsManager;
-  late int? _userId;
+  late final ChatRoomViewModel _viewModel;
+  int? _userId;
 
   @override
   void initState() {
     super.initState();
     _wsManager = ref.read(websocketManagerProvider);
+    _viewModel = ref.read(chatRoomViewModelProvider(widget.fundingId).notifier);
 
-    // 전체 초기화 비동기로 묶기
+    // 전체 초기화
     Future.microtask(() async {
-      await _initializeChatRoom(); // 🛠️ _userId 초기화 완료
+      await _initializeChatRoom();
+      await _viewModel.fetchMessages();
 
-      // ✅ 메시지 조회 요청 (초기화 후 실행 보장)
-      await ref
-          .read(chatRoomViewModelProvider(widget.fundingId).notifier)
-          .fetchMessages();
-
-      // ✅ 스크롤 리스너 등록 (이것도 초기화 후 등록)
       _scrollController.addListener(() {
         if (_scrollController.position.pixels <=
             _scrollController.position.minScrollExtent + 50) {
-          ref
-              .read(chatRoomViewModelProvider(widget.fundingId).notifier)
-              .fetchMoreMessages();
+          _viewModel.fetchMoreMessages();
         }
       });
     });
@@ -60,107 +56,77 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
       final token = await StorageService.getToken();
       final userIdStr = await StorageService.getUserId();
 
-      if (token == null || userIdStr == null) {
-        debugPrint('❌ 토큰 또는 사용자 ID를 불러올 수 없습니다.');
-        return;
-      }
+      if (token == null || userIdStr == null) return;
 
-      final parsedId = int.tryParse(userIdStr);
-      if (parsedId == null) {
-        debugPrint('❌ 사용자 ID 파싱 실패');
-        return;
-      }
-
-      _userId = parsedId;
+      _userId = int.tryParse(userIdStr);
+      if (_userId == null) return;
 
       if (!_wsManager.isConnected) {
         _wsManager.connect(
           userToken: token,
           onConnectCallback: (_) {
             if (!mounted) return;
-            _subscribe(); // 연결 완료 후 구독
+            _subscribe();
           },
           onError: (error) {
             debugPrint('❌ WebSocket 연결 오류: $error');
           },
         );
       } else {
-        _subscribe(); // 이미 연결되어 있으면 바로 구독
+        _subscribe();
       }
     } catch (e) {
-      debugPrint('❌ 초기화 중 오류 발생: $e');
+      debugPrint('❌ 초기화 오류: $e');
     }
   }
 
   void _subscribe() {
+    if (_userId == null) return;
+
     final destination = '/sub/chat/${widget.fundingId}';
     debugPrint('📡 채팅방 구독 요청 → $destination (userId: $_userId)');
 
-    if (_userId != null) {
-      _wsManager.subscribeToRoom(
-        fundingId: widget.fundingId,
-        userId: _userId!,
-        onMessage: (StompFrame frame) {
-          if (frame.body == null) {
-            debugPrint('⚠️ 수신된 메시지 body가 null입니다.');
-            return;
-          }
+    _wsManager.subscribeToRoom(
+      fundingId: widget.fundingId,
+      userId: _userId!,
+      onMessage: (StompFrame frame) {
+        if (!mounted || frame.body == null) return;
 
-          debugPrint('📩 [Raw 메시지 수신] body: ${frame.body}');
-
-          try {
-            final data = jsonDecode(frame.body!);
-
-            final senderId = data['senderId'];
-            final nickname = data['nickname'] ?? '익명';
-            final content = data['content'];
-            final createdAtString = data['createdAt'];
-            final createdAt = createdAtString != null
-                ? DateTime.tryParse(createdAtString)
-                : DateTime.now();
-
-            final newMessage = ChatMessage(
-              senderId: senderId,
-              nickname: nickname,
-              content: content,
-              createdAt: createdAt!,
-            );
-
-            ref
-                .read(chatRoomViewModelProvider(widget.fundingId).notifier)
-                .addMessage(newMessage);
-          } catch (e) {
-            debugPrint('❌ JSON 파싱 오류: $e');
-          }
-        },
-      );
-    }
+        try {
+          final data = jsonDecode(frame.body!);
+          final newMessage = ChatMessage.fromJson(data);
+          _viewModel.addMessage(newMessage);
+        } catch (e) {
+          debugPrint('❌ JSON 파싱 오류: $e');
+        }
+      },
+    );
   }
 
   void _sendMessage() async {
     final text = _messageController.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty || _userId == null) return;
 
     final nickname = await StorageService.getNickname();
 
-    if (_userId != null) {
-      _wsManager.sendMessageToRoom(
-        fundingId: widget.fundingId,
-        senderId: _userId!, // null 아님을 확신
-        nickname: nickname ?? '익명',
-        content: text,
-        createdAt: DateTime.now(),
-      );
-    }
+    _wsManager.sendMessageToRoom(
+      fundingId: widget.fundingId,
+      senderId: _userId!,
+      nickname: nickname ?? '익명',
+      content: text,
+      createdAt: DateTime.now(),
+    );
 
     _messageController.clear();
 
     Future.delayed(const Duration(milliseconds: 100), () {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
     });
   }
 
@@ -194,7 +160,6 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
               itemBuilder: (context, index) {
                 final msg = messages[index];
                 final fromMe = msg.senderId == _userId;
-
                 final formattedTime =
                     TimeOfDay.fromDateTime(msg.createdAt).format(context);
 

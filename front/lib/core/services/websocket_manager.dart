@@ -127,13 +127,22 @@ class WebSocketManager {
           'userId': userId.toString(), // 헤더에 사용자 ID 추가
           // 'id': 'sub-${DateTime.now().millisecondsSinceEpoch}' // 필요시 고유 구독 ID 추가 가능
         },
-        callback: onMessage, // 메시지 수신 콜백 지정
+        callback: (frame) {
+          LoggerUtil.d('📥 메시지 수신됨 from server');
+          print('📥 메시지 수신됨 from server');
+          LoggerUtil.d('📝 수신 데이터: ${frame.body}');
+          print('📝 수신 데이터: ${frame.body}');
+          onMessage(frame);
+        },
+        // 메시지 수신 콜백 지정
       );
       // 구독 해제 함수를 맵에 저장
       _unsubscribeMap[fundingId] = unsubscribe;
       LoggerUtil.i('✅ 채팅방 구독 성공: $destination');
+      print('✅ 채팅방 구독 성공: $destination');
     } catch (e) {
       LoggerUtil.e('❌ 채팅방 구독 중 오류 발생 ($destination):', e);
+      print('❌ 채팅방 구독 중 오류 발생 ($destination):');
     }
   }
 
@@ -143,33 +152,39 @@ class WebSocketManager {
     required int senderId,
     required String nickname,
     required String content,
-    DateTime? createdAt, // 메시지 생성 시간 (선택적)
+    DateTime? createdAt,
   }) {
-    // 연결 상태 확인
     if (_stompClient == null || !_isConnected) {
-      LoggerUtil.w('❌ STOMP 클라이언트가 연결되지 않았습니다. 메시지 전송을 건너뜁니다.');
+      LoggerUtil.w('❌ 메시지 전송 실패 - STOMP 미연결 상태');
+      print('❌ 메시지 전송 실패 - STOMP 미연결 상태');
       return;
     }
 
-    final destination = '/pub/chat/$fundingId'; // STOMP 표준 발행 경로
+    final destination = '/pub/chat/$fundingId';
+
+    final message = {
+      'fundingId': fundingId,
+      'senderId': senderId,
+      'nickname': nickname,
+      'content': content,
+      if (createdAt != null) 'createdAt': createdAt.toIso8601String(),
+    };
 
     try {
-      LoggerUtil.d('📤 채팅 메시지 전송 시도 → $destination');
+      LoggerUtil.d('📤 메시지 전송 시작 → $destination');
+      print('📤 메시지 전송 시작 → $destination');
+      LoggerUtil.d('📝 전송 내용: ${jsonEncode(message)}');
+      print('📝 전송 내용: ${jsonEncode(message)}');
       _stompClient!.send(
         destination: destination,
-        body: jsonEncode({
-          'fundingId': fundingId,
-          'senderId': senderId,
-          'nickname': nickname,
-          'content': content,
-          // createdAt이 null이 아니면 ISO 8601 형식 문자열로 변환하여 포함
-          if (createdAt != null) 'createdAt': createdAt.toIso8601String(),
-        }),
-        headers: {'content-type': 'application/json'}, // 메시지 본문이 JSON임을 명시
+        body: jsonEncode(message),
+        headers: {'content-type': 'application/json'},
       );
-      LoggerUtil.d('📤 채팅 메시지 전송 완료 → $destination');
+      LoggerUtil.d('📤 메시지 전송 완료');
+      print('📤 메시지 전송 완료');
     } catch (e) {
-      LoggerUtil.e('❌ 채팅 메시지 전송 중 오류 발생 ($destination):', e);
+      LoggerUtil.e('❌ 메시지 전송 실패: $e');
+      print('❌ 메시지 전송 실패: $e');
     }
   }
 

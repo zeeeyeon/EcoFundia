@@ -25,22 +25,33 @@ class ChatRoomViewModel extends StateNotifier<List<ChatMessage>> {
     required this.fundingId,
   }) : super([]);
 
-  /// ✅ 초기 메시지 로드
   Future<void> fetchMessages() async {
     try {
-      final messages = await repository.getMessages(
+      final newMessages = await repository.getMessages(
         fundingId: fundingId,
         before: DateTime.now(),
       );
 
-      messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-      state = messages;
+      newMessages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
-      if (messages.isNotEmpty) {
-        lastFetchedTime = messages.first.createdAt;
+      // 기존 메시지와 병합 (중복 제거)
+      final allMessages = [...state, ...newMessages];
+
+      // 중복 제거 (id나 createdAt 기준)
+      final uniqueMessages = {
+        for (var msg in allMessages)
+          '${msg.createdAt.millisecondsSinceEpoch}_${msg.senderId}': msg,
+      }.values.toList();
+
+      uniqueMessages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
+      state = uniqueMessages;
+
+      if (newMessages.isNotEmpty) {
+        lastFetchedTime = newMessages.first.createdAt;
       }
 
-      hasMore = messages.isNotEmpty;
+      hasMore = newMessages.isNotEmpty;
     } catch (e) {
       print('❌ 채팅 메시지 초기 로딩 실패: $e');
     }
