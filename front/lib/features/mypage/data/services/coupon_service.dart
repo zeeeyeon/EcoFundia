@@ -128,6 +128,9 @@ class CouponService {
         // 권한 없음 - 로그인 필요 (403)
         403 => _handleForbiddenResponse(response),
 
+        // 시간 제한 (404)
+        404 => _handleTimeLimitResponse(response),
+
         // 기타 상태 코드
         _ => _handleUnknownResponse(response),
       };
@@ -138,30 +141,20 @@ class CouponService {
       if (e.response != null) {
         final statusCode = e.response!.statusCode;
 
-        // 400 에러 처리 (이미 발급된 쿠폰)
-        if (statusCode == 400) {
-          LoggerUtil.w('🎫 CouponService: 이미 발급된 쿠폰 (DioException: 400)');
-          return const AlreadyIssuedFailure();
-        }
-
-        // 403 에러 처리 (권한 없음 - 로그인 필요)
-        if (statusCode == 403) {
-          LoggerUtil.w('🎫 CouponService: 권한 없음 (DioException: 403)');
-          return const AuthorizationFailure();
-        }
+        return switch (statusCode) {
+          // 이미 발급된 쿠폰 (400)
+          400 => _handleBadRequestResponse(e.response!),
+          // 권한 없음 - 로그인 필요 (403)
+          403 => _handleForbiddenResponse(e.response!),
+          // 시간 제한 (404)
+          404 => _handleTimeLimitResponse(e.response!),
+          // 기타 Dio 오류는 아래에서 처리
+          _ => _handleDioError(e),
+        };
+      } else {
+        // 응답이 없는 Dio 오류 (네트워크 등)
+        return _handleDioError(e);
       }
-
-      // 타임아웃 에러 특별 처리
-      if (e.type == DioExceptionType.sendTimeout ||
-          e.type == DioExceptionType.receiveTimeout ||
-          e.type == DioExceptionType.connectionTimeout) {
-        LoggerUtil.e('🎫 CouponService: 타임아웃 발생', e);
-        return const NetworkFailure('쿠폰 발급 요청 타임아웃: 서버 응답이 늦어지고 있습니다');
-      }
-
-      // 그 외 DioException (네트워크, 타임아웃, 서버 오류 등)
-      LoggerUtil.e('🎫 CouponService: 네트워크 오류', e);
-      return NetworkFailure('쿠폰 발급에 실패했습니다: ${e.message ?? '네트워크 오류'}');
     } catch (e) {
       LoggerUtil.e('🎫 CouponService: 알 수 없는 예외 발생', e);
       return UnknownFailure('알 수 없는 오류가 발생했습니다: ${e.toString()}');
@@ -186,10 +179,33 @@ class CouponService {
     return const AuthorizationFailure();
   }
 
+  // 404 Not Found 응답 처리 (시간 제한)
+  CouponApplyResult _handleTimeLimitResponse(Response response) {
+    LoggerUtil.w('🎫 CouponService: 쿠폰 발급 시간 제한 (상태 코드: 404)');
+    // 백엔드에서 메시지를 보내준다면 사용, 없다면 기본 메시지 사용
+    String message = response.data?['message'] ?? "쿠폰 발급은 오전 10시부터 가능합니다.";
+    return CouponTimeLimitFailure(message);
+  }
+
   // 기타 알 수 없는 응답 처리
   CouponApplyResult _handleUnknownResponse(Response response) {
     LoggerUtil.e('🎫 CouponService: 예상치 못한 상태 코드: ${response.statusCode}');
     return UnknownFailure('서버에서 예상치 못한 응답이 반환되었습니다 (${response.statusCode})');
+  }
+
+  // DioException 처리 로직 통합
+  CouponApplyResult _handleDioError(DioException e) {
+    // 타임아웃 에러 특별 처리
+    if (e.type == DioExceptionType.sendTimeout ||
+        e.type == DioExceptionType.receiveTimeout ||
+        e.type == DioExceptionType.connectionTimeout) {
+      LoggerUtil.e('🎫 CouponService: 타임아웃 발생', e);
+      return const NetworkFailure('쿠폰 발급 요청 시간 초과');
+    }
+
+    // 그 외 DioException (네트워크, 서버 오류 등)
+    LoggerUtil.e('🎫 CouponService: 네트워크 또는 서버 오류', e);
+    return NetworkFailure('쿠폰 발급에 실패했습니다: ${e.message ?? '네트워크 오류'}');
   }
 
   /// 사용 가능한 쿠폰 목록 조회 (결제 시)

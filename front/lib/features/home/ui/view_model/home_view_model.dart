@@ -136,27 +136,25 @@ class HomeViewModel extends StateNotifier<HomeState> {
     }
   }
 
-  /// WebSocket 연결 상태 변경 핸들러
+  /// WebSocket 연결 상태가 변경될 때 호출되는 내부 메서드
+  ///
+  /// [isConnected] WebSocket 연결 상태
   void _handleWebSocketConnectionChange(bool isConnected) {
-    LoggerUtil.i('🔌 WebSocket 연결 상태 변경: $isConnected');
-
-    if (isConnected != state.isWebSocketConnected) {
-      state = state.copyWith(isWebSocketConnected: isConnected);
-
-      // 연결 상태에 따라 폴링 설정 변경
-      if (isConnected) {
-        // WebSocket 연결 성공 시 폴링 중지
-        LoggerUtil.d('✅ WebSocket 연결됨 - 폴링 중지');
-        _refreshTimer?.cancel();
-      } else {
-        // WebSocket 연결 끊김 시 폴링 시작
-        LoggerUtil.d('❌ WebSocket 연결 끊김 - 폴링 시작');
-        _startPeriodicRefresh();
-
-        // 일정 시간 후 자동 재연결 시도
-        _scheduleWebSocketReconnect();
+    Future.microtask(() {
+      if (mounted) {
+        state = state.copyWith(isWebSocketConnected: isConnected);
+        LoggerUtil.d(
+            'HomeViewModel - WebSocket connection changed: $isConnected');
+        if (isConnected) {
+          LoggerUtil.d('✅ WebSocket 연결됨 - 폴링 중지');
+          _refreshTimer?.cancel();
+        } else {
+          LoggerUtil.d('❌ WebSocket 연결 끊김 - 폴링 시작');
+          _startPeriodicRefresh();
+          _scheduleWebSocketReconnect();
+        }
       }
-    }
+    });
   }
 
   // 자동 WebSocket 재연결 시도
@@ -250,9 +248,10 @@ class HomeViewModel extends StateNotifier<HomeState> {
     // 이미 로딩 중이면 중복 요청 방지
     if (state.isLoading) return;
 
-    try {
-      state = state.copyWith(isLoading: true);
+    // 중요: 데이터 로딩 시작 시 에러 상태 초기화
+    state = state.copyWith(isLoading: true, error: null);
 
+    try {
       final totalFund = await _projectRepository.getTotalFund();
       LoggerUtil.d('📊 API에서 총 펀딩 금액 수신: $totalFund');
 
@@ -271,12 +270,22 @@ class HomeViewModel extends StateNotifier<HomeState> {
 
   /// 타이머와 데이터 새로고침
   Future<void> refreshData() async {
-    await fetchTotalFund();
+    LoggerUtil.i('🔄 데이터 새로고침 시작');
+    // fetchTotalFund 내부에서 isLoading: true, error: null 로 설정됨
+    await fetchTotalFund(); // 최신 펀딩 금액 가져오기
 
-    // WebSocket 연결 상태에 따라 폴링 재설정
-    if (!state.isWebSocketConnected) {
-      _startPeriodicRefresh();
+    // WebSocket 연결 상태 확인 및 폴링 재설정
+    if (mounted) {
+      // mounted 확인 추가
+      if (!state.isWebSocketConnected) {
+        LoggerUtil.d('🔄 데이터 새로고침 후 폴링 재시작 확인');
+        _startPeriodicRefresh();
+      } else {
+        _refreshTimer?.cancel();
+        LoggerUtil.d('🔄 데이터 새로고침 후 WebSocket 연결 확인됨 - 폴링 불필요');
+      }
     }
+    LoggerUtil.i('🔄 데이터 새로고침 완료');
   }
 
   /// WebSocket 재연결

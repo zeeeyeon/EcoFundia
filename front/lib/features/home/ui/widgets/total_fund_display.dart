@@ -200,6 +200,24 @@ class _TotalFundDisplayState extends ConsumerState<TotalFundDisplay>
       _animationController.forward(from: 0.0);
     }
 
+    // 총 펀딩 금액 또는 로딩/에러 상태 표시 로직 개선
+    Widget displayContent;
+    if (homeState.error != null && !homeState.isLoading) {
+      // 로딩 중이 아닐 때만 에러 표시
+      // 에러 상태일 때는 금액 표시 대신 에러 메시지 표시
+      displayContent = _buildErrorState(homeState.error!);
+      LoggerUtil.w(
+          'TotalFundDisplay - Error state: ${homeState.error}'); // 에러 로깅 추가
+    } else if (homeState.isLoading && _currentAmount == 0) {
+      // 초기 로딩 상태
+      displayContent = _buildLoadingState();
+      LoggerUtil.d('TotalFundDisplay - Initial loading state');
+    } else {
+      // 정상 상태 또는 로딩 중(금액 애니메이션은 이전 값으로 표시될 수 있음)
+      displayContent = _buildAmountDisplay();
+      LoggerUtil.d('TotalFundDisplay - Displaying amount');
+    }
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -222,11 +240,7 @@ class _TotalFundDisplayState extends ConsumerState<TotalFundDisplay>
         const SizedBox(height: 8),
 
         // 총 펀딩 금액 또는 로딩/에러 상태 표시
-        homeState.isLoading
-            ? _buildLoadingState()
-            : homeState.error != null && homeState.totalFund == 0
-                ? _buildErrorState(homeState.error!)
-                : _buildAmountDisplay(),
+        displayContent, // 위에서 결정된 위젯 사용
       ],
     );
   }

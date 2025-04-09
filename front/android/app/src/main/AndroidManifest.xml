@@ -4,7 +4,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     
     <application
-        android:label="front"
+        android:label="EcoFundia"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

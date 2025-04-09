@@ -36,3 +36,8 @@ class NetworkFailure extends CouponApplyFailure {
 class UnknownFailure extends CouponApplyFailure {
   const UnknownFailure(String message) : super(message);
 }
+
+/// 쿠폰 발급 시간 제한 실패 케이스 (404 응답 등)
+class CouponTimeLimitFailure extends CouponApplyFailure {
+  const CouponTimeLimitFailure(String message) : super(message);
+}

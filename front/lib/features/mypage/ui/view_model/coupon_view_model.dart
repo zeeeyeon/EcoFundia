@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/core/providers/app_state_provider.dart';
 import 'package:front/features/mypage/data/repositories/coupon_repository_impl.dart';
 import 'package:front/features/mypage/domain/entities/coupon_apply_result.dart';
 import 'package:front/features/mypage/domain/use_cases/apply_coupon_use_case.dart';
@@ -46,6 +47,7 @@ enum CouponModalEvent {
   alreadyIssued,
   needLogin,
   error,
+  timeLimit,
 }
 
 /// 쿠폰 ViewModel
@@ -54,6 +56,7 @@ class CouponViewModel extends StateNotifier<CouponState>
   final GetCouponCountUseCase _getCouponCountUseCase;
   final GetCouponListUseCase _getCouponListUseCase;
   final ApplyCouponUseCase _applyCouponUseCase;
+  final Ref _ref;
 
   // 캐시 관련 변수
   DateTime? _lastCountLoadTime;
@@ -69,9 +72,11 @@ class CouponViewModel extends StateNotifier<CouponState>
     required GetCouponCountUseCase getCouponCountUseCase,
     required GetCouponListUseCase getCouponListUseCase,
     required ApplyCouponUseCase applyCouponUseCase,
+    required Ref ref,
   })  : _getCouponCountUseCase = getCouponCountUseCase,
         _getCouponListUseCase = getCouponListUseCase,
         _applyCouponUseCase = applyCouponUseCase,
+        _ref = ref,
         super(CouponState.initial());
 
   // 캐시 유효성 검사
@@ -160,6 +165,14 @@ class CouponViewModel extends StateNotifier<CouponState>
 
   /// 쿠폰 발급
   Future<bool> applyCoupon() async {
+    // 선제적 로그인 확인
+    final isLoggedIn = _ref.read(isLoggedInProvider);
+    if (!isLoggedIn) {
+      LoggerUtil.w('🎫 쿠폰 발급 시도: 로그인이 필요합니다.');
+      setModalEvent(CouponModalEvent.needLogin);
+      return false;
+    }
+
     // 중복 요청 방지
     if (_isApplyingCoupon) {
       LoggerUtil.d('🎫 이미 쿠폰 발급 처리 중');
@@ -186,6 +199,7 @@ class CouponViewModel extends StateNotifier<CouponState>
         CouponApplySuccess() => await _handleSuccess(),
         AlreadyIssuedFailure() => _handleAlreadyIssued(result),
         AuthorizationFailure() => _handleAuthorizationFailure(result),
+        CouponTimeLimitFailure() => _handleTimeLimitFailure(result),
         CouponApplyFailure() => _handleFailure(result),
       };
     } catch (e) {
@@ -296,6 +310,21 @@ class CouponViewModel extends StateNotifier<CouponState>
     return false;
   }
 
+  bool _handleTimeLimitFailure(CouponTimeLimitFailure failure) {
+    // 안전하게 상태 업데이트 (Future microtask 사용)
+    unawaited(Future.microtask(() {
+      if (mounted) {
+        state = state.copyWith(
+          isApplying: false,
+          errorMessage: failure.message,
+          modalEvent: CouponModalEvent.timeLimit,
+        );
+        LoggerUtil.w('🎫 쿠폰 발급 실패: 시간 제한 - ${failure.message}');
+      }
+    }));
+    return false;
+  }
+
   bool _handleFailure(CouponApplyFailure failure) {
     // 안전하게 상태 업데이트 (Future microtask 사용)
     unawaited(Future.microtask(() {
@@ -368,14 +397,14 @@ class CouponViewModel extends StateNotifier<CouponState>
 
 /// 쿠폰 ViewModel Provider
 final couponViewModelProvider =
-    StateNotifierProvider<CouponViewModel, CouponState>((ref) {
+    StateNotifierProvider.autoDispose<CouponViewModel, CouponState>((ref) {
   final getCouponCountUseCase = ref.watch(getCouponCountUseCaseProvider);
   final getCouponListUseCase = ref.watch(getCouponListUseCaseProvider);
   final applyCouponUseCase = ref.watch(applyCouponUseCaseProvider);
-
   return CouponViewModel(
     getCouponCountUseCase: getCouponCountUseCase,
     getCouponListUseCase: getCouponListUseCase,
     applyCouponUseCase: applyCouponUseCase,
+    ref: ref,
   );
 });

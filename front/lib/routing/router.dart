@@ -12,9 +12,7 @@ import 'package:go_router/go_router.dart';
 import 'package:front/features/auth/ui/pages/login_screen.dart';
 import 'package:front/features/auth/ui/pages/sign_up_screen.dart';
 import 'package:front/features/splash/ui/pages/splash_screen.dart';
-
 import 'package:front/features/funding/ui/pages/funding_list_screen.dart';
-
 import 'package:front/features/home/ui/pages/home_screen.dart';
 import 'package:front/features/mypage/ui/pages/mypage_screen.dart';
 import 'package:front/features/mypage/ui/pages/my_funding_screen.dart';
@@ -25,7 +23,6 @@ import 'package:front/shared/seller/ui/pages/seller_detail_screen.dart';
 import 'package:front/features/home/ui/pages/project_detail_screen.dart';
 import 'package:front/shared/payment/ui/pages/payment_page.dart';
 import 'package:front/shared/payment/ui/pages/payment_complete_page.dart';
-import 'package:front/utils/auth_utils.dart';
 import 'package:front/utils/logger_util.dart';
 import 'package:front/core/providers/app_state_provider.dart';
 // 필요한 ViewModel Provider들을 import
@@ -90,54 +87,78 @@ class TabLoadState {
 final _tabLoadState = TabLoadState();
 
 final routerProvider = Provider<GoRouter>((ref) {
-  // isLoggedInProvider의 변경을 감지하는 ValueNotifier
   final authStateListenable = ValueNotifier<bool>(ref.read(isLoggedInProvider));
 
-  // isLoggedInProvider의 변경 감지하여 ValueNotifier 업데이트
   ref.listen<bool>(isLoggedInProvider, (_, isLoggedIn) {
     authStateListenable.value = isLoggedIn;
     LoggerUtil.d('🔑 [Router Listen] 로그인 상태 변경 감지: $isLoggedIn');
   });
 
-  // isAuthenticatedProvider는 초기 상태 확인 용도로만 사용 가능 (옵션)
-  // ref.listen<AsyncValue<bool>>(isAuthenticatedProvider, (_, next) {
-  //   if (!next.isLoading && next.hasValue) {
-  //     // 초기 로드 시 isLoggedInProvider와 동기화할 수 있으나,
-  //     // 실시간 변경 감지는 isLoggedInProvider를 통하는 것이 더 안정적
-  //   }
-  // });
+  // 로그인이 필요한 경로 시작 부분 목록
+  final requiresAuthPaths = [
+    '/wishlist',
+    '/chat',
+    '/mypage', // /mypage 자체 포함
+    '/my-funding',
+    '/review/', // /review/:id, /review/edit/:id 포함
+    '/my-reviews',
+    '/profile-edit',
+    '/coupons',
+    '/payment', // /payment/:productId, /payment/complete 포함
+    '/cart', // 예시 카트 경로 포함
+    // 필요시 추가 경로
+  ];
 
   return GoRouter(
     navigatorKey: AppNavigatorKeys.instance.rootNavigatorKey,
-    initialLocation: '/splash',
-    refreshListenable: authStateListenable, // isLoggedInProvider 변경 감지 리스너
+    initialLocation: '/splash', // 초기 위치는 스플래시
+    refreshListenable: authStateListenable,
     redirect: (context, state) {
-      final isLoggedIn = ref.read(isLoggedInProvider); // 최신 동기 상태 읽기
-      final location = state.uri.toString();
+      final isLoggedIn = ref.read(isLoggedInProvider); // 최신 동기 상태
+      final location = state.uri.toString(); // 전체 URI 확인
+      final targetPath = state.matchedLocation; // 매칭된 경로 확인 (예: '/project/:id')
 
       LoggerUtil.d(
-          '🔄 [Router Redirect] 현재 위치: $location, 로그인 상태: $isLoggedIn');
+          '🔄 [Router Redirect] 현재 위치: $location (매칭: $targetPath), 로그인 상태: $isLoggedIn');
 
-      // 스플래시 화면은 항상 허용
+      // 1. 스플래시 화면은 항상 허용
       if (location == '/splash') {
         LoggerUtil.d('🔄 [Router Redirect] 스플래시 화면 -> 통과');
         return null;
       }
 
-      // 로그인 페이지 관련 처리
-      final isLoggingIn = location == '/login' ||
+      // 2. 로그인/회원가입 관련 페이지 처리
+      final isAuthFlow = location == '/login' ||
           location == '/signup' ||
-          location == '/signup-complete';
-      if (!isLoggedIn && !isLoggingIn) {
-        LoggerUtil.d('🔒 [Router Redirect] 로그아웃 상태 & 로그인 경로 아님 -> /login 이동');
-        return '/login';
-      }
-      if (isLoggedIn && isLoggingIn) {
-        LoggerUtil.d('🔒 [Router Redirect] 로그인 상태 & 로그인 경로 -> / 이동');
+          location.startsWith('/signup-complete'); // name 파라미터 고려
+
+      // 2.1. 로그인 상태 + 인증 플로우 페이지 접근 -> 홈으로 리디렉션
+      if (isLoggedIn && isAuthFlow) {
+        LoggerUtil.d('🏠 [Router Redirect] 로그인 상태 & 인증 페이지($location) -> / 이동');
         return '/';
       }
 
-      // 그 외 경우는 리디렉션 없음
+      // 2.2. 로그아웃 상태 + 인증 플로우 페이지 접근 -> 허용 (리디렉션 없음)
+      if (!isLoggedIn && isAuthFlow) {
+        LoggerUtil.d('🔄 [Router Redirect] 로그아웃 상태 & 인증 페이지($location) -> 통과');
+        return null;
+      }
+
+      // 3. 로그인이 필요한 경로인지 확인
+      final isAuthRequiredPath = requiresAuthPaths.any(
+        (path) => targetPath.startsWith(path),
+      );
+
+      // 4. 로그아웃 상태 + 보호된 경로 접근 -> 로그인 페이지로 리디렉션
+      if (!isLoggedIn && isAuthRequiredPath) {
+        LoggerUtil.d(
+            '🔒 [Router Redirect] 로그아웃 상태 & 보호된 경로($targetPath) -> /login 이동');
+        // 로그인 후 돌아올 경로를 쿼리 파라미터로 전달 (옵션)
+        // return '/login?from=$location';
+        return '/login';
+      }
+
+      // 5. 그 외 모든 경우 (로그인 사용자의 모든 경로, 비로그인 사용자의 공개 경로) -> 허용
       LoggerUtil.d('🔄 [Router Redirect] 리디렉션 필요 없음 ($location)');
       return null;
     },
@@ -706,5 +727,23 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
     } catch (e) {
       LoggerUtil.e('❌ 탭 데이터 새로고침 오류: $e');
     }
+  }
+}
+
+// GoRouterRefreshStream 클래스 (기존 정의 유지)
+class GoRouterRefreshStream extends ChangeNotifier {
+  GoRouterRefreshStream(Stream<dynamic> stream) {
+    notifyListeners();
+    _subscription = stream.asBroadcastStream().listen(
+          (dynamic _) => notifyListeners(),
+        );
+  }
+
+  late final StreamSubscription<dynamic> _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
   }
 }

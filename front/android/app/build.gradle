@@ -23,7 +23,7 @@ apply plugin: 'kotlin-android'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
-    namespace "com.example.front"
+    namespace "com.example.ecofundia"
     compileSdkVersion rootProject.ext.compileSdkVersion
     ndkVersion flutter.ndkVersion
 
@@ -41,7 +41,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.example.front"
+        applicationId "com.example.ecofundia"
         minSdkVersion flutter.minSdkVersion // flutter_secure_storage 요구사항
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
