@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 public interface ChatClient {
 
     // 채팅방 나가기
-    @DeleteMapping("/api/chatroom/{fundingId}/participants/")
+    @DeleteMapping("/api/chatroom/{fundingId}/participants")
     ResponseEntity<?> leaveChatRoom(
             @RequestHeader("X-User-Id") int userId,
             @PathVariable int fundingId
