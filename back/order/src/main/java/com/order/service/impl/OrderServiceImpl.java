@@ -125,7 +125,7 @@ public class OrderServiceImpl implements OrderService {
 
         AddCurrentAmountRequestDto addCurrentAmountRequestDto = AddCurrentAmountRequestDto.builder()
                 .fundingId(fundingId)
-                .amount(amount)
+                .amount(totalPrice)
                 .build();
 
         fundingClient.addCurrentAmount(addCurrentAmountRequestDto);
