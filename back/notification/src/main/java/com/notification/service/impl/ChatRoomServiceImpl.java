@@ -42,7 +42,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     }
 
     @Override
-    public List<ChatRoomSummaryResponse> getChatRoomsByUserId(int userId){
+    public List<ChatRoomSummaryResponse> getChatRoomsByUserId(int userId) {
 
         List<ChatRoomSummaryResponse> chatRoomSummaryResponses = chatClient.getChatRoomsByUserId(userId);
 
