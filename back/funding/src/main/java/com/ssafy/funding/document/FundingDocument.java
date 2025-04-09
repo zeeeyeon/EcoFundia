@@ -30,16 +30,12 @@ public class FundingDocument {
 
     // 멀티 필드를 사용해서 기본 Text와 정렬/집계용 Keyword 서브필드를 생성합니다.
     @MultiField(
-            mainField = @Field(
-                    type = FieldType.Text,
-                    analyzer = "phonetic_analyzer",       // 인덱싱 시 발음 분석기를 적용
-                    searchAnalyzer = "standard"            // 검색 시 표준 분석기를 사용 (또는 필요에 따라 phonetic_analyzer 사용)
-            ),
+            mainField = @Field(type = FieldType.Text),
             otherFields = {
                     @InnerField(suffix = "keyword", type = FieldType.Keyword)
             }
     )
-    private String title;
+    private String title;      // 제목
 
     // 자동완성을 위한 필드 (Completion Suggester)
     @CompletionField(maxInputLength = 100)
