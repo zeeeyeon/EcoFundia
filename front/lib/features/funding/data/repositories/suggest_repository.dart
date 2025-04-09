@@ -1,4 +1,4 @@
-import 'package:front/features/funding/data/services/%08suggest_service.dart';
+import 'package:front/features/funding/data/services/suggest_service.dart';
 
 class SuggestRepository {
   final SuggestService service;

@@ -3,7 +3,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/core/services/api_service.dart';
 import 'package:front/features/funding/data/repositories/suggest_repository.dart';
-import 'package:front/features/funding/data/services/%08suggest_service.dart';
+import 'package:front/features/funding/data/services/suggest_service.dart';
 import 'package:front/features/funding/domain/usecases/get_suggestions_usecase.dart';
 
 final searchSuggestProvider =
