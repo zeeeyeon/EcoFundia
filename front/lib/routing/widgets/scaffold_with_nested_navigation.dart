@@ -36,7 +36,7 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
   // 각 탭별 마지막 새로고침 시간 저장 (Stateful 위젯 상태로 관리)
   final Map<int, DateTime> _lastTabRefreshTimes = {};
   // 마지막으로 선택된 탭 인덱스
-  int _lastSelectedIndex = 0; // 초기값은 0 (홈 탭 인덱스에 따라 조정)
+  final int _lastSelectedIndex = 0; // 초기값은 0 (홈 탭 인덱스에 따라 조정)
 
   // 새로고침 간격 (초)
   static const int _minRefreshIntervalSeconds = 60;
@@ -146,151 +146,101 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
   // 선택된 탭에 따라 데이터 새로고침 - 통합 버전
   void _refreshTabData(WidgetRef ref, int index, int previousIndex) {
     try {
-      // 인증 상태 확인 (isLoggedIn은 동기적으로 현재 상태 확인)
       final appState = ref.read(appStateProvider);
       final isLoggedIn = appState.isLoggedIn;
-
-      // 현재 시간
       final now = DateTime.now();
-
-      // 같은 탭을 클릭했는지 여부
       final isSameTab = index == previousIndex;
-
-      // 마이페이지 또는 채팅/찜 탭이면서 로그인이 안 된 경우
-      // 기본 탭으로 이동시키는 로직 추가 (옵션)
-      if (!isLoggedIn && (index == 1 || index == 3 || index == 4)) {
-        LoggerUtil.d('⚠️ 인증 필요 탭 접근 시도(탭 $index) - 로그인 필요');
-
-        // 마이페이지의 경우 탭 자체를 변경하지 않고 로그인 요청 화면을 표시
-        if (index == 4) {
-          LoggerUtil.d('🔒 마이페이지 탭: 비로그인 상태로 접근 허용 (안내 화면 표시)');
-          // 마이페이지 내부에서 로그인 안내 화면을 표시하므로 여기서는 별도 처리 없음
-        }
-        // 찜/채팅 탭의 경우, 각 화면 내부에서 리디렉션 로직 처리
-      }
-
-      // 마지막 로드 시간 확인 - 로컬 상태 사용
       DateTime? lastRefreshTime = _lastTabRefreshTimes[index];
 
-      // 같은 탭 클릭 시 항상 새로고침하거나, 다른 탭에서 돌아왔을 때 시간 기준 확인
-      final isRefreshNeeded = isSameTab ||
+      // 새로고침 필요 여부 결정 (다른 탭에서 왔거나, 같은 탭 재클릭 시에는 항상, 또는 일정 시간 경과 시)
+      final isRefreshNeeded = !isSameTab ||
+          isSameTab || // Same tab click always triggers refresh attempt
           lastRefreshTime == null ||
           now.difference(lastRefreshTime).inSeconds >
               _minRefreshIntervalSeconds;
 
+      LoggerUtil.d('🔒 탭 $index 선택됨 - 이전 탭: $previousIndex');
       LoggerUtil.d(
-          '🔒 탭 $index 선택됨 - 이전 탭: $previousIndex, 마지막 선택 탭: $_lastSelectedIndex');
-      LoggerUtil.d(
-          '🔒 탭 $index 새로고침 조건 - 재로드 필요: $isRefreshNeeded, 인증 상태: $isLoggedIn, 같은 탭 클릭: $isSameTab');
+          '🔒 탭 $index 새로고침 조건 - 필요: $isRefreshNeeded, 인증: $isLoggedIn, 같은 탭: $isSameTab');
 
-      // 현재 탭 인덱스 저장
-      _lastSelectedIndex = index;
-
-      // 탭 데이터 로드가 필요한 경우에만 처리
+      // 새로고침 필요한 경우에만 로직 실행
       if (isRefreshNeeded) {
+        LoggerUtil.i('🔄 탭 $index 데이터 새로고침 시작...');
+        bool updatedTime = false; // 시간 업데이트 여부 플래그
+
+        // ViewModel 새로고침 로직
         switch (index) {
-          case 0: // 펀딩 탭 - 인증 불필요
-            // FundingListViewModel의 첫 페이지를 다시 로드
-            LoggerUtil.i(
-                '🔄 펀딩 탭 데이터 새로고침 ${isSameTab ? "(탭 재클릭)" : "(탭 전환)"}');
-
-            try {
-              // 첫 페이지부터 다시 로드
-              ref.read(fundingListProvider.notifier).fetchFundingList(
-                    page: 1, // 첫 페이지부터 다시 로드
-                    sort: ref.read(sortOptionProvider), // 현재 정렬 유지
-                    categories:
-                        ref.read(selectedCategoriesProvider), // 현재 카테고리 유지
-                  );
-            } catch (e) {
-              LoggerUtil.e('❌ 펀딩 목록 탭 데이터 로드 오류: $e');
-            }
-
-            // 위시리스트 ID 로드 (로그인 된 경우에만)
+          case 0: // 펀딩 탭
+            ref.read(fundingListProvider.notifier).fetchFundingList(
+                  page: 1,
+                  sort: ref.read(sortOptionProvider), // 현재 정렬 유지
+                  categories:
+                      ref.read(selectedCategoriesProvider), // 현재 카테고리 유지
+                );
             if (isLoggedIn) {
-              final loadWishlistIds = ref.read(loadWishlistIdsProvider);
-              loadWishlistIds();
+              final _ = ref.refresh(loadWishlistIdsProvider);
             }
-
-            // 시간 업데이트
-            _lastTabRefreshTimes[index] = now;
+            updatedTime = true;
             break;
 
-          case 1: // 찜 탭 - 인증 필요
+          case 1: // 찜 탭
             if (isLoggedIn) {
-              LoggerUtil.i(
-                  '🔄 찜 탭 데이터 새로고침 ${isSameTab ? "(탭 재클릭)" : "(탭 전환)"}');
-
-              // 위시리스트 데이터 로드
               ref.read(wishlistViewModelProvider.notifier).loadWishlistItems();
-
-              // 위시리스트 ID 로드
-              final loadWishlistIds = ref.read(loadWishlistIdsProvider);
-              loadWishlistIds();
-
-              // 시간 업데이트
-              _lastTabRefreshTimes[index] = now;
+              final _ = ref.refresh(loadWishlistIdsProvider);
+              updatedTime = true;
             } else {
-              // 로그인되지 않은 경우, 위시리스트 상태를 명시적으로 초기화
               ref.read(wishlistViewModelProvider.notifier).resetState();
-              LoggerUtil.w('🔒 찜 탭: 로그인 필요 - 데이터 로드 건너뛰고 상태 초기화');
+              LoggerUtil.w('🔒 찜 탭: 로그인 필요 - 상태 초기화');
+              // 로그인 안됐을 땐 새로고침 시간 업데이트 안함 (다음에 바로 로드되도록)
             }
             break;
 
-          case 2: // 홈 탭 - 인증 불필요
-            LoggerUtil.i('🔄 홈 탭 데이터 새로고침 ${isSameTab ? "(탭 재클릭)" : "(탭 전환)"}');
-            // 홈 화면 관련 Provider 새로고침
-            ref.invalidate(projectViewModelProvider);
-
-            // 위시리스트 ID 로드 (로그인 된 경우에만)
+          case 2: // 홈 탭
+            ref.read(projectViewModelProvider.notifier).refreshProjects();
             if (isLoggedIn) {
-              final loadWishlistIds = ref.read(loadWishlistIdsProvider);
-              loadWishlistIds();
+              final _ = ref.refresh(loadWishlistIdsProvider);
             }
-
-            // 시간 업데이트
-            _lastTabRefreshTimes[index] = now;
+            updatedTime = true;
             break;
 
-          case 3: // 채팅 탭 - 인증 필요
+          case 3: // 채팅 탭
             if (isLoggedIn) {
-              LoggerUtil.i(
-                  '🔄 채팅 탭 데이터 새로고침 ${isSameTab ? "(탭 재클릭)" : "(탭 전환)"}');
-              // 채팅 목록 데이터 로드
+              // ChatRoomListViewModel에 새로고침 메서드(예: fetchChatRooms) 호출 필요
               ref.read(chatRoomListProvider.notifier).fetchChatRooms();
-
-              // 시간 업데이트
-              _lastTabRefreshTimes[index] = now;
+              updatedTime = true;
             } else {
-              // 로그인 안 된 경우 채팅방 목록 상태를 초기화
-              ref.read(chatRoomListProvider.notifier).resetState();
-              LoggerUtil.w('🔒 채팅 탭: 로그인 필요 - 데이터 로드 건너뛰고 상태 초기화');
-              // 로그인 페이지 리디렉션은 ChatScreen 위젯 내부에서 처리
+              // 채팅 관련 상태 초기화 필요시 진행
+              LoggerUtil.w('🔒 채팅 탭: 로그인 필요');
             }
             break;
 
-          case 4: // 마이페이지 탭 - 인증 필요
+          case 4: // 마이페이지 탭
             if (isLoggedIn) {
-              LoggerUtil.i(
-                  '🔄 마이페이지 탭 데이터 새로고침 ${isSameTab ? "(탭 재클릭)" : "(탭 전환)"}');
-              // 프로필, 펀딩 총액, 쿠폰 개수 등 새로고침
-              ref.invalidate(profileProvider);
-              ref.invalidate(totalFundingAmountProvider);
+              ref.read(profileProvider.notifier).fetchProfile();
+              final _ = ref.refresh(totalFundingAmountProvider);
+              // CouponViewModel에 새로고침 메서드 확인 필요
               ref
                   .read(couponViewModelProvider.notifier)
-                  .loadCouponCount(forceRefresh: true);
-
-              // 시간 업데이트
-              _lastTabRefreshTimes[index] = now;
+                  .loadCouponList(); // 수정: Provider 사용 및 메서드 호출 (예: loadCouponList 또는 refreshCoupons)
+              updatedTime = true;
             } else {
-              LoggerUtil.w('🔒 마이페이지 탭: 로그인 필요 - 데이터 로드 건너뛰기');
-              // 마이페이지 화면 내부에서 로그인 안내 화면 표시
+              // 마이페이지 관련 상태 초기화
+              // ref.read(profileProvider.notifier).resetState(); // resetState 메서드 확인 필요
+              LoggerUtil.w('🔒 마이페이지 탭: 로그인 필요');
             }
             break;
         }
+
+        // 데이터 로드를 시도했다면 마지막 새로고침 시간 업데이트
+        if (updatedTime) {
+          _lastTabRefreshTimes[index] = now;
+          LoggerUtil.i('✅ 탭 $index 새로고침 완료, 시간 기록');
+        }
+      } else {
+        LoggerUtil.d('🚫 탭 $index 데이터 새로고침 건너뜀 (조건 미충족)');
       }
-    } catch (e) {
-      LoggerUtil.e('❌ 탭 데이터 새로고침 중 오류 발생: $e');
+    } catch (e, s) {
+      LoggerUtil.e('❌ 탭 데이터 새로고침 중 오류 발생', e, s);
     }
   }
 }

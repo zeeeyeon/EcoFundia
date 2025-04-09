@@ -107,8 +107,6 @@ class _FundingStatusCardState extends ConsumerState<FundingStatusCard> {
       final isAuthenticated = await AuthUtils.checkAuthAndShowModal(
         context,
         ref,
-        AuthRequiredFeature.funding,
-        showModal: true,
       );
 
       if (!isAuthenticated) {

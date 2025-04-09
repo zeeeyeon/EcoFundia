@@ -11,11 +11,7 @@ import 'package:front/features/funding/data/models/funding_model.dart';
 import 'package:front/core/constants/app_strings.dart';
 import 'package:go_router/go_router.dart';
 import 'package:front/utils/logger_util.dart';
-import 'package:front/features/funding/ui/view_model/search_special_view_model.dart';
 import 'package:front/features/funding/ui/view_model/search_suggest_view_model.dart'; // ✅ 자동완성 ViewModel
-import 'package:front/features/funding/ui/view_model/search_view_model.dart';
-import 'package:front/features/funding/ui/widgets/search_category_chip.dart';
-import 'package:front/features/funding/ui/widgets/search_funding_list.dart';
 import 'package:front/features/funding/ui/widgets/search_suggestion_list.dart'; // ✅ 자동완성 리스트 위젯
 
 class SearchScreen extends ConsumerStatefulWidget {

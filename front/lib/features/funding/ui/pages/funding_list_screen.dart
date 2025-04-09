@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/core/constants/app_strings.dart';
 import 'package:front/core/themes/app_colors.dart';
 import 'package:front/core/ui/widgets/custom_app_bar.dart';
-import 'package:front/core/ui/widgets/loading_overlay.dart';
 import 'package:front/features/funding/ui/widgets/category_filter_widget.dart';
 import 'package:front/features/funding/ui/widgets/sort_dropdown_widget.dart';
 import 'package:go_router/go_router.dart';
@@ -47,52 +46,47 @@ class _FundingListScreenState extends ConsumerState<FundingListScreen> {
     final notifier = ref.read(fundingListProvider.notifier);
     final isFetchingMore = notifier.isFetching;
 
-    return LoadingOverlay(
-      isLoading: fundingState is AsyncLoading &&
-          !(fundingState.hasValue && fundingState.value!.isNotEmpty),
-      message: '펀딩 정보를 불러오는 중...',
-      child: Scaffold(
-        backgroundColor: AppColors.white,
-        appBar: CustomAppBar(
-          showSearchField: true,
-          onSearchTap: () {
-            context.push('/funding/search');
-          },
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.home, color: AppColors.textDark),
-              onPressed: () => context.go('/'),
+    return Scaffold(
+      backgroundColor: AppColors.white,
+      appBar: CustomAppBar(
+        showSearchField: true,
+        onSearchTap: () {
+          context.push('/funding/search');
+        },
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.home, color: AppColors.textDark),
+            onPressed: () => context.go('/'),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 12),
+          const CategoryFilterWidget(),
+          const SizedBox(height: 12),
+          const SortDropdownWidget(),
+          const SizedBox(height: 16),
+          Expanded(
+            child: fundingState.when(
+              loading: () => fundingState.hasValue &&
+                      fundingState.value!.isNotEmpty
+                  ? _buildFundingList(fundingState.value!, isFetchingMore)
+                  : const Center(
+                      child:
+                          CircularProgressIndicator(color: AppColors.primary)),
+              error: (err, _) => Center(child: Text("오류 발생: $err")),
+              data: (fundingList) {
+                if (fundingList.isEmpty && !isFetchingMore) {
+                  return const Center(child: Text(SearchStrings.noResults));
+                }
+                return _buildFundingList(fundingList, isFetchingMore);
+              },
             ),
-            const SizedBox(width: 8),
-          ],
-        ),
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 12),
-            const CategoryFilterWidget(),
-            const SizedBox(height: 12),
-            const SortDropdownWidget(),
-            const SizedBox(height: 16),
-            Expanded(
-              child: fundingState.when(
-                loading: () =>
-                    fundingState.hasValue && fundingState.value!.isNotEmpty
-                        ? _buildFundingList(fundingState.value!, isFetchingMore)
-                        : const Center(
-                            child: CircularProgressIndicator(
-                                color: AppColors.primary)),
-                error: (err, _) => Center(child: Text("오류 발생: $err")),
-                data: (fundingList) {
-                  if (fundingList.isEmpty && !isFetchingMore) {
-                    return const Center(child: Text(SearchStrings.noResults));
-                  }
-                  return _buildFundingList(fundingList, isFetchingMore);
-                },
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

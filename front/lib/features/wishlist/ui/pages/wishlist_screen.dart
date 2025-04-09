@@ -11,7 +11,6 @@ import 'package:front/core/themes/app_colors.dart';
 import 'package:front/core/themes/app_text_styles.dart';
 import 'package:go_router/go_router.dart';
 import 'package:front/utils/auth_utils.dart';
-import 'package:front/core/ui/widgets/login_required_modal.dart';
 
 /// 위시리스트 화면
 /// 찜한 펀딩 프로젝트를 보여주는 화면
@@ -139,7 +138,6 @@ class _WishlistScreenState extends ConsumerState<WishlistScreen>
               AuthUtils.checkAuthAndShowModal(
                 context,
                 ref,
-                AuthRequiredFeature.like,
               );
             }
           });
@@ -220,7 +218,6 @@ class _WishlistScreenState extends ConsumerState<WishlistScreen>
     final isAuthorized = await AuthUtils.checkAuthAndShowModal(
       context,
       ref,
-      AuthRequiredFeature.like,
     );
 
     if (isAuthorized) {

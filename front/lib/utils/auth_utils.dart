@@ -3,134 +3,94 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/ui/widgets/login_required_modal.dart';
 import '../core/providers/app_state_provider.dart';
 import '../utils/logger_util.dart';
-import 'package:go_router/go_router.dart';
+
+// Import the new provider
+import 'package:front/core/providers/ui_providers.dart';
 
 class AuthUtils {
-  // 모달 표시 상태를 추적하는 정적 변수
-  static bool _isModalShowing = false;
+  // static bool _isModalShowing = false; // Replaced with Riverpod state
 
   /// 권한 체크 후 필요시 모달 표시
   static Future<bool> checkAuthAndShowModal(
     BuildContext context,
-    WidgetRef ref,
-    AuthRequiredFeature feature, {
+    WidgetRef ref, {
     bool showModal = true,
   }) async {
+    // Use a local variable to ensure atomicity within the function call
+    bool wasModalShownInThisCall = false;
     try {
-      // 먼저 동기적인 Provider에서 로그인 상태 확인 (즉시 반응)
+      // Use isLoggedInProvider directly from app_state_provider
       final isLoggedIn = ref.read(isLoggedInProvider);
-      final requiresAuth = ref.read(requiresAuthProvider(feature));
 
-      // 인증이 필요하지 않은 기능이면 항상 true 반환
-      if (!requiresAuth) return true;
-
-      // 로그인되어 있으면 추가 체크 없이 바로 true 반환
       if (isLoggedIn) {
-        LoggerUtil.d('권한 체크 (isLoggedInProvider): 인증됨 (${feature.name})');
+        // LoggerUtil.d('권한 체크 (isLoggedInProvider): 인증됨 (${feature.name})');
+        LoggerUtil.d('권한 체크: 인증됨');
         return true;
       }
 
-      LoggerUtil.d('권한 체크 (isLoggedInProvider): 인증 필요 (${feature.name})');
+      // LoggerUtil.d('권한 체크 (isLoggedInProvider): 인증 필요 (${feature.name})');
+      LoggerUtil.d('권한 체크: 인증 필요');
 
-      // 모달이 이미 표시 중이면 중복 표시 방지
-      if (showModal && context.mounted && !_isModalShowing) {
-        _isModalShowing = true;
-        try {
-          // 각 표시마다 고유한 키 생성
-          final uniqueKey = UniqueKey();
+      // 모달 표시 로직 (Riverpod 상태 사용)
+      if (showModal && context.mounted) {
+        // Check the provider state *before* showing the dialog
+        final isAlreadyShowing = ref.read(isLoginModalShowingProvider);
+        if (!isAlreadyShowing) {
+          // Set the provider state to true *before* await
+          ref.read(isLoginModalShowingProvider.notifier).state = true;
+          wasModalShownInThisCall =
+              true; // Mark that this call initiated the modal
+
           await showDialog(
             context: context,
-            barrierDismissible: true, // 바깥 영역 터치로 닫기 가능
-            builder: (context) => LoginRequiredModal(key: uniqueKey),
+            barrierDismissible: true,
+            builder: (context) => LoginRequiredModal(key: UniqueKey()),
           );
-        } finally {
-          // 모달이 닫히면 상태 업데이트, finally로 예외 발생해도 항상 실행되게 함
-          _isModalShowing = false;
+          // No need for finally block here, state is reset below
         }
-
-        // 모달 닫힌 후 로그인 상태 다시 확인 (모달에서 로그인했을 수 있음)
-        return ref.read(isLoggedInProvider);
       }
 
-      return false;
+      // After potential modal interaction (or if modal wasn't shown),
+      // re-check the login state.
+      final isLoggedInAfterCheck = ref.read(isLoggedInProvider);
+      return isLoggedInAfterCheck;
     } catch (e) {
-      LoggerUtil.e('권한 체크 실패', e);
-      // 오류 발생해도 모달 표시 상태 초기화
-      _isModalShowing = false;
-      return false;
+      LoggerUtil.e('권한 체크 및 모달 표시 실패', e);
+      return false; // Return false on error
+    } finally {
+      // Reset the provider state *only if* this specific function call initiated the modal showing.
+      // This prevents premature state reset if multiple calls overlap.
+      if (wasModalShownInThisCall) {
+        // Check if provider is still true before setting to false
+        // to avoid potential race conditions if another modal was opened quickly.
+        if (ref.read(isLoginModalShowingProvider)) {
+          ref.read(isLoginModalShowingProvider.notifier).state = false;
+        }
+      }
     }
   }
 
-  /// 라우트 권한 체크
+  // 라우트 권한 체크 - 현재 router.dart의 redirect 로직에서 처리하므로 주석 처리 또는 제거 고려
+  /*
   static Future<String?> checkAuthForRoute(
     BuildContext context,
     Ref ref,
     GoRouterState state,
   ) async {
-    // 현재 경로가 로그인이 필요한 경로인지 확인
-    final currentPath = state.uri.toString();
-    if (!isAuthRequiredPath(currentPath)) return null;
-
-    // 먼저 동기적인 Provider로 로그인 상태 확인 (즉시 상태 확인)
-    final isLoggedIn = ref.read(isLoggedInProvider);
-
-    if (isLoggedIn) {
-      // 이미 로그인된 상태이면 다음 라우트로 진행
-      return null;
-    }
-
-    // 로그인 상태가 아니면 추가로 토큰 유효성 확인 (더 안전한 검증)
-    final isAuthenticated = await ref.read(isAuthenticatedProvider.future);
-
-    // 앱 상태와 동기화
-    if (isAuthenticated != isLoggedIn) {
-      ref.read(appStateProvider.notifier).setLoggedIn(isAuthenticated);
-      LoggerUtil.d('🔄 인증 상태 동기화: $isAuthenticated (라우트 체크)');
-    }
-
-    if (!isAuthenticated) {
-      LoggerUtil.d('🔒 라우트 권한 체크: 인증 필요 ($currentPath) → 로그인 페이지로 리다이렉션');
-      // 로그인 페이지로 리다이렉션
-      return '/login';
-    }
-
-    return null;
+    // ... (기존 로직)
   }
+  */
 
-  /// 로그인이 필요한 경로인지 확인
+  // 로그인이 필요한 경로인지 확인 - 현재 router.dart의 requiresAuthPaths 리스트와 중복되므로 주석 처리 또는 제거 고려
+  /*
   static bool isAuthRequiredPath(String path) {
-    // URL 파라미터 제거 (예: /mypage?tab=1 -> /mypage)
-    final cleanPath =
-        path.contains('?') ? path.substring(0, path.indexOf('?')) : path;
-
-    // 회원가입 관련 경로는 인증 불필요
-    if (cleanPath == '/signup' || cleanPath == '/signup-complete') {
-      return false;
-    }
-
-    const authRequiredPaths = {
-      '/mypage': true,
-      '/wishlist': true,
-      '/profile-edit': true,
-      '/my-funding': true,
-      '/my-reviews': true,
-      '/coupons': true,
-      '/review': true, // /review/... 로 시작하는 모든 경로
-      '/payment': true, // /payment/... 로 시작하는 모든 경로
-    };
-
-    // 정확한 경로 매칭 먼저 시도
-    if (authRequiredPaths.containsKey(cleanPath)) {
-      return authRequiredPaths[cleanPath]!;
-    }
-
-    // 부분 경로 매칭 (e.g., /review/123 -> /review로 매칭)
-    for (final requiredPath in authRequiredPaths.keys) {
-      if (cleanPath.startsWith(requiredPath) && requiredPath != '/') {
-        return authRequiredPaths[requiredPath]!;
-      }
-    }
-
-    return false;
+    // ... (기존 로직)
   }
+  */
 }
+
+// Removed helper providers from here as they cause conflicts or are unused:
+// - isLoggedInProvider (use from app_state_provider.dart)
+// - AuthRequiredFeature (remove if unused or move)
+// - requiresAuthProvider (remove if unused or move)
+// - isAuthenticatedProvider (remove as logic is simplified)

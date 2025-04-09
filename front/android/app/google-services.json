@@ -50,6 +50,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "235624319328-fv5g1f1g5qnkni37rjdr3etlgoaf657h.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.ecofundia",
+            "certificate_hash": "d5ea7a7e57e2c970a52b9f5001d4011c3ba5fea9"
+          }
+        },
+        {
           "client_id": "235624319328-prqbju063kqdqfnl8l2o88ohmc2rlfmr.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

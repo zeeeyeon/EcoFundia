@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/core/config/app_config.dart';
 import 'package:front/core/services/api_service.dart';
-import 'package:front/features/auth/domain/entities/auth_state.dart';
 import 'package:go_router/go_router.dart';
 import 'package:front/core/constants/app_strings.dart';
 import 'package:front/core/themes/app_colors.dart';
@@ -85,7 +84,7 @@ class LoginScreen extends ConsumerWidget {
                                   backgroundColor: AppColors.white,
                                   onPressed: () => ref
                                       .read(authProvider.notifier)
-                                      .handleGoogleLogin(),
+                                      .googleSignIn(),
                                 ),
                                 const SizedBox(height: 16),
                                 SocialLoginButton(

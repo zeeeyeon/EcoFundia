@@ -12,6 +12,9 @@ import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:front/utils/auth_utils.dart';
 import 'package:front/core/providers/app_state_provider.dart';
+import 'package:front/features/wishlist/ui/view_model/wishlist_provider.dart';
+import 'package:front/features/wishlist/ui/view_model/wishlist_view_model.dart';
+import 'package:front/features/home/ui/view_model/project_view_model.dart';
 
 // ProjectDetail 상태 정의
 class ProjectDetailState {
@@ -104,6 +107,8 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
   Timer? _timer;
   ProjectEntity? _currentProject;
   bool _isStoryExpanded = false;
+  // Add state variable for chat navigation debouncing
+  bool _isNavigatingToChat = false;
 
   @override
   void initState() {
@@ -229,12 +234,22 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
       _startTimer();
     }
 
+    // wishlistIdsProvider 구독 추가
+    final Set<int> wishlistIds = ref.watch(wishlistIdsProvider);
+    // isLiked 상태 계산
+    final bool isLiked = wishlistIds.contains(project.id);
+
     return _buildContent(context, screenSize, project);
   }
 
   // 프로젝트 상세 화면 UI 빌드
   Widget _buildContent(
       BuildContext context, Size screenSize, ProjectEntity project) {
+    // wishlistIdsProvider 구독 추가
+    final Set<int> wishlistIds = ref.watch(wishlistIdsProvider);
+    // isLiked 상태 계산
+    final bool isLiked = wishlistIds.contains(project.id);
+
     return Scaffold(
       backgroundColor: AppColors.white,
       persistentFooterButtons: [
@@ -250,7 +265,6 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
               final isAuthenticated = await AuthUtils.checkAuthAndShowModal(
                 context,
                 ref,
-                AuthRequiredFeature.funding,
               );
               if (!isAuthenticated) {
                 LoggerUtil.d('💰 하단 펀딩하기 버튼: 인증 필요 → 모달 표시됨');
@@ -315,114 +329,48 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                 onPressed: () => context.pop(),
               ),
               actions: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 16.0),
-                  child: IconButton(
-                    icon: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppColors.white.withOpacity(0.8),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 10,
-                            spreadRadius: 0,
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        project.isLiked
-                            ? Icons.favorite
-                            : Icons.favorite_border,
-                        color:
-                            project.isLiked ? Colors.red : AppColors.darkGrey,
-                        size: 20,
-                      ),
-                    ),
-                    onPressed: () async {
-                      // 동기 Provider를 통해 로그인 상태 확인 (즉각적인 상태 체크)
-                      final isLoggedIn = ref.read(isLoggedInProvider);
-
-                      if (!isLoggedIn) {
-                        LoggerUtil.d('❤️ 좋아요 버튼 클릭: 로그인 필요 (동기 상태 체크)');
-                      }
-
-                      // 로그인 상태 체크 및 모달 표시
-                      final isAuthenticated =
-                          await AuthUtils.checkAuthAndShowModal(
-                        context,
-                        ref,
-                        AuthRequiredFeature.like,
-                      );
-
-                      if (!isAuthenticated) {
-                        LoggerUtil.d('❤️ 좋아요 버튼: 인증 필요 → 로그인 모달 표시됨');
-                        return; // 인증되지 않으면 좋아요 기능 실행하지 않음
-                      }
-
-                      // 토큰 유효성 추가 검증 (로그인된 상태에서만 필요)
-                      if (isAuthenticated) {
-                        // 실제 토큰이 유효한지 스토리지에서 다시 확인
-                        final hasValidToken =
-                            await ref.read(isAuthenticatedProvider.future);
-                        if (!hasValidToken) {
-                          LoggerUtil.d('❤️ 좋아요 버튼: 토큰 만료됨, 재인증 필요');
-                          return; // 토큰이 유효하지 않으면 작업 중단
-                        }
-                      }
-
-                      LoggerUtil.d('❤️ 좋아요 버튼: 인증 성공 → 좋아요 기능 실행');
-
-                      // 현재 상태 저장
-                      final isCurrentlyLiked = project.isLiked;
-
-                      // 1. Optimistic UI 업데이트 (즉시 UI 반영)
-                      // 프로젝트 상태를 낙관적으로 업데이트
-                      final updatedProject =
-                          project.copyWith(isLiked: !isCurrentlyLiked);
-                      ref
-                          .read(
-                              projectDetailProvider(widget.projectId).notifier)
-                          .updateProject(updatedProject);
-
-                      // 스낵바 표시
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            isCurrentlyLiked
-                                ? '찜 목록에서 제거되었습니다.'
-                                : '찜 목록에 추가되었습니다.',
-                          ),
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
-
-                      // 2. API 호출 - 현재 isLiked 상태를 전달하여 API에서 중복 확인을 방지
-                      ref
-                          .read(projectRepositoryProvider)
-                          .toggleProjectLike(
-                            project.id,
-                            isCurrentlyLiked: isCurrentlyLiked,
-                          )
-                          .catchError((error) {
-                        LoggerUtil.e('찜하기 토글 실패', error);
-
-                        // 3. 실패 시 UI 롤백
-                        ref
-                            .read(projectDetailProvider(widget.projectId)
-                                .notifier)
-                            .updateProject(project);
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('찜하기 처리 중 오류가 발생했습니다.'),
-                            duration: Duration(seconds: 2),
-                          ),
-                        );
-                      });
-                    },
+                // 찜하기 버튼
+                IconButton(
+                  icon: Icon(
+                    // isLiked 상태에 따라 아이콘 변경
+                    isLiked ? Icons.favorite : Icons.favorite_border,
+                    // isLiked 상태에 따라 색상 변경
+                    color: isLiked ? AppColors.primary : AppColors.grey,
                   ),
+                  onPressed: () async {
+                    LoggerUtil.d('❤️ 상세 페이지 찜하기 버튼 클릭: ${project.id}');
+                    // 로그인 확인
+                    final isAuthorized = await AuthUtils.checkAuthAndShowModal(
+                      context,
+                      ref,
+                    );
+                    if (isAuthorized && context.mounted) {
+                      // WishlistViewModel의 토글 메서드 호출
+                      await ref
+                          .read(wishlistViewModelProvider.notifier)
+                          .toggleWishlistItem(project.id, context: context);
+                      // 토글 후 상세 정보 갱신은 ProjectViewModel의 역할이 아님
+                      // ProjectViewModel의 리스너가 wishlistIdsProvider 변경을 감지하여
+                      // 프로젝트 리스트의 isLiked 상태를 업데이트하므로, 여기서 별도 갱신 불필요
+                      // 화면 자체의 isLiked 상태는 ref.watch에 의해 자동으로 갱신됨
+                    }
+                  },
+                  tooltip: '찜하기',
+                ),
+                // 공유 버튼 (기존 코드 유지)
+                IconButton(
+                  icon: const Icon(Icons.share, color: AppColors.grey),
+                  onPressed: () {
+                    // TODO: 공유 기능 구현
+                    LoggerUtil.d('🔗 공유 버튼 클릭');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('공유 기능은 준비 중입니다.'),
+                        duration: Duration(seconds: 1),
+                      ),
+                    );
+                  },
+                  tooltip: '공유하기',
                 ),
               ],
               flexibleSpace: FlexibleSpaceBar(
@@ -1054,32 +1002,64 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                   ],
                 ),
               ),
-              // 채팅하기 버튼 -> 오른쪽 상단으로 이동
+              // 채팅하기 버튼
               Align(
                 alignment: Alignment.topRight,
                 child: OutlinedButton.icon(
                   onPressed: () async {
-                    // (채팅하기 버튼 로직은 동일)
-                    final isLoggedIn = ref.read(isLoggedInProvider);
-                    if (!isLoggedIn) {
-                      LoggerUtil.d('💬 채팅방 참여 버튼: 로그인 필요');
-                    }
-                    final isAuthenticated =
-                        await AuthUtils.checkAuthAndShowModal(
-                      context,
-                      ref,
-                      AuthRequiredFeature.comment,
-                    );
-                    if (!isAuthenticated) {
-                      LoggerUtil.d('💬 채팅방 참여 버튼: 인증 필요 → 모달 표시됨');
+                    // Debouncing check
+                    if (_isNavigatingToChat) {
+                      LoggerUtil.w('채팅방 이동 중복 호출 방지됨');
                       return;
                     }
-                    LoggerUtil.d('💬 채팅방 참여 버튼: 인증 성공 → 채팅방 이동');
-                    if (context.mounted) {
-                      context.push(
+
+                    _isNavigatingToChat = true;
+                    LoggerUtil.d('채팅방 이동 시작: fundingId=${project.id}');
+
+                    try {
+                      // Check authentication
+                      final isLoggedIn = ref.read(isLoggedInProvider);
+                      if (!isLoggedIn) {
+                        LoggerUtil.d('💬 채팅방 참여 버튼: 로그인 필요');
+                      }
+                      final isAuthenticated =
+                          await AuthUtils.checkAuthAndShowModal(
+                        context,
+                        ref,
+                      );
+                      if (!isAuthenticated) {
+                        LoggerUtil.d('💬 채팅방 참여 버튼: 인증 필요 → 모달 표시됨');
+                        return; // Exit if not authenticated
+                      }
+
+                      LoggerUtil.d('💬 채팅방 참여 버튼: 인증 성공 → 채팅방 이동');
+
+                      // Navigate to chat room
+                      // Ensure context is still mounted before navigation
+                      if (!context.mounted) return;
+                      // Revert back to context.push
+                      await context.push(
                         '/chat/room/${project.id}',
                         extra: {'title': project.title},
                       );
+                      LoggerUtil.d('채팅방 이동 호출 완료');
+                    } catch (e, s) {
+                      // Use correct parameter names for LoggerUtil.e
+                      LoggerUtil.e('채팅방 이동 중 오류', e, s);
+                      // Optionally show an error message to the user
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('채팅방 이동 중 오류가 발생했습니다: $e')),
+                        );
+                      }
+                    } finally {
+                      // Reset the flag after a delay
+                      Future.delayed(const Duration(milliseconds: 500), () {
+                        // Check if the state is still mounted before modifying state variable
+                        if (mounted) {
+                          _isNavigatingToChat = false;
+                        }
+                      });
                     }
                   },
                   icon: const Icon(
@@ -1096,11 +1076,10 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                     foregroundColor: AppColors.primary,
                     side: const BorderSide(color: AppColors.primary, width: 1),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20)), // 좀 더 둥글게
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 6), // 패딩 조정
-                    tapTargetSize:
-                        MaterialTapTargetSize.shrinkWrap, // 버튼 영역 최소화
+                        borderRadius: BorderRadius.circular(20)),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                 ),
               )

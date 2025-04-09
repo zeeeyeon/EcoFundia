@@ -10,6 +10,16 @@ import 'package:front/features/mypage/ui/model/coupon_state.dart';
 import 'package:front/utils/error_handling_mixin.dart';
 import 'dart:async' show unawaited;
 
+/// 쿠폰 관련 이벤트 -> CouponState 로 이동 또는 제거 고려 (ViewModel 내부에서만 사용 시)
+enum CouponModalEvent {
+  none,
+  success,
+  alreadyIssued,
+  needLogin,
+  error,
+  timeLimit,
+}
+
 // 쿠폰 관련 UseCase Provider들
 final getCouponCountUseCaseProvider = Provider<GetCouponCountUseCase>((ref) {
   final repository = ref.watch(couponRepositoryProvider);
@@ -39,16 +49,6 @@ final couponListProvider = FutureProvider.autoDispose((ref) async {
   final coupons = await useCase.execute();
   return coupons;
 });
-
-/// 쿠폰 관련 이벤트
-enum CouponModalEvent {
-  none,
-  success,
-  alreadyIssued,
-  needLogin,
-  error,
-  timeLimit,
-}
 
 /// 쿠폰 ViewModel
 class CouponViewModel extends StateNotifier<CouponState>
@@ -395,9 +395,9 @@ class CouponViewModel extends StateNotifier<CouponState>
   }
 }
 
-/// 쿠폰 ViewModel Provider
+/// CouponViewModel Provider (StateNotifierProvider 사용)
 final couponViewModelProvider =
-    StateNotifierProvider.autoDispose<CouponViewModel, CouponState>((ref) {
+    StateNotifierProvider<CouponViewModel, CouponState>((ref) {
   final getCouponCountUseCase = ref.watch(getCouponCountUseCaseProvider);
   final getCouponListUseCase = ref.watch(getCouponListUseCaseProvider);
   final applyCouponUseCase = ref.watch(applyCouponUseCaseProvider);

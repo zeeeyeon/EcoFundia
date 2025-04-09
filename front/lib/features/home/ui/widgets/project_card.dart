@@ -89,33 +89,11 @@ class _ProjectCardState extends ConsumerState<ProjectCard> {
       final isAuthenticated = await AuthUtils.checkAuthAndShowModal(
         context,
         ref,
-        AuthRequiredFeature.like,
       );
 
       if (!isAuthenticated) {
         LoggerUtil.d('👍 좋아요 토글: ${widget.project.id}, 인증: 필요 → 인증 모달 표시됨');
         return; // 로그인하지 않으면 좋아요 기능 실행하지 않고 종료
-      }
-    }
-
-    // 토큰 유효성 추가 검증 (심층 체크) - 로그인된 상태에서만 수행
-    if (isLoggedIn) {
-      // 스토리지에 저장된 토큰이 유효한지 확인
-      final hasValidToken = await ref.read(isAuthenticatedProvider.future);
-      if (!hasValidToken) {
-        LoggerUtil.d('👍 좋아요 시도: 로그인되었으나 토큰 만료됨 - 재인증 필요');
-
-        // 토큰이 만료된 경우 모달을 통해 재로그인 유도
-        final reAuthenticated = await AuthUtils.checkAuthAndShowModal(
-          context,
-          ref,
-          AuthRequiredFeature.like,
-        );
-
-        if (!reAuthenticated) {
-          LoggerUtil.d('👍 좋아요 토글: ${widget.project.id}, 재인증: 필요 → 인증 모달 표시됨');
-          return; // 재인증하지 않으면 좋아요 기능 실행하지 않고 종료
-        }
       }
     }
 

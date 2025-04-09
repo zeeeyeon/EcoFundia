@@ -13,6 +13,7 @@ import './routes/wishlist_routes.dart';
 import './routes/home_routes.dart';
 import './routes/chat_routes.dart';
 import './routes/mypage_routes.dart';
+import 'package:front/features/chat/ui/pages/chat_room_screen.dart';
 
 // 정적으로 선언된 GlobalKey - 싱글턴으로 관리 (클래스 정의 복원)
 class AppNavigatorKeys {
@@ -66,66 +67,94 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: '/splash', // 초기 위치는 스플래시
     refreshListenable: appStateListenable,
     redirect: (context, state) {
-      final appFullState = ref.read(appStateProvider);
-      final isLoggedIn = appFullState.isLoggedIn;
-      final isInitialized = appFullState.isInitialized;
+      final appState = ref.read(appStateProvider);
       final location = state.uri.toString();
-      final targetPath = state.matchedLocation;
+      final currentUriPath = state.uri.path;
 
-      LoggerUtil.d(
-          '🔄 [Router Redirect] 현재 위치: $location (매칭: $targetPath), 로그인: $isLoggedIn, 초기화: $isInitialized');
+      LoggerUtil.i(
+          '[Router Redirect START] Location: "$location", Path: "$currentUriPath", isLoggedIn: ${appState.isLoggedIn}, isInitialized: ${appState.isInitialized}');
 
-      // 1. 초기화가 완료되지 않았으면 아무것도 하지 않음 (스플래시 또는 로딩 화면 유지)
-      if (!isInitialized) {
-        LoggerUtil.d('🔄 [Router Redirect] 초기화 진행 중 -> 대기');
-        return null;
+      // --- 0. 인증 플로우 예외 처리 (로그아웃 상태에서만 유효) ---
+      final isAuthProcessPath = currentUriPath == '/login' ||
+          currentUriPath == '/signup' ||
+          currentUriPath == '/signup-complete' ||
+          currentUriPath == '/forgot-password';
+
+      if (!appState.isLoggedIn && isAuthProcessPath) {
+        // 회원가입 완료 후에는 로그인 상태여야 하므로, 로그아웃 상태 접근 시 로그인으로 보낼 수 있음
+        if (currentUriPath == '/signup-complete') {
+          LoggerUtil.w(
+              '[Router Redirect] Cond 0.1: Logged out & Signup Complete -> Redirecting to /login');
+          return '/login';
+        }
+        LoggerUtil.d(
+            '[Router Redirect] Cond 0.2: Auth process page ($currentUriPath) & Logged out -> ALLOW');
+        return null; // /login, /signup 등은 로그아웃 상태에서 접근 허용
       }
 
-      // 2. 초기화 완료 후 스플래시 화면에 있다면 상태에 따라 이동
-      if (location == '/splash') {
-        final target = isLoggedIn ? '/' : '/login';
-        LoggerUtil.d('🚀 [Router Redirect] 초기화 완료 & 스플래시 -> $target 이동');
-        return target;
+      // --- 1. 초기화 안 됐으면 스플래시 유지 또는 이동 ---
+      if (!appState.isInitialized) {
+        if (currentUriPath != '/splash') {
+          LoggerUtil.d(
+              '[Router Redirect] Cond 1.1: Not initialized & Not Splash -> Redirecting to /splash');
+          return '/splash';
+        }
+        LoggerUtil.d(
+            '[Router Redirect] Cond 1.2: Not initialized & Splash -> Stay on /splash');
+        return null; // 스플래시 유지
       }
 
-      // 3. 로그인/회원가입 관련 페이지 처리 (기존 로직 유지)
-      final isAuthFlow = location == '/login' ||
-          location == '/signup' ||
-          location.startsWith('/signup-complete');
-
-      if (isLoggedIn && isAuthFlow) {
-        LoggerUtil.d('🏠 [Router Redirect] 로그인 상태 & 인증 페이지($location) -> / 이동');
+      // --- 2. 초기화 완료 & 스플래시 상태면 무조건 홈으로 이동 ---
+      // 이 시점에는 isInitialized == true
+      if (currentUriPath == '/splash') {
+        // 로그인 여부와 관계없이 홈으로 보냄 (요구사항 반영)
+        LoggerUtil.d(
+            '[Router Redirect] Cond 2: Initialized & Splash -> Redirecting to "/"');
         return '/';
       }
 
-      if (!isLoggedIn && isAuthFlow) {
-        LoggerUtil.d('🔄 [Router Redirect] 로그아웃 상태 & 인증 페이지($location) -> 통과');
-        return null;
-      }
-
-      // 4. 로그인이 필요한 경로인지 확인 (state.uri.path 사용)
-      final currentUriPath = state.uri.path; // 실제 접근 경로 사용
-      final isAuthRequiredPath = requiresAuthPaths.any(
-        (requiredPath) => currentUriPath.startsWith(requiredPath),
-      );
-      LoggerUtil.d(
-          '🔒 [Router Redirect] 보호 경로 확인: $currentUriPath -> $isAuthRequiredPath');
-
-      // 5. 로그아웃 상태 + 보호된 경로 접근 -> 로그인 페이지로 리디렉션
-      if (!isLoggedIn && isAuthRequiredPath) {
+      // --- 4. 로그아웃 상태 & 보호된 경로 접근 시 로그인으로 ---
+      // 이 시점에는 isInitialized == true
+      final isAuthRequired =
+          requiresAuthPaths.any((p) => currentUriPath.startsWith(p)) ||
+              currentUriPath.startsWith('/chat/room/');
+      if (!appState.isLoggedIn && isAuthRequired) {
         LoggerUtil.d(
-            '🔒 [Router Redirect] 로그아웃 상태 & 보호된 경로($currentUriPath) -> /login 이동');
-        return '/login';
+            '[Router Redirect] Cond 4: Logged out & Protected page ($currentUriPath) -> Redirecting to "/login"');
+        return '/login'; // 로그인 페이지로 리디렉션
       }
 
-      // 6. 그 외 모든 경우 -> 허용 (기존 로직 유지)
-      LoggerUtil.d('🔄 [Router Redirect] 리디렉션 필요 없음 ($location)');
-      return null;
+      // --- 5. 그 외 모든 경우 (리디렉션 불필요) ---
+      LoggerUtil.i(
+          '[Router Redirect END] No redirection needed for path "$currentUriPath". Returning null.');
+      return null; // 현재 경로 유지
     },
     routes: [
       // 분리된 인증 및 공통 라우트 사용
       ...authRoutes,
       ...commonRoutes,
+
+      // Add Chat Room Route here, before the ShellRoute
+      GoRoute(
+        path: '/chat/room/:fundingId',
+        name: 'chatRoom', // Keep the name if used elsewhere
+        // No parentNavigatorKey needed, defaults to root
+        builder: (context, state) {
+          final fundingId =
+              int.tryParse(state.pathParameters['fundingId'] ?? '');
+          final extra = state.extra as Map<String, dynamic>?;
+
+          if (fundingId == null) {
+            LoggerUtil.e('Chat Room Route Error: Invalid or missing fundingId');
+            return const ComingSoonScreen(); // Placeholder
+          }
+
+          return ChatRoomScreen(
+            fundingId: fundingId,
+            fundingTitle: extra?['title'] ?? '펀딩', // Use null-aware access
+          );
+        },
+      ),
 
       // 메인 네비게이션 쉘 라우트
       StatefulShellRoute.indexedStack(
@@ -150,6 +179,18 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ComingSoonScreen(),
       ),
     ],
+    // 에러 빌더 추가 (Fallback UI)
+    errorBuilder: (context, state) {
+      LoggerUtil.e(
+          '[GoRouter Error] Path: ${state.uri}, Exception: ${state.error}');
+      // ComingSoonScreen 대신 간단한 Text 위젯으로 에러 표시
+      return Scaffold(
+        appBar: AppBar(title: const Text('오류')),
+        body: Center(
+          child: Text('페이지를 찾을 수 없거나 오류가 발생했습니다.\n오류: ${state.error}'),
+        ),
+      );
+    },
   );
 });
 
