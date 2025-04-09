@@ -61,7 +61,8 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         List<ChatRoom> chatRooms = mongoTemplate.find(query, ChatRoom.class);
 
         if (chatRooms.isEmpty()) {
-            throw new CustomException(ResponseCode.NO_CHAT_ROOMS);
+            //throw new CustomException(ResponseCode.NO_CHAT_ROOMS);
+            return Collections.emptyList();
         }
 
         return chatRooms.stream()
