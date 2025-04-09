@@ -226,14 +226,22 @@ public class UserServiceImpl implements UserService {
         // 매퍼에서 결과는 ageGroup(0~5)와 count로 구성된 Map 리스트로 반환됨
         List<Map<String, Object>> results = userMapper.selectAgeGroupCounts(dtos);
         for (Map<String, Object> row : results) {
-            int group = ((Long) row.get("ageGroup")).intValue();
-            // count를 Long에서 int로 변환
-//            int count = ((Long) row.get("count")).intValue();
-            Long count = (Long) row.get("count");
+            Object groupObj = row.get("ageGroup");
+            Object countObj = row.get("count");
+
+            int group = (groupObj instanceof Integer)
+                    ? (Integer) groupObj
+                    : ((Long) groupObj).intValue();
+
+            int count = (countObj instanceof Integer)
+                    ? (Integer) countObj
+                    : ((Long) countObj).intValue();
+
             if (group >= 0 && group < 6) {
-                ageGroupCounts.set(group, count.intValue());
+                ageGroupCounts.set(group, count);
             }
         }
+
         return ageGroupCounts;
     }
 
