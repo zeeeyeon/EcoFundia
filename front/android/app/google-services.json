@@ -1,98 +1,98 @@
 {
-    "project_info": {
-      "project_number": "235624319328",
-      "project_id": "bamtol-market-app-2025-01",
-      "storage_bucket": "bamtol-market-app-2025-01.firebasestorage.app"
-    },
-    "client": [
-      {
-        "client_info": {
-          "mobilesdk_app_id": "1:235624319328:android:84daad1cb3e892a7b53605",
-          "android_client_info": {
-            "package_name": "com.devman.cloneapp.bamtol_market_app"
-          }
-        },
-        "oauth_client": [
-          {
-            "client_id": "235624319328-97r2qhh704su21thm6t0ndofi62kmin6.apps.googleusercontent.com",
-            "client_type": 3
-          }
-        ],
-        "api_key": [
-          {
-            "current_key": "AIzaSyAxwxt4KLfUmNHuoiZbWTdHozv2xnOXtWc"
-          }
-        ],
-        "services": {
-          "appinvite_service": {
-            "other_platform_oauth_client": [
-              {
-                "client_id": "235624319328-97r2qhh704su21thm6t0ndofi62kmin6.apps.googleusercontent.com",
-                "client_type": 3
-              },
-              {
-                "client_id": "235624319328-rlu98n7uie4kfs0c3f0sm500i8v62nv3.apps.googleusercontent.com",
-                "client_type": 2,
-                "ios_info": {
-                  "bundle_id": "com.devman.cloneapp.bamtolMarketApp"
-                }
-              }
-            ]
-          }
+  "project_info": {
+    "project_number": "235624319328",
+    "project_id": "bamtol-market-app-2025-01",
+    "storage_bucket": "bamtol-market-app-2025-01.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:235624319328:android:84daad1cb3e892a7b53605",
+        "android_client_info": {
+          "package_name": "com.devman.cloneapp.bamtol_market_app"
         }
       },
-      {
-        "client_info": {
-          "mobilesdk_app_id": "1:235624319328:android:05ec8a4af8592f9db53605",
-          "android_client_info": {
-            "package_name": "com.example.ecofundia"
-          }
-        },
-        "oauth_client": [
-          {
-            "client_id": "235624319328-prqbju063kqdqfnl8l2o88ohmc2rlfmr.apps.googleusercontent.com",
-            "client_type": 1,
-            "android_info": {
-              "package_name": "com.example.ecofundia",
-              "certificate_hash": "d6e4b6b3810e7a82ad8eb99145342a9fa4436e4f"
-            }
-          },
-          {
-            "client_id": "235624319328-ucqpmglcotggha61co7sbog5mmelh60u.apps.googleusercontent.com",
-            "client_type": 1,
-            "android_info": {
-              "package_name": "com.example.ecofundia",
-              "certificate_hash": "fdb9d6933246af91ea391a2b0393f9eafd2fc94f"
-            }
-          },
-          {
-            "client_id": "235624319328-97r2qhh704su21thm6t0ndofi62kmin6.apps.googleusercontent.com",
-            "client_type": 3
-          }
-        ],
-        "api_key": [
-          {
-            "current_key": "AIzaSyAxwxt4KLfUmNHuoiZbWTdHozv2xnOXtWc"
-          }
-        ],
-        "services": {
-          "appinvite_service": {
-            "other_platform_oauth_client": [
-              {
-                "client_id": "235624319328-97r2qhh704su21thm6t0ndofi62kmin6.apps.googleusercontent.com",
-                "client_type": 3
-              },
-              {
-                "client_id": "235624319328-rlu98n7uie4kfs0c3f0sm500i8v62nv3.apps.googleusercontent.com",
-                "client_type": 2,
-                "ios_info": {
-                  "bundle_id": "com.devman.cloneapp.bamtolMarketApp"
-                }
+      "oauth_client": [
+        {
+          "client_id": "235624319328-97r2qhh704su21thm6t0ndofi62kmin6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAxwxt4KLfUmNHuoiZbWTdHozv2xnOXtWc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "235624319328-97r2qhh704su21thm6t0ndofi62kmin6.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "235624319328-rlu98n7uie4kfs0c3f0sm500i8v62nv3.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.devman.cloneapp.bamtolMarketApp"
               }
-            ]
-          }
+            }
+          ]
         }
       }
-    ],
-    "configuration_version": "1"
-  }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:235624319328:android:05ec8a4af8592f9db53605",
+        "android_client_info": {
+          "package_name": "com.example.ecofundia"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "235624319328-prqbju063kqdqfnl8l2o88ohmc2rlfmr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.ecofundia",
+            "certificate_hash": "d6e4b6b3810e7a82ad8eb99145342a9fa4436e4f"
+          }
+        },
+        {
+          "client_id": "235624319328-ucqpmglcotggha61co7sbog5mmelh60u.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.ecofundia",
+            "certificate_hash": "fdb9d6933246af91ea391a2b0393f9eafd2fc94f"
+          }
+        },
+        {
+          "client_id": "235624319328-97r2qhh704su21thm6t0ndofi62kmin6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAxwxt4KLfUmNHuoiZbWTdHozv2xnOXtWc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "235624319328-97r2qhh704su21thm6t0ndofi62kmin6.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "235624319328-rlu98n7uie4kfs0c3f0sm500i8v62nv3.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.devman.cloneapp.bamtolMarketApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

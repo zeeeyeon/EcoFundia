@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:front/core/themes/app_colors.dart'; // Assuming AppColors exists
 import 'package:front/core/themes/app_text_styles.dart'; // Import AppTextStyles
 import 'package:intl/intl.dart'; // For number formatting
+
 import '../../data/models/funding_model.dart';
 
 // Convert to StatefulWidget

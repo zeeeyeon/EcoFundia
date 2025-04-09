@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../data/models/funding_detail_model.dart';
-import '../../../../core/themes/app_text_styles.dart';
+
 import '../../../../core/themes/app_colors.dart';
+import '../../../../core/themes/app_text_styles.dart';
+import '../../data/models/funding_detail_model.dart';
 
 class FundingDetailCard extends StatefulWidget {
   final FundingDetailModel detail;
@@ -322,10 +323,10 @@ class _FundingDetailCardState extends State<FundingDetailCard> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
-        onPressed: () {
-          context.push(
+        onPressed: () async {
+          await context.push(
             '/chat/room/$fundingId',
-            extra: {'title': fundingTitle}, // ✅ 여전히 title은 넘김!
+            // extra: {'title': fundingTitle}, // ✅ 여전히 title은 넘김!
           );
         },
         icon: const Icon(Icons.chat_bubble_outline),

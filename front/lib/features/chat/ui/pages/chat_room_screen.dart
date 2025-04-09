@@ -1,11 +1,16 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/core/providers/websocket_provider.dart';
 import 'package:front/core/services/storage_service.dart';
+import 'package:front/core/services/websocket_manager.dart';
 import 'package:front/core/themes/app_colors.dart';
-import 'package:front/core/services/websocket_manager.dart'; // WebSocketManager는 따로 만든 파일이어야 해
+import 'package:front/features/chat/data/models/chat_model.dart';
+import 'package:front/features/chat/ui/view_model/chat_view_model.dart';
+import 'package:stomp_dart_client/stomp_dart_client.dart';
 
-class ChatRoomScreen extends StatefulWidget {
+class ChatRoomScreen extends ConsumerStatefulWidget {
   final int fundingId;
   final String fundingTitle;
 
@@ -16,69 +21,141 @@ class ChatRoomScreen extends StatefulWidget {
   });
 
   @override
-  State<ChatRoomScreen> createState() => _ChatRoomScreenState();
+  ConsumerState<ChatRoomScreen> createState() => _ChatRoomScreenState();
 }
 
-class _ChatRoomScreenState extends State<ChatRoomScreen> {
+class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final WebSocketManager _webSocketManager = WebSocketManager();
-
-  final List<Map<String, dynamic>> _messages = [];
+  late final WebSocketManager _wsManager;
+  late int? _userId;
 
   @override
   void initState() {
     super.initState();
-    _initWebSocketConnection();
+    _wsManager = ref.read(websocketManagerProvider);
+
+    // 전체 초기화 비동기로 묶기
+    Future.microtask(() async {
+      await _initializeChatRoom(); // 🛠️ _userId 초기화 완료
+
+      // ✅ 메시지 조회 요청 (초기화 후 실행 보장)
+      await ref
+          .read(chatRoomViewModelProvider(widget.fundingId).notifier)
+          .fetchMessages();
+
+      // ✅ 스크롤 리스너 등록 (이것도 초기화 후 등록)
+      _scrollController.addListener(() {
+        if (_scrollController.position.pixels <=
+            _scrollController.position.minScrollExtent + 50) {
+          ref
+              .read(chatRoomViewModelProvider(widget.fundingId).notifier)
+              .fetchMoreMessages();
+        }
+      });
+    });
   }
 
-  Future<void> _initWebSocketConnection() async {
-    final token = await StorageService.getToken();
-    final userIdStr = await StorageService.getUserId();
-    final userId = int.tryParse(userIdStr ?? '0') ?? 0;
+  Future<void> _initializeChatRoom() async {
+    try {
+      final token = await StorageService.getToken();
+      final userIdStr = await StorageService.getUserId();
 
-    _webSocketManager.connect(
-      userToken: token!,
-      onConnectCallback: (frame) {
-        print('✅ WebSocket 연결 성공');
+      if (token == null || userIdStr == null) {
+        debugPrint('❌ 토큰 또는 사용자 ID를 불러올 수 없습니다.');
+        return;
+      }
 
-        _webSocketManager.subscribeToRoom(
-          fundingId: widget.fundingId,
-          userId: userId,
-          onMessage: (frame) {
-            print('📩 메시지 수신: ${frame.body}');
+      final parsedId = int.tryParse(userIdStr);
+      if (parsedId == null) {
+        debugPrint('❌ 사용자 ID 파싱 실패');
+        return;
+      }
 
-            try {
-              final data = jsonDecode(frame.body!);
-              final content = data['content'];
+      _userId = parsedId;
 
-              setState(() {
-                _messages.add({
-                  'fromMe': false,
-                  'nickname': '서버',
-                  'text': '예정 정산 금액: ${content['expectedAmount']}원',
-                });
-              });
-            } catch (e) {
-              print('❌ 메시지 파싱 오류: $e');
-            }
+      if (!_wsManager.isConnected) {
+        _wsManager.connect(
+          userToken: token,
+          onConnectCallback: (_) {
+            if (!mounted) return;
+            _subscribe(); // 연결 완료 후 구독
+          },
+          onError: (error) {
+            debugPrint('❌ WebSocket 연결 오류: $error');
           },
         );
-      },
-    );
+      } else {
+        _subscribe(); // 이미 연결되어 있으면 바로 구독
+      }
+    } catch (e) {
+      debugPrint('❌ 초기화 중 오류 발생: $e');
+    }
   }
 
-  void _sendMessage() {
+  void _subscribe() {
+    final destination = '/sub/chat/${widget.fundingId}';
+    debugPrint('📡 채팅방 구독 요청 → $destination (userId: $_userId)');
+
+    if (_userId != null) {
+      _wsManager.subscribeToRoom(
+        fundingId: widget.fundingId,
+        userId: _userId!,
+        onMessage: (StompFrame frame) {
+          if (frame.body == null) {
+            debugPrint('⚠️ 수신된 메시지 body가 null입니다.');
+            return;
+          }
+
+          debugPrint('📩 [Raw 메시지 수신] body: ${frame.body}');
+
+          try {
+            final data = jsonDecode(frame.body!);
+
+            final senderId = data['senderId'];
+            final nickname = data['nickname'] ?? '익명';
+            final content = data['content'];
+            final createdAtString = data['createdAt'];
+            final createdAt = createdAtString != null
+                ? DateTime.tryParse(createdAtString)
+                : DateTime.now();
+
+            final newMessage = ChatMessage(
+              senderId: senderId,
+              nickname: nickname,
+              content: content,
+              createdAt: createdAt!,
+            );
+
+            ref
+                .read(chatRoomViewModelProvider(widget.fundingId).notifier)
+                .addMessage(newMessage);
+          } catch (e) {
+            debugPrint('❌ JSON 파싱 오류: $e');
+          }
+        },
+      );
+    }
+  }
+
+  void _sendMessage() async {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
 
-    setState(() {
-      _messages.add({'fromMe': true, 'text': text});
-    });
+    final nickname = await StorageService.getNickname();
+
+    if (_userId != null) {
+      _wsManager.sendMessageToRoom(
+        fundingId: widget.fundingId,
+        senderId: _userId!, // null 아님을 확신
+        nickname: nickname ?? '익명',
+        content: text,
+        createdAt: DateTime.now(),
+      );
+    }
 
     _messageController.clear();
 
-    // 스크롤 아래로 이동
     Future.delayed(const Duration(milliseconds: 100), () {
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
@@ -90,7 +167,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
   @override
   void dispose() {
-    _webSocketManager.disconnect();
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -98,14 +174,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final messages = ref.watch(chatRoomViewModelProvider(widget.fundingId));
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
           '채팅방: ${widget.fundingTitle} (#${widget.fundingId})',
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
@@ -116,12 +191,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
             child: ListView.builder(
               controller: _scrollController,
               padding: const EdgeInsets.all(16),
-              itemCount: _messages.length,
+              itemCount: messages.length,
               itemBuilder: (context, index) {
-                final msg = _messages[index];
-                final fromMe = msg['fromMe'] as bool;
-                final text = msg['text'] as String;
-                final nickname = msg['nickname'] as String?;
+                final msg = messages[index];
+                final fromMe = msg.senderId == _userId;
+
+                final formattedTime =
+                    TimeOfDay.fromDateTime(msg.createdAt).format(context);
 
                 return Align(
                   alignment:
@@ -131,11 +207,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                         ? CrossAxisAlignment.end
                         : CrossAxisAlignment.start,
                     children: [
-                      if (!fromMe && nickname != null)
+                      if (!fromMe && msg.nickname.isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.only(left: 4, bottom: 2),
                           child: Text(
-                            nickname,
+                            msg.nickname,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.grey[700],
@@ -144,7 +220,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                           ),
                         ),
                       Container(
-                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        margin: const EdgeInsets.symmetric(vertical: 2),
                         padding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 10),
                         decoration: BoxDecoration(
@@ -159,10 +235,21 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                           ),
                         ),
                         child: Text(
-                          text,
+                          msg.content,
                           style: TextStyle(
                             color: fromMe ? Colors.white : Colors.black87,
                             fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding:
+                            const EdgeInsets.only(top: 2, left: 8, right: 8),
+                        child: Text(
+                          formattedTime,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey[500],
                           ),
                         ),
                       ),

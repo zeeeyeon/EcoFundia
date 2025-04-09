@@ -190,6 +190,11 @@ class StorageService {
     return await _storage.read(key: _userIdKey);
   }
 
+  // 사용자 닉네임 조회
+  static Future<String?> getNickname() async {
+    return await _storage.read(key: _userNicknameKey);
+  }
+
   /// 사용자 이메일 저장
   static Future<void> saveUserEmail(String email) async {
     await _storage.write(key: _userEmailKey, value: email);
@@ -209,7 +214,13 @@ class StorageService {
   /// 저장된 데이터 모두 삭제
   static Future<void> clearAll() async {
     try {
-      await _storage.deleteAll();
+      // await _storage.deleteAll();
+      final keys = await _storage.readAll();
+      for (final key in keys.keys) {
+        if (key != 'joinedChatRooms') {
+          await _storage.delete(key: key);
+        }
+      }
       // 추가적으로 토큰 관련 키를 개별적으로 확실히 삭제
       await _storage.delete(key: _tokenKey);
       await _storage.delete(key: _refreshTokenKey);
