@@ -378,7 +378,7 @@
         created_at,
         updated_at,
         settlement_completed,
-        floor((current_amount / target_amount) * 100) AS progressPercentage
+        floor((current_amount / (target_amount * 1.0)) * 100) AS progress_percentage
         FROM funding
         WHERE seller_id = #{sellerId}
         AND settlement_completed = 1
