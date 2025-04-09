@@ -29,7 +29,7 @@ public class FundingSettlementPollingService {
     private final FundingEventProducer fundingEventProducer;
 
     // 매일 자정 00:00:05에 실행 (cron 표현식: "초 분 시 일 월 요일")
-    @Scheduled(cron = "5 0 0 * * ?")
+    @Scheduled(cron = "0 10 0 * * ?")
     public void triggerSettlementEvents() {
         // SUCCESS 상태이며 아직 settlementCompleted가 false인 Funding 목록 조회
         List<Funding> fundingList = fundingService.getSuccessFundingsNotSent();
