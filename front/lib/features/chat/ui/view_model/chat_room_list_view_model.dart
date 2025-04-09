@@ -41,4 +41,9 @@ class ChatRoomListViewModel extends StateNotifier<AsyncValue<List<ChatRoom>>> {
   }
 
   void refresh() => fetchChatRooms();
+
+  /// 상태 초기화 (비로그인 시 호출)
+  void resetState() {
+    state = const AsyncValue.data([]); // 빈 리스트로 데이터 상태 설정
+  }
 }

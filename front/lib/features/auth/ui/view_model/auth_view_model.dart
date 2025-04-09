@@ -87,54 +87,52 @@ class AuthViewModel extends StateNotifier<AuthState>
   }
 
   Future<void> _initializeAuthState() async {
+    bool initializationAttempted = false; // 초기화 시도 여부 플래그
     try {
       _appStateViewModel.setLoading(true);
 
       final isLoggedIn = await _checkLoginStatusUseCase.execute();
-
-      // 인증 상태가 확인되면 앱 상태도 즉시 업데이트 (동기적인 isLoggedInProvider 업데이트)
       _appStateViewModel.setLoggedIn(isLoggedIn);
       LoggerUtil.d('🔑 초기 인증 상태: $isLoggedIn (initializeAuthState)');
 
       if (!isLoggedIn) {
         state = state.copyWith(status: AuthStatus.unauthenticated);
-        return;
-      }
-
-      final token = await StorageService.getToken();
-      final refreshToken = await StorageService.getRefreshToken();
-
-      if (token != null && refreshToken != null) {
-        final tokenExpiry = _parseTokenExpiry(token);
-
-        if (tokenExpiry.isAfter(DateTime.now())) {
-          state = state.copyWith(
-            status: AuthStatus.authenticated,
-            accessToken: token,
-            refreshToken: refreshToken,
-            tokenExpiry: tokenExpiry,
-          );
-          LoggerUtil.i('✅ 유효한 토큰으로 인증 상태 설정 완료');
-        } else {
-          LoggerUtil.w('⚠️ 토큰 만료, 갱신 시도');
-          await _refreshToken();
-        }
       } else {
-        LoggerUtil.w('⚠️ 토큰 없음, 인증되지 않은 상태로 설정');
-        state = state.copyWith(status: AuthStatus.unauthenticated);
+        final token = await StorageService.getToken();
+        final refreshToken = await StorageService.getRefreshToken();
+
+        if (token != null && refreshToken != null) {
+          final tokenExpiry = _parseTokenExpiry(token);
+          if (tokenExpiry.isAfter(DateTime.now())) {
+            state = state.copyWith(
+              status: AuthStatus.authenticated,
+              accessToken: token,
+              refreshToken: refreshToken,
+              tokenExpiry: tokenExpiry,
+            );
+            LoggerUtil.i('✅ 유효한 토큰으로 인증 상태 설정 완료');
+          } else {
+            LoggerUtil.w('⚠️ 토큰 만료, 갱신 시도');
+            await _refreshToken();
+          }
+        } else {
+          LoggerUtil.w('⚠️ 토큰 없음, 인증되지 않은 상태로 설정');
+          state = state.copyWith(status: AuthStatus.unauthenticated);
+          _appStateViewModel.setLoggedIn(false);
+        }
       }
+      initializationAttempted = true;
+      _appStateViewModel.setInitialized(true);
     } catch (e) {
       LoggerUtil.e('❌ 인증 상태 초기화 실패', e);
-
-      // 오류 발생 시 로그아웃 상태로 설정
       _appStateViewModel.setLoggedIn(false);
-
-      // 에러 처리 통합 적용
       setErrorState(e);
       state = state.copyWith(
         status: AuthStatus.error,
         error: errorMessage,
       );
+      initializationAttempted = true;
+      _appStateViewModel.setInitialized(true);
     } finally {
       _appStateViewModel.setLoading(false);
     }
@@ -497,14 +495,8 @@ class AuthViewModel extends StateNotifier<AuthState>
         _appStateViewModel.setLoggedIn(true);
         LoggerUtil.i('✅ 앱 상태 로그인 업데이트 완료 (handleGoogleLogin)');
 
-        // 인증 관련 데이터가 완전히 반영될 때까지 대기
-        await _waitForAuthDataSync();
-
-        // 위시리스트 ID 로딩 완료 대기
+        // 위시리스트 ID 로딩 (네비게이션 전에 수행)
         await _loadWishlistIds();
-
-        // 홈 화면으로 이동
-        _navigateToHome();
       } else if (result is AuthNewUserEntity) {
         // 회원가입 필요 - 회원가입 화면으로 이동
         await _handleNewUser(result);
@@ -526,14 +518,6 @@ class AuthViewModel extends StateNotifier<AuthState>
     }
   }
 
-  /// 인증 데이터 동기화 대기
-  Future<void> _waitForAuthDataSync() async {
-    LoggerUtil.d('🔄 인증 데이터 동기화 대기 중...');
-    // 인증 관련 데이터가 완전히 반영될 때까지 충분한 지연
-    await Future.delayed(const Duration(milliseconds: 500));
-    LoggerUtil.d('✅ 인증 데이터 동기화 완료');
-  }
-
   /// 위시리스트 ID 로딩
   Future<void> _loadWishlistIds() async {
     try {
@@ -544,14 +528,6 @@ class AuthViewModel extends StateNotifier<AuthState>
       LoggerUtil.e('❌ 위시리스트 ID 목록 로딩 실패', e);
       // 오류가 발생해도 로그인 플로우는 계속 진행
     }
-  }
-
-  /// 홈 화면으로 이동
-  void _navigateToHome() {
-    if (_router.canPop()) {
-      _router.pop();
-    }
-    _router.go('/');
   }
 
   /// 신규 사용자 처리

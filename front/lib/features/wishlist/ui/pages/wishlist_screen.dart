@@ -10,6 +10,8 @@ import 'package:front/core/constants/app_strings.dart';
 import 'package:front/core/themes/app_colors.dart';
 import 'package:front/core/themes/app_text_styles.dart';
 import 'package:go_router/go_router.dart';
+import 'package:front/utils/auth_utils.dart';
+import 'package:front/core/ui/widgets/login_required_modal.dart';
 
 /// 위시리스트 화면
 /// 찜한 펀딩 프로젝트를 보여주는 화면
@@ -35,6 +37,7 @@ class _WishlistScreenState extends ConsumerState<WishlistScreen>
   bool _isActiveLoadingMore = false;
   bool _isEndedLoadingMore = false;
   bool _isPageVisible = false;
+  bool _hasShownLoginPrompt = false; // 로그인 안내 표시 여부 추적
   DateTime? _lastWishlistLoadTime;
 
   @override
@@ -61,7 +64,7 @@ class _WishlistScreenState extends ConsumerState<WishlistScreen>
 
     // 첫 데이터 로드
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadWishlistData();
+      _checkAuthAndLoadData();
     });
   }
 
@@ -82,7 +85,7 @@ class _WishlistScreenState extends ConsumerState<WishlistScreen>
 
     // 앱이 포그라운드로 돌아오는 경우
     if (state == AppLifecycleState.resumed && _isPageVisible) {
-      _loadWishlistData();
+      _checkAuthAndLoadData();
     }
   }
 
@@ -100,11 +103,54 @@ class _WishlistScreenState extends ConsumerState<WishlistScreen>
     if (isWishlistTab && !_isPageVisible) {
       _isPageVisible = true;
       LoggerUtil.i('🔄 위시리스트 페이지 활성화');
-      _loadWishlistData();
+      _checkAuthAndLoadData();
     } else if (!isWishlistTab && _isPageVisible) {
       _isPageVisible = false;
       LoggerUtil.i('🔄 위시리스트 페이지 비활성화');
     }
+  }
+
+  /// 인증 상태 확인 후 데이터 로드
+  Future<void> _checkAuthAndLoadData() async {
+    // 로그인 상태 확인
+    final isLoggedIn = ref.read(isLoggedInProvider);
+
+    if (!isLoggedIn) {
+      LoggerUtil.w('⚠️ 위시리스트 접근: 비로그인 상태');
+
+      // 로그인 상태 변경 감지를 위한 리스너 설정
+      ref.listenManual(isLoggedInProvider, (previous, current) {
+        if (current == true && previous == false) {
+          // 로그인 상태로 변경됐을 때 데이터 로드
+          LoggerUtil.i('🔄 로그인 상태 변경 감지: 위시리스트 데이터 로드');
+          _loadWishlistData();
+        }
+      });
+
+      // 이미 안내를 표시했으면 중복 표시 방지
+      if (!_hasShownLoginPrompt) {
+        _hasShownLoginPrompt = true;
+
+        // 위시리스트 탭을 직접 클릭한 경우 로그인 모달 표시
+        if (mounted) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              // AuthUtils 사용하여 모달 표시
+              AuthUtils.checkAuthAndShowModal(
+                context,
+                ref,
+                AuthRequiredFeature.like,
+              );
+            }
+          });
+        }
+      }
+      return;
+    }
+
+    // 로그인 상태인 경우 데이터 로드
+    _hasShownLoginPrompt = false; // 로그인 상태니까 초기화
+    _loadWishlistData();
   }
 
   /// 위시리스트 데이터 로드
@@ -169,10 +215,19 @@ class _WishlistScreenState extends ConsumerState<WishlistScreen>
   }
 
   /// 좋아요 토글
-  void _toggleLike(int itemId) {
-    ref
-        .read(wishlistViewModelProvider.notifier)
-        .toggleWishlistItem(itemId, context: context);
+  Future<void> _toggleLike(int itemId) async {
+    // 로그인 확인 후 수행
+    final isAuthorized = await AuthUtils.checkAuthAndShowModal(
+      context,
+      ref,
+      AuthRequiredFeature.like,
+    );
+
+    if (isAuthorized) {
+      ref
+          .read(wishlistViewModelProvider.notifier)
+          .toggleWishlistItem(itemId, context: context);
+    }
   }
 
   @override
@@ -240,6 +295,25 @@ class _WishlistScreenState extends ConsumerState<WishlistScreen>
 
     // 위시리스트 상태 조회
     final wishlistState = ref.watch(wishlistViewModelProvider);
+
+    // 위시리스트 상태에 오류가 있는 경우 스낵바 표시
+    if (wishlistState.error != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(wishlistState.error!),
+              action: SnackBarAction(
+                label: '다시 시도',
+                onPressed: _loadWishlistData,
+              ),
+            ),
+          );
+          // 에러 메시지 초기화
+          ref.read(wishlistViewModelProvider.notifier).clearError();
+        }
+      });
+    }
 
     return Scaffold(
       backgroundColor: AppColors.white,

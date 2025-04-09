@@ -17,12 +17,10 @@ class LoginScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isLoggedIn = ref.watch(authProvider);
     final appState = ref.watch(appStateProvider);
 
     // 에러 발생 시 스낵바 표시
     if (appState.error != null) {
-      // 안전하게 스낵바 표시 로직 수정
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -31,22 +29,6 @@ class LoginScreen extends ConsumerWidget {
           ref.read(appStateProvider.notifier).clearError();
         }
       });
-    }
-
-    // 이미 로그인되어 있으면 홈으로 이동
-    if (isLoggedIn.status == AuthStatus.authenticated) {
-      // 딜레이를 추가하여 렌더링 충돌 방지
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (context.mounted) {
-          context.go('/');
-        }
-      });
-      // 빈 컨테이너를 반환하여 추가 렌더링 방지
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
     }
 
     return LoadingOverlay(
@@ -59,9 +41,13 @@ class LoginScreen extends ConsumerWidget {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios, color: AppColors.darkGrey),
             onPressed: () {
-              context.go('/');
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/');
+              }
             },
-            tooltip: '홈으로 돌아가기',
+            tooltip: '뒤로가기',
           ),
         ),
         backgroundColor: AppColors.white,

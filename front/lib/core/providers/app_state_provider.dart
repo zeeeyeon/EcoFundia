@@ -16,22 +16,26 @@ class AppState {
   final bool isLoading;
   final String? error;
   final bool isLoggedIn;
+  final bool isInitialized;
 
   const AppState({
     this.isLoading = false,
     this.error,
     this.isLoggedIn = false,
+    this.isInitialized = false,
   });
 
   AppState copyWith({
     bool? isLoading,
     String? error,
     bool? isLoggedIn,
+    bool? isInitialized,
   }) {
     return AppState(
       isLoading: isLoading ?? this.isLoading,
       error: error,
       isLoggedIn: isLoggedIn ?? this.isLoggedIn,
+      isInitialized: isInitialized ?? this.isInitialized,
     );
   }
 }
@@ -67,35 +71,33 @@ class AppStateViewModel extends StateNotifier<AppState> {
     LoggerUtil.d('👤 로그인 상태 변경: $isLoggedIn');
   }
 
-  /// 로그아웃 처리 (토큰 삭제, 상태 변경, 로그인 페이지 이동)
+  /// 초기화 완료 상태 설정 메서드 추가
+  void setInitialized(bool initialized) {
+    state = state.copyWith(isInitialized: initialized);
+    LoggerUtil.d('🚀 앱 초기화 상태 변경: $initialized');
+  }
+
+  /// 로그아웃 처리 (토큰 삭제, 상태 변경, 초기화)
   Future<void> logout() async {
     LoggerUtil.i('🚪 로그아웃 처리 시작');
     try {
-      // 1. 토큰 삭제
       await StorageService.clearAll();
       LoggerUtil.d('🔑 저장된 모든 토큰 삭제 완료');
 
-      // 2. 로그인 상태 변경
-      setLoggedIn(false);
-
-      // 3. 로그인 페이지 리디렉션 -> GoRouter redirect에서 처리하도록 제거
-      // _ref.read(routerProvider).go('/login');
-      LoggerUtil.i('✅ 로그아웃 상태 변경 완료');
+      // 로그인 상태 및 초기화 상태 초기화
+      state = state.copyWith(isLoggedIn: false, isInitialized: false);
+      LoggerUtil.i('✅ 로그아웃 상태 변경 및 초기화 완료');
     } catch (e) {
       LoggerUtil.e('❌ 로그아웃 처리 중 오류 발생', e);
-      state = state.copyWith(isLoggedIn: false); // 상태는 확실히 false로
-      // 오류 시 라우팅 시도 제거
-      // try {
-      //   _ref.read(routerProvider).go('/login');
-      // } catch (routerError) {
-      //   LoggerUtil.e('❌ 로그아웃 후 라우팅 오류', routerError);
-      // }
+      // 오류 시에도 상태는 확실히 초기화
+      state = state.copyWith(isLoggedIn: false, isInitialized: false);
     }
   }
 
   /// 상태 초기화
   void resetState() {
-    state = const AppState();
+    state = const AppState(); // isInitialized도 false로 초기화됨
+    LoggerUtil.i('🔄 앱 상태 완전 초기화');
   }
 }
 
@@ -118,6 +120,11 @@ final errorProvider = Provider<String?>((ref) {
 /// 로그인 상태 Provider (앱 상태에서 가져옴)
 final isLoggedInProvider = Provider<bool>((ref) {
   return ref.watch(appStateProvider).isLoggedIn;
+});
+
+/// 초기화 완료 상태 Provider 추가
+final isInitializedProvider = Provider<bool>((ref) {
+  return ref.watch(appStateProvider).isInitialized;
 });
 
 /// 로그인 상태 체크 Provider (비동기)

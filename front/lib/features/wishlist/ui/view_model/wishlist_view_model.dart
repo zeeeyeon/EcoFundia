@@ -120,33 +120,58 @@ class WishlistViewModel extends StateNotifier<WishlistState>
       if (kDebugMode) {
         LoggerUtil.i('🔄 위시리스트 API 요청 시작');
       }
-      // 병렬로 두 요청 실행
-      final activeItemsFuture =
-          _getActiveWishlistItemsUseCase.execute(page: 1, size: _pageSize);
-      final endedItemsFuture =
-          _getEndedWishlistItemsUseCase.execute(page: 1, size: _pageSize);
 
-      // 두 결과 모두 기다림
-      final results = await Future.wait([activeItemsFuture, endedItemsFuture]);
+      try {
+        // 병렬로 두 요청 실행
+        final activeItemsFuture =
+            _getActiveWishlistItemsUseCase.execute(page: 1, size: _pageSize);
+        final endedItemsFuture =
+            _getEndedWishlistItemsUseCase.execute(page: 1, size: _pageSize);
 
-      final activeItems = results[0];
-      final endedItems = results[1];
+        // 두 결과 모두 기다림
+        final results =
+            await Future.wait([activeItemsFuture, endedItemsFuture]);
 
-      // 더 불러올 데이터가 있는지 확인
-      final hasMoreActiveItems = activeItems.length >= _pageSize;
-      final hasMoreEndedItems = endedItems.length >= _pageSize;
+        final activeItems = results[0];
+        final endedItems = results[1];
 
-      state = state.copyWith(
-        isLoading: false,
-        activeItems: activeItems,
-        endedItems: endedItems,
-        hasMoreActiveItems: hasMoreActiveItems,
-        hasMoreEndedItems: hasMoreEndedItems,
-      );
+        // 더 불러올 데이터가 있는지 확인
+        final hasMoreActiveItems = activeItems.length >= _pageSize;
+        final hasMoreEndedItems = endedItems.length >= _pageSize;
 
-      if (kDebugMode) {
-        LoggerUtil.i(
-            '✅ 위시리스트 로드 완료: 진행 중 ${activeItems.length}개, 종료됨 ${endedItems.length}개');
+        state = state.copyWith(
+          isLoading: false,
+          activeItems: activeItems,
+          endedItems: endedItems,
+          hasMoreActiveItems: hasMoreActiveItems,
+          hasMoreEndedItems: hasMoreEndedItems,
+        );
+
+        if (kDebugMode) {
+          LoggerUtil.i(
+              '✅ 위시리스트 로드 완료: 진행 중 ${activeItems.length}개, 종료됨 ${endedItems.length}개');
+        }
+      } catch (apiError) {
+        // API 요청 중 오류 발생 - 인증 관련 오류일 수 있음
+        LoggerUtil.e('🔄 API 요청 중 오류 발생', apiError);
+
+        // 다시 인증 상태 확인
+        final isStillAuthenticated = await StorageService.isAuthenticated();
+        if (!isStillAuthenticated) {
+          // 인증 토큰이 만료되었거나 유효하지 않은 경우
+          state = state.copyWith(
+            isLoading: false,
+            error: '로그인이 필요하거나 인증이 만료되었습니다. 다시 로그인해 주세요.',
+          );
+        } else {
+          // 그 외 API 오류
+          state = state.copyWith(
+            isLoading: false,
+            error: '위시리스트를 불러오는 중 오류가 발생했습니다.',
+          );
+        }
+        // 에러 상태 설정
+        setErrorState(apiError);
       }
     } catch (e) {
       if (kDebugMode) {

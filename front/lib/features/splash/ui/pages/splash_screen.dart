@@ -1,17 +1,19 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/core/providers/app_state_provider.dart';
 import 'package:front/core/themes/app_colors.dart';
 import 'package:front/core/themes/app_text_styles.dart';
+import 'package:front/utils/logger_util.dart';
 
-class SplashPage extends StatefulWidget {
+class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
 
   @override
-  State<SplashPage> createState() => _SplashPageState();
+  ConsumerState<SplashPage> createState() => _SplashPageState();
 }
 
-class _SplashPageState extends State<SplashPage> {
+class _SplashPageState extends ConsumerState<SplashPage> {
   double _firstTextOpacity = 0.0; // 첫 번째 텍스트 초기 투명도
   double _secondTextOpacity = 0.0; // 두 번째 텍스트 초기 투명도
   final List<Timer> _timers = [];
@@ -44,12 +46,17 @@ class _SplashPageState extends State<SplashPage> {
       });
     }));
 
-    // 4️⃣ 5초 후 홈 화면으로 이동
+    // 4️⃣ 전체 애니메이션 완료 후 앱 초기화 완료 설정 및 홈 화면으로 이동
     _timers.add(Timer(const Duration(seconds: 5), () {
-      if (mounted) {
-        // 네비게이션 처리는 별도 메서드로 분리
-        _navigateToHome();
-      }
+      if (!mounted) return;
+      LoggerUtil.i('✅ 스플래시 애니메이션 완료, 앱 초기화 설정');
+
+      // 인증 상태 확인
+      ref.read(isAuthenticatedProvider.future).then((isLoggedIn) {
+        // 앱 초기화 상태 설정 - 이것이 라우터의 redirect 로직을 트리거함
+        ref.read(appStateProvider.notifier).setInitialized(true);
+        LoggerUtil.i('🚀 앱 초기화 완료, 홈 화면으로 이동 (로그인 상태: $isLoggedIn)');
+      });
     }));
   }
 
@@ -105,16 +112,5 @@ class _SplashPageState extends State<SplashPage> {
         ),
       ),
     );
-  }
-
-  // 홈 화면 이동 메서드
-  void _navigateToHome() {
-    // Global Key 충돌을 방지하기 위해 별도 비동기 메서드로 처리
-    Future.delayed(Duration.zero, () {
-      if (mounted) {
-        // GoRouter 사용하여 홈으로 이동
-        context.go('/');
-      }
-    });
   }
 }

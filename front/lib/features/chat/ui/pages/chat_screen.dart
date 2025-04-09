@@ -149,9 +149,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/core/providers/app_state_provider.dart';
 import 'package:front/core/themes/app_colors.dart';
 import 'package:front/core/ui/widgets/custom_app_bar.dart';
 import 'package:front/features/chat/ui/view_model/chat_room_list_view_model.dart';
+import 'package:front/utils/logger_util.dart';
 import 'package:go_router/go_router.dart';
 
 class ChatScreen extends ConsumerWidget {
@@ -159,6 +161,18 @@ class ChatScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isLoggedIn = ref.watch(isLoggedInProvider);
+
+    if (!isLoggedIn && context.mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+          context.pushReplacement('/login');
+          LoggerUtil.d('🔒 채팅 탭 접근 시 로그인 상태 아님 확인 -> 로그인 페이지로 리디렉션');
+        }
+      });
+      return const Scaffold(body: Center(child: SizedBox.shrink()));
+    }
+
     final asyncChatRooms = ref.watch(chatRoomListProvider);
 
     return Scaffold(
