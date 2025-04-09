@@ -8,6 +8,8 @@ class WebSocketManager {
   StompClient? _stompClient; // 변수명 통일 및 private 처리
   bool _isConnected = false;
 
+  StompClient? get stompClient => _stompClient;
+
   /// 연결 상태 변경 시 호출될 콜백 함수
   Function(bool isConnected)? onConnectionStatusChanged;
 
