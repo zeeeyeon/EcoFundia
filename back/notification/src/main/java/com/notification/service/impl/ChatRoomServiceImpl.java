@@ -46,5 +46,6 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 
         List<ChatRoomSummaryResponse> chatRoomSummaryResponses = chatClient.getChatRoomsByUserId(userId);
         return chatRoomSummaryResponses;
+
     }
 }
