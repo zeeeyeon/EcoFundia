@@ -17,7 +17,7 @@ public enum ResponseCode {
     COUPON_NOT_FOUND(404, HttpStatus.NOT_FOUND, "해당 쿠폰이 존재하지 않습니다."),
     COUPON_ALREADY_ISSUED(409, HttpStatus.CONFLICT, "이미 발급받은 쿠폰입니다."),
     COUPON_OUT_OF_STOCK(410, HttpStatus.GONE, "준비된 쿠폰 수량이 모두 소진되었습니다."),
-    COUPON_NOT_YET_TIME(404, HttpStatus.FORBIDDEN, "쿠폰은 오전 10시부터 발급 가능합니다."),
+    COUPON_NOT_YET_TIME(404, HttpStatus.NOT_FOUND, "쿠폰은 오전 10시부터 발급 가능합니다."),
 
     // 일반 오류
     BINDING_ERROR(400, HttpStatus.BAD_REQUEST, "입력값 중 검증에 실패한 값이 있습니다."),
