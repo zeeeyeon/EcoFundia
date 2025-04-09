@@ -113,9 +113,3 @@ final wishlistServiceProvider = Provider<WishlistService>((ref) {
   final apiService = ref.watch(apiServiceProvider);
   return WishlistApiService(apiService.dio);
 });
-
-/// WishlistRepository Provider
-final wishlistRepositoryProvider = Provider<WishlistRepository>((ref) {
-  final wishlistService = ref.watch(wishlistServiceProvider);
-  return WishlistRepositoryImpl(wishlistService: wishlistService);
-});

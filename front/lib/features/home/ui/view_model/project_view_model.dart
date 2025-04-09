@@ -256,12 +256,12 @@ final projectViewModelProvider =
   // 앱 상태 변경(로그인/로그아웃) 감지 리스너 설정
   ref.listen<AppState>(appStateProvider, (previous, next) {
     // 로그인 상태로 변경되었을 때 프로젝트 새로고침 (찜 상태 반영 위함)
-    if (previous?.isLoggedIn == false && next.isLoggedIn == true) {
+    if (previous != null && !previous.isLoggedIn && next.isLoggedIn) {
       LoggerUtil.i('[ProjectViewModel Listener] 로그인 감지, 프로젝트 새로고침');
       viewModel.refreshProjects();
     }
     // 로그아웃 상태로 변경되었을 때 프로젝트의 isLiked 상태 초기화
-    else if (previous?.isLoggedIn == true && next.isLoggedIn == false) {
+    else if (previous != null && previous.isLoggedIn && !next.isLoggedIn) {
       LoggerUtil.i('[ProjectViewModel Listener] 로그아웃 감지, 프로젝트 isLiked 초기화');
       // 로그아웃 시에는 위시리스트 ID가 비어있을 것이므로 빈 Set으로 업데이트 호출
       viewModel.updateProjectsWithWishlistIds({});

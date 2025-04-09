@@ -14,7 +14,6 @@ import 'package:front/utils/auth_utils.dart';
 import 'package:front/core/providers/app_state_provider.dart';
 import 'package:front/features/wishlist/ui/view_model/wishlist_provider.dart';
 import 'package:front/features/wishlist/ui/view_model/wishlist_view_model.dart';
-import 'package:front/features/home/ui/view_model/project_view_model.dart';
 
 // ProjectDetail 상태 정의
 class ProjectDetailState {
@@ -234,22 +233,19 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
       _startTimer();
     }
 
-    // wishlistIdsProvider 구독 추가
+    // wishlistIdsProvider 구독 - 한 곳에서만 구독
     final Set<int> wishlistIds = ref.watch(wishlistIdsProvider);
-    // isLiked 상태 계산
+    // isLiked 상태 계산 - 한 곳에서만 계산
     final bool isLiked = wishlistIds.contains(project.id);
 
-    return _buildContent(context, screenSize, project);
+    // _buildContent에 isLiked 값 전달
+    return _buildContent(context, screenSize, project, isLiked);
   }
 
-  // 프로젝트 상세 화면 UI 빌드
-  Widget _buildContent(
-      BuildContext context, Size screenSize, ProjectEntity project) {
-    // wishlistIdsProvider 구독 추가
-    final Set<int> wishlistIds = ref.watch(wishlistIdsProvider);
-    // isLiked 상태 계산
-    final bool isLiked = wishlistIds.contains(project.id);
-
+  // 프로젝트 상세 화면 UI 빌드 - isLiked를 파라미터로 받음
+  Widget _buildContent(BuildContext context, Size screenSize,
+      ProjectEntity project, bool isLiked) {
+    // 여기서 wishlistIds와 isLiked를 다시 계산하지 않도록 제거
     return Scaffold(
       backgroundColor: AppColors.white,
       persistentFooterButtons: [
@@ -348,7 +344,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                       // WishlistViewModel의 토글 메서드 호출
                       await ref
                           .read(wishlistViewModelProvider.notifier)
-                          .toggleWishlistItem(project.id, context: context);
+                          .toggleWishlistItem(project.id);
                       // 토글 후 상세 정보 갱신은 ProjectViewModel의 역할이 아님
                       // ProjectViewModel의 리스너가 wishlistIdsProvider 변경을 감지하여
                       // 프로젝트 리스트의 isLiked 상태를 업데이트하므로, 여기서 별도 갱신 불필요

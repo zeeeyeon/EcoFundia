@@ -35,8 +35,6 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
   Timer? _debounce;
   // 각 탭별 마지막 새로고침 시간 저장 (Stateful 위젯 상태로 관리)
   final Map<int, DateTime> _lastTabRefreshTimes = {};
-  // 마지막으로 선택된 탭 인덱스
-  final int _lastSelectedIndex = 0; // 초기값은 0 (홈 탭 인덱스에 따라 조정)
 
   // 새로고침 간격 (초)
   static const int _minRefreshIntervalSeconds = 60;

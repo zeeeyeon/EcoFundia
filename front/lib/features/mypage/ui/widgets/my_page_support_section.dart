@@ -117,10 +117,11 @@ class CustomerSupportSection extends ConsumerWidget {
     }
 
     void navigateToHome() {
-      if (context.mounted) {
-        context.go('/');
-        LoggerUtil.i('🏠 로그아웃 후 홈 화면으로 이동 완료');
-      }
+      // 이 함수는 이제 사용되지 않음 (AuthViewModel에서 직접 처리)
+      // if (context.mounted) {
+      //   context.go('/');
+      //   LoggerUtil.i('🏠 로그아웃 후 홈 화면으로 이동 완료');
+      // }
     }
 
     try {
@@ -131,10 +132,9 @@ class CustomerSupportSection extends ConsumerWidget {
 
       hideLoading();
 
-      navigateToHome();
-
+      // 로그아웃 결과에 따른 스낵바 표시 (홈 이동 로직 제거)
       if (context.mounted) {
-        Future.delayed(const Duration(milliseconds: 300), () {
+        Future.delayed(const Duration(milliseconds: 500), () {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -150,10 +150,9 @@ class CustomerSupportSection extends ConsumerWidget {
 
       hideLoading();
 
+      // 오류 발생 시 스낵바 표시 (홈 이동 로직 제거)
       if (context.mounted) {
-        navigateToHome();
-
-        Future.delayed(const Duration(milliseconds: 300), () {
+        Future.delayed(const Duration(milliseconds: 600), () {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(

@@ -8,6 +8,7 @@ import 'package:front/core/services/storage_service.dart';
 import 'package:front/utils/logger_util.dart';
 import 'package:front/core/services/api_service.dart';
 import 'package:front/features/wishlist/data/repositories/wishlist_repository_impl.dart';
+import 'package:front/features/wishlist/ui/view_model/wishlist_provider.dart';
 import 'package:front/shared/seller/data/repositories/seller_repository_impl.dart'
     as repo_impl;
 import 'package:front/shared/seller/ui/view_model/seller_view_model.dart';

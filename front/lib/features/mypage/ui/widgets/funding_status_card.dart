@@ -370,7 +370,7 @@ class _FundingStatusCardState extends ConsumerState<FundingStatusCard> {
                     child: InkWell(
                       onTap: () {
                         _couponViewModel.resetState();
-                        context.push('/coupons');
+                        context.push('/mypage/coupons');
                       },
                       borderRadius: const BorderRadius.only(
                           topRight: Radius.circular(12.0)),
