@@ -16,7 +16,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
+/**
+ * ElasticsearchService 클래스
+ * - Funding 엔티티를 Elasticsearch Document로 색인(index) 및 삭제(delete)합니다.
+ * - CriteriaQuery를 사용하여 자동완성, 유사 검색, 그리고 용어 추천 기능을 구현합니다.
+ */
 @Service
 @RequiredArgsConstructor
 public class ElasticsearchService {
@@ -24,16 +28,31 @@ public class ElasticsearchService {
     private final FundingDocumentRepository repository;
     private final ElasticsearchOperations elasticsearchOperations;
 
+    /**
+     * Funding 엔티티를 FundingDocument로 변환하여 Elasticsearch에 색인(저장)합니다.
+     *
+     * @param funding DB의 Funding 엔티티
+     */
     public void indexFunding(FundingDocument funding) {
         repository.save(funding);
     }
 
+    /**
+     * 주어진 fundingId에 해당하는 Elasticsearch 문서를 삭제합니다.
+     *
+     * @param fundingId 삭제할 Funding의 ID
+     */
     public void deleteFunding(int fundingId) {
         repository.deleteById(fundingId);
     }
 
+    /**
+     * 단순 접두어 검색 기반 자동완성 기능
+     * CriteriaQuery를 사용하여 "title" 필드가 prefix로 시작하는 문서를 검색합니다.
+     */
     public List<String> getSuggestions(String prefix) {
         Pageable pageable = PageRequest.of(0, 10);
+        // Criteria: title이 prefix로 시작하는 조건
         Criteria criteria = new Criteria("title").startsWith(prefix);
         CriteriaQuery query = new CriteriaQuery(criteria);
         query.setPageable(pageable);
@@ -44,12 +63,15 @@ public class ElasticsearchService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 고급 자동완성 기능: 접두어 검색 외에 유사 검색(Fuzzy)과 간단한 용어 추천(Term 기반)을 결합합니다.
+     */
     public List<String> advancedSuggestions(String prefix) {
-        // 1. 기본 접두어 검색 결과
+        // 접두어 검색 결과
         List<String> prefixSuggestions = getSuggestions(prefix);
-        Pageable pageable = PageRequest.of(0, 10);
 
-        // 2. contains 조건을 사용한 유사 검색
+        // 유사 검색: "title" 필드에 prefix가 포함되는 경우 (contains)
+        Pageable pageable = PageRequest.of(0, 10);
         Criteria fuzzyCriteria = new Criteria("title").contains(prefix);
         CriteriaQuery fuzzyQuery = new CriteriaQuery(fuzzyCriteria);
         fuzzyQuery.setPageable(pageable);
@@ -58,7 +80,7 @@ public class ElasticsearchService {
                 .map(hit -> hit.getContent().getTitle())
                 .collect(Collectors.toList());
 
-        // 3. equals 조건을 사용한 정확한 단어 매칭 검색
+        // 용어 추천: 간단한 Term 기반 검색 (정확한 단어 매칭을 위해 equals 조건 사용)
         Criteria termCriteria = new Criteria("title").is(prefix);
         CriteriaQuery termQuery = new CriteriaQuery(termCriteria);
         termQuery.setPageable(pageable);
@@ -67,15 +89,12 @@ public class ElasticsearchService {
                 .map(hit -> hit.getContent().getTitle())
                 .collect(Collectors.toList());
 
-        // 4. 세 검색 결과를 합치고 중복 제거
-        List<String> advanced = new ArrayList<>();
-        advanced.addAll(prefixSuggestions);
+        // 세 결과를 합치고 중복 제거
+        List<String> advanced = new ArrayList<>(prefixSuggestions);
         advanced.addAll(fuzzySuggestions);
         advanced.addAll(termSuggestions);
-
         return advanced.stream().distinct().collect(Collectors.toList());
     }
-
 
     /**
      * 검색 기능: 주어진 keyword를 기반으로 제목이나 설명에 대해 검색을 수행합니다.
