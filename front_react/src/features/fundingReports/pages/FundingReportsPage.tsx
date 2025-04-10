@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import Sidebar from "../../../shared/components/Sidebar";
+import Header from "../../../shared/components/Header";
 import useFundingReportsStore from "../stores/store";
 import ReportsSummaryCard from "../components/ReportsSummaryCard";
 import ReportsTable from "../components/ReportsTable";
 import Pagination from "../../../shared/components/Pagination";
 import "../styles/FundingReportsPage.css";
 import "../../../shared/styles/common.css";
+import "../../../shared/components/layout.css";
 
 const FundingReportsPage: React.FC = () => {
   // 사이드바 상태
@@ -52,36 +54,39 @@ const FundingReportsPage: React.FC = () => {
   }, [fetchInitialData]);
 
   return (
-    <div className="funding-reports-page">
+    <div className="dashboard-layout">
+      <Header />
       <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
 
-      <div className={`main-content ${isSidebarOpen ? "with-sidebar" : ""}`}>
-        <h1 className="page-title">정산내역</h1>
+      <main className={`main-content ${isSidebarOpen ? "sidebar-open" : "sidebar-closed"}`}>
+        <div className="dashboard-content-area">
+          <h1 className="page-title">정산내역</h1>
 
-        <div className="reports-content-wrapper">
-          {/* 요약 정보 카드 */}
-          <ReportsSummaryCard
-            totalAmount={totalAmount ?? 0}
-            settlementAmount={settlementAmount ?? 0}
-            isLoading={isLoadingSummary}
-          />
-
-          {/* 테이블 제목 */}
-          <h2 className="reports-table-title">내 펀딩 리스트 정산내역</h2>
-
-          {/* 정산내역 테이블 */}
-          <ReportsTable reports={reports} isLoading={isLoading} />
-
-          {/* 페이지네이션 */}
-          {!isLoading && totalPages > 0 && (
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
+          <div className="reports-content-wrapper">
+            {/* 요약 정보 카드 */}
+            <ReportsSummaryCard
+              totalAmount={totalAmount ?? 0}
+              settlementAmount={settlementAmount ?? 0}
+              isLoading={isLoadingSummary}
             />
-          )}
+
+            {/* 테이블 제목 */}
+            <h2 className="reports-table-title">내 펀딩 리스트 정산내역</h2>
+
+            {/* 정산내역 테이블 */}
+            <ReportsTable reports={reports} isLoading={isLoading} />
+
+            {/* 페이지네이션 */}
+            {!isLoading && totalPages > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            )}
+          </div>
         </div>
-      </div>
+      </main>
 
       {/* 에러 메시지 (오버레이 형태) */}
       {error && (

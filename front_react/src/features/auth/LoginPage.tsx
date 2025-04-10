@@ -82,7 +82,7 @@ const LoginPage: React.FC = () => {
               <img src={Leaf} alt="Eco Leaf" className="leaf-image" />
             </div>
 
-            <h1 className="title">SIMPLE</h1>
+            <h1 className="title">Eco-Fundia</h1>
             <p className="description">
               당신의 아이디어가 세상을 푸르게 만듭니다.
               <br />
