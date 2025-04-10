@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/core/providers/websocket_provider.dart';
 import 'package:front/core/services/websocket_manager.dart';
@@ -68,6 +69,7 @@ class FundingWebSocketService {
         onConnectCallback: _handleConnection,
         onError: _handleError,
       );
+      debugPrint('✅ WebSocket 연결 완료');
     } catch (e) {
       LoggerUtil.e('🔺 WebSocket 연결 시도 중 오류: $e');
       _handleError(e);
