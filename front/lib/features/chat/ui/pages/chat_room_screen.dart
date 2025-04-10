@@ -30,6 +30,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
   late final WebSocketManager _wsManager;
   late final ChatRoomViewModel _viewModel;
   int? _userId;
+  bool _isSubscribed = false;
 
   @override
   void initState() {
@@ -67,6 +68,9 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
           userToken: token,
           onConnectCallback: (_) {
             if (!mounted) return;
+
+            debugPrint('✅ WebSocket 연결 완료됨! 채팅방 구독 시작');
+
             _subscribe();
           },
           onError: (error) {
@@ -91,6 +95,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
       fundingId: widget.fundingId,
       userId: _userId!,
       onMessage: (StompFrame frame) {
+        debugPrint('📥 [onMessage] 수신됨: ${frame.body}');
         if (!mounted || frame.body == null) return;
 
         try {
@@ -102,12 +107,16 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
         }
       },
     );
+    _isSubscribed = true; // ✅ 구독 완료 처리
   }
 
   void _sendMessage() async {
+    if (!_isSubscribed) {
+      debugPrint('⛔ 아직 구독되지 않았으므로 메시지 전송 차단');
+      return;
+    }
     final text = _messageController.text.trim();
-    if (text.isEmpty || _userId == null) return;
-
+    if (text.isEmpty || _userId == null || !_wsManager.isConnected) return;
     final nickname = await StorageService.getNickname();
 
     _wsManager.sendMessageToRoom(
@@ -141,6 +150,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
 
   @override
   void dispose() {
+    _viewModel.clearMessages();
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
