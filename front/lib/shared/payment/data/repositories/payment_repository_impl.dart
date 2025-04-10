@@ -84,17 +84,17 @@ class PaymentRepositoryImpl implements PaymentRepository {
       final int quantity = payment.quantity;
       final int appliedCouponId = payment.appliedCouponId;
 
-      // 최종 결제 금액 계산 (상품 가격 × 수량 - 쿠폰 할인)
-      final int totalPrice = payment.finalAmount;
+      // **수정:** 최종 결제 금액 대신 원래 상품 총 금액 사용
+      final int productPrice = payment.totalProductPrice;
 
       _logger.d(
-          '결제 요청 데이터: fundingId=$fundingId, quantity=$quantity, totalPrice=$totalPrice, couponId=${payment.appliedCouponId}');
+          '결제 요청 데이터: fundingId=$fundingId, quantity=$quantity, productPrice=$productPrice, couponId=${payment.appliedCouponId}');
 
       // 결제 API 호출 - 쿠폰 ID를 포함하여 요청
       final paymentResult = await _apiService.processPayment(
         fundingId: fundingId,
         quantity: quantity,
-        totalPrice: totalPrice,
+        productPrice: productPrice, // API Service와 일치하는 파라미터명 사용
         couponId: appliedCouponId > 0 ? appliedCouponId : null,
       );
 

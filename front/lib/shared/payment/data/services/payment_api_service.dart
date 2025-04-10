@@ -75,18 +75,18 @@ class PaymentApiService {
   Future<bool> processPayment({
     required String fundingId,
     required int quantity,
-    required int totalPrice,
+    required int productPrice,
     int? couponId,
   }) async {
     try {
       _logger.d(
-          '결제 처리 API 호출: fundingId=$fundingId, quantity=$quantity, totalPrice=$totalPrice, couponId=$couponId');
+          '결제 처리 API 호출: fundingId=$fundingId, quantity=$quantity, productPrice=$productPrice, couponId=$couponId');
 
       // API 명세에 맞게 요청 데이터 구조화
       final requestData = {
         "fundingId": int.parse(fundingId),
         "quantity": quantity,
-        "totalPrice": totalPrice,
+        "totalPrice": productPrice,
       };
 
       // couponId가 null이 아니고 0보다 큰 경우에만 요청에 포함

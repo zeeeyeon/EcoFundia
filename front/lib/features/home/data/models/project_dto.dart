@@ -76,8 +76,65 @@ class ProjectDTO extends Equatable {
         sellerInfoUrl,
       ];
 
+  // 이미지 URL 유효성 검증
+  static String? _validateImageUrl(String? url) {
+    if (url == null || url.trim().isEmpty) {
+      return null;
+    }
+
+    // 이미지 파일 확장자 확인
+    final validExtensions = [
+      '.jpg',
+      '.jpeg',
+      '.png',
+      '.gif',
+      '.webp',
+      '.bmp',
+      '.svg'
+    ];
+    final lowercaseUrl = url.toLowerCase();
+
+    // 이미지 파일 형식인지 확인
+    bool hasValidExtension =
+        validExtensions.any((ext) => lowercaseUrl.endsWith(ext));
+
+    // 특정 도메인 필터링 (이미지가 아닌 URL 제외)
+    bool hasInvalidDomain = lowercaseUrl.contains('meeting.ssafy.com');
+
+    // 유효한 URL인지 확인
+    bool isValidUrlFormat = url.startsWith('http') ||
+        url.contains('s3.') ||
+        url.contains('amazonaws.com');
+
+    if (isValidUrlFormat && hasValidExtension && !hasInvalidDomain) {
+      return url;
+    }
+
+    return null;
+  }
+
   // API 응답에서 DTO 생성
   factory ProjectDTO.fromJson(Map<String, dynamic> json) {
+    // 판매자 이미지 URL 검증
+    final String? rawSellerImageUrl = json['sellerImageUrl'] as String?;
+    final String? rawSellerProfileImageUrl =
+        json['sellerProfileImageUrl'] as String?;
+
+    // 둘 다 null이 아닌 경우 유효성 검증
+    String? validSellerImageUrl = _validateImageUrl(rawSellerImageUrl);
+    String? validSellerProfileImageUrl =
+        _validateImageUrl(rawSellerProfileImageUrl);
+
+    // sellerImageUrl이 없고 sellerProfileImageUrl이 유효하면 대체
+    if (validSellerImageUrl == null && validSellerProfileImageUrl != null) {
+      validSellerImageUrl = validSellerProfileImageUrl;
+    }
+
+    // sellerProfileImageUrl이 없고 sellerImageUrl이 유효하면 대체
+    if (validSellerProfileImageUrl == null && validSellerImageUrl != null) {
+      validSellerProfileImageUrl = validSellerImageUrl;
+    }
+
     return ProjectDTO(
       fundingId: json['fundingId'] as int,
       sellerId: json['sellerId'] as int,
@@ -97,8 +154,8 @@ class ProjectDTO extends Equatable {
       rate: (json['rate'] as num).toDouble(),
       isLiked: json['isLiked'] as bool? ?? false,
       sellerName: json['sellerName'] as String? ?? '판매자 정보 없음',
-      sellerProfileImageUrl: json['sellerProfileImageUrl'] as String?,
-      sellerImageUrl: json['sellerImageUrl'] as String?,
+      sellerProfileImageUrl: validSellerProfileImageUrl,
+      sellerImageUrl: validSellerImageUrl,
       sellerDescription: json['sellerDescription'] as String?,
       location: json['location'] as String?,
       sellerInfoUrl: json['sellerInfoUrl'] as String?,

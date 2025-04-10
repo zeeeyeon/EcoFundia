@@ -30,11 +30,30 @@ class SellerModel extends SellerEntity {
           json['sellerProfileImageUrl'] ??
           json['sellerProfilelmageUrl'];
 
-      // URL이 유효한지 확인 (http로 시작하는지)
-      if (profileImageUrl != null && !profileImageUrl.startsWith('http')) {
-        LoggerUtil.w('유효하지 않은 이미지 URL 형식: $profileImageUrl');
-        // 유효하지 않은 URL이면 null로 설정
-        profileImageUrl = null;
+      // URL 유효성 검사 개선 - S3 URL 등 다양한 패턴 지원
+      if (profileImageUrl != null) {
+        // 빈 문자열이거나 null 데이터 처리
+        if (profileImageUrl.trim().isEmpty) {
+          LoggerUtil.w('빈 이미지 URL 감지');
+          profileImageUrl = null;
+        }
+        // URL이 유효한지 확인 (http로 시작하거나 S3 관련 문자열 포함)
+        else if (!profileImageUrl.startsWith('http') &&
+            !profileImageUrl.contains('s3.') &&
+            !profileImageUrl.contains('amazonaws.com')) {
+          LoggerUtil.w('이미지 URL 형식 검증 실패: $profileImageUrl');
+          // 자동 URL 수정 시도 - http:// 접두사 추가 (선택적)
+          if (!profileImageUrl.contains('://')) {
+            String fixedUrl = 'https://$profileImageUrl';
+            LoggerUtil.d('URL 수정 시도: $profileImageUrl → $fixedUrl');
+            profileImageUrl = fixedUrl;
+          } else {
+            // 수정 불가능한 형식으로 판단되면 null 처리
+            profileImageUrl = null;
+          }
+        } else {
+          LoggerUtil.d('유효한 이미지 URL 감지: $profileImageUrl');
+        }
       }
 
       // 새로운 API 필드 매핑

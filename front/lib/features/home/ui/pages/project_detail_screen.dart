@@ -628,6 +628,26 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
   }
 
   Widget _buildSellerInfoBox(BuildContext context, ProjectEntity project) {
+    // 판매자 이미지 URL 검증 로직
+    bool hasValidSellerImage = false;
+    String? sellerImageUrl = project.sellerImageUrl;
+
+    if (sellerImageUrl != null && sellerImageUrl.isNotEmpty) {
+      // 기본 URL 형식 확인
+      bool isUrlFormat = sellerImageUrl.startsWith('http') ||
+          sellerImageUrl.contains('s3.') ||
+          sellerImageUrl.contains('amazonaws.com');
+
+      // 이미지 파일 확장자 확인
+      bool isImageFile = _isValidImageUrl(sellerImageUrl);
+
+      hasValidSellerImage = isUrlFormat && isImageFile;
+
+      // 디버깅 메시지
+      LoggerUtil.d(
+          '판매자 섹션 이미지 분석: URL=$sellerImageUrl, 형식=$isUrlFormat, 이미지파일=$isImageFile, 최종유효성=$hasValidSellerImage');
+    }
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: const BoxDecoration(
@@ -661,23 +681,45 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // 판매자 프로필 이미지
-              CircleAvatar(
-                radius: 30,
-                backgroundColor: AppColors.primary.withOpacity(0.1),
-                backgroundImage: project.sellerImageUrl != null &&
-                        project.sellerImageUrl!.isNotEmpty
-                    ? NetworkImage(project.sellerImageUrl!) as ImageProvider
-                    : const AssetImage('assets/images/apple.png'),
-                child: project.sellerImageUrl == null ||
-                        project.sellerImageUrl!.isEmpty
-                    ? const Icon(
+              // 판매자 프로필 이미지 - CachedNetworkImage 적용
+              hasValidSellerImage
+                  ? CachedNetworkImage(
+                      imageUrl: sellerImageUrl!,
+                      imageBuilder: (context, imageProvider) => CircleAvatar(
+                        radius: 30,
+                        backgroundColor: AppColors.primary.withOpacity(0.1),
+                        backgroundImage: imageProvider,
+                      ),
+                      placeholder: (context, url) => CircleAvatar(
+                        radius: 30,
+                        backgroundColor: AppColors.primary.withOpacity(0.1),
+                        child: const CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      errorWidget: (context, url, error) {
+                        LoggerUtil.e('판매자 이미지 로드 오류: $url, $error');
+                        return CircleAvatar(
+                          radius: 30,
+                          backgroundColor: AppColors.primary.withOpacity(0.1),
+                          child: const Icon(
+                            Icons.store,
+                            size: 30,
+                            color: AppColors.primary,
+                          ),
+                        );
+                      },
+                    )
+                  : CircleAvatar(
+                      radius: 30,
+                      backgroundColor: AppColors.primary.withOpacity(0.1),
+                      child: const Icon(
                         Icons.store,
                         size: 30,
                         color: AppColors.primary,
-                      )
-                    : null,
-              ),
+                      ),
+                    ),
               const SizedBox(width: 16),
               // 판매자 정보
               Expanded(
@@ -804,6 +846,32 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
         ],
       ),
     );
+  }
+
+  /// 이미지 URL이 유효한 이미지 파일인지 확인
+  bool _isValidImageUrl(String? url) {
+    if (url == null || url.isEmpty) return false;
+
+    // 이미지 파일 확장자 확인
+    final validExtensions = [
+      '.jpg',
+      '.jpeg',
+      '.png',
+      '.gif',
+      '.webp',
+      '.bmp',
+      '.svg'
+    ];
+    final lowercaseUrl = url.toLowerCase();
+
+    // 이미지 파일 형식인지 확인
+    bool hasValidExtension =
+        validExtensions.any((ext) => lowercaseUrl.endsWith(ext));
+
+    // 특정 도메인 필터링 (이미지가 아닌 URL 제외)
+    bool hasInvalidDomain = lowercaseUrl.contains('meeting.ssafy.com');
+
+    return hasValidExtension && !hasInvalidDomain;
   }
 
   Widget _buildProjectIntroduction(ProjectEntity project) {

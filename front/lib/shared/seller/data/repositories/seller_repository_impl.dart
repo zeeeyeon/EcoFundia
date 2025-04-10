@@ -50,9 +50,10 @@ class SellerRepositoryImpl implements SellerRepository {
                   content['sellerId'] ??
                   0, // API 명세서 오타 'sellerld' 처리
               'name': content['sellerName'] ?? '이름 없음',
-              'profileImageUrl': content['sellerProfilelmageUrl'] ??
-                  content[
-                      'sellerProfileImageUrl'], // API 명세서 오타 'sellerProfilelmageUrl' 처리
+              'profileImageUrl': content['sellerProfileImageUrl'] ??
+                  content['sellerProfilelmageUrl'] ??
+                  content['profileImageUrl'] ??
+                  content['imageUrl'], // 여러 가능한 필드명 확인
               'satisfaction': content['totalRating'] ?? 0.0,
               'reviewCount': content['ratingCount'] ?? 0,
               'totalFundingAmount': content['totalAmount']?.toString() ?? '0',
@@ -60,6 +61,17 @@ class SellerRepositoryImpl implements SellerRepository {
               'isMaker': false, // API에서 제공하지 않으므로 기본값 설정
               'isTop100': false, // API에서 제공하지 않으므로 기본값 설정
             };
+
+            // S3 URL 디버깅을 위한 로그 추가
+            LoggerUtil.d(
+                '판매자 프로필 이미지 URL 확인: ${sellerData['profileImageUrl']}');
+            if (sellerData['profileImageUrl'] != null) {
+              final imageUrl = sellerData['profileImageUrl'].toString();
+              if (imageUrl.contains('s3.') ||
+                  imageUrl.contains('amazonaws.com')) {
+                LoggerUtil.i('S3 이미지 URL 감지: $imageUrl');
+              }
+            }
 
             // 프로젝트 목록 저장 (필요시 ViewModel에서 사용)
             if (content['onGoingFunding'] != null) {

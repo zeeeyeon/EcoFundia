@@ -77,19 +77,18 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
       // 현재 상태의 결제 객체에 쿠폰 정보 적용
       final updatedPayment = state.payment!.copyWith(
         appliedCouponId: couponId,
-        couponDiscount: discountAmount,
+        couponDiscount: discountAmount, // UI 표시용으로 할인 금액은 유지
       );
 
       state = state.copyWith(
         isApplyingCoupon: false,
         payment: updatedPayment,
         error: null,
-        // 로컬 선택 상태도 업데이트
         locallySelectedCouponId: couponId,
       );
 
       LoggerUtil.d(
-          '쿠폰 적용 성공: ID $couponId, 할인금액: $discountAmount, 로컬 상태 업데이트됨');
+          '쿠폰 적용 (UI): ID $couponId, 할인금액: $discountAmount, 로컬 상태 업데이트됨');
     } catch (e) {
       LoggerUtil.e('쿠폰 적용 실패: $e');
       state = state.copyWith(
@@ -106,7 +105,7 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
     LoggerUtil.d(
         '쿠폰 제거 시작 - 이전 쿠폰 ID: ${state.payment!.appliedCouponId}, 할인금액: ${state.payment!.couponDiscount}');
 
-    // 쿠폰 정보 제거
+    // 쿠폰 정보 제거 (할인 금액도 0으로)
     final updatedPayment = state.payment!.copyWith(
       appliedCouponId: 0,
       couponDiscount: 0,
@@ -114,7 +113,6 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
 
     state = state.copyWith(
       payment: updatedPayment,
-      // 로컬 선택 상태도 명시적으로 null로 초기화
       locallySelectedCouponId: null,
       isApplyingCoupon: false,
     );

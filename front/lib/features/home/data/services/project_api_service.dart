@@ -140,17 +140,37 @@ class ProjectApiService extends ProjectService {
             final fundingInfo = content['fundingInfo'] as Map<String, dynamic>;
             final sellerInfo = content['sellerInfo'] as Map<String, dynamic>;
 
+            // 판매자 이미지 URL 확인 및 전처리
+            final String? sellerImageUrl =
+                sellerInfo['sellerProfileImageUrl'] as String?;
+            final String? sellerProfileImageUrl =
+                sellerInfo['sellerProfileImageUrl'] as String?;
+
+            // 판매자 이미지 URL 검증
+            String? validSellerImageUrl = _validateImageUrl(sellerImageUrl);
+            String? validSellerProfileImageUrl =
+                _validateImageUrl(sellerProfileImageUrl);
+
+            if (validSellerImageUrl != null) {
+              _logger.d('유효한 판매자 이미지 URL: $validSellerImageUrl');
+            } else {
+              _logger.w('유효하지 않은 판매자 이미지 URL 감지됨: $sellerImageUrl');
+            }
+
             // 두 객체를 병합
             final projectData = {
               ...fundingInfo,
               'sellerName': sellerInfo['sellerName'],
-              'sellerProfileImageUrl': sellerInfo['sellerProfileImageUrl'],
+              'sellerProfileImageUrl': validSellerProfileImageUrl,
+              'sellerImageUrl': validSellerImageUrl,
               'storyFileUrl': fundingInfo['storyFileUrl'],
             };
 
             _logger.d('Merged project data for DTO: $projectData');
             final projectDTO = ProjectDTO.fromJson(projectData);
             _logger.d('ProjectDTO storyFileUrl: ${projectDTO.storyFileUrl}');
+            _logger
+                .d('ProjectDTO sellerImageUrl: ${projectDTO.sellerImageUrl}');
             _logger.d(
                 'ProjectEntity storyFileUrl: ${projectDTO.toEntity().storyFileUrl}');
             return projectDTO;
@@ -232,5 +252,41 @@ class ProjectApiService extends ProjectService {
       _logger.e('❌ 총 펀딩 금액 파싱 중 오류', error: e);
       return 0; // 오류 발생 시 기본값 0 반환
     }
+  }
+
+  /// 이미지 URL이 유효한지 확인하고 유효한 경우에만 URL을 반환
+  String? _validateImageUrl(String? url) {
+    if (url == null || url.trim().isEmpty) {
+      return null;
+    }
+
+    // 이미지 URL 검증 로직
+    bool isValidUrl = url.startsWith('http') ||
+        url.contains('s3.') ||
+        url.contains('amazonaws.com');
+
+    // 이미지 파일 확장자 검증
+    final validExtensions = [
+      '.jpg',
+      '.jpeg',
+      '.png',
+      '.gif',
+      '.webp',
+      '.bmp',
+      '.svg'
+    ];
+    final lowercaseUrl = url.toLowerCase();
+    bool hasValidExtension =
+        validExtensions.any((ext) => lowercaseUrl.endsWith(ext));
+
+    // 특정 도메인 필터링
+    bool hasInvalidDomain = lowercaseUrl.contains('meeting.ssafy.com');
+
+    // 모든 조건 만족 시 URL 반환
+    if (isValidUrl && hasValidExtension && !hasInvalidDomain) {
+      return url;
+    }
+
+    return null;
   }
 }
