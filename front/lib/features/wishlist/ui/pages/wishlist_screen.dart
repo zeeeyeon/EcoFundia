@@ -223,7 +223,7 @@ class _WishlistScreenState extends ConsumerState<WishlistScreen>
     if (isAuthorized) {
       ref
           .read(wishlistViewModelProvider.notifier)
-          .toggleWishlistItem(itemId, context: context);
+          .toggleWishlistItem(itemId, context: context, ref: ref);
     }
   }
 

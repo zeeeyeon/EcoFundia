@@ -28,6 +28,9 @@ class CouponState extends Equatable {
   /// 쿠폰 목록
   final List<CouponEntity> coupons;
 
+  /// 발생한 오류 객체 (오류 없을 시 null)
+  final dynamic error;
+
   /// 생성자
   const CouponState({
     this.couponCount = 0,
@@ -38,6 +41,7 @@ class CouponState extends Equatable {
     this.isNetworkError = false,
     this.modalEvent = CouponModalEvent.none,
     this.coupons = const [],
+    this.error,
   });
 
   /// 초기 상태 생성
@@ -53,6 +57,8 @@ class CouponState extends Equatable {
     bool? isNetworkError,
     CouponModalEvent? modalEvent,
     List<CouponEntity>? coupons,
+    dynamic error,
+    bool clearError = false, // 오류를 명시적으로 null로 설정할지 여부
   }) {
     return CouponState(
       couponCount: couponCount ?? this.couponCount,
@@ -63,6 +69,7 @@ class CouponState extends Equatable {
       isNetworkError: isNetworkError ?? this.isNetworkError,
       modalEvent: modalEvent ?? this.modalEvent,
       coupons: coupons ?? this.coupons,
+      error: clearError ? null : error ?? this.error,
     );
   }
 
@@ -76,6 +83,7 @@ class CouponState extends Equatable {
         isNetworkError,
         modalEvent,
         coupons,
+        error,
       ];
 
   @override
@@ -88,6 +96,7 @@ class CouponState extends Equatable {
         'errorMessage: $errorMessage, '
         'isNetworkError: $isNetworkError, '
         'modalEvent: $modalEvent, '
-        'coupons: ${coupons.length} items)';
+        'coupons: ${coupons.length} items, '
+        'error: $error)';
   }
 }

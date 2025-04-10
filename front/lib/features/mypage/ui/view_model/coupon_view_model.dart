@@ -7,7 +7,6 @@ import 'package:front/features/mypage/domain/use_cases/get_coupon_count_use_case
 import 'package:front/features/mypage/domain/use_cases/get_coupon_list_use_case.dart';
 import 'package:front/utils/logger_util.dart';
 import 'package:front/features/mypage/ui/model/coupon_state.dart';
-import 'package:front/utils/error_handling_mixin.dart';
 import 'dart:async' show unawaited;
 
 /// 쿠폰 관련 이벤트 -> CouponState 로 이동 또는 제거 고려 (ViewModel 내부에서만 사용 시)
@@ -51,8 +50,7 @@ final couponListProvider = FutureProvider.autoDispose((ref) async {
 });
 
 /// 쿠폰 ViewModel
-class CouponViewModel extends StateNotifier<CouponState>
-    with StateNotifierErrorHandlingMixin {
+class CouponViewModel extends StateNotifier<CouponState> {
   final GetCouponCountUseCase _getCouponCountUseCase;
   final GetCouponListUseCase _getCouponListUseCase;
   final ApplyCouponUseCase _applyCouponUseCase;
@@ -74,23 +72,15 @@ class CouponViewModel extends StateNotifier<CouponState>
         _ref = ref,
         super(CouponState.initial());
 
-  /// 에러 처리 후 상태 업데이트
+  /// 에러 처리 후 상태 업데이트 (단순화)
   void _handleError(dynamic error,
       {bool isLoading = false, bool isApplying = false}) {
-    setErrorState(error);
-
     if (mounted) {
       state = state.copyWith(
         isLoading: isLoading,
         isApplying: isApplying,
-        errorMessage: errorMessage,
-        isNetworkError: isNetworkError,
+        error: error,
       );
-
-      if (error is CouponException &&
-          error.type == CouponErrorType.unauthorized) {
-        setModalEvent(CouponModalEvent.needLogin);
-      }
     }
   }
 
@@ -106,7 +96,6 @@ class CouponViewModel extends StateNotifier<CouponState>
       _isLoadingCount = true;
       if (mounted) {
         state = state.copyWith(isLoading: true);
-        startLoading();
       }
 
       final count = await _getCouponCountUseCase.execute();
@@ -115,15 +104,13 @@ class CouponViewModel extends StateNotifier<CouponState>
         state = state.copyWith(
           couponCount: count,
           isLoading: false,
-          errorMessage: '',
+          clearError: true,
         );
-        finishLoading();
       }
 
       LoggerUtil.d('🎫 쿠폰 개수 로드 성공: $count');
     } catch (e) {
       _handleError(e);
-      finishLoading();
       LoggerUtil.e('🎫 쿠폰 개수 로드 실패', e);
     } finally {
       _isLoadingCount = false;
@@ -152,8 +139,8 @@ class CouponViewModel extends StateNotifier<CouponState>
       if (mounted) {
         state = state.copyWith(
           isApplying: true,
-          errorMessage: '',
           modalEvent: CouponModalEvent.none,
+          clearError: true,
         );
       }
 
@@ -187,8 +174,7 @@ class CouponViewModel extends StateNotifier<CouponState>
       _isLoadingList = true;
 
       if (mounted) {
-        state = state.copyWith(isLoading: true, errorMessage: '');
-        startLoading();
+        state = state.copyWith(isLoading: true);
       }
 
       final coupons = await _getCouponListUseCase.execute();
@@ -197,15 +183,13 @@ class CouponViewModel extends StateNotifier<CouponState>
         state = state.copyWith(
           coupons: coupons,
           isLoading: false,
-          errorMessage: '',
+          clearError: true,
         );
-        finishLoading();
       }
 
       LoggerUtil.i('🎫 쿠폰 목록 로드 완료: ${coupons.length}개');
     } catch (e) {
       _handleError(e);
-      finishLoading();
       LoggerUtil.e('🎫 쿠폰 목록 로드 실패', e);
     } finally {
       _isLoadingList = false;
@@ -231,7 +215,7 @@ class CouponViewModel extends StateNotifier<CouponState>
     if (mounted) {
       state = state.copyWith(
         isApplying: false,
-        errorMessage: failure.message,
+        error: failure,
         modalEvent: CouponModalEvent.alreadyIssued,
       );
     }
@@ -243,7 +227,7 @@ class CouponViewModel extends StateNotifier<CouponState>
     if (mounted) {
       state = state.copyWith(
         isApplying: false,
-        errorMessage: failure.message,
+        error: failure,
         modalEvent: CouponModalEvent.needLogin,
       );
     }
@@ -255,7 +239,7 @@ class CouponViewModel extends StateNotifier<CouponState>
     if (mounted) {
       state = state.copyWith(
         isApplying: false,
-        errorMessage: failure.message,
+        error: failure,
         modalEvent: CouponModalEvent.timeLimit,
       );
       LoggerUtil.w('🎫 쿠폰 발급 실패: 시간 제한 - ${failure.message}');
@@ -267,7 +251,7 @@ class CouponViewModel extends StateNotifier<CouponState>
     if (mounted) {
       state = state.copyWith(
         isApplying: false,
-        errorMessage: failure.message,
+        error: failure,
         modalEvent: CouponModalEvent.error,
       );
     }
@@ -290,10 +274,10 @@ class CouponViewModel extends StateNotifier<CouponState>
     }
   }
 
+  /// 오류 상태를 초기화하는 메서드
   void clearError() {
-    clearErrorState();
-    if (mounted) {
-      state = state.copyWith(errorMessage: '');
+    if (mounted && state.error != null) {
+      state = state.copyWith(clearError: true);
     }
   }
 
@@ -308,7 +292,7 @@ class CouponViewModel extends StateNotifier<CouponState>
         isLoading: false,
         isApplying: false,
         modalEvent: CouponModalEvent.none,
-        errorMessage: '',
+        clearError: true,
       );
     }
   }

@@ -188,6 +188,23 @@ class WebSocketManager {
     }
   }
 
+  /// 특정 채팅방 구독 해지
+  void unsubscribeFromRoom(int fundingId) {
+    if (!_unsubscribeMap.containsKey(fundingId)) {
+      LoggerUtil.w('🔌 구독 해제 요청: 해당 fundingId($fundingId)에 대한 구독 정보가 없습니다.');
+      return;
+    }
+
+    LoggerUtil.i('🔌 채팅방 구독 해제 시도: /sub/chat/$fundingId');
+    try {
+      _unsubscribeMap[fundingId]?.call(); // 구독 해제 함수 호출
+      _unsubscribeMap.remove(fundingId); // 맵에서 제거
+      LoggerUtil.i('✅ 채팅방 구독 해제 성공: /sub/chat/$fundingId');
+    } catch (e) {
+      LoggerUtil.e('❌ 채팅방 구독 해제 중 오류 발생 (/sub/chat/$fundingId):', e);
+    }
+  }
+
   /// 일반적인 STOMP 구독 (채팅방 외 다른 용도)
   /// 이 메소드는 구독 해제를 자동으로 관리하지 않습니다. 필요시 별도 관리가 필요합니다.
   StompUnsubscribe? safeSubscribe({

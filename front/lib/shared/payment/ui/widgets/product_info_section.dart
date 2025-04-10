@@ -186,7 +186,7 @@ class ProductInfoSection extends ConsumerWidget {
                             context: context,
                             onCouponSelected: (couponId, discountAmount) {
                               paymentVM.applyCouponWithId(
-                                  couponId, discountAmount);
+                                  context, couponId, discountAmount);
                             },
                             ref: ref,
                           );

@@ -125,31 +125,42 @@ class ProjectViewModel extends StateNotifier<ProjectState> {
       return; // Return current state without modification
     }
 
-    LoggerUtil.i('[ProjectViewModel] 위시리스트 ID로 프로젝트 좋아요 상태 업데이트 시작');
-    LoggerUtil.d('[ProjectViewModel] 적용할 ID 목록: $wishlistIds');
+    LoggerUtil.i('[ProjectViewModel] 🔄 updateProjectsWithWishlistIds 호출됨');
+    LoggerUtil.d(
+        '[ProjectViewModel] 전달받은 위시리스트 ID 목록: $wishlistIds (${wishlistIds.length}개)');
 
     // --- Proceed with updating isLiked status ---
     // Directly use the current state (state.projects)
     // No need to read(projectViewModelProvider)
     final updatedProjects = state.projects.map((project) {
       final isLiked = wishlistIds.contains(project.id);
+      // 로그 추가: 특정 프로젝트(예: ID 6)의 상태 변경 추적
+      if (project.id == 6) {
+        LoggerUtil.d(
+            '[ProjectViewModel] ID 6 확인: 현재 isLiked=${project.isLiked}, 새 isLiked=$isLiked');
+      }
       // Only create a new object if the state actually changed
       if (project.isLiked != isLiked) {
         LoggerUtil.d(
-            '[ProjectViewModel] 프로젝트 ID ${project.id} 상태 변경: ${project.isLiked} -> $isLiked');
+            '[ProjectViewModel] ❗ 프로젝트 ID ${project.id} 상태 변경 감지: ${project.isLiked} -> $isLiked');
         return project.copyWith(isLiked: isLiked);
       }
       return project;
     }).toList();
 
+    // 로그 추가: listEquals 결과 확인
+    final bool areListsEqual = listEquals(state.projects, updatedProjects);
+    LoggerUtil.d(
+        '[ProjectViewModel] listEquals 결과: $areListsEqual (같으면 true, 다르면 false)');
+
     // Check if the list instance or content has actually changed
-    if (!identical(state.projects, updatedProjects) &&
-        !listEquals(state.projects, updatedProjects)) {
-      LoggerUtil.i('[ProjectViewModel] 프로젝트 위시리스트 상태 업데이트 적용.');
+    if (!identical(state.projects, updatedProjects) && !areListsEqual) {
+      LoggerUtil.i('[ProjectViewModel] ✅ 프로젝트 위시리스트 상태 업데이트 적용.');
       // Update the state with the new list
       state = state.copyWith(projects: updatedProjects);
     } else {
-      LoggerUtil.d('[ProjectViewModel] 위시리스트 상태 변경 없음, 업데이트 건너뜀.');
+      LoggerUtil.d(
+          '[ProjectViewModel] 🤷‍♀️ 위시리스트 상태 변경 없음 또는 리스트 내용 동일, 업데이트 건너뜀.');
     }
   }
 
@@ -247,8 +258,11 @@ final projectViewModelProvider =
 
   // 위시리스트 ID 변경 감지 리스너 설정
   ref.listen<Set<int>>(wishlistIdsProvider, (previous, next) {
+    // 로그 추가: 리스너 호출 및 전달받은 ID 확인
     LoggerUtil.i(
-        '[ProjectViewModel Listener] 위시리스트 ID 변경 감지 (${previous?.length} -> ${next.length})');
+        '[ProjectViewModel Listener] 🔔 위시리스트 ID 변경 감지됨! 이전: ${previous?.length}개, 다음: ${next.length}개');
+    LoggerUtil.d('[ProjectViewModel Listener] 이전 ID: $previous');
+    LoggerUtil.d('[ProjectViewModel Listener] 다음 ID: $next');
     // ViewModel의 상태 업데이트 메서드 호출
     viewModel.updateProjectsWithWishlistIds(next);
   });

@@ -4,11 +4,13 @@ import 'package:front/features/wishlist/domain/use_cases/get_active_wishlist_ite
 import 'package:front/features/wishlist/domain/use_cases/get_ended_wishlist_items_use_case.dart';
 import 'package:front/features/wishlist/domain/use_cases/toggle_wishlist_item_use_case.dart';
 import 'package:front/utils/logger_util.dart';
-import 'package:front/features/wishlist/data/repositories/wishlist_repository_impl.dart';
+import 'package:front/features/wishlist/data/repositories/wishlist_repository_impl.dart'
+    hide wishlistRepositoryProvider;
 import 'package:flutter/material.dart';
 import 'package:front/utils/error_handling_mixin.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:front/core/services/storage_service.dart';
+import 'package:front/features/wishlist/ui/view_model/wishlist_provider.dart';
 
 /// 위시리스트 상태
 class WishlistState {
@@ -307,7 +309,7 @@ class WishlistViewModel extends StateNotifier<WishlistState>
 
   /// 위시리스트에 아이템 토글 (추가/제거)
   Future<bool> toggleWishlistItem(int itemId,
-      {required BuildContext context}) async {
+      {required BuildContext context, required WidgetRef ref}) async {
     // 위시리스트 화면에서는 항상 제거 기능만 수행
     // optimistic UI 업데이트 - 해당 아이템을 UI에서 즉시 제거
     _optimisticUpdateWishStatus(itemId, false);
@@ -315,8 +317,26 @@ class WishlistViewModel extends StateNotifier<WishlistState>
     try {
       // 명시적으로 removeFromWishlist 호출하여 제거 API만 호출
       await _toggleWishlistItemUseCase.remove(itemId);
+      LoggerUtil.i('✅ API 위시리스트 제거 성공: $itemId');
 
-      // 실제 위시리스트 데이터 로드 (UI 동기화)
+      // --- 중요: 전역 wishlistIdsProvider 상태 업데이트 ---
+      try {
+        final currentIds = ref.read(wishlistIdsProvider).toSet();
+        if (currentIds.remove(itemId)) {
+          ref.read(wishlistIdsProvider.notifier).state = currentIds;
+          LoggerUtil.d(
+              '🔄 전역 wishlistIdsProvider 상태 업데이트: ID $itemId 제거됨. 현재 ID 목록: $currentIds');
+        } else {
+          LoggerUtil.w('⚠️ 전역 위시리스트 ID 제거 시도 실패: $itemId 가 이미 없거나 오류 발생');
+        }
+      } catch (e, s) {
+        LoggerUtil.e('❌ 전역 위시리스트 ID 제거 동기화 중 오류', e, s);
+        // 에러가 발생해도 계속 진행하여 로컬 상태 갱신 시도
+      }
+      // --- 업데이트 끝 ---
+
+      // 실제 위시리스트 데이터 로드 (로컬 상태 동기화)
+      // 전역 상태 업데이트 후, 이 ViewModel의 로컬 상태도 갱신
       await loadWishlistItems();
 
       // 성공 메시지 표시
@@ -329,17 +349,21 @@ class WishlistViewModel extends StateNotifier<WishlistState>
         );
       }
 
+      LoggerUtil.i('✅ 위시리스트 아이템 제거 전체 작업 완료: $itemId');
       return false; // 제거 후에는 항상 false 반환
-    } catch (e) {
+    } catch (e, s) {
       if (kDebugMode) {
-        LoggerUtil.e('위시리스트 제거 실패: 아이템 ID $itemId', e);
+        LoggerUtil.e('❌ 위시리스트 제거 API 호출 실패: 아이템 ID $itemId', e, s);
       }
 
       // 오류 처리 Mixin 사용
       setErrorState(e);
 
       // 오류 발생 시 UI 상태 롤백 - 아이템 다시 표시
-      _optimisticUpdateWishStatus(itemId, true);
+      // loadWishlistItems()를 호출하여 서버 상태 기준으로 복구 시도
+      LoggerUtil.i('🔄 위시리스트 제거 실패, UI 롤백 시도 (loadWishlistItems 호출)');
+      _optimisticUpdateWishStatus(itemId, true); // 임시로 롤백 상태 보여주기
+      await loadWishlistItems(); // 서버 데이터로 최종 롤백
 
       // 오류 메시지 표시
       if (context.mounted) {
@@ -352,33 +376,44 @@ class WishlistViewModel extends StateNotifier<WishlistState>
         );
       }
 
-      return true; // 오류 발생 시 원래 상태로 복원
+      // 전역 상태 롤백은 loadWishlistIdsProvider 등을 통해 처리되는 것이 이상적
+      // 여기서는 직접 롤백하지 않음
+
+      return true; // 오류 발생 시 원래 상태로 복원되었음을 알림
     }
   }
 
   /// 낙관적 업데이트 (UI 즉시 반영)
   void _optimisticUpdateWishStatus(int itemId, bool isInWishlist) {
-    if (isInWishlist) {
-      if (!state.activeItems.any((item) => item.id == itemId)) {
-        // WishlistItemEntity 생성 시 필수 파라미터를 가진 더미 데이터를 추가
-        // 실제 데이터는 loadWishlistItems()에서 갱신됨
-        state = state.copyWith(activeItems: [
-          ...state.activeItems,
-          WishlistItemEntity(
-            id: itemId,
-            title: '로딩 중...',
-            imageUrl: '',
-            rate: 0,
-            remainingDays: 0,
-            amountGap: 0,
-            sellerName: '',
-          )
-        ]);
-      }
-    } else {
+    // 현재 로직은 제거만 처리하므로 isInWishlist가 false인 경우만 고려
+    if (!isInWishlist) {
+      // 기존 로직 유지: 로컬 상태에서 아이템 제거
+      final updatedActiveItems =
+          state.activeItems.where((item) => item.id != itemId).toList();
+      final updatedEndedItems =
+          state.endedItems.where((item) => item.id != itemId).toList();
+
+      // 로그 추가: 로컬 상태 변경 전후 확인
+      LoggerUtil.d('🔄 Optimistic Update: 로컬 상태에서 ID $itemId 제거 시도');
+      LoggerUtil.d(
+          '   - 변경 전 active: ${state.activeItems.length}개, ended: ${state.endedItems.length}개');
+
       state = state.copyWith(
-          activeItems:
-              state.activeItems.where((item) => item.id != itemId).toList());
+        activeItems: updatedActiveItems,
+        endedItems: updatedEndedItems, // 종료된 목록도 업데이트
+      );
+
+      LoggerUtil.d(
+          '   - 변경 후 active: ${state.activeItems.length}개, ended: ${state.endedItems.length}개');
+    } else {
+      // 롤백 시나리오: UI에서 임시로 아이템을 다시 보여주기
+      // 실제 데이터는 loadWishlistItems()를 통해 복구됨
+      LoggerUtil.d(
+          '🔄 Optimistic Rollback: UI에서 임시로 ID $itemId 복원 (loadWishlistItems 호출 예정)');
+      // 이 부분은 loadWishlistItems()가 결국 상태를 덮어쓰므로,
+      // 복잡한 로직 추가 없이 로그만 남기거나, 필요시 간단한 플레이스홀더를 추가할 수 있음
+      // 예: state = state.copyWith(activeItems: [...state.activeItems, dummyItem]);
+      // 하지만 여기서는 loadWishlistItems()를 신뢰하고 별도 UI 조작은 최소화
     }
   }
 

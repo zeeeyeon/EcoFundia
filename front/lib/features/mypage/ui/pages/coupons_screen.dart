@@ -5,6 +5,8 @@ import 'package:front/features/mypage/ui/view_model/coupon_view_model.dart';
 import 'package:front/features/mypage/ui/widgets/coupon_card.dart';
 import 'package:front/utils/logger_util.dart';
 import 'package:front/core/ui/widgets/app_dialog.dart';
+import 'package:front/shared/utils/error_handler.dart';
+import 'package:front/features/mypage/domain/entities/coupon_apply_result.dart';
 
 class CouponsScreen extends ConsumerStatefulWidget {
   const CouponsScreen({super.key});
@@ -75,8 +77,6 @@ class _CouponsScreenState extends ConsumerState<CouponsScreen> {
   Widget build(BuildContext context) {
     // FutureProvider를 활용한 안전한 상태 관리
     final couponListAsync = ref.watch(couponListProvider);
-    final errorMessage = ref
-        .watch(couponViewModelProvider.select((state) => state.errorMessage));
 
     // --- ★★★ 모달 이벤트 리스너 추가 ★★★ ---
     ref.listen<CouponModalEvent>(
@@ -86,6 +86,21 @@ class _CouponsScreenState extends ConsumerState<CouponsScreen> {
           _showCouponResultDialog(context, ref, next);
           // 모달 표시 후 ViewModel의 이벤트 초기화 호출
           ref.read(couponViewModelProvider.notifier).clearModalEvent();
+        }
+      },
+    );
+    // --- ★★★ 리스너 추가 끝 ★★★ ---
+
+    // --- ★★★ 오류 상태 리스너 추가 ★★★ ---
+    ref.listen<dynamic>(
+      couponViewModelProvider.select((state) => state.error),
+      (previous, next) {
+        // 새로운 오류가 발생했을 때만 처리 (null이 아니고 이전 오류와 다를 때)
+        if (next != null && previous != next) {
+          ErrorHandler.handleError(context, next,
+              operationDescription: '쿠폰 관련 작업');
+          // 오류 처리 후 ViewModel의 오류 상태 초기화
+          ref.read(couponViewModelProvider.notifier).clearError();
         }
       },
     );
@@ -136,7 +151,8 @@ class _CouponsScreenState extends ConsumerState<CouponsScreen> {
             child: CircularProgressIndicator(),
           ),
           error: (error, stackTrace) {
-            LoggerUtil.e('🎫 쿠폰 목록 로드 오류', error);
+            // ErrorHandler가 다이얼로그를 보여주므로, 여기서는 간단한 메시지나 재시도 UI만 표시
+            LoggerUtil.e('🎫 쿠폰 목록 로드 오류 (FutureProvider)', error, stackTrace);
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -152,9 +168,7 @@ class _CouponsScreenState extends ConsumerState<CouponsScreen> {
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 8),
-                  Text(errorMessage.isNotEmpty
-                      ? errorMessage
-                      : '네트워크 연결을 확인해주세요'),
+                  const Text('오류가 발생했습니다. 아래로 당겨 새로고침 해주세요.'),
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: _handleRefresh,
@@ -180,6 +194,9 @@ class _CouponsScreenState extends ConsumerState<CouponsScreen> {
     String content;
     AppDialogType dialogType;
 
+    // ViewModel에서 error 객체를 가져오도록 수정
+    final error = ref.read(couponViewModelProvider).error;
+
     switch (event) {
       case CouponModalEvent.success:
         title = '성공';
@@ -188,28 +205,40 @@ class _CouponsScreenState extends ConsumerState<CouponsScreen> {
         break;
       case CouponModalEvent.alreadyIssued:
         title = '알림';
-        content = '이미 발급받은 쿠폰입니다.';
+        // error 객체가 AlreadyIssuedFailure 타입일 경우 해당 메시지 사용
+        content =
+            (error is AlreadyIssuedFailure) ? error.message : '이미 발급받은 쿠폰입니다.';
         dialogType = AppDialogType.info;
         break;
       case CouponModalEvent.needLogin:
         title = '로그인 필요';
-        content = '쿠폰을 받으려면 로그인이 필요합니다.';
+        // error 객체가 AuthorizationFailure 타입일 경우 해당 메시지 사용
+        content = (error is AuthorizationFailure)
+            ? error.message
+            : '쿠폰을 받으려면 로그인이 필요합니다.';
         dialogType = AppDialogType.warning;
         // 여기서 로그인 화면으로 보내는 로직 추가 가능
         // context.push('/login');
         break;
       case CouponModalEvent.timeLimit:
         title = '발급 불가';
-        content = '지금은 쿠폰을 발급받을 수 없는 시간입니다. (오전 10시 이후 시도)'; // 메시지 수정
+        // error 객체가 CouponTimeLimitFailure 타입일 경우 해당 메시지 사용
+        content = (error is CouponTimeLimitFailure)
+            ? error.message
+            : '지금은 쿠폰을 발급받을 수 없는 시간입니다.';
         dialogType = AppDialogType.warning;
         break;
-      case CouponModalEvent.error:
-      default:
-        title = '오류';
-        content = ref.read(couponViewModelProvider).errorMessage.isNotEmpty
-            ? ref.read(couponViewModelProvider).errorMessage
-            : '쿠폰 발급 중 오류가 발생했습니다.';
-        dialogType = AppDialogType.error;
+      case CouponModalEvent
+            .error: // 일반 오류는 ErrorHandler가 처리하므로 이 케이스는 제거하거나 다른 방식으로 처리
+      default: // CouponModalEvent.none 또는 예기치 않은 경우
+        // ErrorHandler가 이미 처리했을 것이므로 여기서는 별도 처리가 필요 없을 수 있음
+        // 또는 fallback 메시지 표시
+        LoggerUtil.w('예상치 못한 CouponModalEvent: $event');
+        // 여기서 바로 return 하거나, 기본 메시지를 표시할 수 있음
+        // return;
+        title = '알림';
+        content = '작업 중 문제가 발생했습니다.';
+        dialogType = AppDialogType.info; // 에러 대신 정보성으로 표시
         break;
     }
 

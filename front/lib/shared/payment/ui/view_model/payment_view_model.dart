@@ -7,6 +7,8 @@ import 'package:front/shared/payment/data/services/payment_api_service.dart';
 import 'package:front/features/home/domain/entities/project_entity.dart';
 import 'package:front/shared/payment/domain/entities/payment_entity.dart';
 import 'package:front/utils/logger_util.dart';
+import 'package:flutter/material.dart';
+import 'package:front/shared/utils/error_handler.dart';
 
 /// 결제 관련 ViewModel
 class PaymentViewModel extends StateNotifier<PaymentState> {
@@ -48,7 +50,7 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
   }
 
   /// 쿠폰 적용
-  Future<void> applyCoupon(String couponCode) async {
+  Future<void> applyCoupon(BuildContext context, String couponCode) async {
     if (state.payment == null || couponCode.isEmpty) return;
 
     try {
@@ -59,16 +61,21 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
       state = state.couponApplied(discountAmount);
       LoggerUtil.d('쿠폰 적용 성공: $couponCode, 할인금액: $discountAmount');
     } catch (e) {
-      LoggerUtil.e('쿠폰 적용 실패: $e');
-      state = state.copyWith(
-        isApplyingCoupon: false,
-        error: '쿠폰 적용 중 오류가 발생했습니다: ${e.toString()}',
-      );
+      if (context.mounted) {
+        ErrorHandler.handleError(
+          context,
+          e,
+          operationDescription: '쿠폰 적용',
+        );
+      }
+
+      state = state.copyWith(isApplyingCoupon: false);
     }
   }
 
   /// 쿠폰 적용 (API에서 가져온 쿠폰 사용)
-  void applyCouponWithId(int couponId, int discountAmount) {
+  void applyCouponWithId(
+      BuildContext context, int couponId, int discountAmount) {
     if (state.payment == null) return;
 
     try {
@@ -90,11 +97,15 @@ class PaymentViewModel extends StateNotifier<PaymentState> {
       LoggerUtil.d(
           '쿠폰 적용 (UI): ID $couponId, 할인금액: $discountAmount, 로컬 상태 업데이트됨');
     } catch (e) {
-      LoggerUtil.e('쿠폰 적용 실패: $e');
-      state = state.copyWith(
-        isApplyingCoupon: false,
-        error: '쿠폰 적용 중 오류가 발생했습니다: ${e.toString()}',
-      );
+      if (context.mounted) {
+        ErrorHandler.handleError(
+          context,
+          e,
+          operationDescription: '쿠폰 적용 (ID)',
+        );
+      }
+
+      state = state.copyWith(isApplyingCoupon: false);
     }
   }
 

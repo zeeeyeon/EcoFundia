@@ -4,9 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart'; // Riverpod import 추�
 import 'package:front/core/themes/app_colors.dart'; // Assuming AppColors exists
 import 'package:front/core/themes/app_text_styles.dart'; // Import AppTextStyles
 import 'package:intl/intl.dart'; // For number formatting
+import 'package:cached_network_image/cached_network_image.dart'; // 패키지 import 추가
 
 import '../../data/models/funding_model.dart';
 import 'package:front/features/wishlist/ui/view_model/wishlist_provider.dart'; // wishlistIdsProvider import
+import 'package:front/features/wishlist/ui/view_model/wishlist_view_model.dart';
+import 'package:front/utils/auth_utils.dart';
+import 'package:front/utils/logger_util.dart';
 
 // ConsumerWidget으로 변경
 class FundingCard extends ConsumerStatefulWidget {
@@ -93,9 +97,13 @@ class _FundingCardState extends ConsumerState<FundingCard> {
     final wishlistIds = ref.watch(wishlistIdsProvider);
     final isLiked = wishlistIds.contains(widget.funding.fundingId);
 
-    final progress =
-        (widget.funding.currentAmount / widget.funding.targetAmount)
-            .clamp(0.0, 1.0);
+    // 실제 진행률 계산
+    final actualProgressRatio =
+        widget.funding.currentAmount <= 0 || widget.funding.targetAmount <= 0
+            ? 0.0
+            : widget.funding.currentAmount / widget.funding.targetAmount;
+    // 프로그레스 바에 표시될 값 (0.0 ~ 1.0)
+    final displayProgress = actualProgressRatio.clamp(0.0, 1.0);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -126,41 +134,73 @@ class _FundingCardState extends ConsumerState<FundingCard> {
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(16)), // Match container radius
-                child: Image.network(
-                  widget.funding.imageUrls.isNotEmpty
+                child: CachedNetworkImage(
+                  imageUrl: widget.funding.imageUrls.isNotEmpty
                       ? widget.funding.imageUrls.first
-                      : 'https://via.placeholder.com/340x180', // Placeholder 이미지 높이 조정
+                      : 'https://via.placeholder.com/340x180', // 기본 이미지 URL
+                  placeholder: (context, url) => Container(
+                    // 로딩 중 플레이스홀더
+                    width: double.infinity,
+                    height: 180,
+                    color: AppColors.lightGrey.withOpacity(0.3),
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                        strokeWidth: 2.0,
+                      ),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    // 에러 위젯
+                    width: double.infinity,
+                    height: 180, // 에러 시 높이도 일치
+                    color: AppColors.lightGrey.withOpacity(0.3),
+                    child: const Center(
+                      child: Icon(Icons.image_not_supported,
+                          color: AppColors.grey),
+                    ),
+                  ),
                   width: double.infinity,
                   height: 180, // 카드 세로 크기 증가를 위해 이미지 높이 증가
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      width: double.infinity,
-                      height: 180, // 에러 시 높이도 일치
-                      color: AppColors.lightGrey.withOpacity(
-                          0.3), // Match ProjectCard placeholder color
-                      child: const Center(
-                        child: Icon(Icons.image_not_supported,
-                            color: AppColors.grey),
-                      ),
-                    );
-                  },
                 ),
               ),
               // 찜 아이콘 (Positioned 사용)
               Positioned(
                 top: 8, // 상단 여백
                 right: 8, // 우측 여백
-                child: Container(
-                  padding: const EdgeInsets.all(4), // 아이콘 주변 여백
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.3), // 반투명 배경
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    isLiked ? Icons.favorite : Icons.favorite_border,
-                    color: isLiked ? AppColors.primary : Colors.white,
-                    size: 20, // 아이콘 크기
+                child: InkWell(
+                  onTap: () async {
+                    LoggerUtil.d(
+                        '❤️ FundingCard 찜하기 버튼 클릭: ${widget.funding.fundingId}');
+                    // 로그인 확인
+                    final isAuthorized = await AuthUtils.checkAuthAndShowModal(
+                      context,
+                      ref,
+                    );
+                    if (!isAuthorized) return; // 로그인 안됐으면 종료
+
+                    // WishlistViewModel의 toggleWishlistItem 호출
+                    await ref
+                        .read(wishlistViewModelProvider.notifier)
+                        .toggleWishlistItem(
+                          widget.funding.fundingId,
+                          context: context,
+                          ref: ref,
+                        );
+                  },
+                  borderRadius: BorderRadius.circular(20), // InkWell 효과 범위
+                  child: Container(
+                    padding: const EdgeInsets.all(4), // 아이콘 주변 여백
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.3), // 반투명 배경
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      isLiked ? Icons.favorite : Icons.favorite_border,
+                      color: isLiked ? AppColors.primary : Colors.white,
+                      size: 20, // 아이콘 크기
+                    ),
                   ),
                 ),
               ),
@@ -199,7 +239,7 @@ class _FundingCardState extends ConsumerState<FundingCard> {
                 const SizedBox(height: 16), // 설명과 구분선 사이 간격 증가
 
                 LinearProgressIndicator(
-                  value: progress,
+                  value: displayProgress, // 프로그레스 바에는 제한된 값 사용
                   backgroundColor: AppColors.extraLightGrey,
                   color: AppColors.primary,
                   minHeight: 12, // 진행률 막대 높이 증가
@@ -218,7 +258,7 @@ class _FundingCardState extends ConsumerState<FundingCard> {
                         textBaseline: TextBaseline.alphabetic,
                         children: [
                           Text(
-                            '${(progress * 100).toStringAsFixed(0)}%', // Use integer percentage
+                            '${(actualProgressRatio * 100).toStringAsFixed(0)}%', // 텍스트에는 실제 진행률 사용
                             style: AppTextStyles.heading3.copyWith(
                               fontSize: 20, // 펀딩률 크기 약간 키움
                               fontWeight: FontWeight.bold,

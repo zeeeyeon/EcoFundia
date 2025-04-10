@@ -150,7 +150,24 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
 
   @override
   void dispose() {
-    _viewModel.clearMessages();
+    // WebSocket 구독 해지
+    // WebSocketManager에 해당 기능이 구현되어 있어야 함
+    if (_isSubscribed) {
+      // 구독된 경우에만 해지 시도
+      try {
+        _wsManager.unsubscribeFromRoom(widget.fundingId); // fundingId 전달
+        debugPrint('🔌 채팅방 구독 해지 완료: /sub/chat/${widget.fundingId}');
+        _isSubscribed = false; // 구독 상태 업데이트
+      } catch (e) {
+        debugPrint('❌ 채팅방 구독 해지 중 오류: $e');
+      }
+    }
+
+    // 메시지 클리어 (ViewModel의 autoDispose에 맡김)
+    // Future.microtask(() {
+    //   ref.read(chatRoomViewModelProvider(widget.fundingId).notifier).clearMessages();
+    // });
+
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
