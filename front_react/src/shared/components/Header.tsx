@@ -35,7 +35,7 @@ const Header: React.FC = () => {
       <div className="header-left">
         <Link to="/dashboard" className="logo-link">
           <img src={Leaf} alt="Eco Funding Logo" className="header-logo-icon" />
-          <span className="header-logo-text">EcoFunding</span>
+          <span className="header-logo-text">EcoFundia</span>
         </Link>
       </div>
       <div className="header-right">

@@ -71,13 +71,27 @@ export const googleLogin = async (token: string) => {
     console.log("로그인 성공:", user.email, "역할:", role);
 
     // 토큰 저장
-    setTokens({
-      accessToken,
-      refreshToken,
-    });
+    try {
+      console.log("토큰 저장 시작");
+      setTokens({
+        accessToken,
+        refreshToken,
+      });
+      console.log("토큰 저장 완료:", { accessToken: accessToken.substring(0, 10) + "...", refreshToken: refreshToken.substring(0, 10) + "..." });
 
-    // 사용자 정보 로컬 스토리지에 저장 (선택적)
-    localStorage.setItem("user", JSON.stringify(user));
+      // 사용자 정보와 역할 로컬 스토리지에 저장
+      localStorage.setItem("user", JSON.stringify(user));
+      console.log("사용자 정보 저장 완료");
+      
+      localStorage.setItem("role", role);
+      console.log("역할 정보 저장 완료:", role);
+      
+      // 저장된 값 다시 확인
+      const savedTokens = localStorage.getItem("accessToken");
+      console.log("저장된 액세스 토큰 확인:", savedTokens ? "존재함" : "없음");
+    } catch (storageError) {
+      console.error("로컬 스토리지 저장 중 오류:", storageError);
+    }
 
     return { user, role, accessToken, refreshToken };
   } catch (error) {
@@ -113,5 +127,6 @@ export const logout = async () => {
     // 토큰 제거 및 로컬 스토리지 정리
     removeTokens();
     localStorage.removeItem("user");
+    localStorage.removeItem("role");
   }
 };

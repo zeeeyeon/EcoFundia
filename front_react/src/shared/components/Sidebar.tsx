@@ -5,7 +5,6 @@ import "./layout.css";
 // 아이콘 임포트 (예시 - 실제 아이콘 라이브러리 사용 권장)
 const DashboardIcon = () => <span className="menu-icon">📊</span>;
 const ProductsIcon = () => <span className="menu-icon">📦</span>;
-const SettingsIcon = () => <span className="menu-icon">⚙️</span>;
 const AddProductIcon = () => <span className="menu-icon">➕</span>;
 const MoneyIcon = () => <span className="menu-icon">💰</span>;
 
@@ -98,15 +97,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
             </NavLink>
           </li>
 
-          <li>
-            <NavLink
-              to="/settings"
-              className={({ isActive }) => (isActive ? "active" : "")}
-            >
-              <SettingsIcon />
-              {isOpen && <span className="menu-text">설정</span>}
-            </NavLink>
-          </li>
         </ul>
       </nav>
     </aside>

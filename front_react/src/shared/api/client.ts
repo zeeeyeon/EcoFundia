@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getTokens } from "../../shared/utils/auth";
+import { getTokens, setTokens } from "../../shared/utils/auth";
 import useAuthStore from "../../features/auth/stores/store"; // 경로 수정
 
 // API 기본 URL 설정
@@ -95,11 +95,9 @@ client.interceptors.response.use(
 
         const { accessToken } = response.data as { accessToken: string };
 
-        // 새 토큰 저장
-        const newTokens = { ...tokens, accessToken };
-        // setTokens 유틸리티 함수 사용 권장
-        sessionStorage.setItem("accessToken", newTokens.accessToken);
-        // sessionStorage.setItem("refreshToken", newTokens.refreshToken); // 리프레시 토큰은 변경되지 않음
+        // 새 토큰 저장 - setTokens 유틸리티 함수 사용
+        const newTokens = { accessToken, refreshToken: tokens.refreshToken };
+        setTokens(newTokens);
 
         // 원래 요청 재시도
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;

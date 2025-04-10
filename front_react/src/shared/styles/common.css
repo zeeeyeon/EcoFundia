@@ -137,3 +137,20 @@
   width: 100%;
   height: 100%;
 }
+
+/* 추가: 로딩 컨테이너 스타일 */
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100%;
+  font-size: 18px;
+  font-weight: 500;
+  color: #333;
+  background-color: rgba(255, 255, 255, 0.9);
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+}

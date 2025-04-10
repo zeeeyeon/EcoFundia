@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   LineChart,
   Line,
@@ -21,6 +21,9 @@ import "../../shared/components/layout.css";
 import "./styles/DashboardLayout.css";
 import "../../shared/styles/common.css";
 import { FaCoins, FaBoxOpen, FaClipboardList } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import useAuthStore from "../../features/auth/stores/store";
+import { hasTokens } from "../../shared/utils/auth";
 
 const DashboardPage: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -34,10 +37,37 @@ const DashboardPage: React.FC = () => {
     error,
     fetchDashboardData,
   } = useDashboardStore();
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuthStore();
+
+  // 인증 오류만 처리하는 함수 - useCallback으로 메모이제이션
+  const handleAuthError = useCallback((error: Error) => {
+    console.error("대시보드 데이터 로드 오류:", error);
+    
+    // 인증 오류인 경우 로그인 페이지로 이동
+    if (error.message === "인증 오류" || error.message === "토큰이 없습니다. 로그인이 필요합니다.") {
+      setTimeout(() => {
+        navigate("/login", { replace: true });
+      }, 2000);
+    }
+  }, [navigate]);
 
   useEffect(() => {
-    fetchDashboardData();
-  }, [fetchDashboardData]);
+    try {
+      fetchDashboardData().catch(error => handleAuthError(error));
+    } catch (error) {
+      handleAuthError(error as Error);
+    }
+  }, [fetchDashboardData, handleAuthError]);
+
+  // 인증 상태 확인
+  useEffect(() => {
+    // 인증 상태나 토큰이 없으면 로그인 페이지로 이동
+    if (!isAuthenticated && !hasTokens()) {
+      console.log("대시보드 - 인증되지 않음, 로그인 페이지로 리다이렉트");
+      navigate("/login", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   // 디버깅용 로그 추가
   useEffect(() => {
@@ -59,12 +89,6 @@ const DashboardPage: React.FC = () => {
     isLoading,
     error,
   ]);
-
-  // 에러 초기화 함수 수정
-  const resetError = () => {
-    // 로컬 처리: 스토어의 fetchDashboardData 함수를 다시 호출하여 상태 재설정
-    fetchDashboardData();
-  };
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -89,7 +113,10 @@ const DashboardPage: React.FC = () => {
           <div className="global-error-message">
             <h3>대시보드 오류</h3>
             <p>{error}</p>
-            <button className="global-error-close" onClick={resetError}>
+            <button 
+              className="global-error-close" 
+              onClick={() => fetchDashboardData()}
+            >
               확인
             </button>
           </div>
