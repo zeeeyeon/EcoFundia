@@ -86,8 +86,15 @@ class ChatRoomViewModel extends StateNotifier<List<ChatMessage>> {
   }
 
   /// 📩 WebSocket 수신 메시지 추가
-  void addMessage(ChatMessage message) {
-    state = [...state, message];
+  void addMessage(ChatMessage newMessage) {
+    final isDuplicate = state.any((msg) =>
+        msg.senderId == newMessage.senderId &&
+        msg.content == newMessage.content &&
+        msg.createdAt == newMessage.createdAt);
+
+    if (!isDuplicate) {
+      state = [...state, newMessage];
+    }
   }
 
   /// 🔄 상태 초기화
