@@ -18,6 +18,7 @@ public class FundingResponseDto {
     private int totalPrice;
 
     private String description;
+    
 
     @JsonProperty("imageUrl")
     private List<String> imageUrl;
