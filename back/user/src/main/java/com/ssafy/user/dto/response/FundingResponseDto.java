@@ -15,6 +15,8 @@ public class FundingResponseDto {
 
     private String title;
 
+    private int totalPrice;
+
     private String description;
 
     @JsonProperty("imageUrl")

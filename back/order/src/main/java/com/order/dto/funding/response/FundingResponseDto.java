@@ -27,4 +27,6 @@ public class FundingResponseDto {
     private String status;
 
     private int rate;
+
+    private int totalPrice;
 }
