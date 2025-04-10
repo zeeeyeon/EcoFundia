@@ -283,8 +283,6 @@ class ChatScreen extends ConsumerWidget {
                                       }
                                     },
                                   ),
-                                  // const Icon(Icons.chevron_right,
-                                  //     color: AppColors.primary),
                                 ],
                               ),
                               onTap: () async {
