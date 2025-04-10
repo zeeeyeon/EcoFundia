@@ -41,6 +41,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
     Future.microtask(() async {
       await _initializeChatRoom();
       await _viewModel.fetchMessages();
+      _scrollToBottom();
 
       _scrollController.addListener(() {
         if (_scrollController.position.pixels <=
@@ -126,6 +127,14 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeOut,
         );
+      }
+    });
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
       }
     });
   }
