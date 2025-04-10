@@ -4,6 +4,7 @@ import 'package:front/core/themes/app_colors.dart';
 import 'package:front/features/mypage/ui/view_model/coupon_view_model.dart';
 import 'package:front/features/mypage/ui/widgets/coupon_card.dart';
 import 'package:front/utils/logger_util.dart';
+import 'package:front/core/ui/widgets/app_dialog.dart';
 
 class CouponsScreen extends ConsumerStatefulWidget {
   const CouponsScreen({super.key});
@@ -76,6 +77,19 @@ class _CouponsScreenState extends ConsumerState<CouponsScreen> {
     final couponListAsync = ref.watch(couponListProvider);
     final errorMessage = ref
         .watch(couponViewModelProvider.select((state) => state.errorMessage));
+
+    // --- ★★★ 모달 이벤트 리스너 추가 ★★★ ---
+    ref.listen<CouponModalEvent>(
+      couponViewModelProvider.select((state) => state.modalEvent),
+      (previous, next) {
+        if (next != CouponModalEvent.none) {
+          _showCouponResultDialog(context, ref, next);
+          // 모달 표시 후 ViewModel의 이벤트 초기화 호출
+          ref.read(couponViewModelProvider.notifier).clearModalEvent();
+        }
+      },
+    );
+    // --- ★★★ 리스너 추가 끝 ★★★ ---
 
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -158,6 +172,63 @@ class _CouponsScreenState extends ConsumerState<CouponsScreen> {
       ),
     );
   }
+
+  // --- ★★★ 모달 표시 함수 추가 ★★★ ---
+  void _showCouponResultDialog(
+      BuildContext context, WidgetRef ref, CouponModalEvent event) {
+    String title;
+    String content;
+    AppDialogType dialogType;
+
+    switch (event) {
+      case CouponModalEvent.success:
+        title = '성공';
+        content = '쿠폰이 발급되었습니다!';
+        dialogType = AppDialogType.success;
+        break;
+      case CouponModalEvent.alreadyIssued:
+        title = '알림';
+        content = '이미 발급받은 쿠폰입니다.';
+        dialogType = AppDialogType.info;
+        break;
+      case CouponModalEvent.needLogin:
+        title = '로그인 필요';
+        content = '쿠폰을 받으려면 로그인이 필요합니다.';
+        dialogType = AppDialogType.warning;
+        // 여기서 로그인 화면으로 보내는 로직 추가 가능
+        // context.push('/login');
+        break;
+      case CouponModalEvent.timeLimit:
+        title = '발급 불가';
+        content = '지금은 쿠폰을 발급받을 수 없는 시간입니다. (오전 10시 이후 시도)'; // 메시지 수정
+        dialogType = AppDialogType.warning;
+        break;
+      case CouponModalEvent.error:
+      default:
+        title = '오류';
+        content = ref.read(couponViewModelProvider).errorMessage.isNotEmpty
+            ? ref.read(couponViewModelProvider).errorMessage
+            : '쿠폰 발급 중 오류가 발생했습니다.';
+        dialogType = AppDialogType.error;
+        break;
+    }
+
+    // 위젯 트리 빌드가 완료된 후 다이얼로그 표시
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (context.mounted) {
+        // context 유효성 검사
+        AppDialog.show(
+          context: context,
+          title: title,
+          content: content,
+          type: dialogType,
+          confirmText: '확인',
+          // 에러 외에는 확인 버튼만 표시 (AppDialog 기본 동작)
+        );
+      }
+    });
+  }
+  // --- ★★★ 함수 추가 끝 ★★★ ---
 
   Widget _buildEmptyCouponsView() {
     return Center(

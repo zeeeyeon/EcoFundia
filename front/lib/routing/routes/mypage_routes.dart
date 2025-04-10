@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:front/features/mypage/ui/pages/profile_edit_screen.dart';
+import 'package:front/features/mypage/ui/pages/support/faq_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:front/features/mypage/ui/pages/mypage_screen.dart';
 import 'package:front/features/mypage/ui/pages/my_funding_screen.dart';
@@ -64,11 +66,15 @@ StatefulShellBranch createMypageBranch(GlobalKey<NavigatorState> navigatorKey) {
             path: 'coupons',
             builder: (context, state) => const CouponsScreen(),
           ),
-          // TODO: Add profile edit route
-          // GoRoute(
-          //   path: 'profile-edit',
-          //   builder: (context, state) => const ProfileEditScreen(),
-          // ),
+          // TODO: Add profile edit route -> 하위 경로로 이동 및 path 수정
+          GoRoute(
+            path: 'profile-edit', // '/' 제거
+            builder: (context, state) => const ProfileEditScreen(),
+          ),
+          GoRoute(
+            path: 'faq', // '/' 제거
+            builder: (context, state) => const FaqScreen(),
+          ),
         ],
       ),
     ],

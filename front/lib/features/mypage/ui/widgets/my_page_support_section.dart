@@ -35,17 +35,17 @@ class CustomerSupportSection extends ConsumerWidget {
         _divider,
         _buildSupportItem(context,
             title: "1:1 문의",
-            route: '/support/inquiry',
+            route: '/coming-soon',
             icon: Icons.support_agent_outlined),
         _divider,
         _buildSupportItem(context,
             title: "자주 물어보는 Q&A",
-            route: '/support/faq',
+            route: '/mypage/faq',
             icon: Icons.quiz_outlined),
         _divider,
         _buildSupportItem(context,
             title: "내 정보 수정",
-            route: '/profile-edit',
+            route: '/mypage/profile-edit',
             icon: Icons.person_outline),
         _divider,
         _buildLogoutItem(context, ref),
@@ -180,26 +180,6 @@ class CustomerSupportSection extends ConsumerWidget {
       trailing:
           const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.grey),
       onTap: () => context.push(route),
-    );
-  }
-
-  Widget _buildInfoItem(String title, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            title,
-            style: AppTextStyles.body1.copyWith(fontSize: 16),
-          ),
-          Text(
-            value,
-            style: AppTextStyles.body1
-                .copyWith(fontSize: 16, color: AppColors.grey),
-          ),
-        ],
-      ),
     );
   }
 }

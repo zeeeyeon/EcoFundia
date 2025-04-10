@@ -14,7 +14,6 @@ import 'package:front/utils/auth_utils.dart';
 import 'package:front/core/providers/app_state_provider.dart';
 import 'package:front/features/wishlist/ui/view_model/wishlist_provider.dart';
 import 'package:front/features/wishlist/ui/view_model/wishlist_view_model.dart';
-import 'package:front/features/home/ui/view_model/project_view_model.dart';
 
 // ProjectDetail 상태 정의
 class ProjectDetailState {
@@ -167,12 +166,9 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
 
     // 로딩 중 상태 확인
     if (projectDetailState.isLoading) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('프로젝트 상세'),
-          backgroundColor: AppColors.white,
-        ),
-        body: const Center(
+      return const Scaffold(
+        backgroundColor: AppColors.white, // 배경색 유지
+        body: Center(
           child: CircularProgressIndicator(),
         ),
       );
@@ -235,20 +231,19 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
     }
 
     // wishlistIdsProvider 구독 추가
-    final Set<int> wishlistIds = ref.watch(wishlistIdsProvider);
+    final wishlistIds = ref.watch(wishlistIdsProvider);
     // isLiked 상태 계산
-    final bool isLiked = wishlistIds.contains(project.id);
+    final isLiked = wishlistIds.contains(project.id);
 
-    return _buildContent(context, screenSize, project);
+    return _buildContent(context, screenSize, project, isLiked);
   }
 
   // 프로젝트 상세 화면 UI 빌드
-  Widget _buildContent(
-      BuildContext context, Size screenSize, ProjectEntity project) {
-    // wishlistIdsProvider 구독 추가
-    final Set<int> wishlistIds = ref.watch(wishlistIdsProvider);
-    // isLiked 상태 계산
-    final bool isLiked = wishlistIds.contains(project.id);
+  Widget _buildContent(BuildContext context, Size screenSize,
+      ProjectEntity project, bool isLiked) {
+    // isLiked 상태는 파라미터로 받음 (ref.watch 중복 제거)
+    // final Set<int> wishlistIds = ref.watch(wishlistIdsProvider); // 제거
+    // final bool isLiked = wishlistIds.contains(project.id); // 제거
 
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -344,15 +339,62 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                       context,
                       ref,
                     );
-                    if (isAuthorized && context.mounted) {
-                      // WishlistViewModel의 토글 메서드 호출
-                      await ref
-                          .read(wishlistViewModelProvider.notifier)
-                          .toggleWishlistItem(project.id, context: context);
-                      // 토글 후 상세 정보 갱신은 ProjectViewModel의 역할이 아님
-                      // ProjectViewModel의 리스너가 wishlistIdsProvider 변경을 감지하여
-                      // 프로젝트 리스트의 isLiked 상태를 업데이트하므로, 여기서 별도 갱신 불필요
-                      // 화면 자체의 isLiked 상태는 ref.watch에 의해 자동으로 갱신됨
+                    if (!isAuthorized) return; // 로그인 안됐으면 종료
+
+                    // UseCase 직접 사용
+                    final toggleUseCase =
+                        ref.read(toggleWishlistItemUseCaseProvider);
+                    final currentIsLiked = ref
+                        .read(wishlistIdsProvider)
+                        .contains(project.id); // 토글 전 상태 확인
+
+                    try {
+                      if (currentIsLiked) {
+                        // 현재 찜 상태이면 제거 호출
+                        await toggleUseCase.remove(project.id);
+                        // 상태 업데이트: .state 사용 (removeId 제거)
+                        ref.read(wishlistIdsProvider.notifier).state =
+                            Set.from(ref.read(wishlistIdsProvider))
+                              ..remove(project.id);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('위시리스트에서 제거되었습니다.'),
+                              duration: Duration(seconds: 1),
+                            ),
+                          );
+                        }
+                        LoggerUtil.d('✅ 찜 제거 성공: ${project.id}');
+                      } else {
+                        // 현재 찜 상태가 아니면 추가 호출
+                        await toggleUseCase.add(project.id);
+                        // 상태 업데이트: .state 사용 (addId 제거)
+                        ref.read(wishlistIdsProvider.notifier).state =
+                            Set.from(ref.read(wishlistIdsProvider))
+                              ..add(project.id);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('위시리스트에 추가되었습니다.'),
+                              duration: Duration(seconds: 1),
+                            ),
+                          );
+                        }
+                        LoggerUtil.d('✅ 찜 추가 성공: ${project.id}');
+                      }
+                      // 상태 업데이트 후 UI 리빌드 유도 (ref.watch가 자동으로 처리)
+                      // ref.invalidate(wishlistIdsProvider); // invalidate 대신 직접 상태 업데이트 사용
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content:
+                                Text('찜하기 처리 중 오류가 발생했습니다: ${e.toString()}'),
+                            backgroundColor: Colors.red,
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      }
                     }
                   },
                   tooltip: '찜하기',
@@ -576,336 +618,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                   color: AppColors.white,
                   boxShadow: [AppShadows.card],
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 4,
-                          height: 20,
-                          decoration: const BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.all(Radius.circular(4)),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '프로젝트 소개',
-                          style: AppTextStyles.heading3.copyWith(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    // 고정된 프로젝트 소개 문구 제거
-
-                    // 스토리 이미지 표시 부분 - 로깅 추가
-                    if (project.storyFileUrl != null &&
-                        project.storyFileUrl!.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  '스토리 이미지',
-                                  style: AppTextStyles.body1.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.primary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 2),
-                            // Debug URL removed
-                            const SizedBox(
-                                height:
-                                    8), // Adjusted spacing after removing debug URL
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Column(
-                                children: [
-                                  // 이미지 컨테이너 - 확장 상태에 따라 다르게 표시
-                                  Container(
-                                    constraints: BoxConstraints(
-                                      maxHeight: _isStoryExpanded
-                                          ? double.infinity
-                                          : 300,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    clipBehavior: Clip.hardEdge,
-                                    child: CachedNetworkImage(
-                                      imageUrl: project.storyFileUrl!,
-                                      imageBuilder: (context, imageProvider) =>
-                                          Image(
-                                        image: imageProvider,
-                                        fit: BoxFit.cover,
-                                        alignment: Alignment.topCenter,
-                                        filterQuality: FilterQuality.high,
-                                        width: double.infinity,
-                                      ),
-                                      alignment: Alignment.topCenter,
-                                      fadeInDuration:
-                                          const Duration(milliseconds: 300),
-                                      httpHeaders: const {
-                                        'Accept':
-                                            'image/webp,image/*,*/*;q=0.8',
-                                      },
-                                      placeholder: (context, url) {
-                                        LoggerUtil.d('스토리 이미지 로딩 중: $url');
-                                        return Container(
-                                          height: 200,
-                                          color: AppColors.lightGrey
-                                              .withOpacity(0.3),
-                                          child: Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              const CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                                color: AppColors.primary,
-                                              ),
-                                              const SizedBox(height: 12),
-                                              Text(
-                                                '이미지 로딩 중...',
-                                                style: AppTextStyles.body2
-                                                    .copyWith(
-                                                  color: AppColors.grey,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 4),
-                                              Text(
-                                                url,
-                                                style: AppTextStyles.caption
-                                                    .copyWith(
-                                                  color: AppColors.grey,
-                                                  fontSize: 10,
-                                                ),
-                                                textAlign: TextAlign.center,
-                                                maxLines: 2,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      },
-                                      errorWidget: (context, url, error) {
-                                        // 에러 위젯 - 더 자세한 정보 제공
-                                        LoggerUtil.e(
-                                            '스토리 이미지 로드 실패: $url', error);
-                                        LoggerUtil.e(
-                                            '스토리 이미지 오류 세부 정보: ${error.toString()}');
-                                        final errorString =
-                                            error.toString().toLowerCase();
-                                        // WebGL 텍스처 크기 제한 또는 기타 렌더링 관련 오류 감지
-                                        final isWebGLError = errorString
-                                                .contains('webgl') ||
-                                            errorString.contains('texture') ||
-                                            errorString.contains('range');
-
-                                        // 참고: 이미지 로드 실패의 근본 원인이 URL 자체(잘못된 주소, 서버 문제, CORS 등)일 수도 있습니다.
-                                        // URL이 올바른지 확인하는 것이 중요합니다.
-                                        return Container(
-                                          height: 200,
-                                          color: AppColors.lightGrey
-                                              .withOpacity(0.3),
-                                          child: Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              const Icon(
-                                                Icons.error_outline,
-                                                color: AppColors.grey,
-                                                size: 40,
-                                              ),
-                                              const SizedBox(height: 8),
-                                              Text(
-                                                isWebGLError
-                                                    ? '이미지가 너무 큽니다. 개발자에게 문의하세요.'
-                                                    : '이미지를 불러올 수 없습니다.',
-                                                textAlign: TextAlign.center,
-                                                style: AppTextStyles.body2
-                                                    .copyWith(
-                                                  color: AppColors.grey,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 8),
-                                              GestureDetector(
-                                                onTap: () {
-                                                  ScaffoldMessenger.of(context)
-                                                      .showSnackBar(
-                                                    SnackBar(
-                                                      content:
-                                                          Text('이미지 URL: $url'),
-                                                      duration: const Duration(
-                                                          seconds: 5),
-                                                    ),
-                                                  );
-                                                },
-                                                child: Container(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                    horizontal: 12,
-                                                    vertical: 6,
-                                                  ),
-                                                  decoration: BoxDecoration(
-                                                    color: AppColors.grey
-                                                        .withOpacity(0.2),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            4),
-                                                  ),
-                                                  child: const Text(
-                                                    '이미지 URL 보기',
-                                                    style: TextStyle(
-                                                      color: AppColors.darkGrey,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                              const SizedBox(height: 4),
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 16.0,
-                                                        vertical: 8.0),
-                                                child: Text(
-                                                  '이미지 파일 문제가 발생했습니다.',
-                                                  textAlign: TextAlign.center,
-                                                  style: AppTextStyles.caption
-                                                      .copyWith(
-                                                    color: AppColors.grey,
-                                                    fontSize: 10,
-                                                  ),
-                                                  maxLines: 2,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ),
-
-                                  // 더보기/접기 버튼
-                                  if (!_isStoryExpanded) // 확장되지 않았을 때만 더보기 버튼 표시
-                                    InkWell(
-                                      onTap: () {
-                                        setState(() {
-                                          _isStoryExpanded = true;
-                                        });
-                                      },
-                                      child: Container(
-                                        width: double.infinity,
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 12),
-                                        decoration: BoxDecoration(
-                                          color: AppColors.primary
-                                              .withOpacity(0.1),
-                                          borderRadius: const BorderRadius.only(
-                                            bottomLeft: Radius.circular(8),
-                                            bottomRight: Radius.circular(8),
-                                          ),
-                                        ),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            const Icon(
-                                              Icons.keyboard_arrow_down,
-                                              color: AppColors.primary,
-                                              size: 20,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              '이미지 더보기',
-                                              style:
-                                                  AppTextStyles.body2.copyWith(
-                                                color: AppColors.primary,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-
-                            // 확장된 상태에서 하단 버튼 표시 (기능: 이미지 접기)
-                            if (_isStoryExpanded)
-                              Container(
-                                margin: const EdgeInsets.only(top: 16),
-                                child: Center(
-                                  child: ElevatedButton.icon(
-                                    onPressed: () {
-                                      setState(() {
-                                        _isStoryExpanded = false; // 이미지 접기
-                                      });
-                                    },
-                                    icon: const Icon(
-                                        Icons
-                                            .arrow_upward, // 아이콘은 유지하거나 변경 고려 (e.g., Icons.unfold_less)
-                                        size: 16),
-                                    label: const Text('접기'), // 버튼 텍스트를 '접기'로 변경
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.primary,
-                                      foregroundColor: Colors.white,
-                                      elevation: 2,
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 10,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-
-                    // 추가 정보
-                    const SizedBox(height: 30),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.05),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: AppColors.primary.withOpacity(0.1),
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '펀딩 참여 혜택',
-                            style: AppTextStyles.body1.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          _buildBenefitItem('프로젝트 완성품을 가장 먼저 받아보실 수 있습니다.'),
-                          _buildBenefitItem('제작 과정에 참여할 수 있는 기회가 주어집니다.'),
-                          _buildBenefitItem('참여자 이름이 프로젝트 공식 웹사이트에 기재됩니다.'),
-                          _buildBenefitItem('프로젝트 관련 이벤트에 우선 초대됩니다.'),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                child: _buildProjectIntroduction(project),
               ),
             ),
           ],
@@ -1014,7 +727,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                     }
 
                     _isNavigatingToChat = true;
-                    LoggerUtil.d('채팅방 이동 시작: fundingId=${project.id}');
+                    LoggerUtil.d('채팅방 이동 시작: projectId=${project.id}');
 
                     try {
                       // Check authentication
@@ -1037,9 +750,9 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                       // Navigate to chat room
                       // Ensure context is still mounted before navigation
                       if (!context.mounted) return;
-                      // Revert back to context.push
+                      // Revert back to context.push using projectId
                       await context.push(
-                        '/chat/room/${project.id}',
+                        '/chat/room/project/${project.id}',
                         extra: {'title': project.title},
                       );
                       LoggerUtil.d('채팅방 이동 호출 완료');
@@ -1057,7 +770,10 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                       Future.delayed(const Duration(milliseconds: 500), () {
                         // Check if the state is still mounted before modifying state variable
                         if (mounted) {
-                          _isNavigatingToChat = false;
+                          // Ensure state update happens only if widget is still mounted
+                          setState(() {
+                            _isNavigatingToChat = false;
+                          });
                         }
                       });
                     }
@@ -1087,6 +803,231 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildProjectIntroduction(ProjectEntity project) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 4,
+              height: 20,
+              decoration: const BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.all(Radius.circular(4)),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              '프로젝트 소개',
+              style: AppTextStyles.heading3.copyWith(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        // 스토리 이미지 표시 부분 - project 파라미터 사용
+        if (project.storyFileUrl != null && project.storyFileUrl!.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '스토리 이미지',
+                      style: AppTextStyles.body1.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Column(
+                    children: [
+                      // 이미지 컨테이너 - 확장 상태에 따라 다르게 표시
+                      Container(
+                        constraints: BoxConstraints(
+                          maxHeight: _isStoryExpanded ? double.infinity : 300,
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        clipBehavior: Clip.hardEdge,
+                        child: CachedNetworkImage(
+                          imageUrl: project.storyFileUrl!,
+                          imageBuilder: (context, imageProvider) => Image(
+                            image: imageProvider,
+                            fit: BoxFit.cover,
+                            alignment: Alignment.topCenter,
+                            filterQuality: FilterQuality.high,
+                            width: double.infinity,
+                          ),
+                          alignment: Alignment.topCenter,
+                          fadeInDuration: const Duration(milliseconds: 300),
+                          httpHeaders: const {
+                            'Accept': 'image/webp,image/*,*/*;q=0.8',
+                          },
+                          placeholder: (context, url) {
+                            return Container(
+                              height: 200,
+                              color: AppColors.lightGrey.withOpacity(0.3),
+                              child: const Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: AppColors.primary,
+                                  ),
+                                  SizedBox(height: 12),
+                                  Text(
+                                    '이미지 로딩 중...',
+                                    style: TextStyle(color: AppColors.grey),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                          errorWidget: (context, url, error) {
+                            LoggerUtil.e('스토리 이미지 로드 실패: $url', error);
+                            return Container(
+                              height: 200,
+                              color: AppColors.lightGrey.withOpacity(0.3),
+                              child: const Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.broken_image_outlined,
+                                    color: AppColors.grey,
+                                    size: 40,
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    '이미지를 불러올 수 없습니다.',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(color: AppColors.grey),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+
+                      // 더보기/접기 버튼
+                      if (!_isStoryExpanded)
+                        InkWell(
+                          onTap: () {
+                            setState(() {
+                              _isStoryExpanded = true;
+                            });
+                          },
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withOpacity(0.1),
+                              borderRadius: const BorderRadius.only(
+                                bottomLeft: Radius.circular(8),
+                                bottomRight: Radius.circular(8),
+                              ),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.keyboard_arrow_down,
+                                  color: AppColors.primary,
+                                  size: 20,
+                                ),
+                                SizedBox(width: 4),
+                                Text(
+                                  '이미지 더보기',
+                                  style: TextStyle(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+
+                // 확장된 상태에서 하단 버튼 표시 (기능: 이미지 접기)
+                if (_isStoryExpanded)
+                  Container(
+                    margin: const EdgeInsets.only(top: 16),
+                    child: Center(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            _isStoryExpanded = false;
+                          });
+                        },
+                        icon: const Icon(Icons.arrow_upward, size: 16),
+                        label: const Text('접기'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          elevation: 2,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+
+        // 추가 정보
+        const SizedBox(height: 30),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: AppColors.primary.withOpacity(0.1),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '펀딩 참여 혜택',
+                style: AppTextStyles.body1.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              _buildBenefitItem('프로젝트 완성품을 가장 먼저 받아보실 수 있습니다.'),
+              _buildBenefitItem('제작 과정에 참여할 수 있는 기회가 주어집니다.'),
+              _buildBenefitItem('참여자 이름이 프로젝트 공식 웹사이트에 기재됩니다.'),
+              _buildBenefitItem('프로젝트 관련 이벤트에 우선 초대됩니다.'),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

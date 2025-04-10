@@ -71,26 +71,22 @@ final routerProvider = Provider<GoRouter>((ref) {
       final location = state.uri.toString();
       final currentUriPath = state.uri.path;
 
+      // --- ★★★ 추가: 로그아웃 진행 중이면 리디렉션 중단 ★★★ ---
+      if (appState.isLoggingOut) {
+        LoggerUtil.d(
+            '[Router Redirect] Cond -1: Logging out -> Abort redirection');
+        return null; // 현재 위치 유지
+      }
+      // --- ★★★ 추가 끝 ★★★ ---
+
       LoggerUtil.i(
           '[Router Redirect START] Location: "$location", Path: "$currentUriPath", isLoggedIn: ${appState.isLoggedIn}, isInitialized: ${appState.isInitialized}');
 
-      // --- 0. 인증 플로우 예외 처리 (로그아웃 상태에서만 유효) ---
+      // --- 0. 인증 플로우 경로 정의 (중복 방지 위해 위로 이동) ---
       final isAuthProcessPath = currentUriPath == '/login' ||
           currentUriPath == '/signup' ||
           currentUriPath == '/signup-complete' ||
           currentUriPath == '/forgot-password';
-
-      if (!appState.isLoggedIn && isAuthProcessPath) {
-        // 회원가입 완료 후에는 로그인 상태여야 하므로, 로그아웃 상태 접근 시 로그인으로 보낼 수 있음
-        if (currentUriPath == '/signup-complete') {
-          LoggerUtil.w(
-              '[Router Redirect] Cond 0.1: Logged out & Signup Complete -> Redirecting to /login');
-          return '/login';
-        }
-        LoggerUtil.d(
-            '[Router Redirect] Cond 0.2: Auth process page ($currentUriPath) & Logged out -> ALLOW');
-        return null; // /login, /signup 등은 로그아웃 상태에서 접근 허용
-      }
 
       // --- 1. 초기화 안 됐으면 스플래시 유지 또는 이동 ---
       if (!appState.isInitialized) {
@@ -113,14 +109,33 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/';
       }
 
+      // --- ★★★ 추가: 로그인 상태 & 인증 페이지 접근 시 홈으로 ★★★ ---
+      // 이 시점에는 isInitialized == true
+      if (appState.isLoggedIn && isAuthProcessPath) {
+        // 로그인 상태인데 /login, /signup 등에 접근하려고 하면 홈으로 보냄
+        LoggerUtil.d(
+            '[Router Redirect] Cond 3: Logged in & Auth page ($currentUriPath) -> Redirecting to "/"');
+        return '/'; // 홈으로 리디렉션
+      }
+      // --- ★★★ 추가 끝 ★★★ ---
+
       // --- 4. 로그아웃 상태 & 보호된 경로 접근 시 로그인으로 ---
       // 이 시점에는 isInitialized == true
+      // Cond 0에서 isAuthProcessPath 핸들링은 이미 했으므로 여기서는 제외해도 되지만, 명확성을 위해 유지 가능
+      if (!appState.isLoggedIn && isAuthProcessPath) {
+        // /login, /signup 등은 로그아웃 상태에서 접근 허용 (Cond 3에서 처리됨)
+        // 이 조건은 사실상 Cond 3 이후에는 실행될 필요 없음
+        LoggerUtil.d(
+            '[Router Redirect] Cond 4.1 (Redundant Check): Auth process page ($currentUriPath) & Logged out -> ALLOW (Handled by Cond 3 logic inversion)');
+        return null;
+      }
+
       final isAuthRequired =
           requiresAuthPaths.any((p) => currentUriPath.startsWith(p)) ||
               currentUriPath.startsWith('/chat/room/');
       if (!appState.isLoggedIn && isAuthRequired) {
         LoggerUtil.d(
-            '[Router Redirect] Cond 4: Logged out & Protected page ($currentUriPath) -> Redirecting to "/login"');
+            '[Router Redirect] Cond 4.2: Logged out & Protected page ($currentUriPath) -> Redirecting to "/login"');
         return '/login'; // 로그인 페이지로 리디렉션
       }
 

@@ -19,11 +19,11 @@ class LoginScreen extends ConsumerWidget {
     final appState = ref.watch(appStateProvider);
 
     // 에러 발생 시 스낵바 표시
-    if (appState.error != null) {
+    if (appState.error.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(appState.error!)),
+            SnackBar(content: Text(appState.error)),
           );
           ref.read(appStateProvider.notifier).clearError();
         }

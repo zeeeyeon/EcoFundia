@@ -37,27 +37,14 @@ class CouponRepositoryImpl implements CouponRepository {
   Future<CouponApplyResult> applyCoupon() async {
     try {
       LoggerUtil.d('🎫 CouponRepositoryImpl: applyCoupon 시작');
-      LoggerUtil.i('🎫 [리포지토리] 쿠폰 발급 API 서비스 호출 준비');
-
-      // 쿠폰 서비스의 applyCoupon 메서드 호출
-      LoggerUtil.i('🎫 [리포지토리] CouponService.applyCoupon() 호출 직전');
+      // 서비스 호출 및 결과 직접 반환
       final result = await _couponService.applyCoupon();
       LoggerUtil.i('🎫 [리포지토리] CouponService로부터 결과 수신: $result');
-
-      // 결과 처리 (CouponApplyResult 반환)
-      // 서비스에서 이미 CouponApplyResult를 반환한다고 가정
-      LoggerUtil.d('🎫 CouponRepositoryImpl: applyCoupon 결과 반환');
       return result;
     } catch (e) {
-      // 이 부분은 서비스에서 Exception을 throw하는 경우를 처리하는 코드입니다.
-      // 서비스가 CouponApplyResult를 반환하도록 수정한 후에는 사용되지 않을 수 있습니다.
-      LoggerUtil.e('🎫 CouponRepositoryImpl: 쿠폰 발급 신청 저장소 오류', e);
-
-      if (e.toString().contains('이미 발급받은 쿠폰입니다')) {
-        return const AlreadyIssuedFailure();
-      }
-
-      return UnknownFailure(e.toString());
+      // 서비스 레벨에서 처리되지 않은 예외 발생 시 (가능성은 낮음)
+      LoggerUtil.e('🎫 CouponRepositoryImpl: 예상치 못한 저장소 오류', e);
+      return UnknownFailure('쿠폰 발급 중 알 수 없는 오류가 발생했습니다: ${e.toString()}');
     }
   }
 

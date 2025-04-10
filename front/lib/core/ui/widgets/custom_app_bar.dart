@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:front/core/themes/app_text_styles.dart';
 import 'package:go_router/go_router.dart';
 import 'package:front/core/themes/app_colors.dart'; // Import AppColors
 
@@ -88,11 +89,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           : (title != null
               ? Text(
                   title!,
-                  style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textDark // Use textDark for title
-                      ),
+                  style: AppTextStyles.appBarTitle,
                 )
               : null),
       centerTitle:

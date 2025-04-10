@@ -13,10 +13,8 @@ import 'package:front/features/auth/domain/use_cases/sign_out_use_case.dart';
 import 'package:front/utils/error_handling_mixin.dart';
 import 'package:front/utils/logger_util.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-
 // Import provider definitions from their actual locations
 import 'package:front/features/wishlist/ui/view_model/wishlist_provider.dart';
 import 'package:front/features/mypage/ui/view_model/my_funding_view_model.dart';
@@ -298,19 +296,7 @@ class AuthViewModel extends StateNotifier<AuthState>
       // 6. 로그인 후 필요한 데이터 로드 (UI 빌드 이후 비동기 실행)
       await _loadPostLoginData();
 
-      // 7. 로그인 성공 후 홈 화면으로 이동 (addPostFrameCallback 사용)
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        // 현재 프레임 렌더링 완료 후 네비게이션 시도
-        try {
-          _router.go('/'); // go 사용 (스택 초기화 목적)
-          LoggerUtil.i('🚀 로그인 성공 -> 홈 화면으로 go 이동 완료 (Post Frame)');
-        } catch (e) {
-          LoggerUtil.e('❌ Post Frame 홈 이동 중 오류 발생', e);
-          // 필요 시 추가 에러 처리
-        }
-      });
-
-      LoggerUtil.i('🎉 인증 성공 처리 완료 (Post Frame 네비게이션 예약)');
+      LoggerUtil.i('🎉 인증 성공 처리 완료 (자동 리디렉션 대기)');
     } catch (e) {
       LoggerUtil.e('❌ 인증 성공 처리 중 오류 발생', e);
       setErrorState(e);
@@ -380,6 +366,7 @@ class AuthViewModel extends StateNotifier<AuthState>
   Future<bool> signOut() async {
     LoggerUtil.i('🚪 로그아웃 시작');
     _appStateViewModel.setLoading(true);
+    _appStateViewModel.setLoggingOut(true); // <<< 로그아웃 시작 플래그 설정
     final completer = Completer<bool>();
     try {
       // 1. 서버 로그아웃 요청 (필요 시)
@@ -393,17 +380,9 @@ class AuthViewModel extends StateNotifier<AuthState>
       // 5. 사용자 관련 데이터 Provider 초기화
       _invalidateUserDataProviders();
 
-      LoggerUtil.i('✅ 로그아웃 성공');
-
-      // 로그아웃 성공 시 홈 화면으로 이동 (addPostFrameCallback 사용)
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        try {
-          _router.go('/'); // go 사용 (스택 초기화 목적)
-          LoggerUtil.i('🚀 로그아웃 성공 -> 홈 화면으로 go 이동 완료 (Post Frame)');
-        } catch (e) {
-          LoggerUtil.e('❌ Post Frame 홈 이동 중 오류 발생 (로그아웃)', e);
-        }
-      });
+      // ★★★ 로그아웃 완료 후 플래그 해제 (라우팅 전) ★★★
+      _appStateViewModel.setLoggingOut(false); // <<< 로그아웃 종료 플래그 설정
+      LoggerUtil.i('✅ 로그아웃 성공 (상태 업데이트 및 Provider 초기화 완료)');
 
       completer.complete(true);
     } catch (e) {
@@ -414,9 +393,17 @@ class AuthViewModel extends StateNotifier<AuthState>
       _appStateViewModel.setLoggedIn(false);
       state = const AuthState(
           status: AuthStatus.unauthenticated, error: '로그아웃 중 오류 발생');
+      _invalidateUserDataProviders(); // 실패 시에도 Provider 초기화 시도
+
+      // ★★★ 실패 시에도 플래그 해제 ★★★
+      _appStateViewModel.setLoggingOut(false); // <<< 로그아웃 종료 플래그 설정
       completer.complete(false); // 실패 플래그 반환
     } finally {
       _appStateViewModel.setLoading(false);
+      // 실패 시에도 finally에서 로그아웃 플래그 해제 보장 (위에서 처리했으므로 여기선 불필요)
+      // if (_appStateViewModel.state.isLoggingOut) {
+      //   _appStateViewModel.setLoggingOut(false);
+      // }
     }
     return completer.future;
   }

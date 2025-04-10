@@ -25,6 +25,10 @@ class _MyFundingScreenState extends ConsumerState<MyFundingScreen>
     _tabController.addListener(() {
       setState(() {}); // 탭 전환 시 리빌드
     });
+    // 화면 진입 시 데이터 새로고침
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.invalidate(myFundingViewModelProvider);
+    });
   }
 
   @override
@@ -57,12 +61,23 @@ class _MyFundingScreenState extends ConsumerState<MyFundingScreen>
                       : isSuccess(f.status);
                 }).toList();
 
-                return ListView.builder(
-                  itemCount: filteredFundings.length,
-                  itemBuilder: (context, index) {
-                    return MyFundingCard(funding: filteredFundings[index]);
-                  },
-                );
+                // 필터링된 목록이 비어 있는지 확인
+                if (filteredFundings.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      '펀딩 목록이 없습니다.',
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
+                  );
+                } else {
+                  // 목록이 있으면 ListView 표시
+                  return ListView.builder(
+                    itemCount: filteredFundings.length,
+                    itemBuilder: (context, index) {
+                      return MyFundingCard(funding: filteredFundings[index]);
+                    },
+                  );
+                }
               },
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (err, _) => Center(child: Text('에러 발생: $err')),

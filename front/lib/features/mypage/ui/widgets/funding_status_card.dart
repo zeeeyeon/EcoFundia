@@ -7,7 +7,6 @@ import 'package:front/core/themes/app_text_styles.dart';
 import 'package:front/utils/logger_util.dart';
 import 'package:front/features/mypage/ui/view_model/coupon_view_model.dart';
 import 'package:front/shared/widgets/dialogs/coupon_info_dialog.dart';
-import 'package:front/core/providers/app_state_provider.dart';
 import 'package:front/utils/auth_utils.dart';
 import 'package:intl/intl.dart';
 
@@ -64,8 +63,14 @@ class _FundingStatusCardState extends ConsumerState<FundingStatusCard> {
     // 위젯이 dispose될 때 모달 이벤트 초기화
     // 페이지를 떠날 때 쿠폰 모달이 다른 화면에서 표시되는 것을 방지
     try {
-      _couponViewModel.clearModalEvent();
-      LoggerUtil.d('🎫 FundingStatusCard: dispose 시 모달 이벤트 초기화');
+      // addPostFrameCallback으로 감싸서 다음 프레임에 실행하도록 지연
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        // ViewModel이 여전히 유효한지 확인 (선택 사항이지만 안전)
+        if (mounted) {
+          _couponViewModel.clearModalEvent();
+          LoggerUtil.d('🎫 FundingStatusCard: dispose 후 모달 이벤트 초기화');
+        }
+      });
     } catch (e) {
       // 오류 무시 (이미 제거된 경우)
     }
@@ -370,7 +375,7 @@ class _FundingStatusCardState extends ConsumerState<FundingStatusCard> {
                     child: InkWell(
                       onTap: () {
                         _couponViewModel.resetState();
-                        context.push('/coupons');
+                        context.push('/mypage/coupons');
                       },
                       borderRadius: const BorderRadius.only(
                           topRight: Radius.circular(12.0)),

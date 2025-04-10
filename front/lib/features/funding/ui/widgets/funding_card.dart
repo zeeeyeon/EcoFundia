@@ -1,21 +1,26 @@
 import 'dart:async'; // Import Timer
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // Riverpod import 추가
 import 'package:front/core/themes/app_colors.dart'; // Assuming AppColors exists
 import 'package:front/core/themes/app_text_styles.dart'; // Import AppTextStyles
 import 'package:intl/intl.dart'; // For number formatting
 
 import '../../data/models/funding_model.dart';
+import 'package:front/features/wishlist/ui/view_model/wishlist_provider.dart'; // wishlistIdsProvider import
 
-// Convert to StatefulWidget
-class FundingCard extends StatefulWidget {
+// ConsumerWidget으로 변경
+class FundingCard extends ConsumerStatefulWidget {
+  // ConsumerStatefulWidget으로 변경하여 타이머 유지
   final FundingModel funding;
   const FundingCard({super.key, required this.funding});
 
   @override
-  State<FundingCard> createState() => _FundingCardState();
+  ConsumerState<FundingCard> createState() =>
+      _FundingCardState(); // ConsumerState 반환
 }
 
-class _FundingCardState extends State<FundingCard> {
+// ConsumerState로 변경
+class _FundingCardState extends ConsumerState<FundingCard> {
   Timer? _timer;
   String _remainingTimeString = "";
   bool _isEnded = false;
@@ -51,7 +56,7 @@ class _FundingCardState extends State<FundingCard> {
 
   // Helper to format currency
   String _formatCurrency(int amount) {
-    return NumberFormat('#,###원').format(amount);
+    return NumberFormat('#,##0원').format(amount);
   }
 
   // Updated remaining time calculation
@@ -84,6 +89,10 @@ class _FundingCardState extends State<FundingCard> {
 
   @override
   Widget build(BuildContext context) {
+    // 찜 상태 확인
+    final wishlistIds = ref.watch(wishlistIdsProvider);
+    final isLiked = wishlistIds.contains(widget.funding.fundingId);
+
     final progress =
         (widget.funding.currentAmount / widget.funding.targetAmount)
             .clamp(0.0, 1.0);
@@ -111,31 +120,53 @@ class _FundingCardState extends State<FundingCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(16)), // Match container radius
-            child: Image.network(
-              widget.funding.imageUrls.isNotEmpty
-                  ? widget.funding.imageUrls.first
-                  : 'https://via.placeholder.com/340x180', // Placeholder 이미지 높이 조정
-              width: double.infinity,
-              height: 180, // 카드 세로 크기 증가를 위해 이미지 높이 증가
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
+          // Stack으로 이미지와 아이콘 감싸기
+          Stack(
+            children: [
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(16)), // Match container radius
+                child: Image.network(
+                  widget.funding.imageUrls.isNotEmpty
+                      ? widget.funding.imageUrls.first
+                      : 'https://via.placeholder.com/340x180', // Placeholder 이미지 높이 조정
                   width: double.infinity,
-                  height: 180, // 에러 시 높이도 일치
-                  color: AppColors.lightGrey
-                      .withOpacity(0.3), // Match ProjectCard placeholder color
-                  child: const Center(
-                    child:
-                        Icon(Icons.image_not_supported, color: AppColors.grey),
+                  height: 180, // 카드 세로 크기 증가를 위해 이미지 높이 증가
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      width: double.infinity,
+                      height: 180, // 에러 시 높이도 일치
+                      color: AppColors.lightGrey.withOpacity(
+                          0.3), // Match ProjectCard placeholder color
+                      child: const Center(
+                        child: Icon(Icons.image_not_supported,
+                            color: AppColors.grey),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              // 찜 아이콘 (Positioned 사용)
+              Positioned(
+                top: 8, // 상단 여백
+                right: 8, // 우측 여백
+                child: Container(
+                  padding: const EdgeInsets.all(4), // 아이콘 주변 여백
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.3), // 반투명 배경
+                    shape: BoxShape.circle,
                   ),
-                );
-              },
-            ),
+                  child: Icon(
+                    isLiked ? Icons.favorite : Icons.favorite_border,
+                    color: isLiked ? AppColors.primary : Colors.white,
+                    size: 20, // 아이콘 크기
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 8), // 제목과 설명 사이 간격 조정
+          const SizedBox(height: 8), // 이미지와 내용 사이 간격
 
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),

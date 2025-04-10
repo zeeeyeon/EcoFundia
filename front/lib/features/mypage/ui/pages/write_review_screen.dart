@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/utils/logger_util.dart';
 import '../../../../core/ui/widgets/custom_app_bar.dart';
 import '../../data/models/write_review_request.dart';
 import '../view_model/write_review_view_model.dart';
@@ -31,7 +32,16 @@ class _WriteReviewScreenState extends ConsumerState<WriteReviewScreen> {
   @override
   void dispose() {
     _controller.dispose();
-    ref.invalidate(writeReviewViewModelProvider); // 상태 초기화
+    // addPostFrameCallback으로 감싸서 다음 프레임에 실행하도록 지연
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Provider가 여전히 유효한지 확인 (선택 사항이지만 안전)
+      try {
+        ref.invalidate(writeReviewViewModelProvider); // 상태 초기화
+      } catch (e) {
+        // Provider가 이미 dispose되었을 수 있음
+        LoggerUtil.e('Error invalidating provider in dispose: $e');
+      }
+    });
     super.dispose();
   }
 
@@ -103,6 +113,7 @@ class _WriteReviewScreenState extends ConsumerState<WriteReviewScreen> {
             ReviewInputField(controller: _controller),
             const Spacer(),
             ReviewActionButtons(
+              isLoading: reviewState.isLoading,
               onSubmit: _validateAndSubmit,
               onCancel: () => Navigator.pop(context),
             ),

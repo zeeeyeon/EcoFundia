@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/core/services/storage_service.dart';
 import 'package:front/utils/logger_util.dart';
+import 'package:equatable/equatable.dart';
+import 'package:front/core/constants/loading_state.dart';
 
 /// 인증이 필요한 기능을 나타내는 열거형
 enum AuthRequiredFeature {
@@ -12,49 +14,63 @@ enum AuthRequiredFeature {
 }
 
 /// 앱의 전역 상태를 관리하는 클래스
-class AppState {
-  final bool isLoading;
-  final String? error;
+class AppState extends Equatable {
+  final LoadingState loadingState;
+  final String error;
   final bool isLoggedIn;
   final bool isInitialized;
+  final bool isLoggingOut;
 
   const AppState({
-    this.isLoading = false,
-    this.error,
+    this.loadingState = LoadingState.initial,
+    this.error = "",
     this.isLoggedIn = false,
     this.isInitialized = false,
+    this.isLoggingOut = false,
   });
 
+  bool get isLoading => loadingState == LoadingState.loading;
+
   AppState copyWith({
-    bool? isLoading,
+    LoadingState? loadingState,
     String? error,
     bool? isLoggedIn,
     bool? isInitialized,
+    bool? isLoggingOut,
   }) {
     return AppState(
-      isLoading: isLoading ?? this.isLoading,
-      error: error,
+      loadingState: loadingState ?? this.loadingState,
+      error: error ?? this.error,
       isLoggedIn: isLoggedIn ?? this.isLoggedIn,
       isInitialized: isInitialized ?? this.isInitialized,
+      isLoggingOut: isLoggingOut ?? this.isLoggingOut,
     );
   }
+
+  @override
+  List<Object?> get props => [
+        loadingState,
+        error,
+        isLoggedIn,
+        isInitialized,
+        isLoggingOut,
+      ];
 }
 
 /// 앱의 전역 상태를 관리하는 ViewModel
 class AppStateViewModel extends StateNotifier<AppState> {
-  final Ref _ref;
-
-  AppStateViewModel(this._ref) : super(const AppState());
+  AppStateViewModel() : super(const AppState());
 
   /// 로딩 상태 설정
   void setLoading(bool isLoading) {
-    state = state.copyWith(isLoading: isLoading);
+    state = state.copyWith(
+        loadingState: isLoading ? LoadingState.loading : LoadingState.initial);
     LoggerUtil.d('🔄 로딩 상태 변경: $isLoading');
   }
 
   /// 에러 설정
   void setError(String? error) {
-    state = state.copyWith(error: error);
+    state = state.copyWith(error: error ?? "");
     if (error != null) {
       LoggerUtil.e('❌ 에러 발생: $error');
     }
@@ -62,7 +78,7 @@ class AppStateViewModel extends StateNotifier<AppState> {
 
   /// 에러 초기화
   void clearError() {
-    state = state.copyWith(error: null);
+    state = state.copyWith(error: "");
   }
 
   /// 로그인 상태 설정
@@ -85,12 +101,14 @@ class AppStateViewModel extends StateNotifier<AppState> {
       LoggerUtil.d('🔑 저장된 모든 토큰 삭제 완료');
 
       // 로그인 상태 및 초기화 상태 초기화
-      state = state.copyWith(isLoggedIn: false, isInitialized: false);
+      state = state.copyWith(
+          isLoggedIn: false, isInitialized: false, isLoggingOut: true);
       LoggerUtil.i('✅ 로그아웃 상태 변경 및 초기화 완료');
     } catch (e) {
       LoggerUtil.e('❌ 로그아웃 처리 중 오류 발생', e);
       // 오류 시에도 상태는 확실히 초기화
-      state = state.copyWith(isLoggedIn: false, isInitialized: false);
+      state = state.copyWith(
+          isLoggedIn: false, isInitialized: false, isLoggingOut: false);
     }
   }
 
@@ -99,12 +117,21 @@ class AppStateViewModel extends StateNotifier<AppState> {
     state = const AppState(); // isInitialized도 false로 초기화됨
     LoggerUtil.i('🔄 앱 상태 완전 초기화');
   }
+
+  /// 로그아웃 진행 중 상태 설정 메서드 추가
+  void setLoggingOut(bool value) {
+    if (mounted) {
+      // StateNotifier가 dispose되었는지 확인
+      state = state.copyWith(isLoggingOut: value);
+      LoggerUtil.d('🔄 AppState 업데이트: isLoggingOut=$value');
+    }
+  }
 }
 
 /// 앱 상태 Provider
 final appStateProvider =
     StateNotifierProvider<AppStateViewModel, AppState>((ref) {
-  return AppStateViewModel(ref);
+  return AppStateViewModel();
 });
 
 /// 로딩 상태 Provider

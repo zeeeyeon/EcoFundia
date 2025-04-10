@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front/core/providers/app_state_provider.dart';
-import 'package:front/core/ui/widgets/loading_overlay.dart';
 import 'package:front/features/mypage/ui/view_model/total_funding_provider.dart';
 import 'package:front/features/mypage/ui/view_model/coupon_view_model.dart';
 import 'package:front/features/mypage/ui/widgets/funding_status_card.dart';
@@ -165,7 +164,7 @@ class _MypageScreenState extends ConsumerState<MypageScreen> {
           onPressed: () {
             // TODO: 설정 화면 구현
             LoggerUtil.d('⚙️ 설정 버튼 클릭');
-            context.push('/mypage/settings');
+            context.push('/coming-soon');
           },
           tooltip: '설정',
         ),

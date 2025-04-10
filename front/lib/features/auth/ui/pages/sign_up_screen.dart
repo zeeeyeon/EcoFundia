@@ -97,10 +97,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     final appState = ref.watch(appStateProvider);
 
     // 에러 발생 시 스낵바 표시
-    if (appState.error != null) {
+    if (appState.error.isNotEmpty) {
       Future.microtask(() {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(appState.error!)),
+          SnackBar(content: Text(appState.error)),
         );
         ref.read(appStateProvider.notifier).clearError();
       });

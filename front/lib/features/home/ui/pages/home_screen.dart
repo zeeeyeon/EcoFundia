@@ -22,7 +22,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen>
     with AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
   DateTime? _lastLoadTime;
-  bool _isPageVisible = true;
+  final bool _isPageVisible = true;
 
   @override
   bool get wantKeepAlive => false; // 탭 이동 시 항상 재로드하기 위해 false로 설정
@@ -53,38 +53,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     if (state == AppLifecycleState.resumed && _isPageVisible) {
       _loadData();
     }
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    // GoRouter에서 현재 페이지 확인
-    final currentLocation = GoRouterState.of(context).uri.path;
-    final isHomeTab = currentLocation == '/';
-
-    if (isHomeTab && !_isPageVisible) {
-      _isPageVisible = true;
-      _loadData();
-    } else if (!isHomeTab) {
-      _isPageVisible = false;
-    }
-  }
-
-  // 데이터 로드 메서드
-  Future<void> _loadData() async {
-    // 마지막 로드 시간으로부터 5초가 지났거나, 첫 로드인 경우에만 데이터 로드
-    final now = DateTime.now();
-    if (_lastLoadTime == null || now.difference(_lastLoadTime!).inSeconds > 5) {
-      _lastLoadTime = now;
-      ref.read(projectViewModelProvider.notifier).loadProjects();
-    }
-  }
-
-  // 새로고침 처리 메서드
-  Future<void> _handleRefresh() async {
-    _lastLoadTime = DateTime.now();
-    await ref.read(projectViewModelProvider.notifier).loadProjects();
   }
 
   @override
@@ -197,5 +165,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         ],
       ),
     );
+  }
+
+  // 데이터 로드 메서드
+  Future<void> _loadData() async {
+    // 마지막 로드 시간으로부터 5초가 지났거나, 첫 로드인 경우에만 데이터 로드
+    final now = DateTime.now();
+    if (_lastLoadTime == null || now.difference(_lastLoadTime!).inSeconds > 5) {
+      _lastLoadTime = now;
+      ref.read(projectViewModelProvider.notifier).loadProjects();
+    }
+  }
+
+  // 새로고침 처리 메서드
+  Future<void> _handleRefresh() async {
+    _lastLoadTime = DateTime.now();
+    await ref.read(projectViewModelProvider.notifier).loadProjects();
   }
 }

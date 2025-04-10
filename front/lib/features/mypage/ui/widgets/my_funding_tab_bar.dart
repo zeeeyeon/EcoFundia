@@ -29,7 +29,7 @@ class MyFundingTabBar extends StatelessWidget {
             child: _buildTabItem(
               context: context,
               index: 1,
-              title: '종료',
+              title: '마감',
             ),
           ),
         ],

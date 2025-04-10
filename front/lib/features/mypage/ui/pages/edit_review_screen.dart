@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front/core/themes/app_colors.dart';
 import 'package:front/features/mypage/data/models/edit_review_request.dart';
 import 'package:front/features/mypage/ui/view_model/edit_review_view_model.dart';
 import 'package:front/features/mypage/ui/view_model/my_review_view_model.dart';
@@ -95,7 +96,7 @@ class _EditReviewScreenState extends ConsumerState<EditReviewScreen> {
                 return IconButton(
                   icon: Icon(
                     i < _selectedRating ? Icons.star : Icons.star_border,
-                    color: Colors.green,
+                    color: AppColors.primary,
                   ),
                   onPressed: () {
                     setState(() {
@@ -122,12 +123,15 @@ class _EditReviewScreenState extends ConsumerState<EditReviewScreen> {
               child: ElevatedButton(
                 onPressed: _submitEdit,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+                  backgroundColor: AppColors.primary,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
                 child: const Text(
                   '수정 완료',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: AppColors.white),
                 ),
               ),
             )

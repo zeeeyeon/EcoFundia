@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:front/core/themes/app_colors.dart';
 
 /// 📦 상품 정보 카드
 class ReviewProductCard extends StatelessWidget {
@@ -57,7 +58,7 @@ class ReviewProductCard extends StatelessWidget {
             '내 후원금: ₩${totalPrice.toString()}',
             style: const TextStyle(
               fontSize: 13,
-              color: Colors.green,
+              color: AppColors.primary,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -77,7 +78,7 @@ class ReviewProductCard extends StatelessWidget {
                 icon: Icon(
                   Icons.star,
                   color: selectedRating > index
-                      ? Colors.green
+                      ? AppColors.primary
                       : Colors.grey.shade300,
                 ),
                 iconSize: 28,
@@ -121,11 +122,13 @@ class ReviewInputField extends StatelessWidget {
 class ReviewActionButtons extends StatelessWidget {
   final VoidCallback onSubmit;
   final VoidCallback onCancel;
+  final bool isLoading;
 
   const ReviewActionButtons({
     super.key,
     required this.onSubmit,
     required this.onCancel,
+    this.isLoading = false,
   });
 
   @override
@@ -134,16 +137,26 @@ class ReviewActionButtons extends StatelessWidget {
       children: [
         Expanded(
           child: ElevatedButton(
-            onPressed: onSubmit,
+            onPressed: isLoading ? null : onSubmit,
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFB7E800),
               foregroundColor: Colors.white,
+              disabledBackgroundColor: const Color(0xFFB7E800).withOpacity(0.5),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
               padding: const EdgeInsets.symmetric(vertical: 14),
             ),
-            child: const Text('등록'),
+            child: isLoading
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : const Text('등록'),
           ),
         ),
         const SizedBox(width: 12),

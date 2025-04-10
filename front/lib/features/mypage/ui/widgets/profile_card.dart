@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:front/core/themes/app_colors.dart';
 import 'package:front/core/themes/app_text_styles.dart';
 import 'package:go_router/go_router.dart';
-import 'package:front/routing/routes/mypage_routes.dart';
 import '../../data/models/profile_model.dart';
 
 class ProfileCard extends StatelessWidget {

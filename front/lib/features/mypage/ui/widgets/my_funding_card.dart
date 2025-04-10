@@ -7,6 +7,7 @@ import 'package:front/features/mypage/data/models/my_funding_model.dart';
 import 'package:intl/intl.dart';
 import '../view_model/my_review_view_model.dart'; // ✅ 리뷰 리스트 Provider 접근을 위해 import
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:front/utils/funding_status.dart'; // ✅ FundingStatus import
 
 class MyFundingCard extends ConsumerWidget {
   // ✅ Stateless → ConsumerWidget으로 변경
@@ -127,7 +128,7 @@ class MyFundingCard extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: AppColors.extraLightGrey.withOpacity(0.5),
+                color: AppColors.white,
                 border: Border(
                     top: BorderSide(
                         color: AppColors.lightGrey.withOpacity(0.5))),
@@ -146,9 +147,82 @@ class MyFundingCard extends ConsumerWidget {
                 ],
               ),
             ),
+
+            // ✅ 리뷰 버튼 추가 영역 시작
+            if (!isOngoing(funding.status)) // 마감 상태인 경우에만 버튼 표시
+              Padding(
+                padding: const EdgeInsets.only(
+                    left: 16, right: 16, bottom: 12, top: 0), // 위쪽 패딩 제거
+                child:
+                    _buildReviewButton(context, ref, funding, alreadyReviewed),
+              ),
+            // ✅ 리뷰 버튼 추가 영역 끝
           ],
         ),
       ),
+    );
+  }
+
+  // ✅ 리뷰 버튼 빌드 함수 추가
+  Widget _buildReviewButton(
+    BuildContext context,
+    WidgetRef ref,
+    MyFundingModel funding,
+    bool alreadyReviewed,
+  ) {
+    final myReviewsAsync = ref.watch(myReviewProvider);
+
+    return myReviewsAsync.maybeWhen(
+      data: (reviews) {
+        // fundingId로 해당 펀딩의 리뷰 찾기
+        final review =
+            reviews.where((r) => r.fundingId == funding.fundingId).firstOrNull;
+
+        final bool hasReview = review != null;
+        final String buttonText = hasReview ? '리뷰 수정' : '리뷰 쓰기';
+        final IconData buttonIcon =
+            hasReview ? Icons.edit_note : Icons.rate_review_outlined;
+
+        return SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () {
+              final Map<String, dynamic> extra = {
+                'title': funding.title,
+                'description': funding.description,
+                'totalPrice': funding.totalPrice,
+              };
+
+              if (hasReview) {
+                // 리뷰 수정 화면으로 이동
+                extra['initialRating'] = review.rating;
+                extra['initialContent'] = review.content;
+                context.push('/mypage/review/edit/${review.reviewId}',
+                    extra: extra);
+              } else {
+                // 리뷰 작성 화면으로 이동
+                context.push('/mypage/review/write/${funding.fundingId}',
+                    extra: extra);
+              }
+            },
+            icon: Icon(buttonIcon, size: 18, color: AppColors.primary),
+            label: Text(
+              buttonText,
+              style: AppTextStyles.body2.copyWith(color: AppColors.primary),
+            ),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.primary,
+              side: const BorderSide(color: AppColors.primary, width: 1),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 10),
+            ),
+          ),
+        );
+      },
+      // 로딩 중이거나 에러 발생 시 버튼을 표시하지 않음
+      orElse: () => const SizedBox.shrink(),
     );
   }
 }

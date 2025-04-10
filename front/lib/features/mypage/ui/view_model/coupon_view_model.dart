@@ -58,11 +58,6 @@ class CouponViewModel extends StateNotifier<CouponState>
   final ApplyCouponUseCase _applyCouponUseCase;
   final Ref _ref;
 
-  // 캐시 관련 변수
-  DateTime? _lastCountLoadTime;
-  DateTime? _lastListLoadTime;
-  static const int _cacheValidSeconds = 30;
-
   // 중복 요청 방지를 위한 플래그
   bool _isLoadingCount = false;
   bool _isLoadingList = false;
@@ -79,38 +74,24 @@ class CouponViewModel extends StateNotifier<CouponState>
         _ref = ref,
         super(CouponState.initial());
 
-  // 캐시 유효성 검사
-  bool _isCacheValid(DateTime? lastLoadTime) {
-    if (lastLoadTime == null) return false;
-    final difference = DateTime.now().difference(lastLoadTime).inSeconds;
-    LoggerUtil.d(
-        '🎫 캐시 확인: 마지막 로드로부터 $difference초 경과 (유효시간: $_cacheValidSeconds초)');
-    return difference < _cacheValidSeconds;
-  }
-
   /// 에러 처리 후 상태 업데이트
   void _handleError(dynamic error,
       {bool isLoading = false, bool isApplying = false}) {
     setErrorState(error);
 
-    // 상태 업데이트를 위젯 트리 빌드 중에 수행하면 오류 발생
-    // 비동기 작업이 완료된 후 상태를 업데이트하도록 Future microtask 사용
-    // 경고 방지를 위해 unawaited 식별자 추가
-    unawaited(Future.microtask(() {
-      if (mounted) {
-        state = state.copyWith(
-          isLoading: isLoading,
-          isApplying: isApplying,
-          errorMessage: errorMessage,
-          isNetworkError: isNetworkError,
-        );
+    if (mounted) {
+      state = state.copyWith(
+        isLoading: isLoading,
+        isApplying: isApplying,
+        errorMessage: errorMessage,
+        isNetworkError: isNetworkError,
+      );
 
-        if (error is CouponException &&
-            error.type == CouponErrorType.unauthorized) {
-          setModalEvent(CouponModalEvent.needLogin);
-        }
+      if (error is CouponException &&
+          error.type == CouponErrorType.unauthorized) {
+        setModalEvent(CouponModalEvent.needLogin);
       }
-    }));
+    }
   }
 
   /// 쿠폰 개수 로드
@@ -121,37 +102,23 @@ class CouponViewModel extends StateNotifier<CouponState>
       return;
     }
 
-    // 캐시 유효성 검사
-    if (!forceRefresh && _isCacheValid(_lastCountLoadTime)) {
-      LoggerUtil.d('🎫 캐시된 쿠폰 개수 사용: ${state.couponCount}');
-      return;
-    }
-
     try {
       _isLoadingCount = true;
-      // 안전하게 상태 업데이트 (Future microtask 사용)
-      unawaited(Future.microtask(() {
-        if (mounted) {
-          state = state.copyWith(isLoading: true);
-          startLoading();
-        }
-      }));
+      if (mounted) {
+        state = state.copyWith(isLoading: true);
+        startLoading();
+      }
 
       final count = await _getCouponCountUseCase.execute();
-      _lastCountLoadTime = DateTime.now();
 
-      // 안전하게 상태 업데이트 (Future microtask 사용)
-      unawaited(Future.microtask(() {
-        if (mounted) {
-          state = state.copyWith(
-            couponCount: count,
-            isLoading: false,
-            lastUpdated: _lastCountLoadTime,
-            errorMessage: '',
-          );
-          finishLoading();
-        }
-      }));
+      if (mounted) {
+        state = state.copyWith(
+          couponCount: count,
+          isLoading: false,
+          errorMessage: '',
+        );
+        finishLoading();
+      }
 
       LoggerUtil.d('🎫 쿠폰 개수 로드 성공: $count');
     } catch (e) {
@@ -182,16 +149,13 @@ class CouponViewModel extends StateNotifier<CouponState>
     try {
       _isApplyingCoupon = true;
 
-      // 안전하게 상태 업데이트 (Future microtask 사용)
-      unawaited(Future.microtask(() {
-        if (mounted) {
-          state = state.copyWith(
-            isApplying: true,
-            errorMessage: '',
-            modalEvent: CouponModalEvent.none,
-          );
-        }
-      }));
+      if (mounted) {
+        state = state.copyWith(
+          isApplying: true,
+          errorMessage: '',
+          modalEvent: CouponModalEvent.none,
+        );
+      }
 
       final result = await _applyCouponUseCase.execute();
 
@@ -219,38 +183,24 @@ class CouponViewModel extends StateNotifier<CouponState>
       return;
     }
 
-    // 캐시 유효성 검사
-    if (_isCacheValid(_lastListLoadTime) && state.coupons.isNotEmpty) {
-      LoggerUtil.d('🎫 캐시된 쿠폰 목록 사용');
-      return;
-    }
-
     try {
       _isLoadingList = true;
 
-      // 안전하게 상태 업데이트 (Future microtask 사용)
-      unawaited(Future.microtask(() {
-        if (mounted) {
-          state = state.copyWith(isLoading: true, errorMessage: '');
-          startLoading();
-        }
-      }));
+      if (mounted) {
+        state = state.copyWith(isLoading: true, errorMessage: '');
+        startLoading();
+      }
 
       final coupons = await _getCouponListUseCase.execute();
-      _lastListLoadTime = DateTime.now();
 
-      // 안전하게 상태 업데이트 (Future microtask 사용)
-      unawaited(Future.microtask(() {
-        if (mounted) {
-          state = state.copyWith(
-            coupons: coupons,
-            isLoading: false,
-            lastUpdated: _lastListLoadTime,
-            errorMessage: '',
-          );
-          finishLoading();
-        }
-      }));
+      if (mounted) {
+        state = state.copyWith(
+          coupons: coupons,
+          isLoading: false,
+          errorMessage: '',
+        );
+        finishLoading();
+      }
 
       LoggerUtil.i('🎫 쿠폰 목록 로드 완료: ${coupons.length}개');
     } catch (e) {
@@ -264,116 +214,87 @@ class CouponViewModel extends StateNotifier<CouponState>
 
   // Private helper methods
   Future<bool> _handleSuccess() async {
-    _invalidateCache();
     await loadCouponCount(forceRefresh: true);
+    _ref.invalidate(couponListProvider);
 
-    // 안전하게 상태 업데이트 (Future microtask 사용)
-    unawaited(Future.microtask(() {
-      if (mounted) {
-        state = state.copyWith(
-          isApplying: false,
-          modalEvent: CouponModalEvent.success,
-        );
-      }
-    }));
+    if (mounted) {
+      state = state.copyWith(
+        isApplying: false,
+        modalEvent: CouponModalEvent.success,
+      );
+    }
 
     return true;
   }
 
   bool _handleAlreadyIssued(AlreadyIssuedFailure failure) {
-    // 안전하게 상태 업데이트 (Future microtask 사용)
-    unawaited(Future.microtask(() {
-      if (mounted) {
-        state = state.copyWith(
-          isApplying: false,
-          errorMessage: failure.message,
-          modalEvent: CouponModalEvent.alreadyIssued,
-        );
-      }
-    }));
+    if (mounted) {
+      state = state.copyWith(
+        isApplying: false,
+        errorMessage: failure.message,
+        modalEvent: CouponModalEvent.alreadyIssued,
+      );
+    }
 
     return false;
   }
 
   bool _handleAuthorizationFailure(AuthorizationFailure failure) {
-    // 안전하게 상태 업데이트 (Future microtask 사용)
-    unawaited(Future.microtask(() {
-      if (mounted) {
-        state = state.copyWith(
-          isApplying: false,
-          errorMessage: failure.message,
-          modalEvent: CouponModalEvent.needLogin,
-        );
-      }
-    }));
+    if (mounted) {
+      state = state.copyWith(
+        isApplying: false,
+        errorMessage: failure.message,
+        modalEvent: CouponModalEvent.needLogin,
+      );
+    }
 
     return false;
   }
 
   bool _handleTimeLimitFailure(CouponTimeLimitFailure failure) {
-    // 안전하게 상태 업데이트 (Future microtask 사용)
-    unawaited(Future.microtask(() {
-      if (mounted) {
-        state = state.copyWith(
-          isApplying: false,
-          errorMessage: failure.message,
-          modalEvent: CouponModalEvent.timeLimit,
-        );
-        LoggerUtil.w('🎫 쿠폰 발급 실패: 시간 제한 - ${failure.message}');
-      }
-    }));
+    if (mounted) {
+      state = state.copyWith(
+        isApplying: false,
+        errorMessage: failure.message,
+        modalEvent: CouponModalEvent.timeLimit,
+      );
+      LoggerUtil.w('🎫 쿠폰 발급 실패: 시간 제한 - ${failure.message}');
+    }
     return false;
   }
 
   bool _handleFailure(CouponApplyFailure failure) {
-    // 안전하게 상태 업데이트 (Future microtask 사용)
-    unawaited(Future.microtask(() {
-      if (mounted) {
-        state = state.copyWith(
-          isApplying: false,
-          errorMessage: failure.message,
-          modalEvent: CouponModalEvent.error,
-        );
-      }
-    }));
+    if (mounted) {
+      state = state.copyWith(
+        isApplying: false,
+        errorMessage: failure.message,
+        modalEvent: CouponModalEvent.error,
+      );
+    }
 
     return false;
   }
 
-  void _invalidateCache() {
-    _lastCountLoadTime = null;
-    _lastListLoadTime = null;
-  }
-
   // Public methods for state management
   void setModalEvent(CouponModalEvent event) {
-    // 안전하게 상태 업데이트 (Future microtask 사용)
-    unawaited(Future.microtask(() {
-      if (mounted) {
-        state = state.copyWith(modalEvent: event);
-      }
-    }));
+    if (mounted) {
+      state = state.copyWith(modalEvent: event);
+    }
   }
 
   void clearModalEvent() {
-    // 안전하게 상태 업데이트 (Future microtask 사용)
-    unawaited(Future.microtask(() {
-      if (mounted) {
-        // 이벤트 초기화할 때 isApplying도 확실히 false로 설정
-        state = state.copyWith(
-            modalEvent: CouponModalEvent.none, isApplying: false);
-      }
-    }));
+    if (mounted) {
+      // 이벤트 초기화할 때 isApplying도 확실히 false로 설정
+      state =
+          state.copyWith(modalEvent: CouponModalEvent.none, isApplying: false);
+    }
   }
 
   void clearError() {
     clearErrorState();
-    // 안전하게 상태 업데이트 (Future microtask 사용)
-    unawaited(Future.microtask(() {
-      if (mounted) {
-        state = state.copyWith(errorMessage: '');
-      }
-    }));
+    if (mounted) {
+      state = state.copyWith(errorMessage: '');
+    }
   }
 
   // 상태 강제 리셋 - 페이지 이동 시 호출되어 일관된 상태 유지
@@ -382,16 +303,14 @@ class CouponViewModel extends StateNotifier<CouponState>
     _isLoadingList = false;
     _isApplyingCoupon = false;
 
-    unawaited(Future.microtask(() {
-      if (mounted) {
-        state = state.copyWith(
-          isLoading: false,
-          isApplying: false,
-          modalEvent: CouponModalEvent.none,
-          errorMessage: '',
-        );
-      }
-    }));
+    if (mounted) {
+      state = state.copyWith(
+        isLoading: false,
+        isApplying: false,
+        modalEvent: CouponModalEvent.none,
+        errorMessage: '',
+      );
+    }
   }
 }
 
