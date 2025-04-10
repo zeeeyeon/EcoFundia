@@ -144,4 +144,11 @@
         ORDER BY funding_id
     </select>
 
+    <select id="getTotalPriceByFundingId" parameterType="map" resultType="int">
+        SELECT SUM(total_price)
+        FROM `order`
+        WHERE funding_id = #{fundingId} AND user_id = #{userId}
+    </select>
+
+
 </mapper>

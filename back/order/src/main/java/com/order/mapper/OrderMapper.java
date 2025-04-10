@@ -28,6 +28,7 @@ public interface OrderMapper {
 
 
     int sumOrderAmountByFundingId(@Param("fundingId") int fundingId);
+    int getTotalPriceByFundingId(@Param("fundingId") int fundingId, @Param("userId") int userId);
 
     List<Integer> getTotalOrderCount(List<Integer> fundingIds);
 }
