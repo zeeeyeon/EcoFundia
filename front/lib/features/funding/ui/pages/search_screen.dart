@@ -105,10 +105,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   _searchController.text = selected;
                   ref.read(searchResultProvider.notifier).search(selected);
                   ref.read(searchSuggestProvider.notifier).clear();
-                  FocusScope.of(context).unfocus(); // 키보드 내리기
+                  FocusScope.of(context).unfocus();
                 },
               ),
             ),
+
           const SizedBox(height: 12),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
