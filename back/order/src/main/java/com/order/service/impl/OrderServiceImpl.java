@@ -248,6 +248,10 @@ public class OrderServiceImpl implements OrderService {
             return Collections.emptyList();
         }
         List<FundingResponseDto> fundingList = fundingClient.getMyFunding(deduplicatedIds);
+        for(FundingResponseDto f : fundingList){
+            int price = orderMapper.getTotalPriceByFundingId(f.getFundingId(),userId);
+            f.setTotalPrice(price);
+        }
         return fundingList;
     }
 
