@@ -752,7 +752,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                       if (!context.mounted) return;
                       // Revert back to context.push using projectId
                       await context.push(
-                        '/chat/room/project/${project.id}',
+                        '/chat/room/${project.id}',
                         extra: {'title': project.title},
                       );
                       LoggerUtil.d('채팅방 이동 호출 완료');
