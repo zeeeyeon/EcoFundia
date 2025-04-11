@@ -1,0 +1,300 @@
+:root {
+  --header-height: 60px;
+  --sidebar-width-open: 240px;
+  --sidebar-width-closed: 70px;
+  --sidebar-transition: width 0.3s ease;
+}
+
+.dashboard-layout {
+  display: flex;
+}
+
+/* Header Styles */
+.dashboard-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--header-height);
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  z-index: 1000;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.logo-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+}
+
+.header-logo-icon {
+  width: 30px;
+  height: 30px;
+  margin-right: 0.5rem;
+}
+
+.header-logo-text {
+  font-size: 1.5rem;
+  font-weight: bold;
+  background: linear-gradient(
+    to right,
+    var(--color-primary),
+    var(--color-secondary-light)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-greeting {
+  color: var(--color-text-light);
+}
+
+.logout-button {
+  background: none;
+  border: 1px solid var(--color-primary-dark);
+  color: var(--color-primary-dark);
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.logout-button:hover {
+  background-color: var(--color-primary);
+  color: white;
+  border-color: transparent;
+}
+
+/* Sidebar Styles */
+.dashboard-sidebar {
+  position: fixed;
+  top: var(--header-height);
+  left: 0;
+  bottom: 0;
+  background-color: white;
+  transition: var(--sidebar-transition);
+  border-right: 1px solid #e5e7eb;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+  z-index: 999;
+  overflow-x: hidden;
+}
+
+.dashboard-sidebar.open {
+  width: var(--sidebar-width-open);
+}
+
+.dashboard-sidebar.closed {
+  width: var(--sidebar-width-closed);
+}
+
+.sidebar-toggle-button {
+  position: absolute;
+  top: 15px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.sidebar-toggle-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.sidebar-nav {
+  padding-top: 3rem;
+}
+
+.sidebar-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-nav li {
+  margin-bottom: 5px;
+  position: relative;
+}
+
+.sidebar-nav li a {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  color: #333;
+  text-decoration: none;
+  border-radius: 6px;
+  margin: 15px 10px;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.sidebar-nav li a:hover {
+  background-color: #f3f4f6;
+}
+
+.sidebar-nav li a.active {
+  background-color: #ebf5ff;
+  color: #2563eb;
+  font-weight: 600;
+  box-shadow: 0 0 0 1px #2563eb;
+}
+
+.sidebar-nav li a.active::before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background-color: #2563eb;
+  border-radius: 0 2px 2px 0;
+}
+
+.sidebar-nav .menu-text {
+  margin-left: 10px;
+}
+
+/* 활성화된 메뉴 항목 스타일 */
+.active-menu > a {
+  font-weight: 600;
+}
+
+/* 서브메뉴 컨테이너 스타일 */
+.submenu-container {
+  padding: 5px 5px 0 15px;
+  margin-top: 5px;
+}
+
+/* 서브메뉴 스타일 */
+.submenu {
+  background-color: rgba(0, 123, 255, 0.05);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-left: 15px !important;
+  margin-top: 5px;
+}
+
+.submenu li {
+  margin: 0 !important;
+}
+
+.submenu li a {
+  padding: 10px;
+  font-size: 0.9rem;
+  margin: 2px 5px;
+  border-radius: 4px;
+}
+
+.submenu li a:hover {
+  background-color: #f0f4f8;
+}
+
+.submenu li a.active {
+  background-color: #ebf5ff;
+  color: #2563eb;
+  box-shadow: 0 0 0 1px #2563eb;
+}
+
+.submenu li a.active::before {
+  left: -5px;
+  height: calc(100% - 6px);
+  top: 3px;
+}
+
+/* 사이드바 닫혔을 때 아이콘 중앙 정렬 */
+.dashboard-sidebar.closed .sidebar-nav li a {
+  justify-content: center;
+  padding: 12px 0;
+}
+
+.dashboard-sidebar.closed .sidebar-toggle-button {
+  right: 15px;
+}
+
+.dashboard-sidebar.closed .menu-icon {
+  margin-right: 0;
+}
+
+/* 사이드바 닫혔을 때 서브메뉴 숨김 */
+.dashboard-sidebar.closed .submenu {
+  display: none;
+}
+
+/* Main Content Area */
+.main-content {
+  flex-grow: 1;
+  padding-top: var(--header-height);
+  padding-left: var(--sidebar-width-closed);
+  /* Start with closed width */
+  transition: padding-left var(--sidebar-transition);
+  background-color: #f7fafd;
+  /* Background color from design */
+  min-height: calc(100vh - var(--header-height));
+}
+
+.main-content.sidebar-open {
+  padding-left: var(--sidebar-width-open);
+  margin-left: 64px;
+}
+
+/* 대시보드 컨텐츠 영역 공통 스타일 */
+.dashboard-content-area {
+  padding: 2rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 서브메뉴 스타일 추가 */
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-radius: 8px;
+}
+
+.menu-item:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.menu-item.active {
+  background-color: #f0f9ff;
+  color: #0c69d3;
+}
+
+/* 드롭다운 아이콘 스타일 제거 */
+/* .dropdown-icon {
+    margin-left: auto;
+    font-size: 0.8rem;
+} */
+
+/* 메뉴 아이콘 스타일 */
+.menu-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  width: 20px;
+  margin-right: 10px;
+}
