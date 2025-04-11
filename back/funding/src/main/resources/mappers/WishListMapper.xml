@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssafy.funding.mapper.WishListMapper">
+    <resultMap id="WishListResultMap" type="com.ssafy.funding.entity.WishList">
+        <id column="wishlist_id" property="wishlistId"/>
+        <result column="user_id" property="userId"/>
+        <result column="funding_id" property="fundingId"/>
+    </resultMap>
+
+    <insert id="createWish">
+        INSERT INTO wishlist (user_id, funding_id)
+        VALUES (#{userId}, #{fundingId})
+    </insert>
+
+    <select id="findFundingIdsByUserId" parameterType="int" resultType="int">
+        SELECT funding_id
+        FROM wishlist
+        WHERE user_id = #{userId}
+    </select>
+
+
+    <select id="findOngoingByUserId" parameterType="int" resultMap="WishListResultMap">
+        SELECT w.*
+        FROM wishlist w
+                 JOIN funding f ON w.funding_id = f.funding_id
+        WHERE w.user_id = #{userId} AND f.status = 'ONGOING'
+    </select>
+
+    <select id="findDoneByUserId" parameterType="int" resultMap="WishListResultMap">
+        SELECT w.*
+        FROM wishList w
+                 JOIN funding f ON w.funding_id = f.funding_id
+        WHERE w.user_id = #{userId} AND f.status IN ('SUCCESS', 'FAIL')
+    </select>
+
+    <delete id="deleteWish">
+        DELETE FROM wishlist WHERE user_id = #{userId} AND funding_id = #{fundingId}
+    </delete>
+
+    <select id="existsByUserIdAndFundingId" resultType="boolean">
+        SELECT EXISTS(
+            SELECT 1 FROM wishlist
+            WHERE user_id = #{userId} AND funding_id = #{fundingId}
+        )
+    </select>
+
+
+</mapper>

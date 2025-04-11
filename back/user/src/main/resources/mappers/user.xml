@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ssafy.user.mapper.UserMapper">
+    <resultMap id="UserResultMap" type="com.ssafy.user.entity.User">
+        <id column="user_id" property="userId" />
+        <result column="email" property="email" />
+        <result column="name" property="name" />
+        <result column="nickname" property="nickname" />
+        <result column="gender" property="gender" />
+        <result column="account" property="account" />
+        <result column="ssafy_user_key" property="ssafyUserKey" />
+        <result column="age" property="age" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <!-- 이메일을 통한 사용자 조회 -->
+    <select id="findByEmail" parameterType="String" resultType="com.ssafy.user.entity.User">
+        SELECT
+        *
+        FROM user
+        WHERE email = #{email}
+    </select>
+
+    <select id="findById" parameterType="Integer" resultType="com.ssafy.user.entity.User">
+        SELECT
+        *
+        FROM user
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 사용자 정보 등록 -->
+    <insert id="insertUser" parameterType="com.ssafy.user.entity.User">
+        INSERT INTO user (email, name, nickname, gender, account, ssafy_user_key, age, created_at)
+        VALUES (#{email}, #{name}, #{nickname}, #{gender}, #{account}, #{ssafyUserKey}, #{age}, now())
+    </insert>
+
+    <!-- 사용자 정보 수정 -->
+    <update id="updateMyInfo" parameterType="map">
+        update user
+        set
+        nickname = #{nickname},
+        account = #{account}
+        where user_id = #{userId}
+    </update>
+
+    <select id="findNicknameById" parameterType="int" resultType="String">
+        select nickname
+        from user
+        where user_id = #{userId}
+    </select>
+
+    <select id="selectAgeGroupCounts" parameterType="list" resultType="map">
+        SELECT
+        CASE
+        WHEN age BETWEEN 10 AND 19 THEN 0
+        WHEN age BETWEEN 20 AND 29 THEN 1
+        WHEN age BETWEEN 30 AND 39 THEN 2
+        WHEN age BETWEEN 40 AND 49 THEN 3
+        WHEN age BETWEEN 50 AND 59 THEN 4
+        WHEN age >= 60 THEN 5
+        ELSE -1
+        END AS ageGroup,
+        COUNT(*) AS count
+        FROM user
+        WHERE user_id IN
+        <foreach item="dto" collection="list" open="(" separator="," close=")">
+            #{dto.userId}
+        </foreach>
+        GROUP BY ageGroup
+    </select>
+
+    <select id="getSellerFundingDetailOrderList" parameterType="list" resultMap="UserResultMap">
+        <choose>
+            <when test="userIdList != null and userIdList.size() > 0">
+                <foreach item="userId" collection="userIdList" separator=" UNION ALL ">
+                    SELECT
+                    user_id,
+                    name,
+                    nickname
+                    FROM
+                    user
+                    WHERE
+                    user_id = #{userId}
+                </foreach>
+            </when>
+            <otherwise>
+                SELECT
+                user_id,
+                name,
+                nickname
+                FROM
+                user
+                WHERE
+                1 = 0
+            </otherwise>
+        </choose>
+    </select>
+
+</mapper>
