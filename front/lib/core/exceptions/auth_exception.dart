@@ -2,8 +2,9 @@
 class AuthException implements Exception {
   final String message;
   final int? statusCode;
+  final bool isNewUser;
 
-  AuthException(this.message, {this.statusCode});
+  AuthException(this.message, {this.statusCode, this.isNewUser = false});
 
   @override
   String toString() => message;
@@ -11,5 +12,5 @@ class AuthException implements Exception {
 
 /// 유효성 검증 예외
 class ValidationException extends AuthException {
-  ValidationException(String message) : super(message);
+  ValidationException(String message) : super(message, statusCode: 400);
 }

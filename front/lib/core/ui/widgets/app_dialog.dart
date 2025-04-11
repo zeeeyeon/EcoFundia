@@ -126,6 +126,16 @@ class AppDialog extends StatelessWidget {
           Expanded(
             child: ElevatedButton(
               onPressed: () {
+                onConfirm?.call();
+                Navigator.of(context).pop(true);
+              },
+              child: Text(confirmText),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () {
                 onCancel?.call();
                 Navigator.of(context).pop(false);
               },
@@ -134,16 +144,6 @@ class AppDialog extends StatelessWidget {
                 foregroundColor: Colors.black87,
               ),
               child: Text(cancelText),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: ElevatedButton(
-              onPressed: () {
-                onConfirm?.call();
-                Navigator.of(context).pop(true);
-              },
-              child: Text(confirmText),
             ),
           ),
         ],

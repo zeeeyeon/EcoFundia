@@ -31,30 +31,56 @@ class LoadingOverlay extends StatelessWidget {
             width: double.infinity,
             height: double.infinity,
             child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                    width: size ?? 50,
-                    height: size ?? 50,
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        progressColor ?? AppColors.primary,
-                      ),
-                    ),
-                  ),
-                  if (message != null) ...[
-                    const SizedBox(height: 16),
-                    Text(
-                      message!,
-                      style: const TextStyle(
-                        color: AppColors.white,
-                        fontSize: 14,
-                      ),
-                      textAlign: TextAlign.center,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 24, horizontal: 32),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.9),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 10,
+                      spreadRadius: 2,
                     ),
                   ],
-                ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: size ?? 50,
+                      height: size ?? 50,
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          progressColor ?? AppColors.primary,
+                        ),
+                        strokeWidth: 3,
+                      ),
+                    ),
+                    if (message != null) ...[
+                      const SizedBox(height: 16),
+                      Text(
+                        message!,
+                        style: const TextStyle(
+                          color: Colors.black87,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        '잠시만 기다려 주세요...',
+                        style: TextStyle(
+                          color: Colors.black54,
+                          fontSize: 14,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -75,25 +101,54 @@ class LoadingOverlay extends StatelessWidget {
       builder: (context) => WillPopScope(
         onWillPop: () async => barrierDismissible,
         child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(
-                width: 50,
-                height: 50,
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-                ),
-              ),
-              if (message != null) ...[
-                const SizedBox(height: 16),
-                Text(
-                  message,
-                  style: const TextStyle(color: AppColors.white, fontSize: 14),
-                  textAlign: TextAlign.center,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 32),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.9),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 10,
+                  spreadRadius: 2,
                 ),
               ],
-            ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(
+                  width: 50,
+                  height: 50,
+                  child: CircularProgressIndicator(
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(AppColors.primary),
+                    strokeWidth: 3,
+                  ),
+                ),
+                if (message != null) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    message,
+                    style: const TextStyle(
+                      color: Colors.black87,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    '잠시만 기다려 주세요...',
+                    style: TextStyle(
+                      color: Colors.black54,
+                      fontSize: 14,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
       ),

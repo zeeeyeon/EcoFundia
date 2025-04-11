@@ -1,6 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 인터넷 연결 권한 추가 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    
     <application
-        android:label="front"
+        android:label="EcoFundia"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

@@ -39,7 +39,7 @@ class SignUpValidator {
     if (value == null || value.isEmpty) {
       return '성별을 선택해주세요.';
     }
-    if (value != '남성' && value != '여성') {
+    if (value != 'MALE' && value != 'FEMALE') {
       return '올바른 성별을 선택해주세요.';
     }
     return null;
@@ -47,25 +47,9 @@ class SignUpValidator {
 
   /// 비즈니스 로직 검증 - 회원가입 데이터 (예외 발생)
   static void validateSignUpData(SignUpEntity entity) {
-    // 이메일 검증
-    if (entity.email.isEmpty) {
-      throw ValidationException('이메일은 필수 입력 항목입니다.');
-    }
-
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!emailRegex.hasMatch(entity.email)) {
-      throw ValidationException('유효한 이메일 주소를 입력해주세요.');
-    }
-
     // 닉네임 검증
     if (entity.nickname.length < 2 || entity.nickname.length > 10) {
       throw ValidationException('닉네임은 2~10자 사이여야 합니다.');
-    }
-
-    // 성별 검증
-    final String genderLower = entity.gender.toLowerCase();
-    if (!['male', 'female'].contains(genderLower)) {
-      throw ValidationException('성별은 male 또는 female이어야 합니다.');
     }
 
     // 나이 검증
@@ -95,8 +79,8 @@ class SignUpValidator {
       throw ValidationException('닉네임을 입력해주세요.');
     }
 
-    if (gender.isEmpty) {
-      throw ValidationException('성별을 선택해주세요.');
+    if (gender.isEmpty || (gender != 'MALE' && gender != 'FEMALE')) {
+      throw ValidationException('올바른 성별을 선택해주세요.');
     }
 
     final int? parsedAge = int.tryParse(age);
@@ -113,4 +97,48 @@ class SignUpValidator {
   static String mapGenderToServer(String uiGender) {
     return uiGender == '남성' ? 'MALE' : 'FEMALE';
   }
+
+  /// 종합 검증 - 사용자 입력값 검증 후 결과 반환
+  static ValidationResult validate({
+    required String email,
+    required String nickname,
+    required String gender,
+    required int age,
+  }) {
+    if (email.isEmpty) {
+      return ValidationResult(false, '이메일을 입력해주세요.');
+    }
+
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(email)) {
+      return ValidationResult(false, '유효한 이메일 주소를 입력해주세요.');
+    }
+
+    if (nickname.isEmpty) {
+      return ValidationResult(false, '닉네임을 입력해주세요.');
+    }
+
+    final nicknameRegex = RegExp(r'^[A-Za-z0-9가-힣]{2,10}$');
+    if (!nicknameRegex.hasMatch(nickname)) {
+      return ValidationResult(false, '닉네임은 2~10글자, 한글, 영어, 숫자만 가능합니다.');
+    }
+
+    if (gender.isEmpty || (gender != 'MALE' && gender != 'FEMALE')) {
+      return ValidationResult(false, '올바른 성별을 선택해주세요.');
+    }
+
+    if (age < 14 || age > 120) {
+      return ValidationResult(false, '나이는 14세 이상 120세 이하여야 합니다.');
+    }
+
+    return ValidationResult(true, null);
+  }
+}
+
+/// 유효성 검증 결과
+class ValidationResult {
+  final bool isValid;
+  final String? errorMessage;
+
+  ValidationResult(this.isValid, this.errorMessage);
 }

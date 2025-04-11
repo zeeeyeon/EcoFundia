@@ -135,11 +135,11 @@ class _TotalFundCardState extends State<TotalFundCard>
               child: Text(
                 char,
                 key: ValueKey<String>(char),
-                style: AppTextStyles.totalFund.copyWith(
+                style: HomeTextStyles.totalFundLabel.copyWith(
                   color: AppColors.primary,
                   height: 1.1,
                   fontSize: 40,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
             ),
