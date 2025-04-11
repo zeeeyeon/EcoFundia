@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seller.mapper.SellerMapper">
+
+    <resultMap id="sellerResultMap" type="com.seller.dto.response.FundingDetailSellerResponseDto">
+        <id property="sellerId" column="seller_id" />
+        <result property="sellerProfileImageUrl" column="profile_img" />
+        <result property="sellerName" column="name" />
+    </resultMap>
+
+    <resultMap id="SellerResultMap" type="com.seller.entity.Seller">
+        <id property="sellerId" column="seller_id"/>
+        <result property="name" column="name"/>
+    </resultMap>
+
+    <select id="findByUserId" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1
+            FROM seller
+            WHERE user_id = #{userId}
+        )
+    </select>
+
+    <select id="findNamesByIds" parameterType="java.util.List" resultMap="SellerResultMap">
+        SELECT
+            seller_id,
+            name
+        FROM seller
+        WHERE seller_id IN
+        <foreach item="id" collection="sellerIds" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <!-- 펀딩 키워드 검색 조회 -->
+    <select id="sellerInfo" resultMap="sellerResultMap">
+        SELECT seller_id, profile_img, name
+        FROM seller WHERE seller_id = #{sellerId}
+    </select>
+
+    <select id="getSeller" resultMap="sellerResultMap">
+        SELECT *
+        FROM seller WHERE seller_id = #{sellerId}
+    </select>
+
+    <insert id="grantSellerRole">
+        INSERT INTO seller VALUES (0, #{userId}, #{name}, null, null, null, #{businessNumber})
+    </insert>
+
+    <select id="getSellerIdByUserId" resultType="integer">
+        SELECT
+            seller_id
+        from
+            seller
+        where
+            user_id = #{userId}
+    </select>
+
+
+
+    <select id="getSellerInfo" resultType="com.seller.entity.Seller">
+        SELECT *
+        FROM seller WHERE seller_id = #{sellerId}
+    </select>
+
+</mapper>
