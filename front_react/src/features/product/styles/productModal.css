@@ -1,0 +1,63 @@
+/* 모달 기본 스타일 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.product-modal {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 1200px;
+  max-height: 90vh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.product-modal-content {
+  max-height: calc(90vh - 30px);
+  overflow-y: auto;
+  padding: 20px;
+  flex: 1;
+}
+
+.close-modal-button {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  z-index: 10;
+}
+
+.close-modal-button:hover {
+  color: #000;
+}
+
+/* 모달 섹션 스타일 */
+.product-modal-sections {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-top: 20px;
+}
+
+/* 반응형 스타일 */
+@media (max-width: 768px) {
+  .product-modal-content {
+    padding: 15px;
+  }
+}

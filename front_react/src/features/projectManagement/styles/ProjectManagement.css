@@ -1,0 +1,541 @@
+/* 프로젝트 관리 페이지 스타일 */
+/* ===== 페이지 레이아웃 ===== */
+.dashboard-content-area.project-management-page {
+  padding: 1.5rem 2rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.page-title {
+  font-size: 1.8rem;
+  color: #333;
+  margin-bottom: 2rem;
+  font-weight: 700;
+  align-self: flex-start;
+  padding-left: 0.5rem;
+  margin-top: 30px;
+}
+
+/* ===== 섹션 스타일 ===== */
+.project-section-container {
+  margin-bottom: 3rem;
+  width: 100%;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0;
+}
+
+.project-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0 1rem;
+}
+
+.project-section-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* ===== 그리드 레이아웃 ===== */
+.project-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  width: 100%;
+}
+
+/* ===== 카드 스타일 ===== */
+.project-card {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  width: 100%;
+  max-width: 450px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.project-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.project-card-image-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.project-card-image {
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+}
+
+.project-card-content {
+  padding: 20px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.project-card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.project-card-description {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 15px;
+  line-height: 1.5;
+  flex-grow: 1;
+}
+
+.project-card-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.project-card-price {
+  font-weight: 600;
+  color: #3b82f6;
+}
+
+.project-card-remaining-time {
+  color: #ef4444;
+  font-size: 13px;
+}
+
+/* ===== 프로그레스 바 ===== */
+.project-card-progress-container {
+  background-color: #e5e7eb;
+  border-radius: 5px;
+  height: 8px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.project-card-progress-bar {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.8s ease, background-color 0.5s ease;
+  position: relative;
+}
+
+.project-card-progress-percentage {
+  font-size: 13px;
+  font-weight: 500;
+  color: #4b5563;
+  text-align: right;
+}
+
+/* ===== 페이지네이션 컨트롤 ===== */
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pagination-controls button {
+  background-color: #f3f4f6;
+  border: 1px solid #d1d5db;
+  color: #374151;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.pagination-controls button:hover:not(:disabled) {
+  background-color: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+.pagination-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-controls span {
+  font-size: 14px;
+  color: #4b5563;
+  min-width: 60px;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* ===== 로딩 및 에러 상태 ===== */
+.loading-container,
+.error-container,
+.no-projects-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  padding: 30px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 16px;
+}
+
+.error-message {
+  color: #ef4444;
+  font-weight: 500;
+}
+
+/* ===== 마감된 상품 스타일 ===== */
+.project-card.finished-project {
+  opacity: 0.85;
+}
+
+/* ===== 펀딩 성공/실패 스타일 ===== */
+.project-card.success-project {
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.project-card.success-project:hover {
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.3);
+}
+
+.project-card.failed-project {
+  box-shadow: 0 4px 12px rgba(239, 83, 80, 0.2);
+  border: 1px solid rgba(239, 83, 80, 0.3);
+}
+
+.project-card.failed-project:hover {
+  box-shadow: 0 6px 16px rgba(239, 83, 80, 0.3);
+}
+
+.finished-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.finished-overlay.success {
+  background-color: rgba(76, 175, 80, 0.6);
+}
+
+.finished-overlay.failed {
+  background-color: rgba(239, 83, 80, 0.6);
+}
+
+.project-card-remaining-time.success {
+  color: #4caf50;
+  font-weight: 500;
+}
+
+.project-card-remaining-time.failed {
+  color: #ef5350;
+  font-weight: 500;
+}
+
+.project-card-progress-percentage.success {
+  color: #4caf50;
+  font-weight: 600;
+}
+
+.project-card-progress-percentage.failed {
+  color: #ef5350;
+  font-weight: 600;
+}
+
+/* 성공/실패 프로젝트 애니메이션 */
+.success-project .project-card-progress-bar {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.7;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.7;
+  }
+}
+
+/* 성공/실패 뱃지 */
+.project-card.success-project::after,
+.project-card.failed-project::after {
+  content: "";
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  z-index: 10;
+}
+
+.project-card.success-project::after {
+  background-color: #4caf50;
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.6);
+}
+
+.project-card.failed-project::after {
+  background-color: #ef5350;
+  box-shadow: 0 0 8px rgba(239, 83, 80, 0.6);
+}
+
+/* ===== 반응형 미디어 쿼리 ===== */
+@media (min-width: 1400px) {
+  .project-grid {
+    gap: 1.5rem;
+  }
+
+  .project-card {
+    max-width: 500px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .project-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+  }
+
+  .project-card {
+    max-width: 400px;
+  }
+}
+
+@media (max-width: 992px) {
+  .project-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+
+  .dashboard-content-area.project-management-page {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-content-area.project-management-page {
+    padding: 1rem;
+  }
+
+  .project-section-container {
+    padding: 0;
+  }
+
+  .project-grid {
+    padding: 0 0.5rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .project-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .project-card {
+    max-width: 100%;
+  }
+}
+
+/* ===== 프로젝트 카드 메뉴 스타일 ===== */
+.project-card-menu {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+}
+
+.more-button {
+  background: rgba(255, 255, 255, 0.8);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: background 0.2s;
+}
+
+.more-button:hover {
+  background: white;
+}
+
+.more-icon {
+  font-size: 18px;
+  font-weight: bold;
+  color: #555;
+}
+
+.project-menu-dropdown {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+  min-width: 150px;
+  overflow: hidden;
+  z-index: 100; /* 높은 z-index로 다른 요소들 위에 표시 */
+}
+
+.menu-item {
+  display: block;
+  width: 100%;
+  padding: 12px 15px;
+  text-align: left;
+  border: none;
+  background: none;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.menu-item:hover {
+  background: #f5f5f5;
+}
+
+.menu-item.delete {
+  color: #e53935;
+}
+
+.menu-item.delete:hover {
+  background: #ffebee;
+}
+
+/* ===== 삭제 모달 스타일 ===== */
+.delete-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.delete-modal {
+  background: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 450px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  animation: modalFadeIn 0.3s ease;
+  text-align: center;
+  padding: 32px 24px;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.delete-modal-icon {
+  margin: 0 auto 16px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #ffebee;
+  border-radius: 50%;
+}
+
+.delete-modal-title {
+  margin: 0 0 12px;
+  font-size: 20px;
+  color: #111827;
+  font-weight: 600;
+}
+
+.delete-modal-message {
+  margin: 0 0 28px;
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.delete-modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.delete-modal-actions button {
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel {
+  background-color: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #d1d5db;
+}
+
+.btn-cancel:hover {
+  background-color: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+.btn-delete {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+}
+
+.btn-delete:hover {
+  background-color: #dc2626;
+}

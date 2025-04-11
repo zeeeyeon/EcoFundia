@@ -1,0 +1,79 @@
+/* AgeGroupChart 스타일 */
+.age-group-chart-card {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  padding: 20px;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  justify-content: center;
+}
+
+.age-chart-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  min-height: 250px; /* 최소 높이 설정 */
+}
+
+.chart-area {
+  flex-grow: 1;
+  height: 100%;
+  width: 100%; /* 너비 100% 명시적 지정 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 250px; /* 최소 높이 설정 */
+}
+
+/* Recharts 스타일 오버라이드 */
+.recharts-legend-wrapper {
+  padding-right: 15px !important;
+}
+
+.recharts-legend-item {
+  display: flex !important;
+  justify-content: space-between !important;
+  width: 150px !important;
+  margin-bottom: 8px !important;
+  align-items: center !important;
+}
+
+.recharts-legend-item-text {
+  display: flex !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  align-items: center !important;
+}
+
+.chart-percent {
+  margin-left: 10px !important;
+  color: #457b9d !important;
+  font-weight: 600 !important;
+}
+
+/* 호버시 툴팁 스타일 */
+.recharts-tooltip-wrapper {
+  z-index: 10 !important;
+}
+
+/* 도넛 차트 색상 스타일 */
+.recharts-sector {
+  stroke: none !important;
+}
+
+/* 데이터 없음 메시지 */
+.age-group-chart-card .no-data-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  font-size: 16px;
+  color: #666;
+  text-align: center;
+}
